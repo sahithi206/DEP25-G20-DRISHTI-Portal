@@ -1,24 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState ,useContext} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import backgroundImage from '../images/background.jpg';
-
+import {AuthContext} from '../services/authServices';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
   const [error, setError] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
+  const {login}= useContext(AuthContext);
+  const handleSubmit = (e) => {    
     if (!email || !password || !role) {
       setError('All fields are required');
       return;
     }
-    
-    // Handle login logic here
+    login(email,password);
     console.log('Logging in with:', email, password, role);
-    setError(''); // Clear error after successful submission
+    setError('');
   };
 
   return (
@@ -34,7 +31,7 @@ const Login = () => {
       <div className="row justify-content-center align-items-center" style={{ height: '100%' }}>
         <div
           className="col-md-6 col-lg-4 bg-light p-5 rounded shadow"
-          style={{ minWidth: '350px', maxWidth: '500px', height: '500px' }}  // Increased height
+          style={{ minWidth: '350px', maxWidth: '500px', height: '500px' }} 
         >
           <h2 className="text-center mb-4">Login to Your Account</h2>
           {error && <div className="alert alert-danger">{error}</div>}
@@ -78,11 +75,12 @@ const Login = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block mt-4">
+            <button type="button" className="btn btn-primary btn-block mt-4" onClick={handleSubmit}>
               Login
             </button>
 
             <div className="d-flex justify-content-between mt-3">
+           {/* eslint-disable-next-line*/} 
               <a href="#" className="btn btn-link">Forgot Password</a>
               <a href="/register" className="btn btn-link">New User</a>
             </div>

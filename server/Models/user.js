@@ -30,7 +30,6 @@ const userSchema = new Schema({
     },
     idType: {
         type: String,
-        enum: ['Pan Card Number', 'Passport Number', 'Driving Licence Number'],
         required: true
     },
     idNumber: {
