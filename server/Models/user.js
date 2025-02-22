@@ -36,7 +36,13 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true
-    }
+    },
+    proposals: [
+        {
+            ProposalId: { type:String, required:true }, // Reference to Proposal
+            Scheme: { type: String }
+        }
+    ]
 });
 
 module.exports = mongoose.model("users", userSchema);

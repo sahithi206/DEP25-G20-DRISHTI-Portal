@@ -121,17 +121,14 @@ router.post("/login", async (req, res) => {
  }
   });
 router.get("/get-user", fetchUser, async (req, res) => {
-    const { user } = req.user;
+    const { user } = req
   try{
     const isUser = await User.findOne({ _id: user._id });
-    console.log({ user });
+    console.log(isUser);
     if (!isUser) {
       return res.status(401);
     }
-    res.status(200).json({
-      user,
-      msg: ""
-    });
+    res.status(200).json({ success:true, user, msg: "User Details Fetched"});
   }
   catch(e){
     res.status(500).json({success:false,e,msg:"Unable to fetch users details"});
