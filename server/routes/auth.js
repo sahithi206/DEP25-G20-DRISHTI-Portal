@@ -52,15 +52,18 @@ router.post("/send-otp",async(req,res)=>{
     }
 })
 router.post("/verify-otp", async (req, res) => {
-    const {email, password, Name,Institute, DOB, Mobile, Gender, idType, idNumber,otp}=req.body;
-  try{
-        if (!email || !otp || !Name || !Institute||!password || !DOB||!Mobile||!Gender||!idType||!idNumber) {
+    const {email, password, Name,Institute, DOB, Mobile, Gender,role, idType, idNumber,otp}=req.body;
+  try{   
+        if (!email || !otp || !Name || !Institute||!password || !DOB||!Mobile||!role||!Gender||!idType||!idNumber) {
             return res.status(400).json({ success: true, msg: "All fields are required" });
         }
         console.log(otp);
+        const uer = await User.findOne({ email });
+        if (uer) return res.status(400).json({success:false, msg: "User already exists with this email" });
+
         const validOtp = await OTPModel.findOne({email, otp });
         console.log(validOtp);
-        if (!validOtp || new Date() - new Date(validOtp.createdAt) > 5 * 60 * 1000) {
+        if (!validOtp|| new Date() - new Date(validOtp.createdAt) > 5 * 60 * 1000) {
             return res.status(400).json({ success:false, msg: "Invalid or expired OTP" });
         }
         console.log(validOtp._id);
@@ -68,11 +71,23 @@ router.post("/verify-otp", async (req, res) => {
         const isUser = await User.findOne({ email });
         if (isUser) return res.status(400).json({success:false, msg: "User already exists with this email" });
         
-        const salt= await bcrypt.genSaltSync(10);
-        let pass=await bcrypt.hash(req.body.password,salt);
-        
-        const user = new User({email, password : pass, Name,Institute,DOB, Mobile, Gender, idType, idNumber});
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const user = new User({ 
+            email, 
+            password: hashedPassword,  
+            Name, 
+            Institute, 
+            DOB, 
+            Mobile, 
+            Gender, 
+            idType, 
+            idNumber, 
+            role 
+        });
         await user.save();
+
         
         const accessToken = jwt.sign({ user }, process.env.TOKEN, { expiresIn: "36000m" });
         res.status(200).json({ success:true, user, accessToken, msg: "Signup successful" });
