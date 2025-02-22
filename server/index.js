@@ -1,6 +1,7 @@
 require("dotenv").config();
 const cors = require("cors");
 const express= require ("express");
+const Auth=require("./routes/auth");
 const mongoose = require("mongoose");
 
 
@@ -12,6 +13,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
     res.send("Backend Connected!!!");
 });
+
+app.use("/auth",Auth);
 
 app.listen(PORT, () => {
     console.log(`Server is running on PORT : ${PORT}`);
