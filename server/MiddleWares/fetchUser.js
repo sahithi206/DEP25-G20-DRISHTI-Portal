@@ -1,10 +1,9 @@
-
 const jwt = require("jsonwebtoken");
 const JWT_SECRET=process.env.TOKEN
 
 const fetchUser=(req,res,next)=>{
     try{
-        let token=req.header('auth-token');
+        let token=req.header('accessToken');
         if(!token){
             return res.status(401).send("Authenticate using a valid token");
         }
