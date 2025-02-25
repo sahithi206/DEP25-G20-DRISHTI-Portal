@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const recurringSchema = new Schema({
-    budgetId: { type: Schema.Types.ObjectId, ref: "Budget", required: true }, 
+    proposalId: { type: Schema.Types.ObjectId, required: true }, 
     noOfEquip: { type: Number, required: true },
     employee: [{
         designation: { type: String, required: true },

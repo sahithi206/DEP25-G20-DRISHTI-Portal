@@ -47,18 +47,12 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
         res.status(500).json({ success: false, error, msg: "Failed to generate Proposal ID" });
     }
 });
-router.post("/submitGI", fetchUser, async (req, res) => {
-  const {  instituteName,coordinator,areaOfSpecialization, scheme} = req.body;
-
+router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
+  const {  instituteName,coordinator,areaOfSpecialization} = req.body;
+  const {proposalId}=req.params
   try {
-    console.log(req.body);
-    const user= await User.findById({_id:req.user._id}).populate("proposals");
-    const proposals=user.proposals;
-    console.log(user);
-    const proposal = proposals.filter(prop =>prop.Scheme===scheme);
-    console.log(proposal);
     const generalInfo = new GeneralInfo({
-      instituteName,coordinator,areaOfSpecialization, scheme,proposalId:proposal[0].ProposalId
+      instituteName,coordinator,areaOfSpecialization,proposalId
     });
     console.log(generalInfo);
     await generalInfo.save();
@@ -69,15 +63,13 @@ router.post("/submitGI", fetchUser, async (req, res) => {
   }
 });
 
-router.post("/submit-research-details", fetchUser, async (req, res) => {
-  const { Title,Duration,Summary,objectives,Output,other,scheme} = req.body;
+router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) => {
+  const { Title,Duration,Summary,objectives,Output,other} = req.body;
+    const {proposalId}=req.params
+
   try {
-    console.log(scheme);
-    const user= await User.findById({_id:req.user._id}).populate("proposals");
-    const proposals=user.proposals;
-    const proposal = proposals.filter(prop =>prop.Scheme===scheme);
     const researchDetails = new ResearchDetails({
-        Title,Duration,Summary,objectives,Output,other,proposalId:proposal[0].ProposalId
+        Title,Duration,Summary,objectives,Output,other,proposalId
     });
     /*const details= await ResearchDetails.findOne({proposalId:proposal[0].ProposalId});
     console.log(details);*/
@@ -89,23 +81,15 @@ router.post("/submit-research-details", fetchUser, async (req, res) => {
   }
 });
 
-router.post("/submit-budget", fetchUser, async (req, res) => {
-  console.log("Received Data:", JSON.stringify(req.body, null, 2));
-
-  const { scheme, recurring_items, non_recurring_items, other_expenses = {} } = req.body;
+router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
+  const { recurring_items, non_recurring_items, other_expenses = {} } = req.body;
+  const {proposalId}=req.params;
 
   try {
       const user = await User.findById(req.user._id).populate("proposals");
       if (!user) {
           return res.status(404).json({ success: false, msg: "User not found" });
       }
-
-      const proposal = user.proposals.find(prop => prop.Scheme === scheme);
-      if (!proposal) {
-          return res.status(404).json({ success: false, msg: "Proposal not found for this scheme" });
-      }
-
-      const budgetId = proposal.ProposalId;
 
       let totalRecurring = 0,
           totalNonRecurring = 0,
@@ -124,7 +108,7 @@ router.post("/submit-budget", fetchUser, async (req, res) => {
           });
 
           await new Recurring({
-              budgetId,
+              proposalId,
               noOfEquip: recurring_items.noOfEquip || 0,
               employee: employees
           }).save();
@@ -142,7 +126,7 @@ router.post("/submit-budget", fetchUser, async (req, res) => {
           });
 
           await new NonRecurring({
-              budgetId,
+              proposalId,
               noOfEquip: non_recurring_items.noOfEquip || 0,
               items
           }).save();
@@ -160,7 +144,7 @@ router.post("/submit-budget", fetchUser, async (req, res) => {
           });
           console.log(expenses);
           const savedOtherExpenses = await new OtherExpenses({
-              budgetId,
+              proposalId,
               noOfEquip: other_expenses.noOfEquip || 0,
               expense: expenses
           }).save();
@@ -169,7 +153,7 @@ router.post("/submit-budget", fetchUser, async (req, res) => {
       }
 
       const savedBudget = await new Budget({
-          proposalId: budgetId,
+          proposalId,
           recurring_total: totalRecurring,
           non_recurring_total: totalNonRecurring,
           total: totalRecurring + totalNonRecurring + totalOtherExpenses
@@ -186,15 +170,14 @@ router.post("/submit-budget", fetchUser, async (req, res) => {
 });
 
 
-router.post("/submit-acknowledgement", fetchUser, async (req, res) => {
+router.post("/submit-acknowledgement/:proposalId", fetchUser, async (req, res) => {
   const { accept,scheme } = req.body;
-
+  const {proposalId}=req.params;
   try {
-    const user = await User.findById(req.user._id).populate("proposals");
+    /*const user = await User.findById(req.user._id).populate("proposals");
     if (!user) return res.status(404).json({ success: false, msg: "User not found" });
     const proposal = user.proposals.find(prop => prop.Scheme === scheme);
-    if (!proposal) return res.status(404).json({ success: false, msg: "Proposal not found for this scheme" });
-    const proposalId=proposal.ProposalId;
+    if (!proposal) return res.status(404).json({ success: false, msg: "Proposal not found for this scheme" });*/
     const acknowledgement = new Acknowledgement({
       proposalId,
       TCaccepted:accept,
@@ -208,19 +191,21 @@ router.post("/submit-acknowledgement", fetchUser, async (req, res) => {
     res.status(500).json({ success: false, msg: "Failed to save acknowledgement" });
   }
 });
-router.post("/submit-bank-details", fetchUser, async (req, res) => {
+router.post("/submit-bank-details/:proposalId", fetchUser, async (req, res) => {
+    
   try {
       const {name, accountNumber, ifscCode, accountType, bankName,scheme } = req.body;
+      const {proposalId}=req.params;
       const user = await User.findById(req.user._id).populate("proposals");
       if (!user) {
           return res.status(404).json({ success: false, msg: "User not found" });
       }
-      const proposal = user.proposals.find(prop => prop.Scheme === scheme);
+     /* const proposal = user.proposals.find(prop => prop.Scheme === scheme);
       if (!proposal) {
           return res.status(404).json({ success: false, msg: "Proposal not found for this scheme" });
       }
 
-      const proposalId = proposal.ProposalId;
+      const proposalId = proposal.ProposalId;*/
       if (!proposalId || !name || !accountNumber || !ifscCode || !accountType || !bankName) {
           return res.status(400).json({ success: false, msg: "All fields are required" });
       }
@@ -243,19 +228,18 @@ router.post("/submit-bank-details", fetchUser, async (req, res) => {
   }
 });
 
-router.post("/submit-pi-details", fetchUser, async (req, res) => {
+router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
   try {
-      const { name, department, institute, address, pincode, mobile, email, noOfDBTProjects, noOfProjects, scheme} = req.body;
+      const { name, department, institute, address, pincode, mobile, email, noOfDBTProjects, noOfProjects} = req.body;
+      const {proposalId}=req.params;
       const user = await User.findById(req.user._id).populate("proposals");
       if (!user) {
           return res.status(404).json({ success: false, msg: "User not found" });
       }
-      const proposal = user.proposals.find(prop => prop.Scheme === scheme);
+     /* const proposal = user.proposals.find(prop => prop.Scheme === scheme);
       if (!proposal) {
           return res.status(404).json({ success: false, msg: "Proposal not found for this scheme" });
-      }
-
-      const proposalId = proposal.ProposalId;
+      }*/
       if (!name || !department || !institute || !address || !pincode || !mobile || !email || noOfDBTProjects === undefined || noOfProjects === undefined || !proposalId) {
           return res.status(400).json({ success: false, msg: "All fields are required" });
       }
@@ -275,7 +259,7 @@ router.post("/submit-pi-details", fetchUser, async (req, res) => {
 
       await piDetails.save();
 
-      res.status(200).json({ success: true, msg: "PI details stored successfully" });
+      res.status(200).json({ success: true,piDetails, msg: "PI details stored successfully" });
 
   } catch (error) {
       console.error("Error storing PI details:", error);
