@@ -1,14 +1,14 @@
 import React, { useState ,useContext} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import backgroundImage from '../images/background.jpg';
-import {AuthContext} from '../services/authServices';
+import backgroundImage from '../assets/background.jpg';
+import {AuthContext} from './Context/Authcontext.jsx';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
   const [error, setError] = useState('');
   const {login}= useContext(AuthContext);
-  const handleSubmit = (e) => {    
+  const handleSubmit = () => {    
     if (!email || !password || !role) {
       setError('All fields are required');
       return;
@@ -80,9 +80,8 @@ const Login = () => {
             </button>
 
             <div className="d-flex justify-content-between mt-3">
-           {/* eslint-disable-next-line*/} 
               <a href="#" className="btn btn-link">Forgot Password</a>
-              <a href="/register" className="btn btn-link">New User</a>
+              <a href="/signup" className="btn btn-link">New User</a>
             </div>
           </form>
         </div>
@@ -92,3 +91,55 @@ const Login = () => {
 };
 
 export default Login;
+
+
+
+
+// src/pages/Login.jsx
+/*import { useState } from "react";
+
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Login Data:", { email, password });
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 shadow-lg rounded-lg w-full max-w-md">
+        <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block font-medium">Email:</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          <div>
+            <label className="block font-medium">Password:</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
+*/

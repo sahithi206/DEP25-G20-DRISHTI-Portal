@@ -1,22 +1,22 @@
-import React, { useState, createContext} from "react";
+import { useState, createContext } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
-const url = process.env.REACT_APP_URL; 
+const url = "http://localhost:8000/";
 
 const AuthProvider = (props) => {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
   const [authState] = useState("");
 
-  const sendOtp = async (data) => {
+  const sendOtp = async (email) => {
     try {
-      console.log(data);
+      console.log(email);
       const response = await fetch(`${url}auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({email:data}),
+        body: JSON.stringify({ email }),
       });
-       console.log(JSON.stringify(data));
+
       const json = await response.json();
       if (!response.ok) throw new Error(json.message || "Failed to send OTP");
 
@@ -27,47 +27,22 @@ const AuthProvider = (props) => {
     }
   };
 
-  const verifyOtp= async (data) => {
+  const verifyOtp = async (data) => {
     try {
-      console.log( JSON.stringify({
-        email: data.email,
-        password: data.password,
-        Name: data.Name,
-        Institute:data.Institute,
-        DOB: data.DOB,
-        Mobile: data.Mobile,
-        Gender: data.Gender,
-        idType: data.idType,
-        idNumber: data.idNumber,
-        role: data.role,
-        otp: data.otp,
-      }));
+      console.log("Verifying OTP with data:", JSON.stringify(data));
+
       const response = await fetch(`${url}auth/verify-otp`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-          Name: data.Name,
-          Institute:data.Institute,
-          DOB: data.DOB,
-          Mobile: data.Mobile,
-          Gender: data.Gender,
-          idType: data.idType,
-          idNumber: data.idNumber,
-          role: data.role,
-          otp: data.otp,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
-  
+
       const result = await response.json();
-  
+
       if (result.success) {
         console.log("Signup Successful!", result);
-        console.log("Signup Successful! Your token: " + result.accessToken);
-  
+        console.log("Your token: " + result.accessToken);
+
         localStorage.setItem("token", result.accessToken);
         navigate("/dashboard");
       } else {
@@ -79,16 +54,15 @@ const AuthProvider = (props) => {
       alert("Something went wrong while verifying OTP.");
     }
   };
-  
-  
-  const login = async (email,password) => {
+
+  const login = async (email, password) => {
     try {
       const response = await fetch(`${url}auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({email,password}),
+        body: JSON.stringify({ email, password }),
       });
-         console.log(response);
+
       const json = await response.json();
       if (!response.ok) throw new Error(json.message || "Invalid credentials");
 
@@ -110,4 +84,4 @@ const AuthProvider = (props) => {
   );
 };
 
-export { AuthContext , AuthProvider};
+export { AuthContext, AuthProvider };

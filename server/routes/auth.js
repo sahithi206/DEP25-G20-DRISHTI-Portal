@@ -93,6 +93,7 @@ router.post("/verify-otp", async (req, res) => {
         res.status(200).json({ success:true, user, accessToken, msg: "Signup successful" });
     }
     catch(e){
+      console.log(e);
        res.status(500).json({success:false,e,msg:"Couldn't verify OTP"});
     }
   });
