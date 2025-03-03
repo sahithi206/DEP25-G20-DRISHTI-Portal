@@ -39,7 +39,7 @@ const userSchema = new Schema({
     },
     proposals: [
         {
-            ProposalId: { type:String, required:true }, // Reference to Proposal
+            ProposalId: { type:String, required:true }, 
             Scheme: { type: String }
         }
     ]
