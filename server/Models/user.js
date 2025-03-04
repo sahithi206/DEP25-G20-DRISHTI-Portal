@@ -45,7 +45,7 @@ const userSchema = new Schema({
     },
     proposals: [
         {
-            ProposalId: { type: String, required: true },
+            ProposalId: { type: String},
             Scheme: { type: String }
         }
     ]

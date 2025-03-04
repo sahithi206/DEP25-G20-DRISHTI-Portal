@@ -24,7 +24,6 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
         const proposals=me.proposals;
         console.log(proposals);
         const project=proposals&&proposals.filter(prop =>prop.Scheme===Scheme)
-        console.log(project);
         if(project.length>0){
            return res.status(404).json({success:false,msg:"A Proposal was Already Submitted for this Scheme"});
         }
@@ -49,16 +48,27 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
     }
 });
 router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
-  const {instituteName,coordinator,areaOfSpecialization} = req.body;
+  const {name,address,mobileNo, email,instituteName,coordinator,areaOfSpecialization , DBTproj_ong, DBTproj_completed, Proj_ong , Proj_completed} = req.body;
   const {proposalId}=req.params
   const props = await General_Info.findOne({proposalId});
   if(props){
-    await General_Info.findOneAndUpdate({proposalId:proposalId},{instituteName,coordinator,areaOfSpecialization},{new:true});
+    await General_Info.findOneAndUpdate({proposalId:proposalId},{name,address,mobileNo, email,instituteName,coordinator,areaOfSpecialization , DBTproj_ong, DBTproj_completed, Proj_ong , Proj_completed},{new:true});
     return res.status(200).json({success:true,msg:"General Info Updated!!"});
   }
   try {
     const generalInfo = new GeneralInfo({
-      instituteName,coordinator,areaOfSpecialization,proposalId
+      proposalId,
+      name, 
+      address, 
+      mobileNo, 
+      email, 
+      instituteName, 
+      coordinator, 
+      areaOfSpecialization, 
+      DBTproj_ong, 
+      DBTproj_completed, 
+      Proj_ong, 
+      Proj_completed
     });
     console.log(generalInfo);
     await generalInfo.save();
@@ -360,34 +370,24 @@ router.post("/submit-bank-details/:proposalId", fetchUser, async (req, res) => {
 
 router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
   try {
-      const { name, department, institute, address, pincode, mobile, email, noOfDBTProjects, noOfProjects} = req.body;
+      const {members} = req.body;
       const {proposalId}=req.params;
       const user = await User.findById(req.user._id).populate("proposals");
       if (!user) {
           return res.status(404).json({ success: false, msg: "User not found" });
       }
-     
-      if (!name || !department || !institute || !address || !pincode || !mobile || !email || noOfDBTProjects === undefined || noOfProjects === undefined || !proposalId) {
+
+      /*if (!name || !department || !institute || !address || !pincode || !mobile || !email || noOfDBTProjects === undefined || noOfProjects === undefined || !proposalId) {
           return res.status(400).json({ success: false, msg: "All fields are required" });
-      }
+      }*/
+
       const props= await PI.findOne({proposalId:proposalId});
       if(props){
-        await PI.findOneAndUpdate({proposalId:proposalId},{name,department,institute,address,pincode,mobile,email,noOfDBTProjects,noOfProjects,},{new:true});
+        await PI.findOneAndUpdate({proposalId:proposalId},{members},{new:true});
        return res.status(200).json({success:true,msg:"Updated Bank Account Details Successfully"});
       }
-      const piDetails = new PI({
-          name,
-          department,
-          institute,
-          address,
-          pincode,
-          mobile,
-          email,
-          noOfDBTProjects,
-          noOfProjects,
-          proposalId
-      });
 
+      const piDetails = new PI({proposalId,members});
       await piDetails.save();
 
       res.status(200).json({ success: true,piDetails, msg: "PI details stored successfully" });
