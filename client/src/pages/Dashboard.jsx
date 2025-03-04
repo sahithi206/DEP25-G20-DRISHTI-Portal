@@ -6,6 +6,7 @@ import PrincipalInvestigatorForm from "./form/PrincipalInvestigatorForm";
 import GeneralInfo from "./form/GeneralInfo";
 import TechForm from "./form/TechForm";
 import BudgetForm from "./form/BudgetForm";
+import BankDetailsForm from "./form/BankDetailsForm";
 import InvestigatorBiodata from "./form/InvestigatorBioData";
 
 const tabs = [
@@ -13,8 +14,9 @@ const tabs = [
     "Project Investigator",
     "Technical Details",
     "Budget Related Details",
-    "Investigators Biodata",
-    "Declaration Submission",
+    "Bank Details",
+    // "Investigators Biodata",
+    // "Declaration Submission",
 ];
 
 const tabContent = {
@@ -22,8 +24,10 @@ const tabContent = {
     "Project Investigator": <PrincipalInvestigatorForm />,
     "Technical Details": <TechForm />,
     "Budget Related Details": <BudgetForm />,
-    "Investigators Biodata": <InvestigatorBiodata />,
-    "Declaration Submission": <div> Declaration Submission </div>,
+    "Bank Details" : <BankDetailsForm />,
+
+    // "Investigators Biodata": <InvestigatorBiodata />,
+    // "Declaration Submission": <div> Declaration Submission </div>,
 };
 
 const Dashboard = () => {
