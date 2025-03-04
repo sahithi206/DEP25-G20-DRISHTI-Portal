@@ -25,6 +25,7 @@ const Signup = () => {
   const [selectedOption, setSelectedOption] = useState(null);
 
   useEffect(() => {
+
     const fetchColleges = async () => {
       try {
         const response = await axios.get(
