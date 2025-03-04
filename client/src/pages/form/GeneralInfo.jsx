@@ -198,7 +198,7 @@ const GeneralInfo = () => {
             <h3 className="text-lg font-semibold mb-4">General Information</h3>
             <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
+                    {/* <div className="col-span-2">
                         <label className="block font-semibold">Applicant Details:</label>
                         <textarea
                             name="applicantDetails"
@@ -207,7 +207,7 @@ const GeneralInfo = () => {
                             value={formData.applicantDetails}
                             onChange={handleChange}
                         ></textarea>
-                    </div>
+                    </div> */}
                     <div>
                         <label className="block font-semibold">Area of Specialization:</label>
                         <input
