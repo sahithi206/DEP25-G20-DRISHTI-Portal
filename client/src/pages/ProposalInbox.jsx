@@ -11,18 +11,18 @@ const ProposalInbox = () => {
     };
 
     const dropdownOptions = [
-        {
-            title: "Upload SE/UC",
-            options: ["Upload New SE/UC", "View/Revise Uploaded SE/UC"]
-        },
-        {
-            title: "Upload Progress Report",
-            options: ["Upload New Progress Report", "View/Revise Uploaded Progress Report"]
-        },
-        {
-            title: "Upload Publications",
-            options: ["Upload SCI Index Paper", "Uploaded Other Conference/Journal Paper"]
-        },
+        // {
+        //     title: "Upload SE/UC",
+        //     options: ["Upload New SE/UC", "View/Revise Uploaded SE/UC"]
+        // },
+        // {
+        //     title: "Upload Progress Report",
+        //     options: ["Upload New Progress Report", "View/Revise Uploaded Progress Report"]
+        // },
+        // {
+        //     title: "Upload Publications",
+        //     options: ["Upload SCI Index Paper", "Uploaded Other Conference/Journal Paper"]
+        // },
     ];
 
     return (
@@ -84,7 +84,7 @@ const ProposalInbox = () => {
                             </div>
                         ))}
 
-                        {/* Existing Buttons */}
+                        {/* Existing Buttons
                         <button className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition text-sm font-medium">
                             RTGS/Quotations
                         </button>
@@ -105,7 +105,7 @@ const ProposalInbox = () => {
                         </button>
                         <button className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition text-sm font-medium">
                             Proceedings
-                        </button>
+                        </button> */}
                     </div>
 
                     {/* Search Input */}
