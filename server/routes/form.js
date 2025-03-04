@@ -16,7 +16,6 @@ const General_Info = require("../Models/General_Info");
 const router = express.Router();
 router.post("/ProposalID", fetchUser, async (req, res, next) => {
     const {_id} = req.user;
-
     const {Scheme}=req.body;
     console.log(_id);
     try {
@@ -30,6 +29,7 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
 
         const prop = new Proposal({
             userId: _id,
+            Scheme,
             status: "Pending"
         });
         await prop.save();
@@ -315,17 +315,40 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
 
 
 router.post("/submit-acknowledgement/:proposalId", fetchUser, async (req, res) => {
-  const { accept,scheme } = req.body;
-  const {proposalId}=req.params;
+  const { accept } = req.body;
+  const { proposalId } = req.params;
+
   try {
-    /*const user = await User.findById(req.user._id).populate("proposals");
-    if (!user) return res.status(404).json({ success: false, msg: "User not found" });
-    const proposal = user.proposals.find(prop => prop.Scheme === scheme);
-    if (!proposal) return res.status(404).json({ success: false, msg: "Proposal not found for this scheme" });*/
-   
+    const generalInfo = await GeneralInfo.findOne({ proposalId }).select("_id");
+    const researchDetails = await ResearchDetails.findOne({ proposalId }).select("_id");
+    const budgetSummary = await Budget.findOne({ proposalId }).select("_id");
+    const bankDetails = await Bank.findOne({ proposalId }).select("_id");
+    const PIdetails = await PI.findOne({ proposalId }).select("_id");
+
+    if (!generalInfo) {
+      return res.status(404).json({ success: false, msg: "Fill all fields in General Information" });
+    }
+    if (!researchDetails) {
+      return res.status(404).json({ success: false, msg: "Fill all fields in Research Details" });
+    }
+    if (!budgetSummary) {
+      return res.status(404).json({ success: false, msg: "Fill all fields in Budget Details" });
+    }
+    if (!bankDetails) {
+      return res.status(404).json({ success: false, msg: "Fill all fields in Bank Information" });
+    }
+    if (!PIdetails) {
+      return res.status(404).json({ success: false, msg: "Fill all fields in Principal Investigator Information" });
+    }
+
     const acknowledgement = new Acknowledgement({
       proposalId,
-      TCaccepted:accept,
+      TCaccepted: accept,
+      generalInfoId: generalInfo._id,
+      researchDetailsId: researchDetails._id,
+      budgetSummaryId: budgetSummary._id,
+      bankDetailsId: bankDetails._id,
+      PIdetailsId: PIdetails._id,
       acknowledged_at: new Date(),
     });
 
@@ -419,6 +442,23 @@ router.get("/get-proposal/:proposalId", fetchUser, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, msg: "Failed to fetch proposal details" });
+  }
+});
+router.get("/proposals",fetchUser, async (req, res) => {
+  try {
+      console.log(req.user._id);
+      const proposals = await Proposal.find({ userId: req.user._id, status: "Pending" });
+      
+      const data = await Promise.all(proposals.map(async (obj) => {
+          generalInfo = await GeneralInfo.findOne({ proposalId: obj._id }).select({ 'instituteName': 1, 'areaOfSpecialization': 1 });
+          researchDetails = await ResearchDetails.findOne({ proposalId: obj._id });
+         return { generalInfo, researchDetails };
+      }));
+      console.log(data);
+      res.json({data});
+  } catch (error) {
+      console.error("Error fetching proposals:", error);
+      res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
