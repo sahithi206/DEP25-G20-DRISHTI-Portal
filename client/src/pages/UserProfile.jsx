@@ -97,7 +97,7 @@ const UserProfile = () => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = "User.json";
+        link.download = "formData.json";
         link.click();
         URL.revokeObjectURL(url);
     };

@@ -136,21 +136,33 @@ router.get("/get-user", fetchUser, async (req, res) => {
    }
   });
   
-  router.put("/edit-user",fetchUser, async(req,res)=>{
-    try{
-      const {email,password,Name,Institute,DOB,Mobile,Gender,role} = req.body;
-      const {user}=req;
-      console.log(user);
-      if(!email&&!password&&!Name&&!Institute&&!DOB&&!Mobile&&!Gender&&!role){
-        return res.status(403).json({success:false, msg:"Fill Details"});
-      }
-      if(!user){
-        return res.status(401).json({success:false, msg:"Unauthorized Access"});
-      }
-      await User.findByIdAndUpdate({_id:req.user._id},{email,password,Name,Institute,DOB,Mobile,Gender,role},{new:true});
-      res.status(200).json({success:true,msg:"User Details Edited"});
-    }catch{
-     res.status(500).json({success:false,msg:"Internal Server Error"});
+  router.post("/edit-user", fetchUser, async (req, res) => {
+    try {
+        const { email, Name, Institute, DOB, Mobile, Gender, role, idType, idNumber } = req.body;
+        const { user } = req;
+
+        if (!user) {
+            return res.status(401).json({ success: false, msg: "Unauthorized Access" });
+        }
+
+        if (!email && !Name && !Institute && !DOB && !Mobile && !Gender && !role && !idType && !idNumber) {
+            return res.status(400).json({ success: false, msg: "Provide at least one field to update" });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            user._id, 
+            { $set: { email, Name, Institute, DOB, Mobile, Gender, role, idType, idNumber } },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, msg: "User not found" });
+        }
+
+        res.status(200).json({ success: true, updatedUser, msg: "User Details Updated Successfully" });
+    } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).json({ success: false, msg: "Internal Server Error" });
     }
 });
 
