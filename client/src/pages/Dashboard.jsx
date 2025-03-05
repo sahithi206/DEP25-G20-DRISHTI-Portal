@@ -7,31 +7,6 @@ import GeneralInfo from "./form/GeneralInfo";
 import TechForm from "./form/TechForm";
 import BudgetForm from "./form/BudgetForm";
 import BankDetailsForm from "./form/BankDetailsForm";
-<<<<<<< HEAD
-import InvestigatorBiodata from "./form/InvestigatorBioData";
-
-const tabs = [
-    "General Information",
-    "Project Investigator",
-    "Technical Details",
-    "Budget Related Details",
-    "Bank Details",
-    // "Investigators Biodata",
-    // "Declaration Submission",
-];
-
-const tabContent = {
-    "General Information": <GeneralInfo />,
-    "Project Investigator": <PrincipalInvestigatorForm />,
-    "Technical Details": <TechForm />,
-    "Budget Related Details": <BudgetForm />,
-    "Bank Details" : <BankDetailsForm />,
-
-    // "Investigators Biodata": <InvestigatorBiodata />,
-    // "Declaration Submission": <div> Declaration Submission </div>,
-};
-
-=======
 import Submit from "./form/ReviewAndSubmit";
 
 const tabs = [
@@ -43,13 +18,10 @@ const tabs = [
     "Review and Submit",
 ];
 
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
 const Dashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [currentTab, setCurrentTab] = useState("General Information");
 
-<<<<<<< HEAD
-=======
     // State to store form data
     const [formData, setFormData] = useState({
         generalInfo: {},
@@ -128,7 +100,6 @@ const Dashboard = () => {
         "Review and Submit": <Submit formData={formData} />,
     };
 
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
@@ -149,11 +120,7 @@ const Dashboard = () => {
                             {tabs.map((tab) => (
                                 <button
                                     key={tab}
-<<<<<<< HEAD
-                                    className={`py-2 px-3 text-sm font-semibold border rounded transition text-white ${tab === currentTab ? "bg-red-600" : "bg-gray-800 hover:bg-gray-700"}`}
-=======
                                     className={`py-2 px-3 text-sm font-semibold border rounded transition text-white ${getTabColor(tab)} hover:opacity-90`}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                                     onClick={() => setCurrentTab(tab)}
                                 >
                                     {tab}
@@ -192,10 +159,6 @@ const Dashboard = () => {
                 <Footer />
             </div>
         </div>
-<<<<<<< HEAD
-
-=======
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
     );
 };
 export default Dashboard;
