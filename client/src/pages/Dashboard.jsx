@@ -7,32 +7,98 @@ import GeneralInfo from "./form/GeneralInfo";
 import TechForm from "./form/TechForm";
 import BudgetForm from "./form/BudgetForm";
 import BankDetailsForm from "./form/BankDetailsForm";
-import InvestigatorBiodata from "./form/InvestigatorBioData";
+import Submit from "./form/ReviewAndSubmit";
 
 const tabs = [
     "General Information",
-    "Project Investigator",
+    "Principal Investigator",
     "Technical Details",
     "Budget Related Details",
     "Bank Details",
-    // "Investigators Biodata",
-    // "Declaration Submission",
+    "Review and Submit",
 ];
-
-const tabContent = {
-    "General Information": <GeneralInfo />,
-    "Project Investigator": <PrincipalInvestigatorForm />,
-    "Technical Details": <TechForm />,
-    "Budget Related Details": <BudgetForm />,
-    "Bank Details" : <BankDetailsForm />,
-
-    // "Investigators Biodata": <InvestigatorBiodata />,
-    // "Declaration Submission": <div> Declaration Submission </div>,
-};
 
 const Dashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [currentTab, setCurrentTab] = useState("General Information");
+
+    // State to store form data
+    const [formData, setFormData] = useState({
+        generalInfo: {},
+        principalInvestigator: {},
+        technicalDetails: {},
+        budgetDetails: {
+            recurring: {
+                material: [],
+                manpower: [],
+                others: []
+            },
+            nonRecurring: {
+                items: []
+            }
+        },
+        bankDetails: {}
+    });
+
+    // Function to update form data
+    const handleFormUpdate = (section, data) => {
+        setFormData((prev) => ({ ...prev, [section]: data }));
+    };
+
+    const getTabColor = (tab) => {
+        const sectionKey = {
+            "General Information": "generalInfo",
+            "Principal Investigator": "principalInvestigator",
+            "Technical Details": "technicalDetails",
+            "Budget Related Details": "budgetDetails",
+            "Bank Details": "bankDetails",
+            "Review and Submit": "reviewSubmit",
+        }[tab];
+    
+        if (tab === currentTab) {
+            return "bg-red-600"; // Alert user with red color for active tab
+        }
+    
+        if (!formData[sectionKey] || Object.keys(formData[sectionKey]).length === 0) {
+            return "bg-gray-800"; // Not visited (Default Black/Grey)
+        }
+    
+        // Special handling for "Budget Related Details" (nested structure)
+        let filledFields = 0;
+        let totalFields = 0;
+    
+        if (sectionKey === "budgetDetails") {
+            const budgetSections = formData.budgetDetails || {};
+            Object.values(budgetSections).forEach((category) => {
+                Object.values(category).forEach((items) => {
+                    totalFields += items.length;
+                    filledFields += items.filter((val) => val !== "" && val !== null).length;
+                });
+            });
+        } else {
+            filledFields = Object.values(formData[sectionKey]).filter((val) => val !== "" && val !== null).length;
+            totalFields = Object.keys(formData[sectionKey]).length;
+        }
+    
+        if (filledFields === totalFields && totalFields > 0) {
+            return "bg-green-600"; // Fully Completed (Green)
+        } else if (filledFields > 0) {
+            return "bg-orange-500"; // Partially Filled (Orange)
+        }
+    
+        return "bg-gray-800"; // Default (Not visited)
+    };
+    
+    
+
+    const tabContent = {
+        "General Information": <GeneralInfo formData={formData.generalInfo} updateForm={handleFormUpdate} />,
+        "Principal Investigator": <PrincipalInvestigatorForm formData={formData.principalInvestigator} updateForm={handleFormUpdate} />,
+        "Technical Details": <TechForm formData={formData.technicalDetails} updateForm={handleFormUpdate} />,
+        "Budget Related Details": <BudgetForm formData={formData.budgetDetails} updateForm={handleFormUpdate} />,
+        "Bank Details": <BankDetailsForm formData={formData.bankDetails} updateForm={handleFormUpdate} />,
+        "Review and Submit": <Submit formData={formData} />,
+    };
 
     return (
         <div className="flex min-h-screen bg-gray-100">
@@ -54,7 +120,7 @@ const Dashboard = () => {
                             {tabs.map((tab) => (
                                 <button
                                     key={tab}
-                                    className={`py-2 px-3 text-sm font-semibold border rounded transition text-white ${tab === currentTab ? "bg-red-600" : "bg-gray-800 hover:bg-gray-700"}`}
+                                    className={`py-2 px-3 text-sm font-semibold border rounded transition text-white ${getTabColor(tab)} hover:opacity-90`}
                                     onClick={() => setCurrentTab(tab)}
                                 >
                                     {tab}
@@ -93,7 +159,6 @@ const Dashboard = () => {
                 <Footer />
             </div>
         </div>
-
     );
 };
 export default Dashboard;

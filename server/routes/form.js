@@ -444,21 +444,44 @@ router.get("/get-proposal/:proposalId", fetchUser, async (req, res) => {
     res.status(500).json({ success: false, msg: "Failed to fetch proposal details" });
   }
 });
-router.get("/proposals",fetchUser, async (req, res) => {
+router.get("/proposals", fetchUser, async (req, res) => {
   try {
-      console.log(req.user._id);
-      const proposals = await Proposal.find({ userId: req.user._id, status: "Pending" });
-      
-      const data = await Promise.all(proposals.map(async (obj) => {
-          generalInfo = await GeneralInfo.findOne({ proposalId: obj._id }).select({ 'instituteName': 1, 'areaOfSpecialization': 1 });
-          researchDetails = await ResearchDetails.findOne({ proposalId: obj._id });
-         return { generalInfo, researchDetails };
-      }));
-      console.log(data);
-      res.json({data});
+    const userId = req.user._id; 
+    console.log("User ID from Token:", userId);
+     
+    const objectId = new mongoose.Types.ObjectId(userId);
+    console.log("Converted ObjectId:", objectId);
+
+    const proposals = await Proposal.find({ userId: objectId, status: "Pending" });
+
+    console.log("Fetched Proposals:", proposals);
+
+    if (!proposals.length) {
+      return res.status(404).json({ success: false, msg: "No proposals found" });
+    }
+
+    const data = await Promise.all(proposals.map(async (proposal) => {
+      console.log("Processing Proposal ID:", proposal._id);
+
+      const generalInfo = await GeneralInfo.findOne({ proposalId: proposal._id })
+        .select({ 'instituteName': 1, 'areaOfSpecialization': 1 });
+
+      console.log("General Info:", generalInfo);
+
+      const researchDetails = await ResearchDetails.findOne({ proposalId: proposal._id })
+        .select("Title");
+
+      console.log("Research Details:", researchDetails);
+
+      return { generalInfo, researchDetails };
+    }));
+
+    console.log("Final Data:", data);
+    res.json({ success: true, data });
+
   } catch (error) {
-      console.error("Error fetching proposals:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error fetching proposals:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
 

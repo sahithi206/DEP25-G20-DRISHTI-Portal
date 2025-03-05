@@ -8,25 +8,26 @@ import { FaMoneyBillWave, FaUser } from "react-icons/fa";
 import { MdRequestPage } from "react-icons/md";
 
 const SidebarMenu = [
-    {
-        title: "Proposal Submission",
+    {        title: "Proposal Submission",
         icon: <IoDocumentTextOutline className='inline-block mr-2' />,
         dropdown: [
-            { name: "Form Submission", path: "/dashboard" },
-            { name: "Saved Proposals", path: "/savedproposals" },
-            { name: "View Submitted Proposals", path: "/proposalinbox" }
+            { name: "Form Submission", path: "/formsubmission" },
+
         ],
     },
     {
-        title: "RTGS/Quotations",
+        title: "Projects",
         icon: <FaMoneyBillWave className='inline-block mr-2' />,
-        dropdown: [{ name: "Upload", path: "/upload" }],
+        dropdown: [
+            { name: "Submitted Forms", path: "/proposalinbox" },
+            { name: "Accepted Proposals", path: "/savedproposals" }
+        ],
     },
     {
         title: "Requests",
         icon: <MdRequestPage className='inline-block mr-2' />,
         dropdown: [
-            { name: "Request for Change Of Institute After Release", path: "/changeofinstitute" },
+            { name: "Request for Change Of Institute ", path: "/changeofinstitute" },
             { name: "Miscellaneous Request", path: "/misc-request" }
         ],
     },
