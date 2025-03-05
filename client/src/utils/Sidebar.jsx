@@ -56,7 +56,7 @@ const SidebarMenu = [
         icon: <FaUser className='inline-block mr-2' />,
         dropdown: [
             { name: "View Profile", path: "/view-profile" },
-            { name: "Edit Profile", path: "/edit-profile" },
+           // { name: "Edit Profile", path: "/edit-profile" },
         ],
     }
 ];

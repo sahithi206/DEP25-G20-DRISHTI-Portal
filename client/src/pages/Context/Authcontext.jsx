@@ -73,12 +73,73 @@ const AuthProvider = (props) => {
       }
     } catch (e) {
       console.error("Cannot Login:", e.message);
-      alert(e.message || "Invalid Credentials");
+      alert(e.msg || "Invalid Credentials");
     }
   };
+  
+  const getuser=async()=>{
+     const token= localStorage.getItem("token");
+     try{
+         console.log(token);
+         if(!token){
+          console.log("Use valid Token");
+          return;
+         }
+         const response = await fetch(`${url}auth/get-user`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json",
+            "accessToken":`${token}`,
+           },
+        });
+        console.log(response);
+        if(!response.ok){
+          throw new Error("Cannot fetch userDetails");
+        }
+        const json= await response.json();
+        console.log(json);
+        const user=json.user;
+        console.log(user);
+        if(!json.success){
+          alert(json.msg);
+          return ;
+        }
+        return user;
+     }catch(e){
+      console.log(e);
+      alert(e.msg||"Cannot fetch User Details");
+     }
+  }
+
+  const edituser = async (updatedData) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        console.log("Use a valid Token");
+        alert("Authentication required.");
+        return;
+    }
+    try {
+        const response = await fetch(`${url}auth/edit-user`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "accessToken": token,
+            },
+            body: JSON.stringify(updatedData),
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to update user details");
+        }
+        const json = await response.json();
+        alert(json.msg);
+    } catch (error) {
+        console.error("Edit user error:", error);
+        alert(error.message || "Failed to update user details");
+    }
+};
 
   return (
-    <AuthContext.Provider value={{ sendOtp, verifyOtp, login, authState }}>
+    <AuthContext.Provider value={{ sendOtp, verifyOtp, login,getuser, edituser,authState }}>
       {props.children}
     </AuthContext.Provider>
   );
