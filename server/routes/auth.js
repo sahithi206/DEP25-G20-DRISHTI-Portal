@@ -127,7 +127,11 @@ router.get("/get-user", fetchUser, async (req, res) => {
     const isUser = await User.findOne({ _id: user._id });
     console.log(isUser);
     if (!isUser) {
+<<<<<<< HEAD
       return res.status(401);
+=======
+      return res.status(403).json({success:false, msg:"Unauthorized Access"});
+>>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
     }
     res.status(200).json({ success:true, user, msg: "User Details Fetched"});
   }
@@ -136,4 +140,25 @@ router.get("/get-user", fetchUser, async (req, res) => {
    }
   });
   
+<<<<<<< HEAD
+=======
+  router.put("/edit-user",fetchUser, async(req,res)=>{
+    try{
+      const {email,password,Name,Institute,DOB,Mobile,Gender,role} = req.body;
+      const {user}=req;
+      console.log(user);
+      if(!email&&!password&&!Name&&!Institute&&!DOB&&!Mobile&&!Gender&&!role){
+        return res.status(403).json({success:false, msg:"Fill Details"});
+      }
+      if(!user){
+        return res.status(401).json({success:false, msg:"Unauthorized Access"});
+      }
+      await User.findByIdAndUpdate({_id:req.user._id},{email,password,Name,Institute,DOB,Mobile,Gender,role},{new:true});
+      res.status(200).json({success:true,msg:"User Details Edited"});
+    }catch{
+     res.status(500).json({success:false,msg:"Internal Server Error"});
+    }
+  })
+  
+>>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
   module.exports = router;

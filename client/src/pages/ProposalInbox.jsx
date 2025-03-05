@@ -1,141 +1,170 @@
 import React, { useState } from "react";
 import Sidebar from "../utils/Sidebar";
-import { FaUserCircle, FaPowerOff } from "react-icons/fa";
+import { 
+    FaUserCircle, 
+    FaPowerOff, 
+    FaFilter, 
+    FaSearch 
+} from "react-icons/fa";
 
-const ProposalInbox = () => {
+const SubmittedForms = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [dropdownOpen, setDropdownOpen] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filter, setFilter] = useState("All");
 
-    const toggleDropdown = (index) => {
-        setDropdownOpen(dropdownOpen === index ? null : index);
-    };
 
-    const dropdownOptions = [
-        // {
-        //     title: "Upload SE/UC",
-        //     options: ["Upload New SE/UC", "View/Revise Uploaded SE/UC"]
-        // },
-        // {
-        //     title: "Upload Progress Report",
-        //     options: ["Upload New Progress Report", "View/Revise Uploaded Progress Report"]
-        // },
-        // {
-        //     title: "Upload Publications",
-        //     options: ["Upload SCI Index Paper", "Uploaded Other Conference/Journal Paper"]
-        // },
+    // just kept random details for checking
+    const proposals = [
+        { 
+            id: "P003",  
+            status: "Rejected",
+            proposalName: "Advanced Machine Learning Techniques",
+            InstituteName:"IIT Ropar",
+            AreaOfSpecialization: "Compuevdjebsc",
+            department: "Computer Science"
+        },
+        { 
+            id: "P004", 
+            status: "Pending",
+            proposalName: "Sustainable Energy Solutions",
+            InstituteName:"IIT Ropar",
+            AreaOfSpecialization: "Compuevdjebsc",
+            department: "Environmental Studies"
+        },
     ];
 
-    return (
-        <div className="flex bg-gray-100 min-h-screen">
-            {/* Sidebar */}
-            <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+    const getStatusColor = (status) => {
+        switch (status) {
+            case "Rejected": return "bg-red-100 text-red-800 border border-red-300";
+            case "Approved": return "bg-green-100 text-green-800 border border-green-300";
+            case "Pending": return "bg-yellow-100 text-yellow-800 border border-yellow-300";
+            default: return "bg-gray-100 text-gray-800 border border-gray-300";
+        }
+    };
 
-            {/* Main Content */}
-            <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                {/* Navbar */}
-                {/* <HomeNavbar /> */}
-                <header className="bg-blue-900 text-white p-4 flex justify-between items-center">
-                    <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
+    const filteredProposals = proposals.filter(proposal => 
+        (proposal.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        proposal.proposalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        proposal.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        proposal.InstituteName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        proposal.AreaOfSpecialization.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (filter === "All" || proposal.status === filter)
+    );
+    
+    
+
+    return (
+        <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900">
+            <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+            <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
+                <header className="bg-gradient-to-r from-blue-800 to-blue-900 text-white p-4 flex justify-between items-center shadow-lg">
+                    <h2 className="text-2xl font-bold tracking-wider">Anusandhan National Research Foundation</h2>
                     <div className="flex items-center space-x-4">
-                        <FaUserCircle className="text-2xl" />
-                        <span>Welcome, Ms. Varsha</span>
-                        <FaPowerOff className="text-xl cursor-pointer text-red-500" />
+                        <div className="flex items-center space-x-2">
+                            <FaUserCircle className="text-3xl text-blue-200" />
+                            <span className="text-lg font-medium">Ms. Varsha</span>
+                        </div>
+                        <FaPowerOff className="text-2xl cursor-pointer text-red-400 hover:text-red-500 transition transform hover:scale-110" />
                     </div>
                 </header>
-
-                {/* Page Content */}
-                <div className="p-6 mt-16">
-                    {/* Header Section */}
-                    <div className="bg-white shadow-md rounded-lg p-6 text-center border-t-4 border-blue-800">
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            अनुसंधान नेशनल रिसर्च फाउंडेशन
-                        </h1>
-                        <h2 className="text-lg font-semibold text-gray-700">
-                            Anusandhan National Research Foundation
-                        </h2>
-                        <p className="mt-2 text-xl font-semibold text-gray-900">
-                            Proposal Inbox
-                        </p>
+                
+                <div className="p-6 space-y-6">
+                    <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
+                        <h1 className="text-3xl font-black text-gray-900 mb-2">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
+                        <h2 className="text-xl font-semibold text-gray-700">Anusandhan National Research Foundation</h2>
+                        <p className="mt-3 text-2xl font-bold text-blue-800">Proposal Inbox</p>
                     </div>
 
-                    {/* Buttons Section */}
-                    <div className="flex flex-wrap justify-center gap-3 mt-6">
-                        {/* Dropdown Buttons */}
-                        {dropdownOptions.map((dropdown, index) => (
-                            <div key={index} className="relative">
-                                <button
-                                    onClick={() => toggleDropdown(index)}
-                                    className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition text-sm font-medium flex items-center"
-                                >
-                                    {dropdown.title} &nbsp; ▼
-                                </button>
-                                {dropdownOpen === index && (
-                                    <div className="absolute mt-2 w-56 bg-blue-700 text-white rounded-md shadow-lg overflow-hidden">
-                                        {dropdown.options.map((option, i) => (
-                                            <button
-                                                key={i}
-                                                className="block w-full px-4 py-2 text-left text-sm hover:bg-blue-800 transition"
-                                            >
-                                                {option}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                    <div className="bg-white shadow-md rounded-xl overflow-hidden">
+                        <div className="p-4 bg-gray-100 flex items-center justify-between">
+                            <div className="flex items-center space-x-4 w-full max-w-md">
+                                <FaSearch className="text-gray-500" />
+                                <input 
+                                type="text" 
+                                placeholder="Search by ID, Name, Institute, Area of Specialization, Dept " 
+                                className="w-full bg-transparent outline-none text-gray-700 placeholder-gray-500 text-sm px-2"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+
                             </div>
-                        ))}
-
-                        {/* Existing Buttons
-                        <button className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition text-sm font-medium">
-                            RTGS/Quotations
-                        </button>
-                        <button className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition text-sm font-medium">
-                            Release History
-                        </button>
-                        <button className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition text-sm font-medium">
-                            Compose Letter
-                        </button>
-                        <button className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition text-sm font-medium">
-                            Letters Received
-                        </button>
-                        <button className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition text-sm font-medium">
-                            Letters Sent
-                        </button>
-                        <button className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition text-sm font-medium">
-                            View Documents
-                        </button>
-                        <button className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition text-sm font-medium">
-                            Proceedings
-                        </button> */}
-                    </div>
-
-                    {/* Search Input */}
-                    <div className="mt-6 flex items-center space-x-2 justify-center">
-                        <label className="font-semibold text-gray-700">Search:</label>
-                        <input
-                            type="text"
-                            className="border border-gray-400 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-blue-300 w-64"
-                            placeholder="Search..."
-                        />
-                    </div>
-
-                    {/* Table Container */}
-                    <div className="mt-6 overflow-x-auto bg-white shadow-md rounded-lg">
-                        <table className="w-full border border-gray-300">
-                            <thead className="bg-blue-800 text-white text-sm">
+                            <div className="flex items-center space-x-2">
+                                <FaFilter className="text-gray-500" />
+                                <select 
+                                    className="bg-white border border-gray-300 rounded-md px-2 py-1 text-sm"
+                                    value={filter}
+                                    onChange={(e) => setFilter(e.target.value)}
+                                >
+                                    <option value="All">All Status</option>
+                                    <option value="Rejected">Rejected</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Pending">Pending</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                            <thead className="bg-blue-700 text-white">
                                 <tr>
-                                    {["File Number", "Proposal Title", "Institute", "Scheme", "Area", "Submission Date", "Status", "Action"].map((heading, index) => (
-                                        <th key={index} className="p-3 border border-gray-300 text-center">{heading}</th>
+                                    {[
+                                        "Proposal ID", 
+                                        "Proposal Name", 
+                                        "Department", 
+                                        "Institute Name",
+                                        "Area of Specialization", 
+                                        "Status"
+                                    ].map((header) => (
+                                        <th 
+                                            key={header} 
+                                            className="p-4 text-center font-semibold tracking-wide uppercase text-xs border-b border-blue-600"
+                                        >
+                                            {header}
+                                        </th>
                                     ))}
                                 </tr>
                             </thead>
+
                             <tbody>
-                                <tr className="bg-gray-100">
-                                    <td className="p-3 border border-gray-300 text-center text-gray-600 font-medium" colSpan="8">
-                                        No records found
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                    {filteredProposals.length > 0 ? (
+                                        filteredProposals.map((proposal, index) => (
+                                            <tr 
+                                                key={index} 
+                                                className="group hover:bg-blue-50 transition-colors duration-200 ease-in-out border-b last:border-b-0"
+                                            >
+                                                <td className="p-4 text-center text-gray-800 font-medium group-hover:text-blue-700">
+                                                    {proposal.id}
+                                                </td>
+                                                <td className="p-4 text-center text-gray-700 font-semibold group-hover:text-blue-800">
+                                                    {proposal.proposalName}
+                                                </td>
+                                                <td className="p-4 text-center text-gray-600">
+                                                    {proposal.department}
+                                                </td>
+                                                <td className="p-4 text-center text-gray-700"> 
+                                                    {proposal.InstituteName}
+                                                </td>
+                                                <td className="p-4 text-center text-gray-700"> 
+                                                    {proposal.AreaOfSpecialization}
+                                                </td>
+                                                <td className="p-4 text-center">
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusColor(proposal.status)}`}>
+                                                        {proposal.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" className="text-center p-6 text-gray-500">
+                                                No proposals found
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

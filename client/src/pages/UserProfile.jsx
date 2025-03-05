@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // import React from "react";
 
 // const UserProfile = ({ user }) => {
@@ -58,6 +59,15 @@ import { FaUser, FaCalendarAlt, FaVenusMars, FaPhone, FaBuilding, FaIdBadge, FaP
 
 const UserProfile = () => {
     // Sample hardcoded user data
+=======
+import { useState } from "react";
+import { FaUserCircle, FaPowerOff, FaUser, FaCalendarAlt, FaVenusMars, FaPhone, FaBuilding, FaIdBadge, FaPrint } from "react-icons/fa";
+import Sidebar from "../utils/Sidebar";
+
+const UserProfile = () => {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+>>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
     const user = {
         username: "john_doe",
         firstName: "John",
@@ -76,6 +86,7 @@ const UserProfile = () => {
     };
 
     return (
+<<<<<<< HEAD
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-gray-50 p-6">
             <div className="bg-white backdrop-blur-lg p-8 shadow-2xl rounded-2xl w-full max-w-3xl border border-gray-200">
                 {/* Header */}
@@ -147,6 +158,76 @@ const UserProfile = () => {
                     <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow-md flex items-center gap-2 mx-auto transition duration-300">
                         <FaPrint /> Print Profile
                     </button>
+=======
+        <div className="flex min-h-screen bg-gray-50">
+            {/* Sidebar Component */}
+            <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+            {/* Main Content */}
+            <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
+                <header className="bg-blue-900 text-white p-4 flex justify-between items-center shadow-lg">
+                    <h2 className="text-xl font-semibold">Anusandhan National Research Foundation</h2>
+                    <div className="flex items-center space-x-4">
+                        <FaUserCircle className="text-3xl" />
+                        <span className="text-lg font-medium">Welcome, Ms. Varsha</span>
+                        <FaPowerOff className="text-2xl cursor-pointer text-red-400 hover:text-red-600" />
+                    </div>
+                </header>
+
+                {/* Profile Section */}
+                <div className="p-8">
+                    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-6">
+                        <div className="text-center">
+                            <h1 className="text-3xl font-bold text-gray-800">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
+                            <h2 className="text-xl font-semibold text-gray-600">Anusandhan National Research Foundation</h2>
+                            <h3 className="mt-4 text-2xl font-semibold text-blue-700">Profile Details</h3>
+                        </div>
+
+                        {/* User Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            {/* Personal Details */}
+                            <div className="p-4 bg-gray-100 rounded-lg shadow-sm">
+                                <h4 className="font-semibold text-blue-700 flex items-center gap-2">
+                                    <FaUser className="text-gray-700" /> Personal Information
+                                </h4>
+                                <p><FaCalendarAlt className="inline text-gray-600 mr-2" /> <strong>Date of Birth:</strong> {user.dob}</p>
+                                <p><FaVenusMars className="inline text-gray-600 mr-2" /> <strong>Gender:</strong> {user.gender}</p>
+                                <p><strong>Nationality:</strong> {user.nationality}</p>
+                                <p><strong>Category:</strong> {user.category}</p>
+                                <p><strong>Is Differently Abled:</strong> {user.differentlyAbled}</p>
+                            </div>
+
+                            {/* Contact Details */}
+                            <div className="p-4 bg-gray-100 rounded-lg shadow-sm">
+                                <h4 className="font-semibold text-blue-700 flex items-center gap-2">
+                                    <FaPhone className="text-gray-700" /> Contact Details
+                                </h4>
+                                <p><strong>Mobile Number:</strong> {user.mobile}</p>
+                                <p><strong>Landline Number:</strong> Not Provided</p>
+                                <p><strong>Fax Number:</strong> Not Provided</p>
+                                <p><strong>SMS Alerts:</strong> No</p>
+                            </div>
+                        </div>
+
+                        {/* Institute Details */}
+                        <div className="p-4 bg-gray-100 rounded-lg shadow-sm mt-6">
+                            <h4 className="font-semibold text-blue-700 flex items-center gap-2">
+                                <FaBuilding className="text-gray-700" /> Institute Details
+                            </h4>
+                            <p><strong>Institute Name:</strong> {user.institute}</p>
+                            <p><strong>Institute Address:</strong> {user.instituteAddress}</p>
+                            <p><strong>Designation:</strong> {user.designation}</p>
+                            <p><strong>Department:</strong> {user.department}</p>
+                        </div>
+
+                        {/* Action Button */}
+                        <div className="text-center mt-6">
+                            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow-md flex items-center gap-2 mx-auto transition duration-300">
+                                <FaPrint /> Print Profile
+                            </button>
+                        </div>
+                    </div>
+>>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                 </div>
             </div>
         </div>

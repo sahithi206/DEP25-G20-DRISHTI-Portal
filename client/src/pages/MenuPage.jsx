@@ -23,6 +23,7 @@ const MenuPage = () => {
                 </header>
 
                 {/* Dashboard Content */}
+<<<<<<< HEAD
                 <div className="p-6 mt-16">
 
                     <div className="text-center">
@@ -35,6 +36,12 @@ const MenuPage = () => {
                         <h3 className="mt-3 text-xl font-semibold text-gray-900 border-t-2 pt-2">
                             Change Of Institute
                         </h3>
+=======
+                <div className="p-6 space-y-6">
+                    <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
+                        <h1 className="text-3xl font-black text-gray-900 mb-2">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
+                        <h2 className="text-xl font-semibold text-gray-700">Anusandhan National Research Foundation</h2>
+>>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                     </div>
                     <section className="mt-6 bg-white shadow-md p-6 rounded-lg">
                         <h3 className="text-lg font-semibold">User Guidelines</h3>
