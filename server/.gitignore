@@ -51,3 +51,5 @@ Thumbs.db
 # Optional: If using TypeScript
 *.tsbuildinfo
 >>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
+
+.vercel

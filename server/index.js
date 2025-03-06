@@ -8,8 +8,14 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-//const PORT = process.env.PORT||5000;
-app.use(cors());
+const corsConfig = {
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],  
+};
+
+app.options("*", cors(corsConfig)); 
+app.use(cors(corsConfig))
 app.use(express.json());
 
 app.get("/", (req, res) => {
