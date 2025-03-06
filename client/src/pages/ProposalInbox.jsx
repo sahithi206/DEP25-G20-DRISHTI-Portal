@@ -7,7 +7,7 @@ import {
     FaSearch 
 } from "react-icons/fa";
 
-const SubmittedForms = () => {
+const ProposalInbox = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("All");
