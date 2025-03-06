@@ -14,6 +14,9 @@ const User=require("../Models/user");
 const PI=require("../Models/PI");
 const General_Info = require("../Models/General_Info");
 const router = express.Router();
+const mongoose = require("mongoose"); 
+
+
 const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose'); 
 router.post("/ProposalID", fetchUser, async (req, res, next) => {
@@ -51,8 +54,7 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
     }
 });
 router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
-  const {name,address,mobileNo, email,instituteName,coordinator,areaOfSpecialization , DBTproj_ong, DBTproj_completed, Proj_ong , Proj_completed} = req.body;
-  const {proposalId}=req.params
+  const {name, address, mobileNo, email, instituteName, coordinator, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed} = req.body;  const {proposalId}=req.params
   const props = await General_Info.findOne({proposalId});
   if(props){
     await General_Info.findOneAndUpdate({proposalId:proposalId},{name,address,mobileNo, email,instituteName,coordinator,areaOfSpecialization , DBTproj_ong, DBTproj_completed, Proj_ong , Proj_completed},{new:true});
@@ -220,39 +222,48 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
 */
 router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
   const { recurring_items, non_recurring_items } = req.body;
-  const {proposalId} = req.params;
+  console.log("hi : " , recurring_items, non_recurring_items);
+  const { proposalId } = req.params;
 
   try {
+    let totalRecurring = 0, totalNonRecurring = 0;
+    let items = [], consumables = [], employees = [], others = [];
 
-      let totalRecurring = 0, totalNonRecurring = 0;
-      let items=[], consumables = [], employees = [], others = [];
-      if (recurring_items?.employees?.length > 0) {
-           employees = recurring_items.employees.map(emp => {
-              const total = emp.Emoluments * emp.noOfEmployees;
-              totalRecurring += total;
-              return {
-                  designation: emp.designation,
-                  noOfEmployees: emp.noOfEmployees,
-                  Emoluments: emp.Emoluments,
-                  total
-              };
-            });
-         console.log(employees);
-      }
+    if (recurring_items?.employees?.length > 0) {
+      employees = recurring_items.employees.map(emp => {
+        const noOfEmployees = parseFloat(emp.numEmployees) || 0;
+        console.log(noOfEmployees);
+        const Emoluments = parseFloat(emp.salary) || 0;
+        const total = Emoluments * noOfEmployees;
+        console.log(total);
+        totalRecurring += total;
+        return {
+          designation: emp.role,
+          noOfEmployees,
+          Emoluments,
+          total
+        };
+      });
+      console.log(employees);
+    }
 
-      if (recurring_items?.consumables?.length > 0) {
-          consumables = recurring_items.consumables.map(item => {
-              const total = item.UnitCost * item.quantity;
-              totalRecurring += total;
-              return {
-                  item: item.item,
-                  quantity: item.quantity,
-                  perUnitCost: item.UnitCost,
-                  total
-              };
-          });
-          console.log(consumables);
-      }
+    if (recurring_items?.consumables?.length > 0) {
+      consumables = recurring_items.consumables.map(item => {
+        const quantity = parseFloat(item.quantity) || 0;
+        console.log(item.perUnitCost, parseFloat(item.perUnitCost));
+        const UnitCost = parseFloat(item.perUnitCost) || 0;
+        const total = UnitCost * quantity;
+        totalRecurring += total;
+        console.log("material", item.material);
+        return {
+          item: item.material,
+          quantity,
+          perUnitCost: UnitCost,
+          total
+        };
+      });
+      console.log(consumables);
+    }
 
       if (recurring_items?.others?.length > 0) {
            others = recurring_items.others.map(expense => {
@@ -426,7 +437,19 @@ router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
 
 router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
   const {objectId} = req.params;
+router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
+  const {objectId} = req.params;
   try {
+    console.log("Converted ObjectId:", objectId);
+    const generalInfo = await GeneralInfo.findOne({ proposalId: objectId });
+    const researchDetails = await ResearchDetails.findOne({ proposalId: objectId });
+    const budgetSummary = await Budget.findOne({ proposalId: objectId });
+    const bankDetails = await Bank.findOne({ proposalId: objectId });
+    const PIdetails = await PI.findOne({ proposalId: objectId });
+    const acknowledgements = await Acknowledgement.findOne({ proposalId: objectId });
+
+    
+    if (!generalInfo || !researchDetails || !budgetSummary || !bankDetails || !PIdetails||!acknowledgements) {
     console.log("Converted ObjectId:", objectId);
     const generalInfo = await GeneralInfo.findOne({ proposalId: objectId });
     const researchDetails = await ResearchDetails.findOne({ proposalId: objectId });
@@ -442,6 +465,7 @@ router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
 
     res.status(200).json({
       success: true,
+      data: { generalInfo,PIdetails, researchDetails, budgetSummary,bankDetails,acknowledgements},
       data: { generalInfo,PIdetails, researchDetails, budgetSummary,bankDetails,acknowledgements},
       msg: "Proposal fetched successfully",
     });
