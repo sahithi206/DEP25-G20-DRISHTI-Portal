@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "../utils/Sidebar";
 import { FaUserCircle, FaPowerOff, FaFilter, FaSearch } from "react-icons/fa";
 import HomeNavbar from "../utils/HomeNavbar";
-
-
 const ProposalInbox = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -11,7 +9,7 @@ const ProposalInbox = () => {
     const [proposals, setProposals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const URL="http://localhost:8000/";
+    const URL=import.meta.env.VITE_REACT_APP_URL;
     useEffect(() => {
         const fetchProposals = async () => {
             const token = localStorage.getItem("token");
@@ -70,7 +68,6 @@ const ProposalInbox = () => {
                     <h2 className="text-2xl font-bold tracking-wider">Anusandhan National Research Foundation</h2>
                     <div className="flex items-center space-x-4">
                         <FaUserCircle className="text-3xl text-blue-200" />
-                        <span className="text-lg font-medium">Ms. Varsha</span>
                         <FaPowerOff className="text-2xl cursor-pointer text-red-400 hover:text-red-500 transition transform hover:scale-110" />
                     </div>
                 </header>
@@ -145,4 +142,4 @@ const ProposalInbox = () => {
     );
 };
 
-export default SubmittedForms;
+export default ProposalInbox;

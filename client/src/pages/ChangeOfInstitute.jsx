@@ -18,7 +18,6 @@ const ChangeOfInstitute = () => {
                         <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
                         <div className="flex items-center space-x-4">
                             <FaUserCircle className="text-2xl" />
-                            <span>Welcome, Ms. Varsha</span>
                             <FaPowerOff className="text-xl cursor-pointer text-red-500" />
                         </div>
                     </header>

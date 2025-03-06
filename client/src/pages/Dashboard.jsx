@@ -56,14 +56,13 @@ const Dashboard = () => {
         }[tab];
     
         if (tab === currentTab) {
-            return "bg-red-600"; // Alert user with red color for active tab
+            return "bg-red-600";
         }
     
         if (!formData[sectionKey] || Object.keys(formData[sectionKey]).length === 0) {
-            return "bg-gray-800"; // Not visited (Default Black/Grey)
+            return "bg-gray-800"; 
         }
     
-        // Special handling for "Budget Related Details" (nested structure)
         let filledFields = 0;
         let totalFields = 0;
     
@@ -81,12 +80,12 @@ const Dashboard = () => {
         }
     
         if (filledFields === totalFields && totalFields > 0) {
-            return "bg-green-600"; // Fully Completed (Green)
+            return "bg-green-600"; 
         } else if (filledFields > 0) {
-            return "bg-orange-500"; // Partially Filled (Orange)
+            return "bg-orange-500";
         }
     
-        return "bg-gray-800"; // Default (Not visited)
+        return "bg-gray-800"; 
     };
     
     
@@ -108,7 +107,6 @@ const Dashboard = () => {
                     <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
                     <div className="flex items-center space-x-4">
                         <FaUserCircle className="text-2xl" />
-                        <span>Welcome</span>
                         <FaPowerOff className="text-xl cursor-pointer text-red-500" />
                     </div>
                 </header>
@@ -130,7 +128,7 @@ const Dashboard = () => {
                         <div className="p-4 border rounded-lg bg-gray-50 shadow-sm">
                             {tabContent[currentTab] || <p>Select a tab to view content.</p>}
                         </div>
-                        <div className="flex justify-between mt-6">
+                        <div className="flex justify-center mt-6 space-x-4">
                             <button
                                 className="px-4 py-2 bg-gray-300 rounded transition hover:bg-gray-400 disabled:opacity-50"
                                 onClick={() => {

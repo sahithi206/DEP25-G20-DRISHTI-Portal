@@ -2,8 +2,8 @@ import { useState, createContext } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
-const url = "http://localhost:8000/";
-
+const url = import.meta.env.VITE_REACT_APP_URL;
+console.log(url);
 const AuthProvider = (props) => {
   const navigate = useNavigate();
   const [authState] = useState("");
@@ -81,7 +81,7 @@ const AuthProvider = (props) => {
         console.log("Your token: " + result.accessToken);
 
         localStorage.setItem("token", result.accessToken);
-        navigate("/dashboard");
+        navigate("/formsubmission");
       } else {
         console.error("Error:", result.msg);
         alert("Error: " + result.msg);
@@ -106,7 +106,7 @@ const AuthProvider = (props) => {
       console.log("User Logged in successfully:", json);
       if (json.success) {
         localStorage.setItem("token", json.accessToken);
-        navigate("/dashboard");
+        navigate("/formsubmission");
       }
     } catch (e) {
       console.error("Cannot Login:", e.message);

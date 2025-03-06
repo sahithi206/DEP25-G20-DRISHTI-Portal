@@ -23,7 +23,7 @@ const ProjectDashboard = () => {
                 return;
             }
             try {
-                const response = await fetch(`http://localhost:8000/form/get-proposal/${id}`, {
+                const response = await fetch(`${import.meta.env.VITE_REACT_APP_URL}form/get-proposal/${id}`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -105,10 +105,8 @@ const ProjectDashboard = () => {
                             <div className="flex items-center mb-4">
                                 <h3 className="text-xl font-semibold">Project Timeline</h3>
                             </div>
-                            {/*<p><strong>Start Date:</strong> {projectDetails.generalInfo.startDate}</p>
-                            <p><strong>End Date:</strong> {projectDetails.generalInfo.endDate}</p>*/}
                             <p><strong>Sanctioned Amount:</strong> {projectDetails.budgetSummary.total}</p>
-                            <p><strong>Used Amount:</strong> 0</p>
+                            <p><strong>Used Amount:</strong>0</p>
                         </div>
 
                         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 flex flex-col items-center">
@@ -134,7 +132,7 @@ const ProjectDashboard = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {projectDetails.PIdetails.members.map((member, index) => (
-                            <div key={index} className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                            <div key={index} className={`bg-white rounded-xl shadow-lg p-6 border border-gray-200 ${index === 0 && projectDetails.PIdetails.members.length % 2 !== 0 ? 'col-span-2' : ''}`}>
                                 <h3 className="text-xl font-semibold">{member.role} Details</h3>
                                 <p><strong>Name:</strong> {member.name}</p>
                                 <p><strong>Email:</strong> {member.email}</p>
@@ -153,8 +151,8 @@ const ProjectDashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
                             <h3 className="text-xl font-semibold">Budget Summary</h3>
-                            <p><strong>Sanctioned Amount:</strong> {projectDetails.budgetSummary.sanctionedAmount}</p>
-                            <p><strong>Used Amount:</strong> {projectDetails.budgetSummary.usedAmount}</p>
+                            <p><strong>Sanctioned Amount:</strong> {projectDetails.budgetSummary.total}</p>
+                            <p><strong>Used Amount:</strong> {usedAmount}</p>
                         </div>
 
                         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
@@ -164,29 +162,7 @@ const ProjectDashboard = () => {
                             <p><strong>IFSC Code:</strong> {projectDetails.bankDetails.ifscCode}</p>
                         </div>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 flex flex-col items-center">
-                            <div className="flex items-center mb-4">
-                                <h3 className="text-xl font-semibold">Time Left</h3>
-                            </div>
-                            <div className="w-full h-48 relative">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie data={timeData} cx="50%" cy="50%" outerRadius="90%" dataKey="value">
-                                            {timeData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-                            
-                            <p className="text-l text-gray-600 mt-1">Time Left: {timeLeftPercentage}%</p>
-                        </div>
-                    </div>
-
+                    
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <ActionButton className="bg-blue-500 text-white">View Quotations</ActionButton>
                         <ActionButton className="bg-green-500 text-white">Recurring Grant</ActionButton>

@@ -5,7 +5,6 @@ const GeneralInfo = ({ formData, updateForm }) => {
     const [data, setData] = useState(formData);
     const { submitGeneralInfo } = useContext(AuthContext);
 
-    // Sync with parent state whenever local state changes
     useEffect(() => {
         updateForm("generalInfo", data);
     }, [data]);
@@ -36,15 +35,15 @@ const GeneralInfo = ({ formData, updateForm }) => {
             const response = await submitGeneralInfo({
                 name: data.name,
                 address: data.address,
-                mobileNo: data.mobile, // Ensure this matches the backend expectation
+                mobileNo: data.mobile,
                 email: data.email,
-                instituteName: data.institute, // Ensure this matches the backend expectation
+                instituteName: data.institute, 
                 coordinator: data.coordinator,
                 areaOfSpecialization: data.areaOfSpecialization,
-                DBTproj_ong: data.dbtProjectsOngoing, // Ensure this matches the backend expectation
-                DBTproj_completed: data.dbtProjectsCompleted, // Ensure this matches the backend expectation
-                Proj_ong: data.projectsOngoing, // Ensure this matches the backend expectation
-                Proj_completed: data.projectsCompleted // Ensure this matches the backend expectation
+                DBTproj_ong: data.dbtProjectsOngoing,
+                DBTproj_completed: data.dbtProjectsCompleted, 
+                Proj_ong: data.projectsOngoing, 
+                Proj_completed: data.projectsCompleted
             });
             if (response.success) {
                 alert("General info submitted successfully!");

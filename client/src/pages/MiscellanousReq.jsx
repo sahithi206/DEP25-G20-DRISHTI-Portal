@@ -46,7 +46,6 @@ const MiscRequest = () => {
                     <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
                     <div className="flex items-center space-x-4">
                         <FaUserCircle className="text-2xl" />
-                        <span>Welcome, Ms. Varsha</span>
                         <FaPowerOff className="text-xl cursor-pointer text-red-500" />
                     </div>
                 </header>
@@ -104,7 +103,7 @@ const MiscRequest = () => {
                                 type="submit"
                                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
                             >
-                                Submit Request
+                                Submit 
                             </button>
                         </form>
                     </div>

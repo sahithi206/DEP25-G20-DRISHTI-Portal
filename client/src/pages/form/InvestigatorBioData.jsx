@@ -80,7 +80,7 @@ const InvestigatorBiodata = () => {
                     className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                     onClick={handleSave}
                 >
-                    Save Basic Details
+                    Save
                 </button>
             </div>
             <p className="mt-2 text-red-600 font-semibold">Help: Please save Basic Details to fill further information in other tabs.</p>

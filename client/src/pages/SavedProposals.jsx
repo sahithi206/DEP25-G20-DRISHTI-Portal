@@ -11,7 +11,7 @@ const SavedProposals = () => {
     useEffect(()=>{
         const projects = async () =>{
          const proj=await approvedProjects();
-         const Projects=proj.map((project)=>{
+         const Projects=await proj.map((project)=>{
             let id = project.proposalId;
             let title = project.researchDetails.Title;
             return {id, title};
