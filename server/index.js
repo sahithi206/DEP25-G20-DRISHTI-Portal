@@ -23,10 +23,6 @@ app.listen(PORT, () => {
 });
 
 const connectDB = async()=>{
-<<<<<<< HEAD
-    console.log(process.env.URL)
-=======
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
    try{
     await mongoose.connect(process.env.URL)
     console.log("MongoDB Connected");

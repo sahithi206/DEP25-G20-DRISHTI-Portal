@@ -1,98 +1,10 @@
-<<<<<<< HEAD
-import React, { useState } from "react";
-
-const TechForm = () => {
-    const [formData, setFormData] = useState({
-        proposalTitle: "",
-        projectDuration: "",
-        projectSummary: "",
-        objectives: "",
-        expectedOutput: "",
-        otherDetails: ""
-    });
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log("Submitted Data:", formData);
-    };
-
-    return (
-        <div className="p-4 bg-white shadow rounded-lg border">
-            <h3 className="text-lg font-semibold mb-4">Technical Details</h3>
-            <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
-                        <label className="block font-semibold">Proposal Title:</label>
-                        <input 
-                            type="text" 
-                            className="w-full p-2 border rounded" 
-                            name="proposalTitle" 
-                            value={formData.proposalTitle} 
-                            onChange={handleChange} 
-                        />
-                    </div>
-                    <div className="col-span-2">
-                        <label className="block font-semibold">Project Duration (Months):</label>
-                        <input 
-                            type="number" 
-                            className="w-full p-2 border rounded" 
-                            name="projectDuration" 
-                            value={formData.projectDuration} 
-                            onChange={handleChange} 
-                        />
-                    </div>
-                    <div className="col-span-2">
-                        <label className="block font-semibold">Project Summary:</label>
-                        <textarea 
-                            className="w-full p-2 border rounded" 
-                            rows="3" 
-                            name="projectSummary" 
-                            value={formData.projectSummary} 
-                            onChange={handleChange} 
-                        />
-                    </div>
-                    <div className="col-span-2">
-                        <label className="block font-semibold">Objectives:</label>
-                        <textarea 
-                            className="w-full p-2 border rounded" 
-                            rows="3" 
-                            name="objectives" 
-                            value={formData.objectives} 
-                            onChange={handleChange} 
-                        />
-                    </div>
-                    <div className="col-span-2">
-                        <label className="block font-semibold">Expected Output:</label>
-                        <textarea 
-                            className="w-full p-2 border rounded" 
-                            rows="3" 
-                            name="expectedOutput" 
-                            value={formData.expectedOutput} 
-                            onChange={handleChange} 
-                        />
-                    </div>
-                    <div className="col-span-2">
-                        <label className="block font-semibold">Other Details:</label>
-                        <textarea 
-                            className="w-full p-2 border rounded" 
-                            rows="3" 
-                            name="otherDetails" 
-                            value={formData.otherDetails} 
-                            onChange={handleChange} 
-                        />
-                    </div>
-                </div>
-                <button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-=======
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../Context/Authcontext";
 
 const TechForm = ({ formData, updateForm }) => {
     const section = "technicalDetails";
     const [data, setData] = useState(formData);
+    const { submitResearchDetails } = useContext(AuthContext);
 
     // Character limits for each field
     const charLimits = {
@@ -130,6 +42,26 @@ const TechForm = ({ formData, updateForm }) => {
         }
     };
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await submitResearchDetails({
+                Title: data.proposalTitle,
+                Duration: data.projectDuration,
+                Summary: data.projectSummary,
+                objectives: data.objectives.split("\n"), // objectives are separated by new lines
+                Output: data.expectedOutput,
+                other: data.otherDetails
+            });
+            if (response.success) {
+                alert("Research details submitted successfully!");
+            }
+        } catch (error) {
+            console.error("Error submitting research details:", error.message);
+            alert("Failed to submit research details");
+        }
+    };
+
     return (
         <div className="container mx-auto p-6">
             <div className="flex justify-between items-center mb-4">
@@ -149,7 +81,7 @@ const TechForm = ({ formData, updateForm }) => {
                 </label>
             </div>
 
-            <form className="bg-white p-6 rounded-lg shadow-md">
+            <form className="bg-white p-6 rounded-lg shadow-md" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
                     {/* Proposal Title */}
                     <div className="col-span-2">
@@ -197,7 +129,9 @@ const TechForm = ({ formData, updateForm }) => {
                         </div>
                     ))}
                 </div>
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
+                <button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Submit
+                </button>
             </form>
         </div>
     );

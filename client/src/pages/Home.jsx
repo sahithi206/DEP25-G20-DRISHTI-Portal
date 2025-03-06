@@ -2,10 +2,6 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import LatestNews from "../components/LatestNews";
 import Hero from "../components/Hero";
-<<<<<<< HEAD
-
-const Home = () => {
-=======
 import { useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // Import icons
 
@@ -31,22 +27,12 @@ const Home = () => {
         }
     };
 
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
     return (
         <div>
             <Navbar />
             <LatestNews />
             <Hero />
 
-<<<<<<< HEAD
-            <div className="flex justify-center py-10">
-                <Link
-                    to="/login"
-                    className="px-8 py-4 text-xl font-bold text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition"
-                >
-                    Login
-                </Link>
-=======
             {/* ANRF Programs Section */}
             <div className="flex flex-col items-center justify-center py-10">
                 <h2 className="text-3xl font-bold mb-6">ANRF PROGRAMS</h2>
@@ -104,7 +90,6 @@ const Home = () => {
                         <FaChevronRight />
                     </button>
                 </div>
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
             </div>
         </div>
     );

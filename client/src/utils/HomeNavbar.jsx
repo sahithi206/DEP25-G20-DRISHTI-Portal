@@ -1,31 +1,33 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { FaUserCircle, FaPowerOff } from "react-icons/fa";
+import { AuthContext } from "../pages/Context/Authcontext";
 
-const Navbar = ({ user }) => {
-    return (
-        <nav className="bg-blue-900 text-white px-6 py-3 flex justify-between items-center fixed top-0 left-64 w-[calc(100%-16rem)] shadow-md z-50">
-            {/* Logo / Title */}
-            <h1 className="text-lg font-bold tracking-wide">
-                अनुसंधान नेशनल रिसर्च फाउंडेशन
-            </h1>
+const Navbar = () => {
+  const { getuser } = useContext(AuthContext);
+  const [user, setUser] = useState();
 
-            {/* Right-side Buttons & User Info */}
-            <div className="flex items-center gap-4">
-                <button className="bg-blue-700 hover:bg-blue-600 transition px-4 py-2 rounded-lg shadow-md">
-                    Tweet
-                </button>
-                <button className="bg-gray-700 hover:bg-gray-600 transition px-4 py-2 rounded-lg shadow-md">
-                    Share
-                </button>
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await getuser();
+      setUser(userData);
+    };
 
-                {/* Show user details only if logged in */}
-                {user && (
-                    <span className="text-sm font-medium">
-                        👤 Welcome, {user.name}
-                    </span>
-                )}
-            </div>
-        </nav>
-    );
+    fetchUser();
+  }, [getuser]);
+  console.log(user);
+
+  return (
+    <header className="bg-blue-900 text-white p-4 flex justify-between items-center fixed top-0 left-64 w-[calc(100%-16rem)] shadow-md z-50">
+      <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
+      <div className="flex items-center space-x-4">
+        <FaUserCircle className="text-2xl" />
+        {user && (
+          <span>Welcome, {user.Name}</span>
+        )}
+        <FaPowerOff className="text-xl cursor-pointer text-red-500" />
+      </div>
+    </header>
+  );
 };
 
 export default Navbar;

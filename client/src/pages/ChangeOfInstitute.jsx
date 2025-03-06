@@ -23,26 +23,11 @@ const ChangeOfInstitute = () => {
                         </div>
                     </header>
                 {/* Page Content */}
-<<<<<<< HEAD
-                <div className="p-6 mt-16">
-                    {/* Page Header */}
-                    <div className="text-center">
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            अनुसंधान नेशनल रिसर्च फाउंडेशन
-                        </h1>
-                        <h2 className="text-lg font-semibold text-gray-700">
-                            Anusandhan National Research Foundation
-                        </h2>
-                        <h3 className="mt-3 text-xl font-semibold text-gray-900 border-t-2 pt-2">
-                            Change Of Institute
-                        </h3>
-=======
                 <div className="p-6 space-y-6">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
                         <h1 className="text-3xl font-black text-gray-900 mb-2">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
                         <h2 className="text-xl font-semibold text-gray-700">Anusandhan National Research Foundation</h2>
                         <p className="mt-3 text-2xl font-bold text-blue-800">Change of Institute </p>
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                     </div>
 
                     {/* Form Section */}

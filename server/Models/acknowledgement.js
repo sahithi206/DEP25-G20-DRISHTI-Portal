@@ -2,11 +2,6 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const acknowledgementSchema = new Schema({
-<<<<<<< HEAD
-    proposalId: { type: Schema.Types.ObjectId, ref: "Proposal", required: true },
-    TCaccepted:{type:Boolean,required:true},
-    acknowledged_at:{type:Date}
-=======
     proposalId: {
         type: Schema.Types.ObjectId,
         ref: "Proposal",
@@ -40,7 +35,6 @@ const acknowledgementSchema = new Schema({
     },
     TCaccepted: { type: Boolean, required: true },
     acknowledged_at: { type: Date, default: Date.now }
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
 });
 
 module.exports = mongoose.model("Acknowledgement", acknowledgementSchema);

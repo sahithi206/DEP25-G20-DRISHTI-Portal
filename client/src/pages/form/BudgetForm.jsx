@@ -1,16 +1,6 @@
-<<<<<<< HEAD
-import { useState } from "react";
-
-const BudgetForm = () => {
-
-    
-    const [activeTab, setActiveTab] = useState("Non-Recurring");
-    const [nonRecurringItems, setNonRecurringItems] = useState([{ item: "", unitCost: "", quantity: "", total: "" }]);
-    const [materials, setMaterials] = useState([{ material: "", quantity: "", perUnitCost: "", total: "" }]);
-    const [manpower, setManpower] = useState([{ role: "", numEmployees: "", salary: "", total: "" }]);
-    const [otherExpenses, setOtherExpenses] = useState([{ expense: "", amount: "" }]);
-=======
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../Context/Authcontext";
+import HomeNavbar from "../../utils/HomeNavbar";
 
 const BudgetForm = ({ formData, updateForm }) => {
     const [activeTab, setActiveTab] = useState("Non-Recurring");
@@ -18,6 +8,7 @@ const BudgetForm = ({ formData, updateForm }) => {
     const [materials, setMaterials] = useState(formData.recurring.material || []);
     const [manpower, setManpower] = useState(formData.recurring.manpower || []);
     const [otherExpenses, setOtherExpenses] = useState(formData.recurring.others || []);
+    const { submitBudgetDetails } = useContext(AuthContext);
 
     useEffect(() => {
         updateForm("budgetDetails", {
@@ -25,15 +16,15 @@ const BudgetForm = ({ formData, updateForm }) => {
             recurring: { material: materials, manpower: manpower, others: otherExpenses }
         });
     }, [nonRecurringItems, materials, manpower, otherExpenses]);
-
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
     const handleChange = (index, field, value, setState, state) => {
         const updatedItems = [...state];
         updatedItems[index][field] = value;
-
+    
         if (field === "unitCost" || field === "quantity") {
             const unitCost = parseFloat(updatedItems[index].unitCost) || 0;
+            console.log(unitCost);
             const quantity = parseFloat(updatedItems[index].quantity) || 0;
+            console.log(quantity);
             updatedItems[index].total = (unitCost * quantity).toFixed(2);
         } else if (field === "perUnitCost" || field === "quantity") {
             const perUnitCost = parseFloat(updatedItems[index].perUnitCost) || 0;
@@ -44,20 +35,11 @@ const BudgetForm = ({ formData, updateForm }) => {
             const salary = parseFloat(updatedItems[index].salary) || 0;
             updatedItems[index].total = (numEmployees * salary).toFixed(2);
         }
-
-        setState(updatedItems);
-    };
-
-<<<<<<< HEAD
-    const addNewItem = (setState, state, newItem) => {
-        setState([...state, newItem]);
-    };
-
-
-
     
+        setState(updatedItems);
+        console.log(updatedItems);
+    };
 
-=======
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -80,7 +62,31 @@ const BudgetForm = ({ formData, updateForm }) => {
     const addNewItem = (setState, state, newItem) => {
         setState([...state, newItem]);
     };
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await submitBudgetDetails({
+                recurring_items: {
+                    employees: manpower,
+                    consumables: materials,
+                    others: otherExpenses
+                },
+                non_recurring_items: {
+                    items: nonRecurringItems
+                }
+            });
+            if (response.success) {
+                alert("Budget details submitted successfully!");
+            }
+        } catch (error) {
+            console.error("Error submitting budget details:", error.message);
+            alert("Failed to submit budget details");
+        }
+    };
+
+
     const renderForm = () => {
         switch (activeTab) {
             case "Non-Recurring":
@@ -94,24 +100,20 @@ const BudgetForm = ({ formData, updateForm }) => {
                                     value={item.item}
                                     onChange={(e) => handleChange(index, "item", e.target.value, setNonRecurringItems, nonRecurringItems)}
                                 />
-                                <input type="number" placeholder="Unit Cost" className="border p-2 rounded w-full"
+                                <input type="parseFloat" placeholder="Unit Cost" className="border p-2 rounded w-full"
                                     value={item.unitCost}
                                     onChange={(e) => handleChange(index, "unitCost", e.target.value, setNonRecurringItems, nonRecurringItems)}
                                 />
-                                <input type="number" placeholder="Quantity" className="border p-2 rounded w-full"
+                                <input type="parseFloat" placeholder="Quantity" className="border p-2 rounded w-full"
                                     value={item.quantity}
                                     onChange={(e) => handleChange(index, "quantity", e.target.value, setNonRecurringItems, nonRecurringItems)}
                                 />
-                                <input type="number" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={item.total} />
+                                <input type="parseFloat" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={item.total} />
                             </div>
                         ))}
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setNonRecurringItems, nonRecurringItems, { item: "", unitCost: "", quantity: "", total: "" })}
                         >Add More</button>
-<<<<<<< HEAD
-=======
-
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                     </div>
                 );
 
@@ -128,15 +130,15 @@ const BudgetForm = ({ formData, updateForm }) => {
                                     value={material.material}
                                     onChange={(e) => handleChange(index, "material", e.target.value, setMaterials, materials)}
                                 />
-                                <input type="number" placeholder="Quantity" className="border p-2 rounded w-full"
+                                <input type="parseFloat" placeholder="Quantity" className="border p-2 rounded w-full"
                                     value={material.quantity}
                                     onChange={(e) => handleChange(index, "quantity", e.target.value, setMaterials, materials)}
                                 />
-                                <input type="number" placeholder="Per Unit Cost" className="border p-2 rounded w-full"
+                                <input type="parseFloat" placeholder="Per Unit Cost" className="border p-2 rounded w-full"
                                     value={material.perUnitCost}
                                     onChange={(e) => handleChange(index, "perUnitCost", e.target.value, setMaterials, materials)}
                                 />
-                                <input type="number" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={material.total} />
+                                <input type="parseFloat" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={material.total} />
                             </div>
                         ))}
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
@@ -151,54 +153,20 @@ const BudgetForm = ({ formData, updateForm }) => {
                                     value={mp.role}
                                     onChange={(e) => handleChange(index, "role", e.target.value, setManpower, manpower)}
                                 />
-                                <input type="number" placeholder="No. of Employees" className="border p-2 rounded w-full"
+                                <input type="parseFloat" placeholder="No. of Employees" className="border p-2 rounded w-full"
                                     value={mp.numEmployees}
                                     onChange={(e) => handleChange(index, "numEmployees", e.target.value, setManpower, manpower)}
                                 />
-                                <input type="number" placeholder="Monthly Salary" className="border p-2 rounded w-full"
+                                <input type="parseFloat" placeholder="Monthly Salary" className="border p-2 rounded w-full"
                                     value={mp.salary}
                                     onChange={(e) => handleChange(index, "salary", e.target.value, setManpower, manpower)}
                                 />
-                                <input type="number" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={mp.total} />
+                                <input type="parseFloat" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={mp.total} />
                             </div>
                         ))}
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setManpower, manpower, { role: "", numEmployees: "", salary: "", total: "" })}
                         >Add More</button>
-<<<<<<< HEAD
-                    
-
-
-
-
-
- {/* Other Expenses */}
- <h3 className="text-lg font-semibold mt-6">Others</h3>
- {otherExpenses.map((expense, index) => (
-     <div key={index} className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-         <input type="text" placeholder="Expense" className="border p-2 rounded w-full"
-             value={expense.expense}
-             onChange={(e) => handleChange(index, "expense", e.target.value, setOtherExpenses, otherExpenses)}
-         />
-         <input type="number" placeholder="Amount" className="border p-2 rounded w-full"
-             value={expense.amount}
-             onChange={(e) => handleChange(index, "amount", e.target.value, setOtherExpenses, otherExpenses)}
-         />
-     </div>
- ))}
- <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-     onClick={() => addNewItem(setOtherExpenses, otherExpenses, { expense: "", amount: "" })}
- >Add More</button>
-
-
-
-
-</div>);
-
-
-            
-
-=======
                         {/* Other Expenses */}
                         <h3 className="text-lg font-semibold mt-6">Others</h3>
                         {otherExpenses.map((expense, index) => (
@@ -207,7 +175,7 @@ const BudgetForm = ({ formData, updateForm }) => {
                                     value={expense.expense}
                                     onChange={(e) => handleChange(index, "expense", e.target.value, setOtherExpenses, otherExpenses)}
                                 />
-                                <input type="number" placeholder="Amount" className="border p-2 rounded w-full"
+                                <input type="parseFloat" placeholder="Amount" className="border p-2 rounded w-full"
                                     value={expense.amount}
                                     onChange={(e) => handleChange(index, "amount", e.target.value, setOtherExpenses, otherExpenses)}
                                 />
@@ -216,7 +184,6 @@ const BudgetForm = ({ formData, updateForm }) => {
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setOtherExpenses, otherExpenses, { expense: "", amount: "" })}>Add More</button>
                     </div>);
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
             default:
                 return <p>Select a category to enter budget details.</p>;
         }
@@ -224,18 +191,6 @@ const BudgetForm = ({ formData, updateForm }) => {
 
     return (
         <div className="p-4">
-<<<<<<< HEAD
-            <div className="flex space-x-2 mb-4">
-                {["Non-Recurring", "Recurring"].map((tab) => (
-                    <button
-                        key={tab}
-                        className={`p-2 border rounded-md ${activeTab === tab ? "bg-green-500 text-white" : "bg-gray-200"}`}
-                        onClick={() => setActiveTab(tab)}
-                    >
-                        {tab}
-                    </button>
-                ))}
-=======
             <div className="flex justify-between items-center mb-4">
                 <div className="flex space-x-2">
                     <h1 className="text-2xl font-bold mb-4">Budget Details</h1>
@@ -262,57 +217,17 @@ const BudgetForm = ({ formData, updateForm }) => {
                 >
                     Import JSON
                 </label>
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
             </div>
             {renderForm()}
+            <button onClick={handleSubmit} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Submit Budget
+            </button>
         </div>
     );
 };
 
 export default BudgetForm;
 
-<<<<<<< HEAD
-            
-            {/* Travel */}
-            {/* 
-            <h3 className="text-lg font-semibold mt-6">Travel</h3>
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                <input type="text" placeholder="Destination" className="border p-2 rounded w-full" />
-                <input type="number" placeholder="Cost" className="border p-2 rounded w-full" />
-            </div>
-            */}
-
-            {/* Overhead */}
-            {/* 
-            <h3 className="text-lg font-semibold mt-6">Overhead</h3>
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                <input type="text" placeholder="Description" className="border p-2 rounded w-full" />
-                <input type="number" placeholder="Cost" className="border p-2 rounded w-full" />
-            </div>
-            */}
-
-            {/* Bank Details */}
-            {/* 
-            <h3 className="text-lg font-semibold mt-6">Bank Details</h3>
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                <input type="text" placeholder="Account Name" className="border p-2 rounded w-full" />
-                <input type="text" placeholder="Account Number" className="border p-2 rounded w-full" />
-            </div>
-            */}
-
-            {/* Contingency */}
-            {/* 
-            <h3 className="text-lg font-semibold mt-6">Contingency</h3>
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                <input type="text" placeholder="Description" className="border p-2 rounded w-full" />
-                <input type="number" placeholder="Amount" className="border p-2 rounded w-full" />
-            </div>
-            */}
-
-
-
-
-=======
 
 
 
@@ -381,15 +296,15 @@ export default BudgetForm;
 //                                     value={item.item}
 //                                     onChange={(e) => handleChange(index, "item", e.target.value, setNonRecurringItems, nonRecurringItems)}
 //                                 />
-//                                 <input type="number" placeholder="Unit Cost" className="border p-2 rounded w-full"
+//                                 <input type="parseFloat" placeholder="Unit Cost" className="border p-2 rounded w-full"
 //                                     value={item.unitCost}
 //                                     onChange={(e) => handleChange(index, "unitCost", e.target.value, setNonRecurringItems, nonRecurringItems)}
 //                                 />
-//                                 <input type="number" placeholder="Quantity" className="border p-2 rounded w-full"
+//                                 <input type="parseFloat" placeholder="Quantity" className="border p-2 rounded w-full"
 //                                     value={item.quantity}
 //                                     onChange={(e) => handleChange(index, "quantity", e.target.value, setNonRecurringItems, nonRecurringItems)}
 //                                 />
-//                                 <input type="number" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={item.total} />
+//                                 <input type="parseFloat" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={item.total} />
 //                             </div>
 //                         ))}
 //                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
@@ -412,15 +327,15 @@ export default BudgetForm;
 //                                     value={material.material}
 //                                     onChange={(e) => handleChange(index, "material", e.target.value, setMaterials, materials)}
 //                                 />
-//                                 <input type="number" placeholder="Quantity" className="border p-2 rounded w-full"
+//                                 <input type="parseFloat" placeholder="Quantity" className="border p-2 rounded w-full"
 //                                     value={material.quantity}
 //                                     onChange={(e) => handleChange(index, "quantity", e.target.value, setMaterials, materials)}
 //                                 />
-//                                 <input type="number" placeholder="Per Unit Cost" className="border p-2 rounded w-full"
+//                                 <input type="parseFloat" placeholder="Per Unit Cost" className="border p-2 rounded w-full"
 //                                     value={material.perUnitCost}
 //                                     onChange={(e) => handleChange(index, "perUnitCost", e.target.value, setMaterials, materials)}
 //                                 />
-//                                 <input type="number" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={material.total} />
+//                                 <input type="parseFloat" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={material.total} />
 //                             </div>
 //                         ))}
 //                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
@@ -435,15 +350,15 @@ export default BudgetForm;
 //                                     value={mp.role}
 //                                     onChange={(e) => handleChange(index, "role", e.target.value, setManpower, manpower)}
 //                                 />
-//                                 <input type="number" placeholder="No. of Employees" className="border p-2 rounded w-full"
+//                                 <input type="parseFloat" placeholder="No. of Employees" className="border p-2 rounded w-full"
 //                                     value={mp.numEmployees}
 //                                     onChange={(e) => handleChange(index, "numEmployees", e.target.value, setManpower, manpower)}
 //                                 />
-//                                 <input type="number" placeholder="Monthly Salary" className="border p-2 rounded w-full"
+//                                 <input type="parseFloat" placeholder="Monthly Salary" className="border p-2 rounded w-full"
 //                                     value={mp.salary}
 //                                     onChange={(e) => handleChange(index, "salary", e.target.value, setManpower, manpower)}
 //                                 />
-//                                 <input type="number" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={mp.total} />
+//                                 <input type="parseFloat" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={mp.total} />
 //                             </div>
 //                         ))}
 //                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
@@ -457,7 +372,7 @@ export default BudgetForm;
 //                                     value={expense.expense}
 //                                     onChange={(e) => handleChange(index, "expense", e.target.value, setOtherExpenses, otherExpenses)}
 //                                 />
-//                                 <input type="number" placeholder="Amount" className="border p-2 rounded w-full"
+//                                 <input type="parseFloat" placeholder="Amount" className="border p-2 rounded w-full"
 //                                     value={expense.amount}
 //                                     onChange={(e) => handleChange(index, "amount", e.target.value, setOtherExpenses, otherExpenses)}
 //                                 />
@@ -506,4 +421,3 @@ export default BudgetForm;
 // };
 
 // export default BudgetForm;
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755

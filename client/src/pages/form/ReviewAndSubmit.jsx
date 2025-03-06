@@ -1,19 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import jsPDF from "jspdf";
+import HomeNavbar from "../../utils/HomeNavbar";
+import { AuthContext } from "../Context/Authcontext";
 
 const ReviewAndSubmit = ({ formData = {} }) => {
     const [isChecked, setIsChecked] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const { submitAcknowledgement } = useContext(AuthContext);
 
     useEffect(() => {
         console.log("Form Data Received:", formData);
     }, [formData]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (isChecked) {
-            setSubmitted(true);
-            console.log("Declaration submitted successfully!");
+            try {
+                await submitAcknowledgement(isChecked);
+                setSubmitted(true);
+                console.log("Declaration submitted successfully!");
+            } catch (error) {
+                console.error("Error submitting declaration:", error.message);
+                alert("Failed to submit declaration");
+            }
         } else {
             alert("Please accept the declaration before submitting.");
         }
@@ -39,47 +48,47 @@ const ReviewAndSubmit = ({ formData = {} }) => {
             alert("No data to export!");
             return;
         }
-    
+
         const doc = new jsPDF();
         let y = 20;
         const marginLeft = 15;
         const maxWidth = 160;
         const sectionSpacing = 10;
         const lineSpacing = 7;
-    
+
         doc.setFont("helvetica", "bold");
         doc.setFontSize(18);
         doc.text("Review and Submit Form", marginLeft + 30, y);
         y += 10;
-    
+
         doc.setFont("helvetica", "normal");
         doc.setFontSize(12);
         doc.line(marginLeft, y, 200, y);
         y += sectionSpacing;
-    
+
         Object.entries(formData).forEach(([section, details]) => {
             if (!details || Object.keys(details).length === 0) return;
-    
+
             if (y + sectionSpacing > 270) {
                 doc.addPage();
                 y = 20;
             }
-    
+
             doc.setFont("helvetica", "bold");
             doc.setFontSize(14);
             doc.text(section, marginLeft, y);
             doc.line(marginLeft, y + 2, 200, y + 2);
             y += sectionSpacing;
-    
+
             doc.setFont("helvetica", "normal");
             doc.setFontSize(12);
-    
+
             if (section === "budgetDetails") {
                 if (details.nonRecurring && details.nonRecurring.items.length > 0) {
                     doc.setFont("helvetica", "bold");
                     doc.text("Non-Recurring Items", marginLeft, y);
                     y += sectionSpacing;
-    
+
                     details.nonRecurring.items.forEach((item) => {
                         if (y + lineSpacing > 270) {
                             doc.addPage();
@@ -95,21 +104,21 @@ const ReviewAndSubmit = ({ formData = {} }) => {
                     });
                     y += sectionSpacing;
                 }
-    
+
                 if (details.recurring) {
                     Object.entries(details.recurring).forEach(([category, items]) => {
                         if (items.length > 0) {
                             doc.setFont("helvetica", "bold");
                             doc.text(category.charAt(0).toUpperCase() + category.slice(1), marginLeft, y);
                             y += sectionSpacing;
-    
+
                             items.forEach((item) => {
                                 if (y + lineSpacing > 270) {
                                     doc.addPage();
                                     y = 20;
                                 }
                                 doc.setFont("helvetica", "normal");
-    
+
                                 let text = "";
                                 if (category === "manpower") {
                                     text = `${item.role}: ${item.numEmployees} employees @ $${item.salary} each, Total: $${item.total}`;
@@ -118,11 +127,11 @@ const ReviewAndSubmit = ({ formData = {} }) => {
                                 } else if (category === "others") {
                                     text = `${item.expense}: $${item.amount}`;
                                 }
-    
+
                                 doc.text(text, marginLeft, y);
                                 y += lineSpacing;
                             });
-    
+
                             y += sectionSpacing;
                         }
                     });
@@ -136,25 +145,26 @@ const ReviewAndSubmit = ({ formData = {} }) => {
                     const keyText = `${key}:`;
                     const valueText = value ? value.toString() : "N/A";
                     const wrappedText = doc.splitTextToSize(valueText, maxWidth - 50);
-    
+
                     doc.text(keyText, marginLeft, y);
                     doc.text(wrappedText, marginLeft + 50, y);
-    
+
                     y += wrappedText.length * 6 + 4;
                 });
             }
-    
+
             y += sectionSpacing;
         });
-    
+
         doc.save("SubmissionForm.pdf");
     };
 
     return (
+        <div>
+        <HomeNavbar />
         <div className="w-auto min-w-[300px] max-w-5xl mx-auto bg-gray-50 overflow-x-auto">
             <div className="w-auto min-w-[300px] mx-auto p-6 bg-white rounded-lg shadow-lg border mt-8 overflow-x-auto">
-                <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">📜 Review and Submit</h2>
-
+                <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center"> Review and Submit</h2>
 
                 {Object.keys(formData).length === 0 ? (
                     <p className="text-red-600 font-semibold text-center bg-red-50 p-6 rounded-lg border border-red-200">
@@ -317,13 +327,13 @@ const ReviewAndSubmit = ({ formData = {} }) => {
                                     className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition duration-300 uppercase tracking-wider disabled:opacity-50"
                                     disabled={!isChecked}
                                 >
-                                    ✅ Submit Proposal
+                                     Submit Proposal
                                 </button>
                             </form>
                         ) : (
                             <div className="text-center bg-green-50 border border-green-200 p-8 rounded-xl">
                                 <p className="text-2xl font-bold text-green-800 mb-4">
-                                    ✅ Proposal Submitted Successfully!
+                                     Proposal Submitted Successfully!
                                 </p>
                                 <p className="text-green-600">
                                     Your proposal has been received and will be reviewed shortly.
@@ -336,20 +346,20 @@ const ReviewAndSubmit = ({ formData = {} }) => {
                                 onClick={exportAsJSON}
                                 className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition duration-300 flex items-center space-x-2"
                             >
-                                <span>📂</span>
                                 <span>Export as JSON</span>
                             </button>
                             <button
                                 onClick={exportAsPDF}
                                 className="px-6 py-3 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition duration-300 flex items-center space-x-2"
                             >
-                                <span>📝</span>
+                                {/* <span>📝</span> */}
                                 <span>Export as PDF</span>
                             </button>
                         </div>
                     </>
                 )}
             </div>
+        </div>
         </div>
     );
 };

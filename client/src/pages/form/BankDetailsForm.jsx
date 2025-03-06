@@ -1,29 +1,11 @@
-<<<<<<< HEAD
-import React, { useState } from "react";
-
-const BankDetailsForm = () => {
-    const [bankDetails, setBankDetails] = useState({
-        accountHolderName: "",
-        accountNumber: "",
-        ifscCode: "",
-        accountType: "",
-        bankName: "",
-    });
-
-    const handleChange = (e) => {
-        setBankDetails({ ...bankDetails, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log("Submitted Bank Details:", bankDetails);
-        alert("Bank Details Submitted Successfully!");
-=======
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../Context/Authcontext";
+import HomeNavbar from "../../utils/HomeNavbar";
 
 const BankDetailsForm = ({ formData, updateForm }) => {
     const section = "bankDetails"; // Unique key for this section
     const [data, setData] = useState(formData);
+    const { submitBankDetails } = useContext(AuthContext);
 
     // Sync changes automatically with parent
     useEffect(() => {
@@ -48,15 +30,23 @@ const BankDetailsForm = ({ formData, updateForm }) => {
             };
             reader.readAsText(file);
         }
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await submitBankDetails(data);
+            alert("Bank details submitted successfully!");
+        } catch (error) {
+            console.error("Error submitting bank details:", error.message);
+            alert("Failed to submit bank details");
+        }
     };
 
     return (
+
+
         <div className="container mx-auto p-6">
-<<<<<<< HEAD
-            <h1 className="text-2xl font-bold mb-4">Bank Details Form</h1>
-            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
-=======
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold mb-4">Bank Details Form</h1>
                 <input
@@ -74,18 +64,13 @@ const BankDetailsForm = ({ formData, updateForm }) => {
                 </label>
             </div>
 
-            <form className="bg-white p-6 rounded-lg shadow-md">
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
+            <form className="bg-white p-6 rounded-lg shadow-md" onSubmit={handleSubmit}>
                 <div className="mb-4">
                     <label className="block font-semibold">Account Holder Name</label>
                     <input
                         type="text"
-                        name="accountHolderName"
-<<<<<<< HEAD
-                        value={bankDetails.accountHolderName}
-=======
-                        value={data.accountHolderName}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
+                        name="name"
+                        value={data.name}
                         onChange={handleChange}
                         className="w-full p-2 border rounded"
                         required
@@ -97,11 +82,7 @@ const BankDetailsForm = ({ formData, updateForm }) => {
                     <input
                         type="text"
                         name="accountNumber"
-<<<<<<< HEAD
-                        value={bankDetails.accountNumber}
-=======
                         value={data.accountNumber}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                         onChange={handleChange}
                         className="w-full p-2 border rounded"
                         required
@@ -113,11 +94,7 @@ const BankDetailsForm = ({ formData, updateForm }) => {
                     <input
                         type="text"
                         name="ifscCode"
-<<<<<<< HEAD
-                        value={bankDetails.ifscCode}
-=======
                         value={data.ifscCode}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                         onChange={handleChange}
                         className="w-full p-2 border rounded"
                         required
@@ -128,11 +105,7 @@ const BankDetailsForm = ({ formData, updateForm }) => {
                     <label className="block font-semibold">Account Type</label>
                     <select
                         name="accountType"
-<<<<<<< HEAD
-                        value={bankDetails.accountType}
-=======
                         value={data.accountType}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                         onChange={handleChange}
                         className="w-full p-2 border rounded"
                         required
@@ -148,29 +121,19 @@ const BankDetailsForm = ({ formData, updateForm }) => {
                     <input
                         type="text"
                         name="bankName"
-<<<<<<< HEAD
-                        value={bankDetails.bankName}
-=======
                         value={data.bankName}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                         onChange={handleChange}
                         className="w-full p-2 border rounded"
                         required
                     />
                 </div>
-<<<<<<< HEAD
 
-                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-                    Submit
-                </button>
-=======
-                {/* 
                 <button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                     Save
-                </button> */}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
+                </button>
             </form>
         </div>
+
     );
 };
 
