@@ -110,7 +110,7 @@ const AuthProvider = (props) => {
       }
     } catch (e) {
       console.error("Cannot Login:", e.message);
-      alert(e.message || "Invalid Credentials");
+      alert(e.msg || "Invalid Credentials");
     }
   };
   

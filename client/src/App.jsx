@@ -7,7 +7,6 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 //import Footer from "./components/Footer";
-
 import ProposalScheme from "./pages/ProposalScheme";
 import SavedProposals from "./pages/SavedProposals";
 import ProposalInbox from "./pages/ProposalInbox";

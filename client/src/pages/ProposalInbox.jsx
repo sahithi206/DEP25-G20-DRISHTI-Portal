@@ -4,7 +4,7 @@ import { FaUserCircle, FaPowerOff, FaFilter, FaSearch } from "react-icons/fa";
 import HomeNavbar from "../utils/HomeNavbar";
 
 
-const SubmittedForms = () => {
+const ProposalInbox = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("All");

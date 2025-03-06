@@ -152,6 +152,7 @@ router.get("/get-user", fetchUser, async (req, res) => {
     }catch{
      res.status(500).json({success:false,msg:"Internal Server Error"});
     }
-  })
+});
+
   
   module.exports = router;
