@@ -1,23 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";
 import { FaUserCircle, FaPowerOff } from "react-icons/fa";
+import { AuthContext } from "./Context/Authcontext";
+import HomeNavbar from "../utils/HomeNavbar";   
 
 const ProposalScheme = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [selectedProposal, setSelectedProposal] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const { submitProposal } = useContext(AuthContext); // Access submitProposal from AuthContext
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (!selectedProposal) {
             setError("Please select a scheme before proceeding.");
             return;
         }
-        navigate("/dashboard");
+
+        try {
+            const response = await submitProposal(selectedProposal);
+            if (response && response.success) {
+                localStorage.setItem("ProposalID", response.prop._id); // Save ProposalID in local storage
+                navigate("/dashboard");
+            } else {
+                setError(response.msg || "Failed to create proposal");
+            }
+        } catch (error) {
+            console.error("Error creating proposal:", error.message);
+            setError("Failed to create proposal");
+        }
     };
 
     return (
+        <div>
+            <HomeNavbar />
         <div className="flex bg-gray-100 min-h-screen">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
@@ -53,6 +70,9 @@ const ProposalScheme = () => {
                                 <option value="">Select scheme</option>
                                 <option value="scheme1">Scheme 1</option>
                                 <option value="scheme2">Scheme 2</option>
+                                <option value="scheme3">Scheme 3</option>
+                                <option value="scheme4">Scheme 4</option>
+                                <option value="scheme5">Scheme 5</option>
                             </select>
                         </div>
                         {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
@@ -72,6 +92,7 @@ const ProposalScheme = () => {
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 };

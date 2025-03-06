@@ -2,11 +2,14 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaUserCircle, FaPowerOff } from "react-icons/fa";
 import Sidebar from "../utils/Sidebar";
+import HomeNavbar from "../utils/HomeNavbar";
 
 const MenuPage = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     return (
+        
+        
         <div className="flex min-h-screen bg-gray-100">
             {/* Sidebar Component */}
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
@@ -47,6 +50,7 @@ const MenuPage = () => {
                 </div>
             </div>
         </div>
+        
     );
 };
 

@@ -8,6 +8,43 @@ const AuthProvider = (props) => {
   const navigate = useNavigate();
   const [authState] = useState("");
 
+
+
+  const getuser=async()=>{
+    const token= localStorage.getItem("token");
+    try{
+        console.log(token);
+        if(!token){
+         console.log("Use valid Token");
+         return;
+        }
+        const response = await fetch(`${url}auth/get-user`, {
+         method: "GET",
+         headers: { "Content-Type": "application/json",
+           "accessToken":`${token}`,
+         },
+       });
+       console.log(response);
+       if(!response.ok){
+         throw new Error("Cannot fetch userDetails");
+       }
+       const json= await response.json();
+       console.log(json);
+       const user=json.user;
+       console.log(user);
+       if(!json.success){
+         alert(json.msg);
+         return ;
+       }
+       return user;
+    }catch(e){
+     console.log(e);
+     alert(e.msg||"Cannot fetch User Details");
+    }
+ }
+
+ 
+
   const sendOtp = async (email) => {
     try {
       console.log(email);
@@ -77,66 +114,223 @@ const AuthProvider = (props) => {
     }
   };
   
-  const getuser=async()=>{
-     const token= localStorage.getItem("token");
-     try{
-         console.log(token);
-         if(!token){
-          console.log("Use valid Token");
-          return;
-         }
-         const response = await fetch(`${url}auth/get-user`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json",
-            "accessToken":`${token}`,
-           },
-        });
-        console.log(response);
-        if(!response.ok){
-          throw new Error("Cannot fetch userDetails");
-        }
-        const json= await response.json();
-        console.log(json);
-        const user=json.user;
-        console.log(user);
-        if(!json.success){
-          alert(json.msg);
-          return ;
-        }
-        return user;
-     }catch(e){
-      console.log(e);
-      alert(e.msg||"Cannot fetch User Details");
-     }
-  }
-
-  const edituser = async (updatedData) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-        console.log("Use a valid Token");
-        alert("Authentication required.");
-        return;
-    }
+  const submitProposal = async (scheme) => {
     try {
-        const response = await fetch(`${url}auth/edit-user`, {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("User not authenticated");
+
+        const response = await fetch(`${url}form/ProposalID`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "accessToken": token,
+                "accessToken": `${token}`
             },
-            body: JSON.stringify(updatedData),
+            body: JSON.stringify({ Scheme: scheme }),
         });
 
         if (!response.ok) {
-            throw new Error("Failed to update user details");
+            const errorText = await response.text();
+            throw new Error(errorText || "Failed to create proposal");
         }
+
         const json = await response.json();
-        alert(json.msg);
-    } catch (error) {
-        console.error("Edit user error:", error);
-        alert(error.message || "Failed to update user details");
+        console.log("Proposal Submitted Successfully:", json);
+        return json;
+    } catch (e) {
+        console.error("Error submitting proposal:", e.message);
+        throw e;
     }
 };
+  
+
+const submitGeneralInfo = async (generalInfoData) => {
+  try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not authenticated");
+
+      const proposalId = localStorage.getItem("ProposalID");
+      if (!proposalId) throw new Error("Proposal ID not found in local storage");
+
+      const response = await fetch(`${url}form/submitGI/${proposalId}`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "accessToken": `${token}`
+          },
+          body: JSON.stringify(generalInfoData),
+      });
+
+      if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Failed to submit general info");
+      }
+
+      const json = await response.json();
+      console.log("General Info Submitted:", json);
+      return json;
+  } catch (e) {
+      console.error("Cannot submit general info:", e.message);
+      throw e;
+  }
+};
+
+
+  const submitResearchDetails = async (researchDetailsData) => {
+    try {
+
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not authenticated");
+
+
+      const proposalId = localStorage.getItem("ProposalID");
+      if (!proposalId) throw new Error("Proposal ID not found in local storage");
+
+      const response = await fetch(`${url}form/submit-research-details/${proposalId}`, {
+        method: "POST",
+        headers: {
+           "Content-Type": "application/json" ,
+          "accessToken": `${token}`
+        },
+        body: JSON.stringify(researchDetailsData),
+      });
+
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.msg || "Failed to submit research details");
+
+      console.log("Research Details Submitted:", json);
+      return json;
+    } catch (e) {
+      console.error("Cannot submit research details:", e.message);
+      alert(e.message);
+    }
+  };
+
+
+  const submitBudgetDetails = async (budgetDetailsData) => {
+    try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("User not authenticated");
+
+        const proposalId = localStorage.getItem("ProposalID");
+        if (!proposalId) throw new Error("Proposal ID not found in local storage");
+        console.log(JSON.stringify(budgetDetailsData));
+        const response = await fetch(`${url}form/submit-budget/${proposalId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "accessToken": `${token}`
+            },
+            body: JSON.stringify(budgetDetailsData),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Failed to submit budget details");
+        }
+
+        const json = await response.json();
+        console.log("Budget Details Submitted:", json);
+        return json;
+    } catch (e) {
+        console.error("Cannot submit budget details:", e.message);
+        throw e;
+    }
+};
+
+const submitBankDetails = async (bankDetailsData) => {
+  try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not authenticated");
+
+      const proposalId = localStorage.getItem("ProposalID");
+      if (!proposalId) throw new Error("Proposal ID not found in local storage");
+
+      const response = await fetch(`${url}form/submit-bank-details/${proposalId}`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "accessToken": `${token}`
+          },
+          body: JSON.stringify(bankDetailsData),
+      });
+
+      if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Failed to submit bank details");
+      }
+
+      const json = await response.json();
+      console.log("Bank Details Submitted:", json);
+      return json;
+  } catch (e) {
+      console.error("Cannot submit bank details:", e.message);
+      throw e;
+  }
+};
+
+
+const submitPIDetails = async (piDetailsData) => {
+  try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not authenticated");
+
+      const proposalId = localStorage.getItem("ProposalID");
+      if (!proposalId) throw new Error("Proposal ID not found in local storage");
+
+      const response = await fetch(`${url}form/submit-pi-details/${proposalId}`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "accessToken": `${token}`
+          },
+          body: JSON.stringify(piDetailsData),
+      });
+
+      if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Failed to submit PI details");
+      }
+
+      const json = await response.json();
+      console.log("PI Details Submitted:", json);
+      return json;
+  } catch (e) {
+      console.error("Cannot submit PI details:", e.message);
+      throw e;
+  }
+};
+
+const submitAcknowledgement = async (accept) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("User not authenticated");
+
+    const proposalId = localStorage.getItem("ProposalID");
+    if (!proposalId) throw new Error("Proposal ID not found in local storage");
+
+    const response = await fetch(`${url}form/submit-acknowledgement/${proposalId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "accessToken": `${token}`
+      },
+      body: JSON.stringify({ accept }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Failed to submit acknowledgement");
+    }
+
+    const json = await response.json();
+    console.log("Acknowledgement Submitted:", json);
+    return json;
+  } catch (e) {
+    console.error("Cannot submit acknowledgement:", e.message);
+    throw e;
+  }
+};
+
 
 const approvedProjects = async () => {
   const token = localStorage.getItem("token");
@@ -166,10 +360,11 @@ const approvedProjects = async () => {
       alert(error.message || "Failed to update user details");
   }
 };
-  
+
+
 
   return (
-    <AuthContext.Provider value={{ sendOtp, verifyOtp, login,getuser, edituser, approvedProjects, authState }}>
+    <AuthContext.Provider value={{ sendOtp, verifyOtp, login, authState, submitProposal, submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails, submitPIDetails, submitAcknowledgement, getuser, approvedProjects }}>
       {props.children}
     </AuthContext.Provider>
   );

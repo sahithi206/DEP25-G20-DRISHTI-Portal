@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import HomeNavbar from "../../utils/HomeNavbar";
 
 const InvestigatorBiodata = () => {
     const [investigator, setInvestigator] = useState("");
@@ -11,6 +12,7 @@ const InvestigatorBiodata = () => {
     };
 
     return (
+        
         <div className="p-4 bg-white shadow rounded-lg border">
             <label className="block font-semibold mb-2">Select Investigator:</label>
             <select 

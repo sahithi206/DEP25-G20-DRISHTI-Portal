@@ -47,6 +47,8 @@ const UserProfile = () => {
     };
 
 
+
+
     return (
         <div className="flex min-h-screen bg-gray-50">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
@@ -114,3 +116,5 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
+
+
