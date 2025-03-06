@@ -1,15 +1,3 @@
-<<<<<<< HEAD
-import { useState } from "react";
-
-const BudgetForm = () => {
-
-    
-    const [activeTab, setActiveTab] = useState("Non-Recurring");
-    const [nonRecurringItems, setNonRecurringItems] = useState([{ item: "", unitCost: "", quantity: "", total: "" }]);
-    const [materials, setMaterials] = useState([{ material: "", quantity: "", perUnitCost: "", total: "" }]);
-    const [manpower, setManpower] = useState([{ role: "", numEmployees: "", salary: "", total: "" }]);
-    const [otherExpenses, setOtherExpenses] = useState([{ expense: "", amount: "" }]);
-=======
 import { useState, useEffect } from "react";
 
 const BudgetForm = ({ formData, updateForm }) => {
@@ -26,7 +14,6 @@ const BudgetForm = ({ formData, updateForm }) => {
         });
     }, [nonRecurringItems, materials, manpower, otherExpenses]);
 
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
     const handleChange = (index, field, value, setState, state) => {
         const updatedItems = [...state];
         updatedItems[index][field] = value;
@@ -48,16 +35,9 @@ const BudgetForm = ({ formData, updateForm }) => {
         setState(updatedItems);
     };
 
-<<<<<<< HEAD
     const addNewItem = (setState, state, newItem) => {
         setState([...state, newItem]);
     };
-
-
-
-    
-
-=======
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -76,11 +56,6 @@ const BudgetForm = ({ formData, updateForm }) => {
             reader.readAsText(file);
         }
     };
-
-    const addNewItem = (setState, state, newItem) => {
-        setState([...state, newItem]);
-    };
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
     const renderForm = () => {
         switch (activeTab) {
             case "Non-Recurring":
@@ -108,10 +83,6 @@ const BudgetForm = ({ formData, updateForm }) => {
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setNonRecurringItems, nonRecurringItems, { item: "", unitCost: "", quantity: "", total: "" })}
                         >Add More</button>
-<<<<<<< HEAD
-=======
-
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                     </div>
                 );
 
@@ -165,40 +136,6 @@ const BudgetForm = ({ formData, updateForm }) => {
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setManpower, manpower, { role: "", numEmployees: "", salary: "", total: "" })}
                         >Add More</button>
-<<<<<<< HEAD
-                    
-
-
-
-
-
- {/* Other Expenses */}
- <h3 className="text-lg font-semibold mt-6">Others</h3>
- {otherExpenses.map((expense, index) => (
-     <div key={index} className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-         <input type="text" placeholder="Expense" className="border p-2 rounded w-full"
-             value={expense.expense}
-             onChange={(e) => handleChange(index, "expense", e.target.value, setOtherExpenses, otherExpenses)}
-         />
-         <input type="number" placeholder="Amount" className="border p-2 rounded w-full"
-             value={expense.amount}
-             onChange={(e) => handleChange(index, "amount", e.target.value, setOtherExpenses, otherExpenses)}
-         />
-     </div>
- ))}
- <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-     onClick={() => addNewItem(setOtherExpenses, otherExpenses, { expense: "", amount: "" })}
- >Add More</button>
-
-
-
-
-</div>);
-
-
-            
-
-=======
                         {/* Other Expenses */}
                         <h3 className="text-lg font-semibold mt-6">Others</h3>
                         {otherExpenses.map((expense, index) => (
@@ -216,7 +153,6 @@ const BudgetForm = ({ formData, updateForm }) => {
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setOtherExpenses, otherExpenses, { expense: "", amount: "" })}>Add More</button>
                     </div>);
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
             default:
                 return <p>Select a category to enter budget details.</p>;
         }
@@ -224,18 +160,6 @@ const BudgetForm = ({ formData, updateForm }) => {
 
     return (
         <div className="p-4">
-<<<<<<< HEAD
-            <div className="flex space-x-2 mb-4">
-                {["Non-Recurring", "Recurring"].map((tab) => (
-                    <button
-                        key={tab}
-                        className={`p-2 border rounded-md ${activeTab === tab ? "bg-green-500 text-white" : "bg-gray-200"}`}
-                        onClick={() => setActiveTab(tab)}
-                    >
-                        {tab}
-                    </button>
-                ))}
-=======
             <div className="flex justify-between items-center mb-4">
                 <div className="flex space-x-2">
                     <h1 className="text-2xl font-bold mb-4">Budget Details</h1>
@@ -262,7 +186,6 @@ const BudgetForm = ({ formData, updateForm }) => {
                 >
                     Import JSON
                 </label>
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
             </div>
             {renderForm()}
         </div>
@@ -271,48 +194,6 @@ const BudgetForm = ({ formData, updateForm }) => {
 
 export default BudgetForm;
 
-<<<<<<< HEAD
-            
-            {/* Travel */}
-            {/* 
-            <h3 className="text-lg font-semibold mt-6">Travel</h3>
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                <input type="text" placeholder="Destination" className="border p-2 rounded w-full" />
-                <input type="number" placeholder="Cost" className="border p-2 rounded w-full" />
-            </div>
-            */}
-
-            {/* Overhead */}
-            {/* 
-            <h3 className="text-lg font-semibold mt-6">Overhead</h3>
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                <input type="text" placeholder="Description" className="border p-2 rounded w-full" />
-                <input type="number" placeholder="Cost" className="border p-2 rounded w-full" />
-            </div>
-            */}
-
-            {/* Bank Details */}
-            {/* 
-            <h3 className="text-lg font-semibold mt-6">Bank Details</h3>
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                <input type="text" placeholder="Account Name" className="border p-2 rounded w-full" />
-                <input type="text" placeholder="Account Number" className="border p-2 rounded w-full" />
-            </div>
-            */}
-
-            {/* Contingency */}
-            {/* 
-            <h3 className="text-lg font-semibold mt-6">Contingency</h3>
-            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                <input type="text" placeholder="Description" className="border p-2 rounded w-full" />
-                <input type="number" placeholder="Amount" className="border p-2 rounded w-full" />
-            </div>
-            */}
-
-
-
-
-=======
 
 
 
@@ -506,4 +387,3 @@ export default BudgetForm;
 // };
 
 // export default BudgetForm;
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755

@@ -45,11 +45,7 @@ const userSchema = new Schema({
     },
     proposals: [
         {
-<<<<<<< HEAD
-            ProposalId: { type: String, required: true },
-=======
             ProposalId: { type: String},
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
             Scheme: { type: String }
         }
     ]

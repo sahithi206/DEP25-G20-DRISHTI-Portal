@@ -1,16 +1,27 @@
-import React, { useState } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";
-
+import { AuthContext } from "./Context/Authcontext";
 const SavedProposals = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const navigate = useNavigate();
-
-    // Sample project data
-    const acceptedProjects = [
-        { id: 1, title: "AI-Based Agriculture Analysis", reference: "ANRF-12345", cost: "₹10,00,000" },
-        { id: 2, title: "Quantum Computing Research", reference: "ANRF-67890", cost: "₹15,00,000" },
-    ];
+    const {approvedProjects}=useContext(AuthContext);
+    const [acceptedProjects,setProjects]=useState();
+    const [id,setID]=useState();
+    useEffect(()=>{
+        const projects = async () =>{
+         const proj=await approvedProjects();
+         const Projects=proj.map((project)=>{
+            let id = project.proposalId;
+            let title = project.researchDetails.Title;
+            return {id, title};
+         })
+         setProjects(Projects);
+         console.log(proj);
+         console.log(Projects);
+        }
+        projects();
+    },[])
 
     return (
         <div className="flex min-h-screen">
@@ -31,23 +42,24 @@ const SavedProposals = () => {
                         <table className="w-full border border-gray-300 shadow-md">
                             <thead className="bg-blue-800 text-white">
                                 <tr>
-                                    <th className="p-2 border border-gray-300">Reference Number</th>
-                                    <th className="p-2 border border-gray-300">Project Title</th>
-                                    <th className="p-2 border border-gray-300">Total Cost</th>
-                                    <th className="p-2 border border-gray-300">Action</th>
+                                    <th className="p-2 border border-gray-300 text-center">File No.</th>
+                                    <th className="p-2 border border-gray-300 text-center">Project Title</th>
+                                    <th className="p-2 border border-gray-300 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {acceptedProjects.length > 0 ? (
+                                {acceptedProjects && acceptedProjects.length > 0 ? (
                                     acceptedProjects.map((project) => (
                                         <tr key={project.id} className="bg-gray-100 hover:bg-gray-200 cursor-pointer">
-                                            <td className="p-2 border border-gray-300 text-center">{project.reference}</td>
-                                            <td className="p-2 border border-gray-300">{project.title}</td>
-                                            <td className="p-2 border border-gray-300">{project.cost}</td>
+                                            <td className="p-2 border border-gray-300 text-center">{project.id}</td>
+                                            <td className="p-2 border border-gray-300 text-center">{project.title}</td>
                                             <td className="p-2 border border-gray-300 text-center">
                                                 <button
                                                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                                                    onClick={() => navigate(`/project-dashboard/${project.id}`)}
+                                                    onClick={() => {
+                                                        setID(project.id);
+                                                        navigate(`/project-dashboard/${project.id}`);
+                                                    }}
                                                 >
                                                     View Dashboard
                                                 </button>

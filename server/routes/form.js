@@ -14,6 +14,8 @@ const User=require("../Models/user");
 const PI=require("../Models/PI");
 const General_Info = require("../Models/General_Info");
 const router = express.Router();
+const { ObjectId } = require('mongodb');
+const mongoose = require('mongoose'); 
 router.post("/ProposalID", fetchUser, async (req, res, next) => {
     const {_id} = req.user;
     const {Scheme}=req.body;
@@ -422,22 +424,25 @@ router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
   }
 });
 
-router.get("/get-proposal/:proposalId", fetchUser, async (req, res) => {
-  const { proposalId } = req.params;
-
+router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
+  const {objectId} = req.params;
   try {
-    const generalInfo = await GeneralInfo.findOne({ proposalId: proposalId });
-    const researchDetails = await ResearchDetails.findOne({ proposalId: proposalId });
-    const budgetSummary = await Budget.findOne({ proposalId: proposalId });
-    const bankDetails=await Bank.findOne({ proposalId: proposalId });
-    const PIdetails=await PI.findOne({ proposalId: proposalId });
-    if (!generalInfo || !researchDetails || !budgetSummary||!bankDetails||!PIdetails) {
+    console.log("Converted ObjectId:", objectId);
+    const generalInfo = await GeneralInfo.findOne({ proposalId: objectId });
+    const researchDetails = await ResearchDetails.findOne({ proposalId: objectId });
+    const budgetSummary = await Budget.findOne({ proposalId: objectId });
+    const bankDetails = await Bank.findOne({ proposalId: objectId });
+    const PIdetails = await PI.findOne({ proposalId: objectId });
+    const acknowledgements = await Acknowledgement.findOne({ proposalId: objectId });
+
+    
+    if (!generalInfo || !researchDetails || !budgetSummary || !bankDetails || !PIdetails||!acknowledgements) {
       return res.status(404).json({ success: false, msg: "Proposal not found" });
     }
 
     res.status(200).json({
       success: true,
-      data: { generalInfo,PIdetails, researchDetails, budgetSummary,bankDetails},
+      data: { generalInfo,PIdetails, researchDetails, budgetSummary,bankDetails,acknowledgements},
       msg: "Proposal fetched successfully",
     });
   } catch (error) {
@@ -448,12 +453,8 @@ router.get("/get-proposal/:proposalId", fetchUser, async (req, res) => {
 router.get("/proposals", fetchUser, async (req, res) => {
   try {
     const userId = req.user._id; 
-    console.log("User ID from Token:", userId);
-     
-    const objectId = new mongoose.Types.ObjectId(userId);
-    console.log("Converted ObjectId:", objectId);
 
-    const proposals = await Proposal.find({ userId: objectId, status: "Pending" });
+    const proposals = await Proposal.find({ userId:userId, status: "Pending" });
 
     console.log("Fetched Proposals:", proposals);
 
@@ -483,6 +484,40 @@ router.get("/proposals", fetchUser, async (req, res) => {
   } catch (error) {
     console.error("Error fetching proposals:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+router.get("/acceptedproposals", fetchUser, async (req, res) => {
+  try {
+    const userId = req.user._id; 
+    console.log("User ID from Token:", userId);
+    const proposals = await Proposal.find({ userId:userId, status: "Accepted" });
+    console.log("Fetched Proposals:", proposals);
+    if (!proposals.length) {
+      return res.status(404).json({ success: false, msg: "No proposals found" });
+    }
+
+    const data = await Promise.all(proposals.map(async (proposal) => {
+      console.log("Processing Proposal ID:", proposal._id);
+      const proposalId=proposal._id;
+    /*  const generalInfo = await GeneralInfo.findOne({ proposalId: proposal._id })
+        .select({ 'instituteName': 1, 'areaOfSpecialization': 1 });
+
+      console.log("General Info:", generalInfo);*/
+
+      const researchDetails = await ResearchDetails.findOne({ proposalId: proposal._id })
+        .select("Title");
+      console.log("Research Details:", researchDetails);
+
+      return { proposalId, researchDetails };
+    }));
+
+    console.log("Final Data:", data);
+    res.json({ success: true,msg:"Projects Fetched", data });
+
+  } catch (error) {
+    console.error("Error fetching proposals:", error);
+    res.status(500).json({ success: false, msg:"Failed to Fetch Projects" , error: "Internal Server Error" });
   }
 });
 

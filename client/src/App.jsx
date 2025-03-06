@@ -68,7 +68,7 @@ function MainLayout() {
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/misc-request" element={<MiscRequest />} />
         <Route path="/view-profile" element={<UserProfile />} />
-        <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
+      <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
       </Routes>
     </div>
   );

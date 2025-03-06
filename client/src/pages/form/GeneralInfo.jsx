@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useState } from "react";
 import Footer from "../../components/Footer";
 
@@ -200,86 +199,22 @@ const GeneralInfo = () => {
             <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
                     {/* <div className="col-span-2">
-=======
-import { useState, useEffect } from "react";
-
-const GeneralInfo = ({ formData, updateForm }) => {
-    const [data, setData] = useState(formData);
-
-    // Sync with parent state whenever local state changes
-    useEffect(() => {
-        updateForm("generalInfo", data);
-    }, [data]);
-
-    const handleChange = (e) => {
-        setData({ ...data, [e.target.name]: e.target.value });
-    };
-
-    const handleFileUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const jsonData = JSON.parse(event.target.result);
-                    setData(jsonData);
-                } catch (error) {
-                    console.error("Invalid JSON file", error);
-                }
-            };
-            reader.readAsText(file);
-        }
-    };
-
-    return (
-        <div className="container mx-auto p-6">
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">General Information</h1>
-                <input
-                    type="file"
-                    accept=".json"
-                    className="hidden"
-                    id="fileInput"
-                    onChange={handleFileUpload}
-                />
-                <label
-                    htmlFor="fileInput"
-                    className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
-                >
-                    Import JSON
-                </label>
-            </div>
-            <form className="bg-white p-6 rounded-lg shadow-md">
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                         <label className="block font-semibold">Applicant Details:</label>
                         <textarea
                             name="applicantDetails"
                             className="w-full p-2 border rounded"
                             rows="2"
-<<<<<<< HEAD
                             value={formData.applicantDetails}
                             onChange={handleChange}
                         ></textarea>
                     </div> */}
-=======
-                            value={data.applicantDetails || ""}
-                            onChange={handleChange}
-                        ></textarea>
-                    </div>
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                     <div>
                         <label className="block font-semibold">Area of Specialization:</label>
                         <input
                             type="text"
                             name="areaOfSpecialization"
                             className="w-full p-2 border rounded"
-<<<<<<< HEAD
                             value={formData.areaOfSpecialization}
-=======
-                            value={data.areaOfSpecialization || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
@@ -289,11 +224,7 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             type="text"
                             name="scheme"
                             className="w-full p-2 border rounded"
-<<<<<<< HEAD
                             value={formData.scheme}
-=======
-                            value={data.scheme || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
@@ -303,11 +234,7 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             type="text"
                             name="name"
                             className="w-full p-2 border rounded"
-<<<<<<< HEAD
                             value={formData.name}
-=======
-                            value={data.name || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
@@ -317,11 +244,7 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             type="text"
                             name="department"
                             className="w-full p-2 border rounded"
-<<<<<<< HEAD
                             value={formData.department}
-=======
-                            value={data.department || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
@@ -331,11 +254,7 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             type="text"
                             name="institute"
                             className="w-full p-2 border rounded"
-<<<<<<< HEAD
                             value={formData.institute}
-=======
-                            value={data.institute || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
@@ -345,11 +264,7 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             name="address"
                             className="w-full p-2 border rounded"
                             rows="2"
-<<<<<<< HEAD
                             value={formData.address}
-=======
-                            value={data.address || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         ></textarea>
                     </div>
@@ -359,11 +274,7 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             type="text"
                             name="mobile"
                             className="w-full p-2 border rounded"
-<<<<<<< HEAD
                             value={formData.mobile}
-=======
-                            value={data.mobile || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
@@ -373,11 +284,7 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             type="email"
                             name="email"
                             className="w-full p-2 border rounded"
-<<<<<<< HEAD
                             value={formData.email}
-=======
-                            value={data.email || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
@@ -388,11 +295,7 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             name="dbtProjectsOngoing"
                             className="w-full p-2 border rounded"
                             min="0"
-<<<<<<< HEAD
                             value={formData.dbtProjectsOngoing}
-=======
-                            value={data.dbtProjectsOngoing || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
@@ -403,11 +306,7 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             name="dbtProjectsCompleted"
                             className="w-full p-2 border rounded"
                             min="0"
-<<<<<<< HEAD
                             value={formData.dbtProjectsCompleted}
-=======
-                            value={data.dbtProjectsCompleted || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
@@ -418,11 +317,7 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             name="projectsOngoing"
                             className="w-full p-2 border rounded"
                             min="0"
-<<<<<<< HEAD
                             value={formData.projectsOngoing}
-=======
-                            value={data.projectsOngoing || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
@@ -433,16 +328,11 @@ const GeneralInfo = ({ formData, updateForm }) => {
                             name="projectsCompleted"
                             className="w-full p-2 border rounded"
                             min="0"
-<<<<<<< HEAD
                             value={formData.projectsCompleted}
-=======
-                            value={data.projectsCompleted || ""}
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
                             onChange={handleChange}
                         />
                     </div>
                 </div>
-<<<<<<< HEAD
                 <button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                     Save
                 </button>
@@ -454,11 +344,6 @@ const GeneralInfo = ({ formData, updateForm }) => {
 
     
     
-=======
-            </form>
-        </div>
-    );
->>>>>>> c73d78bfb7f2ea9c2cb516f82a6ef76b1848f755
 };
 
 export default GeneralInfo;

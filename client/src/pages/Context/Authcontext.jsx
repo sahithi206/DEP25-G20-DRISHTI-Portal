@@ -138,8 +138,38 @@ const AuthProvider = (props) => {
     }
 };
 
+const approvedProjects = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+      console.log("Use a valid Token");
+      alert("Authentication required.");
+      return;
+  }
+  try {
+      const response = await fetch(`${url}form/acceptedproposals`, {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json",
+              "accessToken": `${token}`,
+          },
+      });
+
+      if (!response.ok) {
+          throw new Error("Failed to update user details");
+      }
+      const json = await response.json();
+      alert(json.msg);
+      console.log(json.msg);
+      return json.data;
+  } catch (error) {
+      console.error("Edit user error:", error);
+      alert(error.message || "Failed to update user details");
+  }
+};
+  
+
   return (
-    <AuthContext.Provider value={{ sendOtp, verifyOtp, login,getuser, edituser,authState }}>
+    <AuthContext.Provider value={{ sendOtp, verifyOtp, login,getuser, edituser, approvedProjects, authState }}>
       {props.children}
     </AuthContext.Provider>
   );
