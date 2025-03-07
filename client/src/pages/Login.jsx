@@ -1,140 +1,81 @@
-import React, { useState ,useContext} from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useState, useContext } from 'react';
 import backgroundImage from '../assets/background.jpg';
-import {AuthContext} from './Context/Authcontext.jsx';
+import { AuthContext } from './Context/Authcontext.jsx';
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
   const [error, setError] = useState('');
-  const {login}= useContext(AuthContext);
-  const handleSubmit = () => {    
+  const { login } = useContext(AuthContext);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
     if (!email || !password || !role) {
       setError('All fields are required');
       return;
     }
-    login(email,password);
+    login(email, password);
     console.log('Logging in with:', email, password, role);
     setError('');
   };
 
   return (
     <div
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        height: '100vh',
-        width: '100%',
-      }}
+      className="h-screen w-full bg-cover bg-center flex items-center justify-center"
+      style={{ backgroundImage: `url(${backgroundImage})` }}
     >
-      <div className="row justify-content-center align-items-center" style={{ height: '100%' }}>
-        <div
-          className="col-md-6 col-lg-4 bg-light p-5 rounded shadow"
-          style={{ minWidth: '350px', maxWidth: '500px', height: '500px' }} 
-        >
-          <h2 className="text-center mb-4">Login to Your Account</h2>
-          {error && <div className="alert alert-danger">{error}</div>}
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="role">Select User Role</label>
-              <select
-                className="form-control"
-                id="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-              >
-                <option value="">Select Role</option>
-                <option value="admin">Admin</option>
-                <option value="pi">PI</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="username">Please Enter User Name</label>
-              <input
-                type="text"
-                id="username"
-                className="form-control"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="password">Please Enter Password</label>
-              <input
-                type="password"
-                id="password"
-                className="form-control"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            <button type="button" className="btn btn-primary btn-block mt-4" onClick={handleSubmit}>
-              Login
-            </button>
-
-            <div className="d-flex justify-content-between mt-3">
-              <a href="#" className="btn btn-link">Forgot Password</a>
-              <a href="/signup" className="btn btn-link">New User</a>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default Login;
-
-
-
-
-// src/pages/Login.jsx
-/*import { useState } from "react";
-
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Login Data:", { email, password });
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 shadow-lg rounded-lg w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h2 className="text-2xl font-semibold text-center mb-4">Login to Your Account</h2>
+        {error && <div className="bg-red-500 text-white p-2 rounded mb-3">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block font-medium">Email:</label>
+            <label htmlFor="role" className="block text-sm font-medium">Select User Role</label>
+            <select
+              className="w-full mt-1 p-2 border rounded"
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              required
+            >
+              <option value="">Select Role</option>
+              <option value="admin">Admin</option>
+              <option value="pi">PI</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium">Please Enter User Name</label>
             <input
-              type="email"
+              type="text"
+              id="username"
+              className="w-full mt-1 p-2 border rounded"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full p-2 border rounded"
             />
           </div>
+
           <div>
-            <label className="block font-medium">Password:</label>
+            <label htmlFor="password" className="block text-sm font-medium">Please Enter Password</label>
             <input
               type="password"
+              id="password"
+              className="w-full mt-1 p-2 border rounded"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full p-2 border rounded"
             />
           </div>
-          <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
+
+          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded mt-4">
             Login
           </button>
+
+          <div className="flex justify-between mt-3 text-sm">
+            <a href="#" className="text-blue-500 hover:underline">Forgot Password</a>
+            <a href="/signup" className="text-blue-500 hover:underline">New User</a>
+          </div>
         </form>
       </div>
     </div>
@@ -142,4 +83,3 @@ const Login = () => {
 };
 
 export default Login;
-*/

@@ -8,14 +8,16 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-const corsConfig = {
+/*const corsConfig = {
     origin: process.env.CLIENT_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],  
 };
 
-app.options("*", cors(corsConfig)); 
-app.use(cors(corsConfig))
+
+*/
+const PORT=process.env.PORT||5000
+app.use(cors( ))
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -24,10 +26,10 @@ app.get("/", (req, res) => {
 
 app.use("/auth",Auth);
 app.use("/form",Form);
-/*app.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`Server is running on PORT : ${PORT}`);
 });
-*/
+
 const connectDB = async()=>{
    try{
     console.log(process.env.URL);
