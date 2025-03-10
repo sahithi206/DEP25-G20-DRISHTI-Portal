@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect } from "react";
 import { FaUserCircle, FaPowerOff, FaUser, FaPhone, FaBuilding, FaPrint } from "react-icons/fa";
 import Sidebar from "../utils/Sidebar";
+import HomeNavbar from  "../utils/HomeNavbar"
 import { AuthContext } from "./Context/Authcontext";
 const UserProfile = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -54,16 +55,8 @@ const UserProfile = () => {
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
             
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                {/* Header */}
-                <header className="bg-blue-900 text-white p-4 flex justify-between items-center shadow-lg">
-                    <h2 className="text-xl font-semibold">Anusandhan National Research Foundation</h2>
-                    <div className="flex items-center space-x-4">
-                        <FaUserCircle className="text-3xl" />
-                        <span className="text-lg font-medium">Welcome, {data.name}</span>
-                        <FaPowerOff className="text-2xl cursor-pointer text-red-400 hover:text-red-600" />
-                    </div>
-                </header>
-
+             <HomeNavbar isSidebarOpen={isSidebarOpen}/>
+             <div className="p-6 space-y-6 mt-16">   
                 {/* Profile Section */}
                 <div className="p-8">
                     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-6">
@@ -111,6 +104,7 @@ const UserProfile = () => {
                     </div>
                 </div>
             </div>
+        </div>
         </div>
      );
 };

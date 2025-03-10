@@ -30,7 +30,6 @@ const Home = () => {
     return (
         <div>
             <Navbar />
-            <LatestNews />
             <Hero />
 
             {/* ANRF Programs Section */}

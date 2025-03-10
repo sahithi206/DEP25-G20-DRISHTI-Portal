@@ -64,13 +64,8 @@ const ProposalInbox = () => {
         <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
             <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                <header className="bg-gradient-to-r from-blue-800 to-blue-900 text-white p-4 flex justify-between items-center shadow-lg">
-                    <h2 className="text-2xl font-bold tracking-wider">Anusandhan National Research Foundation</h2>
-                    <div className="flex items-center space-x-4">
-                        <FaUserCircle className="text-3xl text-blue-200" />
-                        <FaPowerOff className="text-2xl cursor-pointer text-red-400 hover:text-red-500 transition transform hover:scale-110" />
-                    </div>
-                </header>
+                <HomeNavbar isSidebarOpen={isSidebarOpen}/>
+                <div className="p-6 space-y-6 mt-16"> 
                 <div className="p-6 space-y-6">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700">
                         <h1 className="text-3xl font-black text-gray-900 mb-2">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
@@ -135,6 +130,7 @@ const ProposalInbox = () => {
                             </table>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
         </div>

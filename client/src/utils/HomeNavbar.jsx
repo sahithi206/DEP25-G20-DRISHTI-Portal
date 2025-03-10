@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useState } from "react";
 import { FaUserCircle, FaPowerOff } from "react-icons/fa";
 import { AuthContext } from "../pages/Context/Authcontext";
 
-const Navbar = () => {
-  const { getuser } = useContext(AuthContext);
+const Navbar = ({isSidebarOpen}) => {
+  const { getuser,logout } = useContext(AuthContext);
   const [user, setUser] = useState();
 
   useEffect(() => {
@@ -14,19 +14,17 @@ const Navbar = () => {
 
     fetchUser();
   }, [getuser]);
-  console.log(user);
 
   return (
-    <header className="bg-blue-900 text-white p-4 flex justify-between items-center fixed top-0 left-64 w-[calc(100%-16rem)] shadow-md z-50">
+    <header className={`bg-blue-900 text-white p-4 flex justify-between items-center fixed shadow-md z-50 transition-all duration-300 ${isSidebarOpen ? " w-[calc(100%-16rem)]" : " w-[calc(100%-4rem)]"}`}>
       <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
       <div className="flex items-center space-x-4">
         <FaUserCircle className="text-2xl" />
-        {user && (
-          <span>Welcome, {user.Name}</span>
-        )}
-        <FaPowerOff className="text-xl cursor-pointer text-red-500" />
+        {user && <span>Welcome, {user.Name}</span>}
+        <FaPowerOff className="text-xl cursor-pointer text-red-500" onClick={logout}/>
       </div>
     </header>
+
   );
 };
 

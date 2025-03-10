@@ -8,6 +8,7 @@ import TechForm from "./form/TechForm";
 import BudgetForm from "./form/BudgetForm";
 import BankDetailsForm from "./form/BankDetailsForm";
 import Submit from "./form/ReviewAndSubmit";
+import HomeNavbar from "../utils/HomeNavbar"
 
 const tabs = [
     "General Information",
@@ -22,7 +23,6 @@ const Dashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [currentTab, setCurrentTab] = useState("General Information");
 
-    // State to store form data
     const [formData, setFormData] = useState({
         generalInfo: {},
         principalInvestigator: {},
@@ -40,7 +40,6 @@ const Dashboard = () => {
         bankDetails: {}
     });
 
-    // Function to update form data
     const handleFormUpdate = (section, data) => {
         setFormData((prev) => ({ ...prev, [section]: data }));
     };
@@ -102,16 +101,9 @@ const Dashboard = () => {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
-            <div className={`flex flex-col flex-1 transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-16"}`}>
-                <header className="bg-blue-900 text-white p-4 flex justify-between items-center">
-                    <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
-                    <div className="flex items-center space-x-4">
-                        <FaUserCircle className="text-2xl" />
-                        <FaPowerOff className="text-xl cursor-pointer text-red-500" />
-                    </div>
-                </header>
-
-                {/* Main Content Area */}
+            <div className={`flex flex-col flex-1 transition-all duration-300  ${isSidebarOpen ? "ml-64" : "ml-16"}`}>
+            <HomeNavbar isSidebarOpen={isSidebarOpen}/>
+            <div className="p-6 space-y-6 mt-16"> 
                 <main className="flex-1 p-6">
                     <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6 border mt-6">
                         <div className="grid grid-cols-7 gap-2 mb-6">
@@ -152,7 +144,7 @@ const Dashboard = () => {
                         </div>
                     </div>
                 </main>
-
+               </div>
                 {/* Sticky Footer */}
                 <Footer />
             </div>

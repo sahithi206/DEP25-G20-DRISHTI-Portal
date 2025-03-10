@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Sidebar from "../utils/Sidebar";
-// import HomeNavbar from "../utils/HomeNavbar";
+import HomeNavbar from "../utils/HomeNavbar";
 import { FaUserCircle, FaPowerOff } from "react-icons/fa";
 
 
@@ -14,13 +14,8 @@ const ChangeOfInstitute = () => {
 
             {/* Main Content */}
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-            <header className="bg-blue-900 text-white p-4 flex justify-between items-center">
-                        <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
-                        <div className="flex items-center space-x-4">
-                            <FaUserCircle className="text-2xl" />
-                            <FaPowerOff className="text-xl cursor-pointer text-red-500" />
-                        </div>
-                    </header>
+            <HomeNavbar isSidebarOpen={isSidebarOpen}/>
+            <div className="p-6 space-y-6 mt-16"> 
                 {/* Page Content */}
                 <div className="p-6 space-y-6">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
@@ -139,6 +134,7 @@ const ChangeOfInstitute = () => {
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 };

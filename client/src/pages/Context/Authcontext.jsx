@@ -1,4 +1,4 @@
-import { useState, createContext } from "react";
+import { useState, useEffect,createContext } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
@@ -7,8 +7,26 @@ console.log(url);
 const AuthProvider = (props) => {
   const navigate = useNavigate();
   const [authState] = useState("");
+ const [tabId, setTabId] = useState(null);
+  useEffect(() => {
+    const newTabId = Math.random().toString(36).substr(2, 9);
+    setTabId(newTabId);
+    localStorage.setItem("activeTab", newTabId);
 
+    const checkTabs = () => {
+      const activeTab = localStorage.getItem("activeTab");
+      if (activeTab && activeTab !== newTabId) {
+        navigate("/"); 
+      }
+    };
 
+    window.addEventListener("storage", checkTabs);
+
+    return () => {
+      window.removeEventListener("storage", checkTabs);
+      localStorage.removeItem("activeTab"); 
+    };
+  }, [navigate]);
 
   const getuser=async()=>{
     const token= localStorage.getItem("token");
@@ -361,10 +379,13 @@ const approvedProjects = async () => {
   }
 };
 
-
-
+ const logout = ()=>{
+    localStorage.removeItem("token");
+    navigate("/");
+    console.log("User logged out!!");
+ }
   return (
-    <AuthContext.Provider value={{ sendOtp, verifyOtp, login, authState, submitProposal, submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails, submitPIDetails, submitAcknowledgement, getuser, approvedProjects }}>
+    <AuthContext.Provider value={{ sendOtp, verifyOtp, login, authState, submitProposal,logout, submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails, submitPIDetails, submitAcknowledgement, getuser, approvedProjects }}>
       {props.children}
     </AuthContext.Provider>
   );

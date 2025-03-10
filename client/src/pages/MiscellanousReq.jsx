@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaUserCircle, FaPowerOff } from "react-icons/fa";
 import Sidebar from "../utils/Sidebar";
-
+import HomeNavbar from "../utils/HomeNavbar";
 
 const MiscRequest = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -41,15 +41,7 @@ const MiscRequest = () => {
 
             {/* Main Content */}
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                {/* Header */}
-                <header className="bg-blue-900 text-white p-4 flex justify-between items-center">
-                    <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
-                    <div className="flex items-center space-x-4">
-                        <FaUserCircle className="text-2xl" />
-                        <FaPowerOff className="text-xl cursor-pointer text-red-500" />
-                    </div>
-                </header>
-
+            <HomeNavbar isSidebarOpen={isSidebarOpen}/>
                 {/* Page Content */}
                 <div className="p-6 mt-16">
                     {/* Page Header */}

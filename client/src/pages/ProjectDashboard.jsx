@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import HomeNavbar from "../utils/HomeNavbar";
 
 const ProjectDashboard = () => {
     const { id } = useParams();
@@ -85,13 +86,8 @@ const ProjectDashboard = () => {
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
             
             <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-64 w-[calc(100%-16rem)]" : "ml-16 w-[calc(100%-4rem)]"}`}>
-                <header className="bg-blue-900 text-white p-4 flex justify-between items-center">
-                    <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
-                    <div className="flex items-center space-x-4">
-                        <span>Welcome, Ms. Varsha</span>
-                    </div>
-                </header>
-
+                <HomeNavbar isSidebarOpen={isSidebarOpen}/>
+                <div className="p-6 space-y-6 mt-16">                
                 <div className="p-6 space-y-6">
                     <div className="text-center">
                         <h2 className="text-3xl font-extrabold text-gray-900">{projectDetails.generalInfo.title}</h2>
@@ -170,6 +166,7 @@ const ProjectDashboard = () => {
                         <ActionButton className="bg-orange-500 text-white">Apply Next Cycle</ActionButton>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );

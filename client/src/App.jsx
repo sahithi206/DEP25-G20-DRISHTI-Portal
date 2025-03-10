@@ -1,8 +1,5 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import HomeNavbar from "./utils/HomeNavbar";
-
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -21,8 +18,9 @@ import MiscRequest from "./pages/MiscellanousReq";
 import UserProfile from "./pages/UserProfile";
 import ProjectDashboard from "./pages/ProjectDashboard";
 import axios from "axios";
+import Navbar from "./utils/HomeNavbar";
 import { AuthProvider } from './pages/Context/Authcontext.jsx';
-
+import Error from "./pages/Error"
 function App() {
   const getData = async () => {
     try {
@@ -68,6 +66,7 @@ function MainLayout() {
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/misc-request" element={<MiscRequest />} />
         <Route path="/view-profile" element={<UserProfile />} />
+        <Route path="/error" element={<Error />} />
       <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
       </Routes>
     </div>
