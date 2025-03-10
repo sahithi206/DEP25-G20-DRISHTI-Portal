@@ -18,8 +18,6 @@ const SavedProposals = () => {
             return {id, title};
          })
          setProjects(Projects);
-         console.log(proj);
-         console.log(Projects);
         }
         projects();
     },[])
