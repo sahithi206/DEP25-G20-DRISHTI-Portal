@@ -82,6 +82,7 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
         res.status(500).json({ success: false, error, msg: "Failed to generate Proposal ID" });
     }
 });
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -124,7 +125,6 @@ async function sendEmailNotification(user, status, comment) {
   }
 }
 
-// Configure Nodemailer
 
 
 router.put("/update-proposals/:id", fetchUser, async (req, res) => {
@@ -143,10 +143,7 @@ router.put("/update-proposals/:id", fetchUser, async (req, res) => {
     }
 
     proposal.status = status;
-    // proposal.comment = comment;
     await proposal.save();
-
-    // Send email notification
     await sendEmailNotification(proposal.userId, status, comment);
 
     res.json({ message: "Proposal updated and email sent" });
@@ -157,10 +154,10 @@ router.put("/update-proposals/:id", fetchUser, async (req, res) => {
 });
 
 router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
-  const { name, address, mobileNo, email, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed } = req.body; const { proposalId } = req.params
-  const props = await General_Info.findOne({ proposalId });
+  const { name, address, mobileNo, email, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed,biodata,photo} = req.body; const { proposalId } = req.params
+  const props = await GeneralInfo.findOne({ proposalId });
   if (props) {
-    await General_Info.findOneAndUpdate({ proposalId: proposalId }, { name, address, mobileNo, email, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed }, { new: true });
+    await GeneralInfo.findOneAndUpdate({ proposalId: proposalId }, { name, address, mobileNo, email,photo,biodata, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed }, { new: true });
     return res.status(200).json({ success: true, msg: "General Info Updated!!" });
   }
   try {
@@ -175,7 +172,9 @@ router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
       DBTproj_ong, 
       DBTproj_completed, 
       Proj_ong, 
-      Proj_completed
+      Proj_completed,
+      biodata,
+      photo
     });
     console.log(generalInfo);
     await generalInfo.save();
@@ -187,26 +186,32 @@ router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
 });
 router.post("/upload/:type/:id", upload.single("file"), (req, res) => {
   console.log("Received file:", req.file); 
+  try{
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
   
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
+    const fileSize = req.file.size;
+    const fileType = req.params.type;
+    const isPDF = req.file.mimetype === "application/pdf";
+    const isImage = req.file.mimetype.startsWith("image/");
+  
+    if (fileType === "pdf" && (!isPDF || fileSize > 10 * 1024 * 1024)) {
+      return res.status(400).json({ error: "PDF size exceeds 10MB or invalid file type" });
+    } else if (fileType === "photo" && (!isImage || fileSize > 500 * 1024)) {
+      return res.status(400).json({ error: "Image size exceeds 500KB or invalid file type" });
+    }
+  
+    res.status(200).json({
+      success:true,
+      msg: "File uploaded successfully",
+      filePath: `/uploads/${req.file.filename}`,
+    });
   }
-
-  const fileSize = req.file.size;
-  const fileType = req.params.type;
-  const isPDF = req.file.mimetype === "application/pdf";
-  const isImage = req.file.mimetype.startsWith("image/");
-
-  if (fileType === "pdf" && (!isPDF || fileSize > 10 * 1024 * 1024)) {
-    return res.status(400).json({ error: "PDF size exceeds 10MB or invalid file type" });
-  } else if (fileType === "photo" && (!isImage || fileSize > 500 * 1024)) {
-    return res.status(400).json({ error: "Image size exceeds 500KB or invalid file type" });
+  catch(e){
+    return res.status(500).json({success:false,msg:"Couldn't save image",e})
   }
-
-  res.json({
-    message: "File uploaded successfully",
-    filePath: `/uploads/${req.file.filename}`,
-  });
+  
 });
 
 

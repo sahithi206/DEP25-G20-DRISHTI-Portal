@@ -13,7 +13,7 @@ const generalInfoSchema = new Schema({
     DBTproj_completed: { type: Number, default: 0 },
     Proj_ong: { type: Number, default: 0 },
     Proj_completed: { type: Number, default: 0 },
-    biodata: { type: String, default: "" }, 
-    photo: { type: String, default: "" }, 
+    biodata: { type: String }, 
+    photo: { type: String}
 }, { timestamps: true });
 module.exports = mongoose.model("GeneralInfo", generalInfoSchema);
