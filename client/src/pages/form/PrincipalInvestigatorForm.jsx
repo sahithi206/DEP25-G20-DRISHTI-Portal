@@ -1,377 +1,200 @@
-import React, { useState, useEffect, useContext } from "react";
-import PropTypes from 'prop-types';
+import React, { useState, useEffect,useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
 
-const PrincipalInvestigatorForm = ({ formData, updateForm }) => {
-  const [investigators, setInvestigators] = useState(formData.members || []);
-  const { submitPIDetails } = useContext(AuthContext);
-
-  useEffect(() => {
-    updateForm("principalInvestigator", { members: investigators });
-  }, [investigators]);
-
-  const handleChange = (index, field, value) => {
-    const updatedInvestigators = [...investigators];
-    updatedInvestigators[index][field] = value;
-    setInvestigators(updatedInvestigators);
-  };
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const jsonData = JSON.parse(e.target.result);
-                console.log("JSON Data:", jsonData);
-                
-                // Ensure jsonData contains members array
-                if (Array.isArray(jsonData.members)) {
-                    setInvestigators((prevInvestigators) => [
-                        ...prevInvestigators,
-                        ...jsonData.members
-                    ]);
-                } else {
-                    console.error("Invalid JSON format: No 'members' array found");
-                    alert("Invalid JSON format. Please check the file.");
-                }
-            } catch (error) {
-                console.error("Invalid JSON file", error);
-                alert("Failed to parse JSON file.");
-            }
-        };
-        reader.readAsText(file);
-    }
-};
-
+const PISection = ({ title, data, onSave, onDelete, onView }) => {
+  const [email, setEmail] = useState("");
+  const { getpi } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await submitPIDetails({ members: investigators });
-      console.log("Submit Response:", response);
-      alert("PI details submitted successfully!");
+      const user = await getpi(email);
+      console.log(user);
+
+      if (user.success) {
+        onSave({
+          role:title,
+          email:user.isUser.email,
+          Name:user.isUser.Name,
+          Institute:user.isUser.Institute,
+          DOB:user.isUser.DOB,
+          Mobile:user.isUser.Mobile,
+          Gender:user.isUser.Gender,
+          address:user.isUser.address,
+          Dept:user.isUser.Dept,
+      });
+      } else {
+        alert("PI/Co-PI Haven't SignedUp.");
+      }
     } catch (error) {
-      console.error("Error submitting PI details:", error.message);
-      alert("Failed to submit PI details");
+      console.error("Error fetching PI:", error);
+      alert("An error occurred while fetching PI data.");
     }
   };
 
-  const addNewMember = () => {
-    setInvestigators([
-      ...investigators,
-      {
-        role: "",
-        name: "",
-        email: "",
-        address: "",
-        mobileNo: "",
-        instituteName: "",
-        Dept: "",
-        DBTproj_ong: "",
-        DBTproj_completed: "",
-        Proj_ong: "",
-        Proj_completed: "",
-      },
-    ]);
-  };
-
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Principal Investigator Form</h1>
-        <input
-          type="file"
-          accept=".json"
-          className="hidden"
-          id="fileInput"
-          onChange={handleFileUpload}
-        />
-        <label
-          htmlFor="fileInput"
-          className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
-        >
-          Import JSON
-        </label>
-      </div>
-      <form className="bg-white p-6 rounded-lg shadow-md" onSubmit={handleSubmit}>
-        {investigators.map((member, index) => (
-          <div key={index} className="mb-6">
-            <div className="grid grid-cols-2 gap-4 items-center">
-              <label className="block font-semibold">Role *</label>
-              <div className="flex space-x-4">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name={`role-${index}`}
-                    value="Co-PI"
-                    checked={member.role === "Co-PI"}
-                    onChange={(e) => handleChange(index, "role", e.target.value)}
-                  />
-                  <span>Co-PI</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name={`role-${index}`}
-                    value="PI"
-                    checked={member.role === "PI"}
-                    onChange={(e) => handleChange(index, "role", e.target.value)}
-                  />
-                  <span>PI</span>
-                </label>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <label className="block font-semibold">Name *</label>
-              <input
-                name={`name-${index}`}
-                type="text"
-                className="border p-2"
-                value={member.name || ""}
-                onChange={(e) => handleChange(index, "name", e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <label className="block font-semibold">Email *</label>
-              <input
-                name={`email-${index}`}
-                type="email"
-                className="border p-2"
-                value={member.email || ""}
-                onChange={(e) => handleChange(index, "email", e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <label className="block font-semibold">Address *</label>
-              <input
-                name={`address-${index}`}
-                type="text"
-                className="border p-2"
-                value={member.address || ""}
-                onChange={(e) => handleChange(index, "address", e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <label className="block font-semibold">Mobile No *</label>
-              <input
-                name={`mobileNo-${index}`}
-                type="text"
-                className="border p-2"
-                value={member.mobileNo || ""}
-                onChange={(e) => handleChange(index, "mobileNo", e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <label className="block font-semibold">Institute Name *</label>
-              <input
-                name={`instituteName-${index}`}
-                type="text"
-                className="border p-2"
-                value={member.instituteName || ""}
-                onChange={(e) => handleChange(index, "instituteName", e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <label className="block font-semibold">Department *</label>
-              <input
-                name={`Dept-${index}`}
-                type="text"
-                className="border p-2"
-                value={member.Dept || ""}
-                onChange={(e) => handleChange(index, "Dept", e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <label className="block font-semibold">No. of DBT Projects (Ongoing) *</label>
-              <input
-                name={`DBTproj_ong-${index}`}
-                type="number"
-                className="border p-2"
-                min="0"
-                value={member.DBTproj_ong || ""}
-                onChange={(e) => handleChange(index, "DBTproj_ong", e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <label className="block font-semibold">No. of DBT Projects (Completed) *</label>
-              <input
-                name={`DBTproj_completed-${index}`}
-                type="number"
-                className="border p-2"
-                min="0"
-                value={member.DBTproj_completed || ""}
-                onChange={(e) => handleChange(index, "DBTproj_completed", e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <label className="block font-semibold">No. of Projects (Ongoing) *</label>
-              <input
-                name={`Proj_ong-${index}`}
-                type="number"
-                className="border p-2"
-                min="0"
-                value={member.Proj_ong || ""}
-                onChange={(e) => handleChange(index, "Proj_ong", e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <label className="block font-semibold">No. of Projects (Completed) *</label>
-              <input
-                name={`Proj_completed-${index}`}
-                type="number"
-                className="border p-2"
-                min="0"
-                value={member.Proj_completed || ""}
-                onChange={(e) => handleChange(index, "Proj_completed", e.target.value)}
-              />
-            </div>
-          </div>
+    <div className="bg-white p-6 rounded shadow-md w-full">
+      <h2 className="text-lg font-semibold mb-4">{title} Information</h2>
+      <form onSubmit={handleSubmit} className="flex gap-4 mb-4">
+  <input
+    type="email"
+    name="email"
+    placeholder="Enter Registered Email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    className="border p-2 w-full rounded"
+    required
+  />
+  <button type="submit" className="bg-blue-500 text-white px-5 rounded text-md flex items-center justify-center">
+    Fetch
+  </button>
+</form>
+
+
+
+      <h2 className="text-lg font-semibold">{title} List</h2>
+      <table className="w-full border mt-2">
+        <thead>
+          <tr className="bg-gray-200">
+            <th className="border p-2">No.</th>
+            <th className="border p-2">Name</th>
+            <th className="border p-2">Institute</th>
+            <th className="border p-2">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((pi, index) => (
+            <tr key={index} className="border">
+              <td className="border p-2">{index + 1}</td>
+              <td className="border p-2">{pi.Name}</td>
+              <td className="border p-2">{pi.Institute}</td>
+              <td className="border p-2">
+                <button
+                  onClick={() => onView(pi)}
+                  className="bg-green-500 text-white px-2 py-1 rounded"
+                >
+                  View Details
+                </button>
+                <button
+                  onClick={() => onDelete(index)}
+                  className="bg-red-500 text-white px-2 py-1 rounded ml-2"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const Modal = ({ data, onClose }) => (
+  <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
+    <div className="bg-white p-6 rounded shadow-md w-1/3">
+      <h2 className="text-lg font-semibold mb-4">Details</h2>
+      {data &&
+        Object.entries(data).map(([key, value]) => (
+          <p key={key} className="mb-2">
+            <strong className="capitalize">{key.replace(/_/g, " ")}:</strong> {value}
+          </p>
         ))}
-        <button
-          type="button"
-          className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          onClick={addNewMember}
-        >
-          Add New Member
-        </button>
-        <button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-          Save
-        </button>
-      </form>
+      <button onClick={onClose} className="bg-red-500 text-white px-4 py-2 mt-4 rounded w-full">
+        Close
+      </button>
     </div>
-  );
-};
-
-PrincipalInvestigatorForm.propTypes = {
-  formData: PropTypes.object.isRequired,
-  updateForm: PropTypes.func.isRequired,
-};
-
-export default PrincipalInvestigatorForm;
-/*
-import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../Context/Authcontext";
+  </div>
+);
 
 
-const PrincipalInvestigatorForm = ({ formData, updateForm }) => {
-  const [data, setData] = useState(formData);
-  const { submitPIDetails } = useContext(AuthContext);
-
+function App() {
+  const { submitPIDetails,getuser } = useContext(AuthContext);
+  const [piList, setPiList] = useState([]);
+  const [coPiList, setCoPiList] = useState([]);
+  const [selectedPI, setSelectedPI] = useState(null);
   useEffect(() => {
-    updateForm("principalInvestigator", data);
-  }, [data]);
-
-  const handleChange = (e) => {
-    setData({ ...data, [e.target.name]: e.target.value });
-  };
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const jsonData = JSON.parse(e.target.result);
-          setData(jsonData);
-        } catch (error) {
-          console.error("Invalid JSON file");
-        }
+    const fetchPI = async () => {
+      const user = await getuser();
+      if (!user) return;
+      
+      const pi = {
+        role: "Principal Investigator",
+        email: user.email,
+        Name: user.Name,
+        Institute: user.Institute,
+        DOB: user.DOB,
+        Mobile: user.Mobile,
+        Gender: user.Gender,
+        address: user.address,
+        Dept: user.Dept,
       };
-      reader.readAsText(file);
+  
+      setPiList((prev) => {
+        if (prev.some((p) => p.email === pi.email)) {
+          alert("This PI is already added.");
+          return prev;
+        }
+        return [...prev, pi];
+      });
+    };
+  
+    fetchPI();
+  }, [getuser]);
+    const addPI = (pi) => {
+    if (piList.some((p) => p.email === pi.email||coPiList.some((p) => p.email === pi.email))) {
+      alert("This PI is already added.");
+      return;
     }
+    setPiList((prev) => [...prev, pi]);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await submitPIDetails({ members: [data] });
-      alert("PI details submitted successfully!");
-    } catch (error) {
-      console.error("Error submitting PI details:", error.message);
-      alert("Failed to submit PI details");
+  const addCoPI = (copi) => {
+    if (piList.some((p) => p.email === copi.email||coPiList.some((p) => p.email === copi.email))) {
+      alert("This Co-PI is already added.");
+      return;
     }
+    setCoPiList((prev) => [...prev, copi]);
+  };
+
+  const deletePI = (index) => setPiList((prev) => prev.filter((_, i) => i !== index));
+  const deleteCoPI = (index) => setCoPiList((prev) => prev.filter((_, i) => i !== index));
+
+  const handleClick = async (e) => {
+    e.preventDefault();
+    await submitPIDetails({ members: [...piList, ...coPiList] });
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Principal Investigator Form</h1>
-        <input
-          type="file"
-          accept=".json"
-          className="hidden"
-          id="fileInput"
-          onChange={handleFileUpload}
-        />
-        <label
-          htmlFor="fileInput"
-          className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
-        >
-          Import JSON
-        </label>
-      </div>
-      <form className="bg-white p-6 rounded-lg shadow-md" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-2 gap-4 items-center">
-          <label className="block font-semibold">Role *</label>
-          <div className="flex space-x-4">
-            <label className="flex items-center space-x-2">
-              <input type="radio" name="role" value="Co-PI" checked={data.role === "Co-PI"} onChange={handleChange} />
-              <span>Co-PI</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input type="radio" name="role" value="PI" checked={data.role === "PI"} onChange={handleChange} />
-              <span>PI</span>
-            </label>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <label className="block font-semibold">Name *</label>
-          <input name="name" type="text" className="border p-2" value={data.name || ""} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <label className="block font-semibold">Email *</label>
-          <input name="email" type="email" className="border p-2" value={data.email || ""} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <label className="block font-semibold">Address *</label>
-          <input name="address" type="text" className="border p-2" value={data.address || ""} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <label className="block font-semibold">Mobile No *</label>
-          <input name="mobileNo" type="text" className="border p-2" value={data.mobileNo || ""} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <label className="block font-semibold">Institute Name *</label>
-          <input name="instituteName" type="text" className="border p-2" value={data.instituteName || ""} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <label className="block font-semibold">Department *</label>
-          <input name="Dept" type="text" className="border p-2" value={data.Dept || ""} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <label className="block font-semibold">No. of DBT Projects (Ongoing) *</label>
-          <input name="DBTproj_ong" type="number" className="border p-2" min="0" value={data.DBTproj_ong || ""} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <label className="block font-semibold">No. of DBT Projects (Completed) *</label>
-          <input name="DBTproj_completed" type="number" className="border p-2" min="0" value={data.DBTproj_completed || ""} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <label className="block font-semibold">No. of Projects (Ongoing) *</label>
-          <input name="Proj_ong" type="number" className="border p-2" min="0" value={data.Proj_ong || ""} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <label className="block font-semibold">No. of Projects (Completed) *</label>
-          <input name="Proj_completed" type="number" className="border p-2" min="0" value={data.Proj_completed || ""} onChange={handleChange} />
-        </div>
-        <button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-          Save
-        </button>
-      </form>
+    <div className="p-6 space-y-6">
+      <h1 className="text-xl font-bold">
+        Principal Investigator (PI) & Co-Principal Investigator (Co-PI)
+      </h1>
+
+      <PISection
+        title="Principal Investigator"
+        data={piList}
+        onSave={addPI}
+        onDelete={deletePI}
+        onView={setSelectedPI}
+      />
+
+      <PISection
+        title="Co-Principal Investigator"
+        data={coPiList}
+        onSave={addCoPI}
+        onDelete={deleteCoPI}
+        onView={setSelectedPI}
+      />
+
+      <button onClick={handleClick} className="bg-red-500 text-white px-4 py-2 mt-4 rounded">
+        Save
+      </button>
+
+      {selectedPI && <Modal data={selectedPI} onClose={() => setSelectedPI(null)} />}
     </div>
   );
-};
+}
 
-export default PrincipalInvestigatorForm;
-*/
+
+export default App;

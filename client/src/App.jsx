@@ -21,6 +21,7 @@ import axios from "axios";
 import Navbar from "./utils/HomeNavbar";
 import { AuthProvider } from './pages/Context/Authcontext.jsx';
 import Error from "./pages/Error"
+import Forgotpassword from "./pages/ForgotPassword";
 function App() {
   const getData = async () => {
     try {
@@ -66,6 +67,7 @@ function MainLayout() {
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/misc-request" element={<MiscRequest />} />
         <Route path="/view-profile" element={<UserProfile />} />
+        <Route path="/forgot-password" element={<Forgotpassword />} />
         <Route path="/error" element={<Error />} />
       <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
       </Routes>

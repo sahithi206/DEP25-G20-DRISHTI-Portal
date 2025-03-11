@@ -2,11 +2,18 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const generalInfoSchema = new Schema({
+    proposalId: { type: String, required: true, unique: true }, 
+    name: { type: String, required: true },
+    address: { type: String, required: true },
+    mobileNo: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
     instituteName: { type: String, required: true },
-    coordinator: { type: String, required: true },
     areaOfSpecialization: { type: String, required: true },
-    scheme: { type: String},
-    proposalId: { type:String, required: true }
-});
-
+    DBTproj_ong: { type: Number, default: 0 }, 
+    DBTproj_completed: { type: Number, default: 0 },
+    Proj_ong: { type: Number, default: 0 },
+    Proj_completed: { type: Number, default: 0 },
+    biodata: { type: String, default: "" }, 
+    photo: { type: String, default: "" }, 
+}, { timestamps: true });
 module.exports = mongoose.model("GeneralInfo", generalInfoSchema);

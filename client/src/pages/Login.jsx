@@ -73,7 +73,7 @@ const Login = () => {
           </button>
 
           <div className="flex justify-between mt-3 text-sm">
-            <a href="#" className="text-blue-500 hover:underline">Forgot Password</a>
+            <a href="/forgot-password" className="text-blue-500 hover:underline">Forgot Password</a>
             <a href="/signup" className="text-blue-500 hover:underline">New User</a>
           </div>
         </form>

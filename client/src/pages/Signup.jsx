@@ -16,6 +16,8 @@ const Signup = () => {
     idType: "",
     idNumber: "",
     institute: "",
+    address:"",
+    Dept:"",
   });
 
   const [error, setError] = useState("");
@@ -89,6 +91,8 @@ const Signup = () => {
         idNumber: data.idNumber,
         role: "PI",
         otp: String(data.otp),
+        address:data.address,
+        Dept:data.Dept,
       });
       if (response.data.success) {
         setError("");
@@ -259,6 +263,20 @@ const Signup = () => {
                 </select>
               </div>
             </div>
+            <div className="grid grid-cols-1">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={data.address}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                  placeholder="Enter your Address"
+                />
+              </div>
+            </div>
 
             <div className="flex justify-end">
               <button 
@@ -319,7 +337,20 @@ const Signup = () => {
                 classNamePrefix="react-select"
               />
             </div>
-
+            <div className="grid grid-cols-1">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Department</label>
+                <input
+                  type="text"
+                  name="Dept"
+                  value={data.Dept}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                  placeholder="Enter your Department"
+                />
+              </div>
+            </div>
             {showOtpField ? (
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Enter OTP</label>

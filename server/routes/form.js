@@ -12,10 +12,40 @@ const Proposal = require("../Models/Proposal");
 const Auth=require("./auth.js");
 const User=require("../Models/user");
 const PI=require("../Models/PI");
-const General_Info = require("../Models/General_Info");
 const router = express.Router();
-const mongoose = require("mongoose"); 
-const { ObjectId } = require('mongodb');
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const uploadDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+      cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+      const id = req.params.id || "unknown";
+      cb(null, `${id}_${Date.now()}${path.extname(file.originalname)}`);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+      const fileType = req.params.type; 
+      const isImage = file.mimetype.startsWith("image/");
+      const isPDF = file.mimetype === "application/pdf";
+
+      if ((fileType === "photo" && isImage) || (fileType === "pdf" && isPDF)) {
+          cb(null, true);
+      } else {
+          cb(new Error("Invalid file type! Only images and PDFs are allowed."));
+      }
+  }
+});
+
 
 router.post("/ProposalID", fetchUser, async (req, res, next) => {
     const {_id} = req.user;
@@ -52,10 +82,10 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
     }
 });
 router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
-  const {name, address, mobileNo, email, instituteName, coordinator, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed} = req.body;  const {proposalId}=req.params
+  const {name, address, mobileNo, email, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed} = req.body;  const {proposalId}=req.params
   const props = await General_Info.findOne({proposalId});
   if(props){
-    await General_Info.findOneAndUpdate({proposalId:proposalId},{name,address,mobileNo, email,instituteName,coordinator,areaOfSpecialization , DBTproj_ong, DBTproj_completed, Proj_ong , Proj_completed},{new:true});
+    await General_Info.findOneAndUpdate({proposalId:proposalId},{name,address,mobileNo, email,instituteName,areaOfSpecialization , DBTproj_ong, DBTproj_completed, Proj_ong , Proj_completed},{new:true});
     return res.status(200).json({success:true,msg:"General Info Updated!!"});
   }
   try {
@@ -66,7 +96,6 @@ router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
       mobileNo, 
       email, 
       instituteName, 
-      coordinator, 
       areaOfSpecialization, 
       DBTproj_ong, 
       DBTproj_completed, 
@@ -81,6 +110,31 @@ router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
     res.status(500).json({ success: false, error,msg: "Failed to save general info" });
   }
 });
+router.post("/upload/:type/:id", upload.single("file"), (req, res) => {
+  console.log("Received file:", req.file); 
+  
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  const fileSize = req.file.size;
+  const fileType = req.params.type;
+  const isPDF = req.file.mimetype === "application/pdf";
+  const isImage = req.file.mimetype.startsWith("image/");
+
+  if (fileType === "pdf" && (!isPDF || fileSize > 10 * 1024 * 1024)) {
+    return res.status(400).json({ error: "PDF size exceeds 10MB or invalid file type" });
+  } else if (fileType === "photo" && (!isImage || fileSize > 500 * 1024)) {
+    return res.status(400).json({ error: "Image size exceeds 500KB or invalid file type" });
+  }
+
+  res.json({
+    message: "File uploaded successfully",
+    filePath: `/uploads/${req.file.filename}`,
+  });
+});
+
+
 
 router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) => {
   const { Title,Duration,Summary,objectives,Output,other} = req.body;
@@ -104,120 +158,6 @@ router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) 
     res.status(500).json({ success: false, msg: "Failed to save research details" });
   }
 });
-/*
-router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
-  const { recurring_items, non_recurring_items, other_expenses = {} } = req.body;
-  const {proposalId}=req.params;
-
-  try {
-   
-      const user = await User.findById(req.user._id).populate("proposals");
-      if (!user) {
-          return res.status(404).json({ success: false, msg: "User not found" });
-      }
-
-      let totalRecurring = 0,
-          totalNonRecurring = 0,
-          totalOtherExpenses = 0;
-
-      if (recurring_items?.employees?.length > 0) {
-          const employees = recurring_items.employees.map(emp => {
-              const total = emp.Emoluments * emp.noOfEmployees;
-              totalRecurring += total;
-              return {
-                  designation: emp.designation,
-                  noOfEmployees: emp.noOfEmployees,
-                  Emoluments: emp.Emoluments,
-                  total
-              };
-          });
-          const props = await Recurring.findOne({proposalId});
-          if(props){
-            await Recurring.findOneAndUpdate({proposalId:proposalId},{noOfEquip: recurring_items.noOfEquip || 0,employee: employees},{new:true});
-          }else{
-            await new Recurring({
-              proposalId,
-              noOfEquip: recurring_items.noOfEquip || 0,
-              employee: employees
-          }).save();
-          }
-      }
-
-      if (non_recurring_items?.items?.length > 0) {
-          const items = non_recurring_items.items.map(item => {
-              const total = item.UnitCost * item.quantity;
-              totalNonRecurring += total;
-              return {
-                  UnitCost: item.UnitCost,
-                  quantity: item.quantity,
-                  total
-              };
-          });
-          const props = await NonRecurring.findOne({proposalId});
-          if(props){
-            await NonRecurring.findOneAndUpdate({proposalId:proposalId},{noOfEquip: non_recurring_items.noOfEquip || 0,items},{new:true});
-          }
-          else{
-            await new NonRecurring({
-              proposalId,
-              noOfEquip: non_recurring_items.noOfEquip || 0,
-              items
-            }).save();
-          }
-      }
-
-      console.log(other_expenses.expense);
-      if (Array.isArray(other_expenses.expense) && other_expenses.expense.length > 0) {
-        
-          const expenses = other_expenses.expense.map(expense => {
-              totalOtherExpenses += expense.amount;
-              return {
-                  description: expense.description,
-                  amount: expense.amount
-              };
-          });
-          console.log(expenses);
-          const props = await OtherExpenses.findOne({proposalId});
-          if(props){
-            await OtherExpenses.findOneAndUpdate({proposalId:proposalId},{ noOfEquip: other_expenses.noOfEquip || 0,expense: expenses},{new:true});
-          }
-          else{
-              const savedOtherExpenses = await new OtherExpenses({
-                  proposalId,
-                  noOfEquip: other_expenses.noOfEquip || 0,
-                  expense: expenses
-              }).save();
-
-              console.log("Saved Other Expenses:", savedOtherExpenses);
-
-            }
-
-      }
-      
-      const props= await Budget.findOne({proposalId:proposalId});
-      if(props){
-        await Budget.findOneAndUpdate({proposalId:proposalId},{ recurring_total: totalRecurring,non_recurring_total: totalNonRecurring,total: totalRecurring + totalNonRecurring + totalOtherExpenses},{new:true});
-       return res.status(200).json({success:true,msg:"Updated Budget Details Successfully"});
-      }
-      else{
-          const savedBudget = await new Budget({
-              proposalId,
-              recurring_total: totalRecurring,
-              non_recurring_total: totalNonRecurring,
-              total: totalRecurring + totalNonRecurring + totalOtherExpenses
-          }).save();
-          console.log("Saved Budget:", savedBudget);
-        }
-
-
-      res.status(200).json({ success: true, msg: "Budget details saved successfully" });
-
-  } catch (error) {
-      console.error("Error saving budget:", error);
-      res.status(500).json({ success: false, msg: "Failed to save budget details" });
-  }
-});
-*/
 router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
   const { recurring_items, non_recurring_items } = req.body;
   console.log("hi : " , recurring_items, non_recurring_items);
@@ -410,17 +350,13 @@ router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
       if (!user) {
           return res.status(404).json({ success: false, msg: "User not found" });
       }
-
-      /*if (!name || !department || !institute || !address || !pincode || !mobile || !email || noOfDBTProjects === undefined || noOfProjects === undefined || !proposalId) {
-          return res.status(400).json({ success: false, msg: "All fields are required" });
-      }*/
-
       const props= await PI.findOne({proposalId:proposalId});
+      console.log(members);
       if(props){
         await PI.findOneAndUpdate({proposalId:proposalId},{members},{new:true});
        return res.status(200).json({success:true,msg:"Updated PI Details Successfully"});
       }
-
+      
       const piDetails = new PI({proposalId,members});
       await piDetails.save();
 
