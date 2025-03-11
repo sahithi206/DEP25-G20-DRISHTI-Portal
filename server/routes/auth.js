@@ -176,7 +176,6 @@ router.get("/get-user", fetchUser, async (req, res) => {
     const { user } = req
   try{
     const isUser = await User.findOne({ _id: user._id });
-    console.log(isUser);
     if (!isUser) {
       return res.status(403).json({success:false, msg:"Unauthorized Access"});
     }
