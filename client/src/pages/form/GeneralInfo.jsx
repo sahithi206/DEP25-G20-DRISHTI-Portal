@@ -99,7 +99,7 @@ const UserProfile = () => {
                     </div>
                     <div className="mt-4">
                         <label className="block font-semibold text-red-600">
-                            Photo* (max size 500 KB)
+                            Photo* (Only .jpg - max size 500 KB)
                         </label>
                         <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, "photo")} />
                     </div>
@@ -126,7 +126,7 @@ const UserProfile = () => {
                         />
                     </div>
                     <div>
-                        <label className="block font-semibold">No. of Projects (Ongoing):</label>
+                        <label className="block font-semibold">No. of Other Projects (Ongoing):</label>
                         <input
                             type="number"
                             name="projectsOngoing"
@@ -137,7 +137,7 @@ const UserProfile = () => {
                         />
                     </div>
                     <div>
-                        <label className="block font-semibold">No. of Projects (Completed):</label>
+                        <label className="block font-semibold">No. of Other Projects (Completed):</label>
                         <input
                             type="number"
                             name="projectsCompleted"
