@@ -127,6 +127,7 @@ const AdminRequests = () => {
                 <table className="w-full border">
                     <thead>
                         <tr className="bg-gray-200">
+                            <th className="p-2 border">User ID</th>
                             <th className="p-2 border">Request Type</th>
                             <th className="p-2 border">Description</th>
                             <th className="p-2 border">Status</th>
@@ -136,6 +137,7 @@ const AdminRequests = () => {
                     <tbody>
                         {requests.map((req) => (
                             <tr key={req._id} className="border text-center">
+                                 <td className="p-2 border">{req.userId}</td>
                                 <td className="p-2 border">{req.requestType}</td>
                                 <td className="p-2 border">{req.description}</td>
                                 <td className={`p-2 border ${req.status === "Approved" ? "text-green-600" : req.status === "Rejected" ? "text-red-600" : "text-gray-600"}`}>{req.status}</td>
