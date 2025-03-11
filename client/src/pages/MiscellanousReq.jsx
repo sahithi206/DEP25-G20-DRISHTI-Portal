@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaUserCircle, FaPowerOff } from "react-icons/fa";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";
@@ -16,6 +16,26 @@ const MiscRequest = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // Fetch requests for the logged-in user
+    useEffect(() => {
+        const fetchRequests = async () => {
+            try {
+                const response = await fetch("http://localhost:8000/requests/user-requests", {
+                    headers: {
+                        "accessToken": localStorage.getItem("token"),
+                    },
+                });
+                const data = await response.json();
+                setRequests(data.requests);
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                alert("Failed to fetch requests");
+            }
+        };
+
+        fetchRequests();
+    }, []);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -25,20 +45,23 @@ const MiscRequest = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:5000/requests", {
+            const response = await fetch("http://localhost:8000/requests/submit-request", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "accessToken": localStorage.getItem("token"),
+                },
                 body: JSON.stringify(formData),
             });
 
             const data = await response.json(); // Convert response to JSON
 
             if (response.ok) {
-                setRequests((prevRequests) => [...prevRequests, data]); // Add new request to UI
+                setRequests((prevRequests) => [...prevRequests, data.newRequest]); // Add new request to UI
                 setFormData({ requestType: "", description: "" }); // Reset form
                 alert("Request submitted successfully!");
             } else {
-                alert(data.message || "Failed to submit request");
+                alert(data.msg || "Failed to submit request");
             }
 
         } catch (error) {
@@ -47,9 +70,6 @@ const MiscRequest = () => {
         }
     };
 
-
-
-
     return (
         <div className="flex bg-gray-100 min-h-screen">
             {/* Sidebar */}
@@ -57,7 +77,7 @@ const MiscRequest = () => {
 
             {/* Main Content */}
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-            <HomeNavbar isSidebarOpen={isSidebarOpen}/>
+                <HomeNavbar isSidebarOpen={isSidebarOpen} />
                 {/* Page Content */}
                 <div className="p-6 mt-16">
                     {/* Page Header */}
@@ -73,7 +93,6 @@ const MiscRequest = () => {
                         </h3>
                         <p className="text-center text-gray-600">Submit your requests for administrative support</p>
                     </div>
-
 
                     {/* Request Form */}
                     <div className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
@@ -111,7 +130,7 @@ const MiscRequest = () => {
                                 type="submit"
                                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
                             >
-                                Submit 
+                                Submit
                             </button>
                         </form>
                     </div>
@@ -133,11 +152,11 @@ const MiscRequest = () => {
                                 <tbody>
                                     {requests.length > 0 ? (
                                         requests.map((req) => (
-                                            <tr key={req.id} className="bg-gray-100 text-center">
-                                                <td className="p-2 border border-gray-300">{req.id}</td>
-                                                <td className="p-2 border border-gray-300">{req.type}</td>
+                                            <tr key={req._id} className="bg-gray-100 text-center">
+                                                <td className="p-2 border border-gray-300">{req._id}</td>
+                                                <td className="p-2 border border-gray-300">{req.requestType}</td>
                                                 <td className="p-2 border border-gray-300">{req.description}</td>
-                                                <td className="p-2 border border-gray-300">{req.date}</td>
+                                                <td className="p-2 border border-gray-300">{new Date(req.date).toLocaleString()}</td>
                                                 <td className="p-2 border border-gray-300 text-blue-600">{req.status}</td>
                                             </tr>
                                         ))
