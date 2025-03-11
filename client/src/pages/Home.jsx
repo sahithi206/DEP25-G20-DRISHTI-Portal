@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import LatestNews from "../components/LatestNews";
 import Hero from "../components/Hero";
 import { useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // Import icons

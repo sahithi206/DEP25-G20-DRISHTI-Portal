@@ -4,7 +4,7 @@ const GeneralInfo = require("../Models/General_Info");
 const ResearchDetails = require("../Models/researchDetails");
 const Budget = require("../Models/Budget");
 const Recurring = require("../Models/Recurring");
-const Bank=require("../Models/bank details");
+const Bank = require("../Models/bankDetails.js");
 const NonRecurring = require("../Models/NonRecurring");
 const OtherExpenses = require("../Models/OtherExpenses");
 const Acknowledgement = require("../Models/acknowledgement");
@@ -16,6 +16,7 @@ const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const nodemailer=require("nodemailer");
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -81,12 +82,86 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
         res.status(500).json({ success: false, error, msg: "Failed to generate Proposal ID" });
     }
 });
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER, // Your email
+    pass: process.env.EMAIL_PASS, // App password
+  },
+});
+
+async function sendEmailNotification(user, status, comment) {
+  let subject = `Update on Your Research Proposal - Status: ${status}`;
+
+  let message =
+    ` Dear ${user.Name},
+
+  We hope this email finds you well.
+
+  We would like to inform you that your research proposal has been ${status} by the admin. 
+
+  ${comment ? `Admin's Comment: "${comment}"` : ''}
+
+  If you have any questions or require further clarification, please do not hesitate to reach out.
+
+  Best Regards,  
+  Admin Team  
+  Research Proposal Management System
+  `;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: user.email,
+    subject: subject,
+    text: message,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully to:", user.email);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+}
+
+// Configure Nodemailer
+
+
+router.put("/update-proposals/:id", fetchUser, async (req, res) => {
+  try {
+    const { status, comment } = req.body;
+    const proposalId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(proposalId)) {
+      return res.status(400).json({ message: "Invalid proposal ID format" });
+    }
+    const proposal = await Proposal.findById(proposalId).populate("userId");
+
+    if (!proposal) {
+      console.log("Proposal not found in database!");
+      return res.status(404).json({ message: "Proposal not found" });
+    }
+
+    proposal.status = status;
+    // proposal.comment = comment;
+    await proposal.save();
+
+    // Send email notification
+    await sendEmailNotification(proposal.userId, status, comment);
+
+    res.json({ message: "Proposal updated and email sent" });
+  } catch (error) {
+    console.error("Error updating proposal:", error);
+    res.status(500).json({ message: "Error updating proposal" });
+  }
+});
+
 router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
-  const {name, address, mobileNo, email, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed} = req.body;  const {proposalId}=req.params
-  const props = await General_Info.findOne({proposalId});
-  if(props){
-    await General_Info.findOneAndUpdate({proposalId:proposalId},{name,address,mobileNo, email,instituteName,areaOfSpecialization , DBTproj_ong, DBTproj_completed, Proj_ong , Proj_completed},{new:true});
-    return res.status(200).json({success:true,msg:"General Info Updated!!"});
+  const { name, address, mobileNo, email, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed } = req.body; const { proposalId } = req.params
+  const props = await General_Info.findOne({ proposalId });
+  if (props) {
+    await General_Info.findOneAndUpdate({ proposalId: proposalId }, { name, address, mobileNo, email, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed }, { new: true });
+    return res.status(200).json({ success: true, msg: "General Info Updated!!" });
   }
   try {
     const generalInfo = new GeneralInfo({
@@ -202,68 +277,69 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
       console.log(consumables);
     }
 
-      if (recurring_items?.others?.length > 0) {
-           others = recurring_items.others.map(expense => {
-              totalRecurring += expense.amount;
-              return {
-                  description: expense.expense,
-                  amount: expense.amount
-              };
-          });
-          console.log(others);
-      }
-      if (non_recurring_items?.items?.length > 0) {
-           items = non_recurring_items.items.map(item => {
-              const total = item.unitCost * item.quantity;
-              totalNonRecurring += total;
-              return {
-                  item: item.item,
-                  UnitCost: item.unitCost,
-                  quantity: item.quantity,
-                  total
-              };
-          });
-          console.log(items);
-        }
-          const recurringUpdate = await Recurring.findOneAndUpdate(
-            { proposalId },
-            { human_resources : employees,
-              consumables:consumables,
-              others:others },
-            { new: true, upsert: true }
-          );
-          
-          const nonRecurringUpdate = await NonRecurring.findOneAndUpdate(
-            { proposalId },
-            { items },
-            { new: true, upsert: true }
-          );
-          
-          const budgetUpdate = await Budget.findOneAndUpdate(
-            { proposalId },
-            { 
-              recurring_total: totalRecurring, 
-              non_recurring_total: totalNonRecurring, 
-              total: totalRecurring + totalNonRecurring 
-            },
-            { new: true, upsert: true }
-          );
-          
-          console.log(recurringUpdate);
-          
-          const message = (recurringUpdate && nonRecurringUpdate && budgetUpdate) 
-            ? "Updated Budget Details Successfully" 
-            : "Budget details saved successfully";
-          
-          res.status(200).json({ success: true, msg: message });
-          
+    if (recurring_items?.others?.length > 0) {
+      others = recurring_items.others.map(expense => {
+        totalRecurring += expense.amount;
+        return {
+          description: expense.expense,
+          amount: expense.amount
+        };
+      });
+      console.log(others);
+    }
+    if (non_recurring_items?.items?.length > 0) {
+      items = non_recurring_items.items.map(item => {
+        const total = item.unitCost * item.quantity;
+        totalNonRecurring += total;
+        return {
+          item: item.item,
+          UnitCost: item.unitCost,
+          quantity: item.quantity,
+          total
+        };
+      });
+      console.log(items);
+    }
+    const recurringUpdate = await Recurring.findOneAndUpdate(
+      { proposalId },
+      {
+        human_resources: employees,
+        consumables: consumables,
+        others: others
+      },
+      { new: true, upsert: true }
+    );
+
+    const nonRecurringUpdate = await NonRecurring.findOneAndUpdate(
+      { proposalId },
+      { items },
+      { new: true, upsert: true }
+    );
+
+    const budgetUpdate = await Budget.findOneAndUpdate(
+      { proposalId },
+      {
+        recurring_total: totalRecurring,
+        non_recurring_total: totalNonRecurring,
+        total: totalRecurring + totalNonRecurring
+      },
+      { new: true, upsert: true }
+    );
+
+    console.log(recurringUpdate);
+
+    const message = (recurringUpdate && nonRecurringUpdate && budgetUpdate)
+      ? "Updated Budget Details Successfully"
+      : "Budget details saved successfully";
+
+    res.status(200).json({ success: true, msg: message });
+
 
   } catch (error) {
-      console.error("Error saving budget:", error);
-      res.status(500).json({ success: false, msg: "Failed to save budget details" });
+    console.error("Error saving budget:", error);
+    res.status(500).json({ success: false, msg: "Failed to save budget details" });
   }
 });
-
 
 router.post("/submit-acknowledgement/:proposalId", fetchUser, async (req, res) => {
   const { accept } = req.body;
@@ -310,35 +386,36 @@ router.post("/submit-acknowledgement/:proposalId", fetchUser, async (req, res) =
     res.status(500).json({ success: false, msg: "Failed to save acknowledgement" });
   }
 });
+
 router.post("/submit-bank-details/:proposalId", fetchUser, async (req, res) => {
-    
+
   try {
-      const {name, accountNumber, ifscCode, accountType, bankName} = req.body;
-      const {proposalId}=req.params;
-      if (!proposalId || !name || !accountNumber || !ifscCode || !accountType || !bankName) {
-        return res.status(400).json({ success: false, msg: "All fields are required" });
-      }
-      const props= await Bank.findOne({proposalId:proposalId});
-      if(props){
-        await Bank.findOneAndUpdate({proposalId:proposalId},{ name,accountNumber,ifscCode,accountType,bankName},{new:true});
-       return res.status(200).json({success:true,msg:"Updated Bank Account Details Successfully"});
-      }
-      const bankDetails = new Bank({
-          proposalId,
-          name,
-          accountNumber,
-          ifscCode,
-          accountType,
-          bankName
-      });
+    const { name, accountNumber, ifscCode, accountType, bankName } = req.body;
+    const { proposalId } = req.params;
+    if (!proposalId || !name || !accountNumber || !ifscCode || !accountType || !bankName) {
+      return res.status(400).json({ success: false, msg: "All fields are required" });
+    }
+    const props = await Bank.findOne({ proposalId: proposalId });
+    if (props) {
+      await Bank.findOneAndUpdate({ proposalId: proposalId }, { name, accountNumber, ifscCode, accountType, bankName }, { new: true });
+      return res.status(200).json({ success: true, msg: "Updated Bank Account Details Successfully" });
+    }
+    const bankDetails = new Bank({
+      proposalId,
+      name,
+      accountNumber,
+      ifscCode,
+      accountType,
+      bankName
+    });
 
-      await bankDetails.save();
+    await bankDetails.save();
 
-      res.status(200).json({ success: true, msg: "Bank details stored successfully" });
+    res.status(200).json({ success: true, msg: "Bank details stored successfully" });
 
   } catch (error) {
-      console.error("Error storing bank details:", error);
-      res.status(500).json({ success: false, msg: "Failed to store bank details" });
+    console.error("Error storing bank details:", error);
+    res.status(500).json({ success: false, msg: "Failed to store bank details" });
   }
 });
 
@@ -393,11 +470,12 @@ router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
     res.status(500).json({ success: false, msg: "Failed to fetch proposal details" });
   }
 });
+
 router.get("/proposals", fetchUser, async (req, res) => {
   try {
-    const userId = req.user._id; 
+    const userId = req.user._id;
 
-    const proposals = await Proposal.find({ userId:userId, status: "Pending" });
+    const proposals = await Proposal.find({ userId: userId, status: "Pending" });
 
     console.log("Fetched Proposals:", proposals);
 
@@ -409,19 +487,19 @@ router.get("/proposals", fetchUser, async (req, res) => {
       console.log("Processing Proposal ID:", proposal._id);
 
       const generalInfo = await GeneralInfo.findOne({ proposalId: proposal._id })
-        .select({ 'instituteName': 1, 'areaOfSpecialization': 1 });
-
-      console.log("General Info:", generalInfo);
 
       const researchDetails = await ResearchDetails.findOne({ proposalId: proposal._id })
-        .select("Title");
 
-      console.log("Research Details:", researchDetails);
+      const bankInfo = await Bank.findOne({ proposalId: proposal._id })
 
-      return { generalInfo, researchDetails };
+      const user = await User.findOne({ _id: proposal.userId })
+
+      const totalBudget = await Budget.findOne({ proposalId: proposal._id })
+
+      return { proposal, generalInfo, researchDetails, bankInfo, user, totalBudget };
     }));
 
-    console.log("Final Data:", data);
+    // console.log("Final Data:", data);
     res.json({ success: true, data });
 
   } catch (error) {
@@ -456,11 +534,11 @@ router.get("/acceptedproposals", fetchUser, async (req, res) => {
     }));
 
     console.log("Final Data:", data);
-    res.json({ success: true,msg:"Projects Fetched", data });
+    res.json({ success: true, msg: "Projects Fetched", data });
 
   } catch (error) {
     console.error("Error fetching proposals:", error);
-    res.status(500).json({ success: false, msg:"Failed to Fetch Projects" , error: "Internal Server Error" });
+    res.status(500).json({ success: false, msg: "Failed to Fetch Projects", error: "Internal Server Error" });
   }
 });
 

@@ -62,7 +62,10 @@ const BudgetForm = ({ formData, updateForm }) => {
     const addNewItem = (setState, state, newItem) => {
         setState([...state, newItem]);
     };
-
+    const removeItem = (setState, state, index) => {
+        const updatedItems = state.filter((_, i) => i !== index);
+        setState(updatedItems);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -95,22 +98,29 @@ const BudgetForm = ({ formData, updateForm }) => {
                         <h2 className="text-2xl font-bold mb-4">Non-Recurring</h2>
                         <h3 className="text-lg font-semibold mb-2">Equipment Details</h3>
                         {nonRecurringItems.map((item, index) => (
-                            <div key={index} className="grid grid-cols-4 gap-4 p-4 border rounded-lg">
-                                <input type="text" placeholder="Item" className="border p-2 rounded w-full"
-                                    value={item.item}
-                                    onChange={(e) => handleChange(index, "item", e.target.value, setNonRecurringItems, nonRecurringItems)}
-                                />
-                                <input type="parseFloat" placeholder="Unit Cost" className="border p-2 rounded w-full"
-                                    value={item.unitCost}
-                                    onChange={(e) => handleChange(index, "unitCost", e.target.value, setNonRecurringItems, nonRecurringItems)}
-                                />
-                                <input type="parseFloat" placeholder="Quantity" className="border p-2 rounded w-full"
-                                    value={item.quantity}
-                                    onChange={(e) => handleChange(index, "quantity", e.target.value, setNonRecurringItems, nonRecurringItems)}
-                                />
-                                <input type="parseFloat" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={item.total} />
-                            </div>
-                        ))}
+    <div key={index} className="grid grid-cols-5 gap-4 p-4 border rounded-lg">
+        <input type="text" placeholder="Item" className="border p-2 rounded w-full"
+            value={item.item}
+            onChange={(e) => handleChange(index, "item", e.target.value, setNonRecurringItems, nonRecurringItems)}
+        />
+        <input type="number" placeholder="Unit Cost" className="border p-2 rounded w-full"
+            value={item.unitCost}
+            onChange={(e) => handleChange(index, "unitCost", e.target.value, setNonRecurringItems, nonRecurringItems)}
+        />
+        <input type="number" placeholder="Quantity" className="border p-2 rounded w-full"
+            value={item.quantity}
+            onChange={(e) => handleChange(index, "quantity", e.target.value, setNonRecurringItems, nonRecurringItems)}
+        />
+        <input type="number" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={item.total} />
+        <button
+            className="bg-red-500 text-white px-2 py-1 rounded"
+            onClick={() => removeItem(setNonRecurringItems, nonRecurringItems, index)}
+        >
+            Remove
+        </button>
+    </div>
+))}
+
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setNonRecurringItems, nonRecurringItems, { item: "", unitCost: "", quantity: "", total: "" })}
                         >Add More</button>
@@ -125,22 +135,29 @@ const BudgetForm = ({ formData, updateForm }) => {
                         {/* Materials */}
                         <h3 className="text-lg font-semibold mb-2">Materials</h3>
                         {materials.map((material, index) => (
-                            <div key={index} className="grid grid-cols-4 gap-4 p-4 border rounded-lg">
-                                <input type="text" placeholder="Material" className="border p-2 rounded w-full"
-                                    value={material.material}
-                                    onChange={(e) => handleChange(index, "material", e.target.value, setMaterials, materials)}
-                                />
-                                <input type="parseFloat" placeholder="Quantity" className="border p-2 rounded w-full"
-                                    value={material.quantity}
-                                    onChange={(e) => handleChange(index, "quantity", e.target.value, setMaterials, materials)}
-                                />
-                                <input type="parseFloat" placeholder="Per Unit Cost" className="border p-2 rounded w-full"
-                                    value={material.perUnitCost}
-                                    onChange={(e) => handleChange(index, "perUnitCost", e.target.value, setMaterials, materials)}
-                                />
-                                <input type="parseFloat" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={material.total} />
-                            </div>
-                        ))}
+    <div key={index} className="grid grid-cols-5 gap-4 p-4 border rounded-lg">
+        <input type="text" placeholder="Material" className="border p-2 rounded w-full"
+            value={material.material}
+            onChange={(e) => handleChange(index, "material", e.target.value, setMaterials, materials)}
+        />
+        <input type="number" placeholder="Quantity" className="border p-2 rounded w-full"
+            value={material.quantity}
+            onChange={(e) => handleChange(index, "quantity", e.target.value, setMaterials, materials)}
+        />
+        <input type="number" placeholder="Per Unit Cost" className="border p-2 rounded w-full"
+            value={material.perUnitCost}
+            onChange={(e) => handleChange(index, "perUnitCost", e.target.value, setMaterials, materials)}
+        />
+        <input type="number" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={material.total} />
+        <button
+            className="bg-red-500 text-white px-2 py-1 rounded"
+            onClick={() => removeItem(setMaterials, materials, index)}
+        >
+            Remove
+        </button>
+    </div>
+))}
+
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setMaterials, materials, { material: "", quantity: "", perUnitCost: "", total: "" })}
                         >Add More</button>
@@ -148,39 +165,53 @@ const BudgetForm = ({ formData, updateForm }) => {
                         {/* Manpower */}
                         <h3 className="text-lg font-semibold mt-6">Manpower</h3>
                         {manpower.map((mp, index) => (
-                            <div key={index} className="grid grid-cols-4 gap-4 p-4 border rounded-lg">
-                                <input type="text" placeholder="Role" className="border p-2 rounded w-full"
-                                    value={mp.role}
-                                    onChange={(e) => handleChange(index, "role", e.target.value, setManpower, manpower)}
-                                />
-                                <input type="parseFloat" placeholder="No. of Employees" className="border p-2 rounded w-full"
-                                    value={mp.numEmployees}
-                                    onChange={(e) => handleChange(index, "numEmployees", e.target.value, setManpower, manpower)}
-                                />
-                                <input type="parseFloat" placeholder="Monthly Salary" className="border p-2 rounded w-full"
-                                    value={mp.salary}
-                                    onChange={(e) => handleChange(index, "salary", e.target.value, setManpower, manpower)}
-                                />
-                                <input type="parseFloat" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={mp.total} />
-                            </div>
-                        ))}
+    <div key={index} className="grid grid-cols-5 gap-4 p-4 border rounded-lg">
+        <input type="text" placeholder="Role" className="border p-2 rounded w-full"
+            value={mp.role}
+            onChange={(e) => handleChange(index, "role", e.target.value, setManpower, manpower)}
+        />
+        <input type="number" placeholder="No. of Employees" className="border p-2 rounded w-full"
+            value={mp.numEmployees}
+            onChange={(e) => handleChange(index, "numEmployees", e.target.value, setManpower, manpower)}
+        />
+        <input type="number" placeholder="Monthly Salary" className="border p-2 rounded w-full"
+            value={mp.salary}
+            onChange={(e) => handleChange(index, "salary", e.target.value, setManpower, manpower)}
+        />
+        <input type="number" placeholder="Total" className="border p-2 rounded w-full bg-gray-100" readOnly value={mp.total} />
+        <button
+            className="bg-red-500 text-white px-2 py-1 rounded"
+            onClick={() => removeItem(setManpower, manpower, index)}
+        >
+            Remove
+        </button>
+    </div>
+))}
+
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setManpower, manpower, { role: "", numEmployees: "", salary: "", total: "" })}
                         >Add More</button>
                         {/* Other Expenses */}
                         <h3 className="text-lg font-semibold mt-6">Others</h3>
                         {otherExpenses.map((expense, index) => (
-                            <div key={index} className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                                <input type="text" placeholder="Expense" className="border p-2 rounded w-full"
-                                    value={expense.expense}
-                                    onChange={(e) => handleChange(index, "expense", e.target.value, setOtherExpenses, otherExpenses)}
-                                />
-                                <input type="parseFloat" placeholder="Amount" className="border p-2 rounded w-full"
-                                    value={expense.amount}
-                                    onChange={(e) => handleChange(index, "amount", e.target.value, setOtherExpenses, otherExpenses)}
-                                />
-                            </div>
-                        ))}
+    <div key={index} className="grid grid-cols-3 gap-4 p-4 border rounded-lg">
+        <input type="text" placeholder="Expense" className="border p-2 rounded w-full"
+            value={expense.expense}
+            onChange={(e) => handleChange(index, "expense", e.target.value, setOtherExpenses, otherExpenses)}
+        />
+        <input type="number" placeholder="Amount" className="border p-2 rounded w-full"
+            value={expense.amount}
+            onChange={(e) => handleChange(index, "amount", e.target.value, setOtherExpenses, otherExpenses)}
+        />
+        <button
+            className="bg-red-500 text-white px-2 py-1 rounded"
+            onClick={() => removeItem(setOtherExpenses, otherExpenses, index)}
+        >
+            Remove
+        </button>
+    </div>
+))}
+
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setOtherExpenses, otherExpenses, { expense: "", amount: "" })}>Add More</button>
                     </div>);
