@@ -16,23 +16,39 @@ const MiscRequest = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Handle form submission
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (!formData.requestType || !formData.description) {
             alert("Please fill in all fields");
             return;
         }
-        const newRequest = {
-            id: requests.length + 1,
-            type: formData.requestType,
-            description: formData.description,
-            date: new Date().toLocaleDateString(),
-            status: "Pending",
-        };
-        setRequests([...requests, newRequest]);
-        setFormData({ requestType: "", description: "" });
+
+        try {
+            const response = await fetch("http://localhost:5000/requests", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await response.json(); // Convert response to JSON
+
+            if (response.ok) {
+                setRequests((prevRequests) => [...prevRequests, data]); // Add new request to UI
+                setFormData({ requestType: "", description: "" }); // Reset form
+                alert("Request submitted successfully!");
+            } else {
+                alert(data.message || "Failed to submit request");
+            }
+
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            alert("Network error: Unable to reach server");
+        }
     };
+
+
+
 
     return (
         <div className="flex bg-gray-100 min-h-screen">

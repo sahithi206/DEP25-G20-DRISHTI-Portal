@@ -8,21 +8,15 @@ const MenuPage = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     return (
-        <>
+
+
         <div className="flex min-h-screen bg-gray-100">
             {/* Sidebar Component */}
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
-            <HomeNavbar/>
+
             {/* Main Content */}
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                <header className="bg-blue-900 text-white p-4 flex justify-between items-center">
-                    <h2 className="text-2xl font-semibold">Anusandhan National Research Foundation</h2>
-                    <div className="flex items-center space-x-4">
-                        <FaUserCircle className="text-2xl" />
-                        <span>Welcome, Ms. Varsha</span>
-                        <FaPowerOff className="text-xl cursor-pointer text-red-500" />
-                    </div>
-                </header>
+                <HomeNavbar />
 
                 {/* Dashboard Content */}
                 <div className="p-6 space-y-6">
@@ -49,7 +43,6 @@ const MenuPage = () => {
                 </div>
             </div>
         </div>
-        </>
     );
 };
 

@@ -18,10 +18,14 @@ import MiscRequest from "./pages/MiscellanousReq";
 import UserProfile from "./pages/UserProfile";
 import ProjectDashboard from "./pages/ProjectDashboard";
 import axios from "axios";
-import Navbar from "./utils/HomeNavbar";
 import { AuthProvider } from './pages/Context/Authcontext.jsx';
 import Error from "./pages/Error"
 import Forgotpassword from "./pages/ForgotPassword";
+import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
+import AdminReviewProposals from "./pages/Admin/AdminReviewProposals";
+import FundCycleApproval from "./pages/Admin/FundCyclePage.jsx";  // Ensure the path is correct
+import RequestsPage from "./pages/Admin/AdminRequests.jsx";  // Ensure the correct path
+import SchemeManagement from "./pages/admin/SchemeManagement.jsx";
 function App() {
   const getData = async () => {
     try {
@@ -70,6 +74,12 @@ function MainLayout() {
         <Route path="/forgot-password" element={<Forgotpassword />} />
         <Route path="/error" element={<Error />} />
       <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
+      <Route path="/review-proposals" element={<AdminReviewProposals />} />
+      <Route path="/fund-cycle" element={<FundCycleApproval />} />
+        <Route path="/requests" element={<RequestsPage />} />
+        <Route path="/schemes" element={<SchemeManagement />} />
       </Routes>
     </div>
   );
