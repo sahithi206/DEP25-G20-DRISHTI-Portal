@@ -95,7 +95,7 @@ const AdminRequests = () => {
     
     // Fetch requests from the backend
     useEffect(() => {
-        fetch("http://localhost:5000/requests")
+        fetch("http://localhost:8000/requests")
             .then((res) => res.json())
             .then((data) => setRequests(data))
             .catch((error) => console.error("Error fetching requests:", error));
@@ -104,7 +104,7 @@ const AdminRequests = () => {
     // Handle approve/reject action
     const updateRequestStatus = async (id, status) => {
         try {
-            const response = await fetch(`http://localhost:5000/requests/${id}`, {
+            const response = await fetch(`http://localhost:8000/requests/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status }),
