@@ -7,10 +7,8 @@ console.log(url);
 const AuthProvider = (props) => {
   const navigate = useNavigate();
   const [authState] = useState("");
- const [tabId, setTabId] = useState(null);
   useEffect(() => {
     const newTabId = Math.random().toString(36).substr(2, 9);
-    setTabId(newTabId);
     localStorage.setItem("activeTab", newTabId);
 
     const checkTabs = () => {
@@ -320,7 +318,7 @@ const submitBankDetails = async (bankDetailsData) => {
 };
 
 
-const submitPIDetails = async (piDetailsData) => {
+const submitPIDetails = async ({ piList,coPiList})=>{
   try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("User not authenticated");
@@ -334,7 +332,7 @@ const submitPIDetails = async (piDetailsData) => {
               "Content-Type": "application/json",
               "accessToken": `${token}`
           },
-          body: JSON.stringify(piDetailsData),
+          body: JSON.stringify({ piList,coPiList})
       });
 
       if (!response.ok) {
@@ -382,7 +380,32 @@ const submitAcknowledgement = async (accept) => {
     throw e;
   }
 };
+const unsavedProposal=async()=>{
+   const token=localStorage.getItem("token");
+   const proposalId=localStorage.getItem("ProposalID");
+   try{
+    if (!token) throw new Error("User not authenticated");
+    if (!proposalId) throw new Error("Proposal ID not found in local storage");
 
+    const response = await fetch(`${url}form/get-proposal/${proposalId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "accessToken": `${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Failed to Fetch Proposal");
+    }
+    const json = await response.json();
+    return json;
+   }catch(e){
+    console.error("Cannot Fetch the Proposal:", e.message);
+    throw e;
+   }
+}
 
 const approvedProjects = async () => {
   const token = localStorage.getItem("token");
@@ -419,7 +442,7 @@ const approvedProjects = async () => {
     console.log("User logged out!!");
  }
   return (
-    <AuthContext.Provider value={{ sendOtp, verifyOtp, login, authState,getpi, submitProposal,logout,uploadFile, submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails, submitPIDetails, submitAcknowledgement, getuser, approvedProjects }}>
+    <AuthContext.Provider value={{ sendOtp, verifyOtp, login,unsavedProposal, authState,getpi, submitProposal,logout,uploadFile, submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails, submitPIDetails, submitAcknowledgement, getuser, approvedProjects }}>
       {props.children}
     </AuthContext.Provider>
   );

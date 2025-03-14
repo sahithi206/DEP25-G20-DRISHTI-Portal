@@ -1,8 +1,7 @@
 const express = require("express");
-const FundCycleRequest = require("../Models/FundCycle"); // Import Mongoose Model
+const FundCycleRequest = require("../Models/FundCycle"); 
 const router = express.Router();
 
-// ✅ GET all fund cycle requests
 router.get("/", async (req, res) => {
     try {
         const requests = await FundCycleRequest.find();
@@ -12,7 +11,6 @@ router.get("/", async (req, res) => {
     }
 });
 
-// ✅ POST a new fund cycle request
 router.post("/", async (req, res) => {
     const { applicantName, amount, reason } = req.body;
 
@@ -25,7 +23,7 @@ router.post("/", async (req, res) => {
             applicantName,
             amount,
             reason,
-            status: "Pending", // Default status
+            status: "Pending",
         });
 
         await newRequest.save();
@@ -35,7 +33,6 @@ router.post("/", async (req, res) => {
     }
 });
 
-// ✅ UPDATE fund cycle request status (Approve/Reject)
 router.put("/:id", async (req, res) => {
     const { status } = req.body;
 
@@ -60,7 +57,6 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-// ✅ DELETE a fund cycle request
 router.delete("/:id", async (req, res) => {
     try {
         const deletedRequest = await FundCycleRequest.findByIdAndDelete(req.params.id);

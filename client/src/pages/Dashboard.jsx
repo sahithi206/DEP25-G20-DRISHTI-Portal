@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { FaUserCircle, FaPowerOff } from "react-icons/fa";
+import { useState,useEffect,useContext } from "react";
 import Sidebar from "../utils/Sidebar";
 import Footer from "../components/Footer";
 import PrincipalInvestigatorForm from "./form/PrincipalInvestigatorForm";
@@ -9,6 +8,7 @@ import BudgetForm from "./form/BudgetForm";
 import BankDetailsForm from "./form/BankDetailsForm";
 import Submit from "./form/ReviewAndSubmit";
 import HomeNavbar from "../utils/HomeNavbar"
+import { AuthContext } from "./Context/Authcontext";
 
 const tabs = [
     "General Information",
@@ -22,7 +22,8 @@ const tabs = [
 const Dashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [currentTab, setCurrentTab] = useState("General Information");
-
+    const [prevData,setData]=useState({});
+    const {unsavedProposal}=useContext(AuthContext)
     const [formData, setFormData] = useState({
         generalInfo: {},
         principalInvestigator: {},
@@ -87,17 +88,39 @@ const Dashboard = () => {
         return "bg-gray-800"; 
     };
     
-    
+     useEffect(()=>{
+            const nochange =async ()=>{
+                const data=await unsavedProposal();
+                const user=data.data;
+                console.log("PrevDetails:",user);
+                if(user.msg !=="No details Found"){
+                    setData({
+                        generalInfo:user.generalInfo,
+                        PIdetails:user.PIdetails,
+                        researchDetails:user.researchDetails, 
+                        budgetSummary:user.budgetSummary,
+                        nonRecurring:user.nonRecurring,
+                        recurring:user.recurring,
+                        bankDetails:user.bankDetails, 
+                        acknowledgements:user.acknowledgements
+                    })
+                }
+            }
+            nochange();
+        },[]);
 
     const tabContent = {
-        "General Information": <GeneralInfo formData={formData.generalInfo} updateForm={handleFormUpdate} />,
-        "Principal Investigator": <PrincipalInvestigatorForm formData={formData.principalInvestigator} updateForm={handleFormUpdate} />,
-        "Technical Details": <TechForm formData={formData.technicalDetails} updateForm={handleFormUpdate} />,
-        "Budget Related Details": <BudgetForm formData={formData.budgetDetails} updateForm={handleFormUpdate} />,
-        "Bank Details": <BankDetailsForm formData={formData.bankDetails} updateForm={handleFormUpdate} />,
-        "Review and Submit": <Submit formData={formData} />,
+        "General Information": <GeneralInfo  generalInfo={prevData.generalInfo} />,
+        "Principal Investigator": <PrincipalInvestigatorForm PIdetails={prevData.PIdetails} />,
+        "Technical Details": <TechForm formData={formData.technicalDetails} updateForm={handleFormUpdate} researchDetails={prevData.researchDetails}/>,
+        "Budget Related Details": <BudgetForm  budgetSummary={prevData.budgetSummary} recurring={prevData.recurring} nonRecurring={prevData.nonRecurring}/>,
+        "Bank Details": <BankDetailsForm formData={formData.bankDetails} updateForm={handleFormUpdate} bankDetails={prevData.bankDetails} />,
+        "Review and Submit": <Submit  generalInfo={prevData.generalInfo} formData={formData}
+        PIdetails={prevData.PIdetails}
+        researchDetails={prevData.researchDetails}
+        budgetSummary={prevData.budgetSummary} recurring={prevData.recurring} nonRecurring={prevData.nonRecurring} bankDetails={prevData.bankDetails}/>
     };
-
+    console.log(prevData.generalInfo);
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />

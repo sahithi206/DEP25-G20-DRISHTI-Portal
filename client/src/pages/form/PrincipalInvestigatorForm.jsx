@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useContext } from "react";
+import  { useState, useEffect,useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
 
 const PISection = ({ title, data, onSave, onDelete, onView }) => {
@@ -108,16 +108,18 @@ const Modal = ({ data, onClose }) => (
 );
 
 
-function App() {
+function App({PIdetails}){
   const { submitPIDetails,getuser } = useContext(AuthContext);
   const [piList, setPiList] = useState([]);
   const [coPiList, setCoPiList] = useState([]);
   const [selectedPI, setSelectedPI] = useState(null);
+  
+  console.log(PIdetails);
   useEffect(() => {
     const fetchPI = async () => {
       const user = await getuser();
       if (!user) return;
-      
+
       const pi = {
         role: "Principal Investigator",
         email: user.email,
@@ -129,18 +131,22 @@ function App() {
         address: user.address,
         Dept: user.Dept,
       };
-  
+
       setPiList((prev) => {
         if (prev.some((p) => p.email === pi.email)) {
-          alert("This PI is already added.");
           return prev;
         }
         return [...prev, pi];
       });
     };
-  
+
     fetchPI();
-  }, [getuser]);
+    const nochange = () => {
+      setPiList(PIdetails.piList);
+      setCoPiList(PIdetails.coPiList);
+    }
+    nochange();
+  }, [getuser, PIdetails]);
     const addPI = (pi) => {
     if (piList.some((p) => p.email === pi.email||coPiList.some((p) => p.email === pi.email))) {
       alert("This PI is already added.");
@@ -162,7 +168,7 @@ function App() {
 
   const handleClick = async (e) => {
     e.preventDefault();
-    await submitPIDetails({ members: [...piList, ...coPiList] });
+    await submitPIDetails({ piList,coPiList });
   };
 
   return (
