@@ -1,23 +1,32 @@
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { AuthContext } from "../Context/Authcontext";
-const UserProfile = () => {
+const GeneralInfo=({generalInfo})=>{
     const [userId, setId] = useState(null);
     const [data, setData] = useState({});
     const [projects, setProjects] = useState({});
     const { getuser, submitGeneralInfo } = useContext(AuthContext);
     useEffect(() => {
         const user = async () => {
+            console.log("Gen",generalInfo);
             try {
                 const User = await getuser();
                 setData(User);
                 setId(User._id);
+                setProjects({
+                    dbtProjectsOngoing:generalInfo.DBTproj_ong,
+                    dbtProjectsCompleted:generalInfo.DBTproj_completed,
+                    projectsOngoing:generalInfo.Proj_ong,
+                    projectsCompleted:generalInfo.Proj_completed,
+                    biodata:"",
+                    photo:"",
+                });
             } catch (e) {
                 console.log(e);
             }
         };
         user();
-    }, [getuser]);
+    }, [getuser,generalInfo]);
     const handleChange = (e) => {
         setProjects({ ...projects, [e.target.name]: e.target.value });
     };
@@ -39,7 +48,7 @@ const UserProfile = () => {
                 photo:projects.photo
             });
             if (response.success) {
-                alert("General info submitted successfully!");
+                alert(response.msg);
             }
         } catch (error) {
             console.error("Error submitting general info:", error.message);
@@ -156,4 +165,4 @@ const UserProfile = () => {
     );
 };
 
-export default UserProfile;
+export default GeneralInfo;

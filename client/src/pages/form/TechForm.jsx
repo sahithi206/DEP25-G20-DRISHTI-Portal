@@ -1,12 +1,41 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
 
-const TechForm = ({ formData, updateForm }) => {
+const TechForm = ({ formData, updateForm, researchDetails }) => {
     const section = "technicalDetails";
     const [data, setData] = useState(formData);
-    const { submitResearchDetails } = useContext(AuthContext);
-
-    // Character limits for each field
+    const { submitResearchDetails,unsavedProposal} = useContext(AuthContext);
+    /*const nochange =async ()=>{
+            const data=await unsavedProposal();
+            const user=data.data;
+            console.log("TechForm:",user);
+            if(user.msg !=="No details Found"&&user.researchDetails){
+                    setData({  
+                        proposalTitle:researchDetails.Title,
+                        projectDuration:researchDetails.Duration,
+                        projectSummary:researchDetails.Summary,
+                        objectives: researchDetails.objectives.join("\n"),
+                        expectedOutput:researchDetails.Output,
+                        otherDetails:researchDetails.other})
+            }
+        }
+        nochange();
+        */
+    useEffect(()=>{
+        const nochange =async ()=>{
+            if(researchDetails){
+                    setData({  
+                        proposalTitle:researchDetails.Title,
+                        projectDuration:researchDetails.Duration,
+                        projectSummary:researchDetails.Summary,
+                        objectives: researchDetails.objectives.join("\n"),
+                        expectedOutput:researchDetails.Output,
+                        otherDetails:researchDetails.other
+                    })
+            }
+        }
+        nochange();
+    },[researchDetails]);
     const charLimits = {
         proposalTitle: 100,
         projectSummary: 500,
@@ -49,12 +78,12 @@ const TechForm = ({ formData, updateForm }) => {
                 Title: data.proposalTitle,
                 Duration: data.projectDuration,
                 Summary: data.projectSummary,
-                objectives: data.objectives.split("\n"), // objectives are separated by new lines
+                objectives: data.objectives.split("\n"),
                 Output: data.expectedOutput,
                 other: data.otherDetails
             });
             if (response.success) {
-                alert("Research details submitted successfully!");
+                alert(response.msg);
             }
         } catch (error) {
             console.error("Error submitting research details:", error.message);

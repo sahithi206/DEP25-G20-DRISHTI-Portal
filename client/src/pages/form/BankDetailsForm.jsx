@@ -2,15 +2,25 @@ import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
 import HomeNavbar from "../../utils/HomeNavbar";
 
-const BankDetailsForm = ({ formData, updateForm }) => {
-    const section = "bankDetails"; // Unique key for this section
+const BankDetailsForm = ({ formData, updateForm,bankDetails }) => {
+    const section = "bankDetails"; 
     const [data, setData] = useState(formData);
     const { submitBankDetails } = useContext(AuthContext);
 
-    // Sync changes automatically with parent
     useEffect(() => {
-        updateForm(section, data);
-    }, [data]);
+        const nochange =async ()=>{
+            if(bankDetails){
+                    setData({  
+                        name:bankDetails.name,
+                        accountNumber:bankDetails.accountNumber,
+                        ifscCode:bankDetails.ifscCode,
+                        bankName: bankDetails.bankName,
+                        accountType:bankDetails.accountType,
+                    })
+            }
+        }
+        nochange();
+    }, [bankDetails]);
 
     const handleChange = (e) => {
         setData({ ...data, [e.target.name]: e.target.value });
@@ -23,7 +33,7 @@ const BankDetailsForm = ({ formData, updateForm }) => {
             reader.onload = (e) => {
                 try {
                     const jsonData = JSON.parse(e.target.result);
-                    setData(jsonData);  // FIXED LINE
+                    setData(jsonData);
                 } catch (error) {
                     console.error("Invalid JSON file");
                 }
@@ -36,7 +46,8 @@ const BankDetailsForm = ({ formData, updateForm }) => {
         e.preventDefault();
         try {
             const response = await submitBankDetails(data);
-            alert("Bank details submitted successfully!");
+            console.log(response);
+            alert(response.msg);
         } catch (error) {
             console.error("Error submitting bank details:", error.message);
             alert("Failed to submit bank details");

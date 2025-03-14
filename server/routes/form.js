@@ -5,7 +5,6 @@ const ResearchDetails = require("../Models/researchDetails");
 const Budget = require("../Models/Budget");
 const Recurring = require("../Models/Recurring");
 const Bank = require("../Models/bankDetails.js");
-const NonRecurring = require("../Models/NonRecurring");
 const OtherExpenses = require("../Models/OtherExpenses");
 const Acknowledgement = require("../Models/acknowledgement");
 const Proposal = require("../Models/Proposal");
@@ -17,6 +16,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const nodemailer=require("nodemailer");
+const NonRecurring = require("../Models/NonRecurring");
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -129,21 +129,15 @@ async function sendEmailNotification(user, status, comment) {
 
 router.put("/update-proposals/:id", fetchUser, async (req, res) => {
   try {
-    const { status, comment } = req.body;
-    const proposalId = req.params.id;
-
-    if (!mongoose.Types.ObjectId.isValid(proposalId)) {
-      return res.status(400).json({ message: "Invalid proposal ID format" });
-    }
-    const proposal = await Proposal.findById(proposalId).populate("userId");
-
+    let { status, comment } = req.body;
+    let {id} = req.params;
+    let proposal = await Proposal.findById(id).populate("userId");
     if (!proposal) {
       console.log("Proposal not found in database!");
       return res.status(404).json({ message: "Proposal not found" });
     }
 
-    proposal.status = status;
-    await proposal.save();
+    proposal=await Proposal.findByIdAndUpdate({_id:id},{status:status},{new:true});
     await sendEmailNotification(proposal.userId, status, comment);
 
     res.json({ message: "Proposal updated and email sent" });
@@ -214,97 +208,75 @@ router.post("/upload/:type/:id", upload.single("file"), (req, res) => {
   
 });
 
-
-
-router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) => {
-  const { Title,Duration,Summary,objectives,Output,other} = req.body;
-    const {proposalId}=req.params
-
-  try {
-    const props = await ResearchDetails.findOne({proposalId});
-    if(props){
-      await ResearchDetails.findOneAndUpdate({proposalId:proposalId},{Title,Duration,Summary,objectives,Output,other},{new:true});
-      return res.status(200).json({success:true,msg:"Research Details Updated!!"});
-    }
-    const researchDetails = new ResearchDetails({
-        Title,Duration,Summary,objectives,Output,other,proposalId
-    });
-    /*const details= await ResearchDetails.findOne({proposalId:proposal[0].ProposalId});
-    console.log(details);*/
-    await researchDetails.save();
-    res.status(200).json({ success: true, msg: "Research details saved" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, msg: "Failed to save research details" });
-  }
-});
 router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
   const { recurring_items, non_recurring_items } = req.body;
-  console.log("hi : " , recurring_items, non_recurring_items);
+  console.log("Received budget data:", recurring_items, non_recurring_items);
   const { proposalId } = req.params;
 
   try {
     let totalRecurring = 0, totalNonRecurring = 0;
     let items = [], consumables = [], employees = [], others = [];
 
-    if (recurring_items?.employees?.length > 0) {
-      employees = recurring_items.employees.map(emp => {
-        const noOfEmployees = parseFloat(emp.numEmployees) || 0;
-        console.log(noOfEmployees);
-        const Emoluments = parseFloat(emp.salary) || 0;
-        const total = Emoluments * noOfEmployees;
-        console.log(total);
+    if (recurring_items?.human_resources?.length > 0) {
+      employees = recurring_items.human_resources.map(emp => {
+        const noOfEmployees = parseFloat(emp.noOfEmployees) || 0;
+        const Emoluments = parseFloat(emp.Emoluments) || 0;
+        const total = parseFloat(emp.total) || 0;
         totalRecurring += total;
         return {
-          designation: emp.role,
+          designation: emp.designation,
           noOfEmployees,
           Emoluments,
           total
         };
       });
-      console.log(employees);
+      console.log("Manpower", employees);
     }
 
     if (recurring_items?.consumables?.length > 0) {
       consumables = recurring_items.consumables.map(item => {
         const quantity = parseFloat(item.quantity) || 0;
-        const UnitCost = parseFloat(item.perUnitCost) || 0;
-        const total = UnitCost * quantity;
+        const perUnitCost = parseFloat(item.perUnitCost) || 0;
+        const total = perUnitCost * quantity;
         totalRecurring += total;
-        console.log("material", item.material);
         return {
           item: item.material,
           quantity,
-          perUnitCost: UnitCost,
+          perUnitCost,
           total
         };
       });
-      console.log(consumables);
+      console.log("Material", consumables);
     }
 
     if (recurring_items?.others?.length > 0) {
       others = recurring_items.others.map(expense => {
-        totalRecurring += expense.amount;
+        const amount = parseFloat(expense.amount) || 0;
+        totalRecurring += amount;
         return {
-          description: expense.expense,
-          amount: expense.amount
+          description: expense.description,
+          amount
         };
       });
-      console.log(others);
+      console.log("Others", others);
     }
+
     if (non_recurring_items?.items?.length > 0) {
       items = non_recurring_items.items.map(item => {
-        const total = item.unitCost * item.quantity;
+        const UnitCost = parseFloat(item.UnitCost) || 0;
+        const quantity = parseFloat(item.quantity) || 0;
+        const total = UnitCost * quantity;
         totalNonRecurring += total;
         return {
           item: item.item,
-          UnitCost: item.unitCost,
-          quantity: item.quantity,
+          UnitCost,
+          quantity,
           total
         };
       });
-      console.log(items);
+      console.log("Non-Recurring Items", items);
     }
+
     const recurringUpdate = await Recurring.findOneAndUpdate(
       { proposalId },
       {
@@ -331,14 +303,13 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
       { new: true, upsert: true }
     );
 
-    console.log(recurringUpdate);
+    console.log("Saved:", recurringUpdate);
 
     const message = (recurringUpdate && nonRecurringUpdate && budgetUpdate)
       ? "Updated Budget Details Successfully"
       : "Budget details saved successfully";
 
     res.status(200).json({ success: true, msg: message });
-
 
   } catch (error) {
     console.error("Error saving budget:", error);
@@ -403,7 +374,7 @@ router.post("/submit-bank-details/:proposalId", fetchUser, async (req, res) => {
     const props = await Bank.findOne({ proposalId: proposalId });
     if (props) {
       await Bank.findOneAndUpdate({ proposalId: proposalId }, { name, accountNumber, ifscCode, accountType, bankName }, { new: true });
-      return res.status(200).json({ success: true, msg: "Updated Bank Account Details Successfully" });
+      return res.status(200).json({ success: true, msg: "Bank Account Details Updated Successfully" });
     }
     const bankDetails = new Bank({
       proposalId,
@@ -426,20 +397,19 @@ router.post("/submit-bank-details/:proposalId", fetchUser, async (req, res) => {
 
 router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
   try {
-      const {members} = req.body;
+      const {piList,coPiList}=req.body;
       const {proposalId}=req.params;
       const user = await User.findById(req.user._id).populate("proposals");
       if (!user) {
           return res.status(404).json({ success: false, msg: "User not found" });
       }
       const props= await PI.findOne({proposalId:proposalId});
-      console.log(members);
       if(props){
-        await PI.findOneAndUpdate({proposalId:proposalId},{members},{new:true});
+        await PI.findOneAndUpdate({proposalId:proposalId},{piList,coPiList},{new:true});
        return res.status(200).json({success:true,msg:"Updated PI Details Successfully"});
       }
       
-      const piDetails = new PI({proposalId,members});
+      const piDetails = new PI({proposalId,piList,coPiList});
       await piDetails.save();
 
       res.status(200).json({ success: true,piDetails, msg: "PI details stored successfully" });
@@ -454,20 +424,31 @@ router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
   const {objectId} = req.params;
   try {
     console.log("Converted ObjectId:", objectId);
+    const proposal=await Proposal.findOne({_id:objectId,status:"Pending"});
+    console.log(proposal);
+    if(!proposal){
+      return res.status(400).json({success:false,msg:"Proposal not found"})
+    }
     const generalInfo = await GeneralInfo.findOne({ proposalId: objectId });
     const researchDetails = await ResearchDetails.findOne({ proposalId: objectId });
     const budgetSummary = await Budget.findOne({ proposalId: objectId });
+    const recurring=await Recurring.findOne({proposalId:objectId});
+    const nonRecurring=await NonRecurring.findOne({proposalId:objectId});
     const bankDetails = await Bank.findOne({ proposalId: objectId });
     const PIdetails = await PI.findOne({ proposalId: objectId });
     const acknowledgements = await Acknowledgement.findOne({ proposalId: objectId });
 
-    if (!generalInfo || !researchDetails || !budgetSummary || !bankDetails || !PIdetails || !acknowledgements) {
-      return res.status(404).json({ success: false, msg: "Proposal not found" });
+    if (!generalInfo&&!researchDetails&&!budgetSummary&&!bankDetails&&!PIdetails) {
+      return res.status(200).json({ success: true, msg: "No details Found" });
+    }
+
+    if(acknowledgements){
+      return res.status(200).json({success:false,msg:"Proposal was Submitted"})
     }
 
     res.status(200).json({
       success: true,
-      data: { generalInfo, PIdetails, researchDetails, budgetSummary, bankDetails, acknowledgements },
+      data: { generalInfo, PIdetails, researchDetails, budgetSummary, recurring,nonRecurring,bankDetails, acknowledgements },
       msg: "Proposal fetched successfully",
     });
   } catch (error) {
@@ -517,7 +498,7 @@ router.get("/acceptedproposals", fetchUser, async (req, res) => {
   try {
     const userId = req.user._id; 
     console.log("User ID from Token:", userId);
-    const proposals = await Proposal.find({ userId:userId, status: "Accepted" });
+    const proposals = await Proposal.find({ userId:userId, status: "Approved" });
     console.log("Fetched Proposals:", proposals);
     if (!proposals.length) {
       return res.status(404).json({ success: false, msg: "No proposals found" });
