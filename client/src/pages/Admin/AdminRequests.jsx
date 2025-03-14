@@ -95,7 +95,7 @@ const AdminRequests = () => {
     
     // Fetch requests from the backend
     useEffect(() => {
-        fetch("http://localhost:5000/requests")
+        fetch("http://localhost:8000/requests")
             .then((res) => res.json())
             .then((data) => setRequests(data))
             .catch((error) => console.error("Error fetching requests:", error));
@@ -104,7 +104,7 @@ const AdminRequests = () => {
     // Handle approve/reject action
     const updateRequestStatus = async (id, status) => {
         try {
-            const response = await fetch(`http://localhost:5000/requests/${id}`, {
+            const response = await fetch(`http://localhost:8000/requests/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status }),
@@ -127,6 +127,7 @@ const AdminRequests = () => {
                 <table className="w-full border">
                     <thead>
                         <tr className="bg-gray-200">
+                            <th className="p-2 border">User ID</th>
                             <th className="p-2 border">Request Type</th>
                             <th className="p-2 border">Description</th>
                             <th className="p-2 border">Status</th>
@@ -136,6 +137,7 @@ const AdminRequests = () => {
                     <tbody>
                         {requests.map((req) => (
                             <tr key={req._id} className="border text-center">
+                                 <td className="p-2 border">{req.userId}</td>
                                 <td className="p-2 border">{req.requestType}</td>
                                 <td className="p-2 border">{req.description}</td>
                                 <td className={`p-2 border ${req.status === "Approved" ? "text-green-600" : req.status === "Rejected" ? "text-red-600" : "text-gray-600"}`}>{req.status}</td>

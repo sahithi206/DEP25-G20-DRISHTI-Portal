@@ -6,7 +6,7 @@ const FundCycleApproval = () => {
     const [fundRequests, setFundRequests] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:5000/fund-cycle-requests")
+        fetch("http://localhost:8000/fund-cycle-requests")
             .then((res) => res.json())
             .then((data) => setFundRequests(data))
             .catch((error) => console.error("Error fetching fund cycle requests:", error));
@@ -14,7 +14,7 @@ const FundCycleApproval = () => {
 
     const updateFundRequestStatus = async (id, status) => {
         try {
-            const response = await fetch(`http://localhost:5000/fund-cycle-requests/${id}`, {
+            const response = await fetch(`http://localhost:8000/fund-cycle-requests/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status }),
