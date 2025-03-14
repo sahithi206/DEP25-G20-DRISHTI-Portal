@@ -1,5 +1,6 @@
 const express = require("express");
 const Request = require("../Models/Request");
+const { fetchUser } = require("../Middlewares/fetchUser");
 const router = express.Router();
 
 // Fetch all requests
@@ -12,20 +13,34 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
-    try {
-        const { requestType, description } = req.body;
-        if (!requestType || !description) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-        
-        const newRequest = new Request({ requestType, description });
-        await newRequest.save();
+router.post("/submit-request", fetchUser, async (req, res) => {
+    const { requestType, description } = req.body;
+    const userId = req.user._id;
 
-        return res.status(201).json(newRequest); // ✅ Always returning JSON
+    try {
+        const newRequest = new Request({
+            requestType,
+            description,
+            userId,
+        });
+
+        await newRequest.save();
+        res.status(200).json({ success: true, msg: "Request submitted successfully", newRequest });
     } catch (error) {
-        console.error("Server error:", error);
-        return res.status(500).json({ message: "Internal server error", error: error.message }); // ✅ JSON even on error
+        console.error("Error submitting request:", error);
+        res.status(500).json({ success: false, msg: "Failed to submit request", error });
+    }
+});
+
+
+router.get("/user-requests", fetchUser, async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const requests = await Request.find({ userId });
+        res.status(200).json({ success: true, requests });
+    } catch (error) {
+        console.error("Error fetching requests:", error);
+        res.status(500).json({ success: false, msg: "Failed to fetch requests", error });
     }
 });
 

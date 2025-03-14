@@ -4,7 +4,7 @@ const requestSchema = new mongoose.Schema({
     requestType: {
         type: String,
         required: true,
-        enum: ["Technical Support", "Document Request", "Other"], // Add more types if needed
+        enum: ["Technical Support", "Document Request", "Other"], 
     },
     description: {
         type: String,
@@ -18,6 +18,11 @@ const requestSchema = new mongoose.Schema({
         type: String,
         enum: ["Pending", "Approved", "Rejected"],
         default: "Pending",
+    },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
     },
 });
 
