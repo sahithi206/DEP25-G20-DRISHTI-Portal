@@ -94,6 +94,24 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
         }
     };
 
+    // Calculate totals
+    const calculateTotalNonRecurring = () => {
+        return nonRecurringItems.reduce((total, item) => total + parseFloat(item.total || 0), 0).toFixed(2);
+    };
+
+    const calculateTotalRecurring = () => {
+        const totalMaterials = materials.reduce((total, item) => total + parseFloat(item.total || 0), 0);
+        const totalManpower = manpower.reduce((total, item) => total + parseFloat(item.total || 0), 0);
+        const totalOtherExpenses = otherExpenses.reduce((total, item) => total + parseFloat(item.amount || 0), 0);
+        return (totalMaterials + totalManpower + totalOtherExpenses).toFixed(2);
+    };
+
+    const calculateTotal = () => {
+        const totalNonRecurring = parseFloat(calculateTotalNonRecurring());
+        const totalRecurring = parseFloat(calculateTotalRecurring());
+        return (totalNonRecurring + totalRecurring).toFixed(2);
+    };
+
     const renderForm = () => {
         switch (activeTab) {
             case "Non-Recurring":
@@ -216,7 +234,30 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
 
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                             onClick={() => addNewItem(setOtherExpenses, otherExpenses, { description: "", amount: "" })}>Add More</button>
-                    </div>);
+                    </div>
+                );
+
+            case "Summary":
+                return (
+                    <div className="p-6 bg-white rounded-lg shadow-md">
+                        <h2 className="text-2xl font-bold mb-4">Summary</h2>
+                        <div className="space-y-4">
+                            <div className="flex justify-between">
+                                <span className="text-lg font-semibold">Total Non-Recurring Cost:</span>
+                                <span className="text-lg">${calculateTotalNonRecurring()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-lg font-semibold">Total Recurring Cost:</span>
+                                <span className="text-lg">${calculateTotalRecurring()}</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-4">
+                                <span className="text-lg font-semibold">Total Cost:</span>
+                                <span className="text-lg font-bold">${calculateTotal()}</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+
             default:
                 return <p>Select a category to enter budget details.</p>;
         }
@@ -227,7 +268,7 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
             <div className="flex justify-between items-center mb-4">
                 <div className="flex space-x-2">
                     <h1 className="text-2xl font-bold mb-4">Budget Details</h1>
-                    {["Non-Recurring", "Recurring"].map((tab) => (
+                    {["Non-Recurring", "Recurring", "Summary"].map((tab) => (
                         <button
                             key={tab}
                             className={`p-2 border rounded-md ${activeTab === tab ? "bg-green-500 text-white" : "bg-gray-200"}`}

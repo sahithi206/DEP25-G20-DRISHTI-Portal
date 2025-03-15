@@ -342,16 +342,20 @@ function PrincipalInvestigatorForm({ PIdetails }) {
             });
         };
 
-        fetchPI();
-        const nochange = () => {
-            if (PIdetails) {
-                setPiList(PIdetails.piList || []);
-                setCoPiList(PIdetails.coPiList || []);
-            }
-        };
-        nochange();
-    }, [getuser, PIdetails]);
-
+    fetchPI();
+    const nochange = () => {
+      if(PIdetails){
+        if(PIdetails.piList){
+          setPiList(PIdetails.piList);
+        }
+        if(PIdetails.coPiList){
+          setCoPiList(PIdetails.coPiList);
+        }
+      }
+     
+    }
+    nochange();
+  }, [getuser, PIdetails]);
     const addPI = (pi) => {
         if (piList.some((p) => p.email === pi.email || coPiList.some((p) => p.email === pi.email))) {
             alert("This PI is already added.");

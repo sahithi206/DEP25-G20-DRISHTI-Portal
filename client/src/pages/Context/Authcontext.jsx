@@ -40,14 +40,11 @@ const AuthProvider = (props) => {
            "accessToken":`${token}`,
          },
        });
-       console.log(response);
        if(!response.ok){
          throw new Error("Cannot fetch userDetails");
        }
        const json= await response.json();
-       console.log(json);
        const user=json.user;
-       console.log(user);
        if(!json.success){
          alert(json.msg);
          return ;
@@ -242,7 +239,7 @@ const uploadFile = async (file, type, userId) => {
         },
         body: JSON.stringify(researchDetailsData),
       });
-
+console.log("REsearch",response);
       const json = await response.json();
       if (!response.ok) throw new Error(json.msg || "Failed to submit research details");
 
@@ -334,12 +331,11 @@ const submitPIDetails = async ({ piList,coPiList})=>{
           },
           body: JSON.stringify({ piList,coPiList})
       });
-
+      console.log(response);
       if (!response.ok) {
           const errorText = await response.text();
           throw new Error(errorText || "Failed to submit PI details");
       }
-
       const json = await response.json();
       console.log("PI Details Submitted:", json);
       alert("PI/Co-PI details Submitted!!");
@@ -371,7 +367,7 @@ const submitAcknowledgement = async (accept) => {
       const errorText = await response.text();
       throw new Error(errorText || "Failed to submit acknowledgement");
     }
-
+    await localStorage.removeItem("ProposalID");
     const json = await response.json();
     console.log("Acknowledgement Submitted:", json);
     return json;
@@ -384,8 +380,14 @@ const unsavedProposal=async()=>{
    const token=localStorage.getItem("token");
    const proposalId=localStorage.getItem("ProposalID");
    try{
-    if (!token) throw new Error("User not authenticated");
-    if (!proposalId) throw new Error("Proposal ID not found in local storage");
+    if (!token){
+      navigate("/formsubmission");
+      throw new Error("User not authenticated");
+    } 
+    if (!proposalId) {
+      navigate("/formsubmission");
+      throw new Error("Proposal ID not found in local storage");
+    }
 
     const response = await fetch(`${url}form/get-proposal/${proposalId}`, {
       method: "GET",
@@ -394,12 +396,17 @@ const unsavedProposal=async()=>{
         "accessToken": `${token}`
       },
     });
-
+    
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(errorText || "Failed to Fetch Proposal");
     }
     const json = await response.json();
+    console.log(json);
+    if(json.msg==="Proposal was Already Submitted"){
+      navigate("/formsubmission");
+      return ;
+    }
     return json;
    }catch(e){
     console.error("Cannot Fetch the Proposal:", e.message);
