@@ -173,10 +173,9 @@ router.post("/login", async (req, res) => {
  }
   });
 router.get("/get-user", fetchUser, async (req, res) => {
-    const { user } = req
   try{
-    const isUser = await User.findOne({ _id: user._id });
-    if (!isUser) {
+    const user = await User.findById(req.user._id);
+    if (!user) {
       return res.status(403).json({success:false, msg:"Unauthorized Access"});
     }
     res.status(200).json({ success:true, user, msg: "User Details Fetched"});
@@ -200,24 +199,65 @@ router.get("/get-user", fetchUser, async (req, res) => {
    }
   });
   
-  router.put("/edit-user",fetchUser, async(req,res)=>{
-    try{
-      const {email,password,Name,Institute,DOB,Mobile,Gender,role} = req.body;
-      const {user}=req;
-      console.log(user);
-      if(!email&&!password&&!Name&&!Institute&&!DOB&&!Mobile&&!Gender&&!role){
-        return res.status(403).json({success:false, msg:"Fill Details"});
-      }
-      if(!user){
-        return res.status(401).json({success:false, msg:"Unauthorized Access"});
-      }
-      await User.findByIdAndUpdate({_id:req.user._id},{email,password,Name,Institute,DOB,Mobile,Gender,role},{new:true});
-      res.status(200).json({success:true,msg:"User Details Edited"});
-    }catch{
-     res.status(500).json({success:false,msg:"Internal Server Error"});
-    }
-  });
-  
+  router.post("/edit-user", fetchUser, async (req, res) => {
+    try {
+        const { Name, email, DOB, Mobile, Gender, Dept, idType, idNumber, address } = req.body;
+        const userId = req.user._id; 
+        
+        if (!userId) {
+            return res.status(401).json({ success: false, msg: "Unauthorized Access" });
+        }
+
+        if (Object.keys(req.body).length === 0) {
+            return res.status(400).json({ success: false, msg: "Fill at least one field" });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: { Name, email, DOB, Mobile, Gender, Dept, idType, idNumber, address } },
+            { new: true} 
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, msg: "User not found" });
+        }
+
+        console.log("Updated User:", updatedUser);
+        res.status(200).json({ success: true, user: updatedUser, msg: "User Details Edited" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, msg: "Internal Server Error" });
+    }});
  
-  
+    router.post("/change-password",fetchUser,async(req,res)=>{
+      const {currentPassword,password}=req.body;
+      try{
+        const user = await User.findById(req.user._id);
+        if (!user) {
+          return res.status(404).json({ success: false, msg: "User not found" });
+        }
+    
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+          return res.status(401).json({ success: false, msg: "Incorrect current password" });
+        }
+    
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        await User.findByIdAndUpdate(req.user._id, { password: hashedPassword }, { new: true });    
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: user.email,
+          subject: "Password Changed",
+          text: `Your password for ${user.email} has been successfully changed. If this wasn't you, please contact support.\n\nBest Regards,\nAdmin Team`,
+        });
+    
+        res.status(200).json({ success: true, msg: "Password changed successfully" });
+      }catch(e){
+        console.log(e);
+           res.status(500).json({success:false,e,msg:"Couldn't Change Password"});
+      }
+     })
   module.exports = router;

@@ -137,14 +137,14 @@ const Signup = () => {
   const renderStepIndicator = () => (
     <div className="flex items-center justify-center mb-8">
       <div className="flex items-center">
-        <div className={`rounded-full h-10 w-10 flex items-center justify-center border-2 ${currentStep >= 1 ? "bg-indigo-600 border-indigo-600 text-white" : "border-gray-300 text-gray-500"}`}>
+        <div className={`rounded-full h-10 w-10 flex items-center justify-center border-2 ${currentStep >= 1 ? "bg-blue-600 border-blue-600 text-white" : "border-gray-300 text-gray-500"}`}>
           1
         </div>
-        <div className={`h-1 w-12 ${currentStep >= 2 ? "bg-indigo-600" : "bg-gray-300"}`}></div>
-        <div className={`rounded-full h-10 w-10 flex items-center justify-center border-2 ${currentStep >= 2 ? "bg-indigo-600 border-indigo-600 text-white" : "border-gray-300 text-gray-500"}`}>
+        <div className={`h-1 w-12 ${currentStep >= 2 ? "bg-blue-600" : "bg-gray-300"}`}></div>
+        <div className={`rounded-full h-10 w-10 flex items-center justify-center border-2 ${currentStep >= 2 ? "bg-blue-600 border-blue-600 text-white" : "border-gray-300 text-gray-500"}`}>
           2
         </div>
-        <div className={`h-1 w-12 ${currentStep >= 3 ? "bg-indigo-600" : "bg-gray-300"}`}></div>
+        <div className={`h-1 w-12 ${currentStep >= 3 ? "bg-blue-600" : "bg-gray-300"}`}></div>
         <div className={`rounded-full h-10 w-10 flex items-center justify-center border-2 ${currentStep >= 3 ? "bg-green-600 border-green-600 text-white" : "border-gray-300 text-gray-500"}`}>
           <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${currentStep >= 3 ? "text-white" : "text-gray-300"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -167,7 +167,7 @@ const Signup = () => {
           <p className="text-gray-600 mb-6 text-center">Your account has been created successfully.<br />You can now log in using your credentials.</p>
           <button 
             onClick={() => window.location.href = '/login'} 
-            className="px-6 py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition duration-200"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition duration-200"
           >
             Proceed to Login
           </button>
@@ -188,7 +188,7 @@ const Signup = () => {
                   value={data.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -200,7 +200,7 @@ const Signup = () => {
                   value={data.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
                   placeholder="your.email@example.com"
                 />
               </div>
@@ -216,7 +216,7 @@ const Signup = () => {
                     value={data.password}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
                     placeholder="Create a strong password"
                   />
                 </div>
@@ -229,7 +229,7 @@ const Signup = () => {
                   value={data.dob}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
                 />
               </div>
             </div>
@@ -243,7 +243,7 @@ const Signup = () => {
                   value={data.mobile}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
                   placeholder="Enter your mobile number"
                 />
               </div>
@@ -254,7 +254,7 @@ const Signup = () => {
                   value={data.gender} 
                   onChange={handleChange} 
                   required 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm appearance-none bg-white"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm appearance-none bg-white"
                 >
                   <option value="">Select Gender</option>
                   {["male", "female", "other"].map((option) => (
@@ -272,7 +272,7 @@ const Signup = () => {
                   value={data.address}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                  className="w-full px-4 py-5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
                   placeholder="Enter your Address"
                 />
               </div>
@@ -282,7 +282,7 @@ const Signup = () => {
               <button 
                 type="button" 
                 onClick={nextStep} 
-                className="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition duration-200 flex items-center"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center"
               >
                 Next
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
@@ -303,7 +303,7 @@ const Signup = () => {
                   value={data.idType} 
                   onChange={handleChange} 
                   required 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm appearance-none bg-white"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm appearance-none bg-white"
                 >
                   <option value="">Select ID Type</option>
                   {["aadhaar", "passport"].map((option) => (
@@ -319,7 +319,7 @@ const Signup = () => {
                   value={data.idNumber}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
                   placeholder={`Enter your ${data.idType ? data.idType : 'ID'} number`}
                 />
               </div>
@@ -346,7 +346,7 @@ const Signup = () => {
                   value={data.Dept}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
                   placeholder="Enter your Department"
                 />
               </div>
@@ -361,7 +361,7 @@ const Signup = () => {
                     value={data.otp} 
                     onChange={handleChange} 
                     required 
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
                     placeholder="Enter OTP sent to your email"
                   />
                 </div>
@@ -386,7 +386,7 @@ const Signup = () => {
               </button>
               <button 
                 type="submit" 
-                className="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition duration-200 flex items-center"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center"
                 disabled={loading}
               >
                 {loading ? (
@@ -409,7 +409,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-indigo-50 to-purple-50 p-4">
+    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
       <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-2xl">
         {renderStepIndicator()}
         

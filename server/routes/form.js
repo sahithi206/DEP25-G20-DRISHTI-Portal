@@ -498,6 +498,20 @@ router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
   }
 });
 
+router.get("/incompleteProposals",fetchUser,async(req,res)=>{
+  try{
+    const {_id}=req.user;
+    const proposals=await Proposal.find({userId:_id,status:"Unsaved"});
+    if(!proposals){
+      return res.json({success:false,msg:"No proposals found"});
+    }
+    console.log("Proposals",proposals);
+    res.status(200).json({success:true,msg:"Incomplete Proposals are Fetched",proposals});
+  }catch(error){
+    console.error(error);
+    res.status(500).json({ success: false, msg: "Failed to fetch proposals" });
+  }
+})
 router.get("/proposals", fetchUser, async (req, res) => {
   try {
     const userId = req.user._id;
