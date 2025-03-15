@@ -1,26 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
 
-const TechForm = ({ formData, updateForm, researchDetails }) => {
+const TechForm = ({ researchDetails }) => {
     const section = "technicalDetails";
-    const [data, setData] = useState(formData);
-    const { submitResearchDetails,unsavedProposal} = useContext(AuthContext);
-    /*const nochange =async ()=>{
-            const data=await unsavedProposal();
-            const user=data.data;
-            console.log("TechForm:",user);
-            if(user.msg !=="No details Found"&&user.researchDetails){
-                    setData({  
-                        proposalTitle:researchDetails.Title,
-                        projectDuration:researchDetails.Duration,
-                        projectSummary:researchDetails.Summary,
-                        objectives: researchDetails.objectives.join("\n"),
-                        expectedOutput:researchDetails.Output,
-                        otherDetails:researchDetails.other})
-            }
-        }
-        nochange();
-        */
+    const [data, setData] = useState({});
+    const { submitResearchDetails} = useContext(AuthContext);
     useEffect(()=>{
         const nochange =async ()=>{
             if(researchDetails){
@@ -44,9 +28,7 @@ const TechForm = ({ formData, updateForm, researchDetails }) => {
         otherDetails: 500,
     };
 
-    useEffect(() => {
-        updateForm(section, data);
-    }, [data]);
+    
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -112,7 +94,6 @@ const TechForm = ({ formData, updateForm, researchDetails }) => {
 
             <form className="bg-white p-6 rounded-lg shadow-md" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
-                    {/* Proposal Title */}
                     <div className="col-span-2">
                         <label className="block font-semibold">Proposal Title:</label>
                         <input
@@ -127,7 +108,6 @@ const TechForm = ({ formData, updateForm, researchDetails }) => {
                         </p>
                     </div>
 
-                    {/* Project Duration */}
                     <div className="col-span-2">
                         <label className="block font-semibold">Project Duration (Months):</label>
                         <input
@@ -139,7 +119,6 @@ const TechForm = ({ formData, updateForm, researchDetails }) => {
                         />
                     </div>
 
-                    {/* Textareas with character limits */}
                     {["projectSummary", "objectives", "expectedOutput", "otherDetails"].map((field) => (
                         <div className="col-span-2" key={field}>
                             <label className="block font-semibold">

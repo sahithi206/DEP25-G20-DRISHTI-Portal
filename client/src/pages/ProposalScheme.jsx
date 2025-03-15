@@ -10,7 +10,7 @@ const ProposalScheme = () => {
     const [selectedProposal, setSelectedProposal] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
-    const { submitProposal } = useContext(AuthContext); // Access submitProposal from AuthContext
+    const { submitProposal } = useContext(AuthContext); 
 
     const handleNext = async () => {
         if (!selectedProposal) {
@@ -21,7 +21,7 @@ const ProposalScheme = () => {
         try {
             const response = await submitProposal(selectedProposal);
             if (response && response.success) {
-                localStorage.setItem("ProposalID", response.prop._id); // Save ProposalID in local storage
+                localStorage.setItem("ProposalID", response.prop._id); 
                 navigate("/dashboard");
             } else {
                 setError(response.msg || "Failed to create proposal");

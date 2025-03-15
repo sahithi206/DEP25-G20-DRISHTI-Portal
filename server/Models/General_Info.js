@@ -6,7 +6,7 @@ const generalInfoSchema = new Schema({
     name: { type: String, required: true },
     address: { type: String, required: true },
     mobileNo: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true},
     instituteName: { type: String, required: true },
     areaOfSpecialization: { type: String, required: true },
     DBTproj_ong: { type: Number, default: 0 }, 
