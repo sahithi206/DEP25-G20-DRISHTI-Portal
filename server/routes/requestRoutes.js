@@ -47,12 +47,15 @@ router.get("/user-requests", fetchUser, async (req, res) => {
 // Update request status (Approve/Reject)
 router.put("/:id", async (req, res) => {
     try {
-        const { status } = req.body;
+        const { status, comments } = req.body;
         if (!["Pending", "Approved", "Rejected"].includes(status)) {
             return res.status(400).json({ message: "Invalid status" });
         }
 
-        const updatedRequest = await Request.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        const updatedRequest = await Request.findByIdAndUpdate(req.params.id, { status , comments}, { new: true });
+        if (!updatedRequest) {
+            return res.status(404).json({ message: "Request not found" });
+        }
         if (!updatedRequest) {
             return res.status(404).json({ message: "Request not found" });
         }
