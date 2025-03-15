@@ -36,21 +36,21 @@ const SavedProposals = () => {
                         <p className="mt-3 text-2xl font-bold text-blue-800">Accepted Proposals </p>
                     </div>
                     <div className="mt-4">
-                        <table className="w-full border border-gray-300 shadow-md">
-                            <thead className="bg-blue-800 text-white">
+                    <table className="w-full text-sm">
+                    <thead className="bg-blue-700 text-white">
                                 <tr>
-                                    <th className="p-2 border border-gray-300 text-center">File No.</th>
-                                    <th className="p-2 border border-gray-300 text-center">Project Title</th>
-                                    <th className="p-2 border border-gray-300 text-center">Action</th>
+                                    <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">File No.</th>
+                                    <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Project Title</th>
+                                    <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {acceptedProjects && acceptedProjects.length > 0 ? (
                                     acceptedProjects.map((project) => (
                                         <tr key={project.id} className="bg-gray-100 hover:bg-gray-200 cursor-pointer">
-                                            <td className="p-2 border border-gray-300 text-center">{project.id}</td>
-                                            <td className="p-2 border border-gray-300 text-center">{project.title}</td>
-                                            <td className="p-2 border border-gray-300 text-center">
+                                            <td className="p-4 text-center font-semibold text-xs border-b border-blue-600">{project.id}</td>
+                                            <td className="p-4 text-center font-semibold text-xs border-b border-blue-600">{project.title}</td>
+                                            <td className="p-4 text-center font-semibold text-xs border-b border-blue-600">
                                                 <button
                                                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                                                     onClick={() => {
@@ -65,7 +65,7 @@ const SavedProposals = () => {
                                     ))
                                 ) : (
                                     <tr className="bg-gray-100">
-                                        <td className="p-2 border border-gray-300 text-center" colSpan="4">
+                                        <td className="p-4 text-center font-semibold text-xs border-b border-blue-200" colSpan="4">
                                             No Accepted Projects
                                         </td>
                                     </tr>
