@@ -142,8 +142,15 @@ function App({PIdetails}){
 
     fetchPI();
     const nochange = () => {
-      setPiList(PIdetails.piList);
-      setCoPiList(PIdetails.coPiList);
+      if(PIdetails){
+        if(PIdetails.piList){
+          setPiList(PIdetails.piList);
+        }
+        if(PIdetails.coPiList){
+          setCoPiList(PIdetails.coPiList);
+        }
+      }
+     
     }
     nochange();
   }, [getuser, PIdetails]);
