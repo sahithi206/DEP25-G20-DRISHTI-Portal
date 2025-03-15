@@ -73,13 +73,14 @@
 // export default AdminRequests;
 
 import React, { useEffect, useState } from "react";
-import AdminSidebar from "../../components/AdminSidebar"; // Import the sidebar component
-import { useLocation } from "react-router-dom"; // Import this to help with active section
+import AdminSidebar from "../../components/AdminSidebar"; 
+import { useLocation } from "react-router-dom";
 
 const AdminRequests = () => {
     const [requests, setRequests] = useState([]);
-    const [activeSection, setActiveSection] = useState("requests"); // Default to requests section
+    const [activeSection, setActiveSection] = useState("requests"); 
     const location = useLocation();
+    const [comments, setComments] = useState("");   
     
     // Set active section based on current path when component mounts
     useEffect(() => {
@@ -93,7 +94,6 @@ const AdminRequests = () => {
         setActiveSection(section);
     }, [location]);
     
-    // Fetch requests from the backend
     useEffect(() => {
         fetch("http://localhost:8000/requests")
             .then((res) => res.json())
@@ -107,10 +107,11 @@ const AdminRequests = () => {
             const response = await fetch(`http://localhost:8000/requests/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status }),
+                body: JSON.stringify({ status, comments }),
             });
             if (response.ok) {
                 setRequests(requests.map(req => req._id === id ? { ...req, status } : req));
+                setComments(""); 
             } else {
                 alert("Failed to update request status");
             }
@@ -132,6 +133,7 @@ const AdminRequests = () => {
                             <th className="p-2 border">Description</th>
                             <th className="p-2 border">Status</th>
                             <th className="p-2 border">Actions</th>
+                            <th className="p-2 border">Comments</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -141,9 +143,17 @@ const AdminRequests = () => {
                                 <td className="p-2 border">{req.requestType}</td>
                                 <td className="p-2 border">{req.description}</td>
                                 <td className={`p-2 border ${req.status === "Approved" ? "text-green-600" : req.status === "Rejected" ? "text-red-600" : "text-gray-600"}`}>{req.status}</td>
+                                <td className="p-2 border">{req.comments}</td>  
                                 <td className="p-2 border">
                                     {req.status === "Pending" && (
                                         <>
+                                            <input
+                                                type="text"
+                                                value={comments}
+                                                onChange={(e) => setComments(e.target.value)}
+                                                placeholder="Comments"
+                                                className="border p-2 rounded"
+                                            />
                                             <button className="bg-green-500 text-white px-3 py-1 mr-2 rounded" onClick={() => updateRequestStatus(req._id, "Approved")}>
                                                 Approve
                                             </button>
