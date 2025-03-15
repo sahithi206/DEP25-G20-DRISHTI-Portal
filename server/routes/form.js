@@ -395,31 +395,72 @@ router.post("/submit-bank-details/:proposalId", fetchUser, async (req, res) => {
   }
 });
 
+// router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
+//   try {
+//       const {piList,coPiList}=req.body;
+//       const {proposalId}=req.params;
+//       const user = await User.findById(req.user._id).populate("proposals");
+//       if (!user) {
+//           return res.status(404).json({ success: false, msg: "User not found" });
+//       }
+//       const props= await PI.findOne({proposalId:proposalId});
+//       if(props){
+//         await PI.findOneAndUpdate({proposalId:proposalId},{piList,coPiList},{new:true});
+//        return res.status(200).json({success:true,msg:"Updated PI Details Successfully"});
+//       }
+      
+//       const piDetails = new PI({proposalId,piList,coPiList});
+//       await piDetails.save();
+
+//       res.status(200).json({ success: true,piDetails, msg: "PI details stored successfully" });
+
+//   } catch (error) {
+//       console.error("Error storing PI details:", error);
+//       res.status(500).json({ success: false, msg: "Failed to store PI details" });
+//   }
+// });
+
+
 router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
   try {
-      const {piList,coPiList}=req.body;
-      const {proposalId}=req.params;
-      const user = await User.findById(req.user._id).populate("proposals");
-      if (!user) {
-          return res.status(404).json({ success: false, msg: "User not found" });
-      }
-      const props= await PI.findOne({proposalId:proposalId});
-      if(props){
-        await PI.findOneAndUpdate({proposalId:proposalId},{piList,coPiList},{new:true});
-       return res.status(200).json({success:true,msg:"Updated PI Details Successfully"});
-      }
-      
-      const piDetails = new PI({proposalId,piList,coPiList});
-      await piDetails.save();
+    const { piList, coPiList } = req.body;
+    const { proposalId } = req.params;
 
-      res.status(200).json({ success: true,piDetails, msg: "PI details stored successfully" });
+    // Check if piList and coPiList are provided
+    if (!piList || !coPiList) {
+      return res.status(400).json({ success: false, msg: "PI List and Co-PI List are required" });
+    }
+
+    // Check if the user exists
+    const user = await User.findById(req.user._id).populate("proposals");
+    if (!user) {
+      return res.status(404).json({ success: false, msg: "User not found" });
+    }
+
+    // Check if the proposal exists
+    const proposal = await Proposal.findById(proposalId);
+    if (!proposal) {
+      return res.status(404).json({ success: false, msg: "Proposal not found" });
+    }
+
+    // Check if PI details already exist for the proposal
+    const existingPI = await PI.findOne({ proposalId });
+    if (existingPI) {
+      await PI.findOneAndUpdate({ proposalId }, { piList, coPiList }, { new: true });
+      return res.status(200).json({ success: true, msg: "Updated PI Details Successfully" });
+    }
+
+    // Create new PI details
+    const piDetails = new PI({ proposalId, piList, coPiList });
+    await piDetails.save();
+
+    res.status(200).json({ success: true, piDetails, msg: "PI details stored successfully" });
 
   } catch (error) {
-      console.error("Error storing PI details:", error);
-      res.status(500).json({ success: false, msg: "Failed to store PI details" });
+    console.error("Error storing PI details:", error);
+    res.status(500).json({ success: false, msg: "Failed to store PI details" });
   }
 });
-
 router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
   const {objectId} = req.params;
   try {

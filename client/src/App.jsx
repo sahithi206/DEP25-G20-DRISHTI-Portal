@@ -26,6 +26,10 @@ import AdminReviewProposals from "./pages/Admin/AdminReviewProposals";
 import FundCycleApproval from "./pages/Admin/FundCyclePage.jsx";  // Ensure the path is correct
 import RequestsPage from "./pages/Admin/AdminRequests.jsx";  // Ensure the correct path
 import SchemeManagement from "./pages/admin/SchemeManagement.jsx";
+import RunningProjects from "./pages/college/RunningProjects.jsx";
+import InstituteUsers from "./pages/college/InstituteUsers.jsx";
+import UserProposalsInsti from "./pages/college/UserProposalsInsti.jsx";
+
 function App() {
   const getData = async () => {
     try {
@@ -80,6 +84,9 @@ function MainLayout() {
       <Route path="/fund-cycle" element={<FundCycleApproval />} />
         <Route path="/requests" element={<RequestsPage />} />
         <Route path="/schemes" element={<SchemeManagement />} />
+        <Route path="/running-projects" element={<RunningProjects />} />
+        <Route path="/institute-users" element={<InstituteUsers />} />
+        <Route path="/institute/user-proposals/:userId" element={<UserProposalsInsti />} />
       </Routes>
     </div>
   );
