@@ -31,14 +31,12 @@ const router = express.Router();
 const Proposal = require("../Models/Proposal");
 const User = require("../Models/user");
 const ResearchDetails = require("../Models/researchDetails"); 
+const Institute = require("../Models/instituteID");
+const { fetchInstitute } = require("../MiddleWares/fetchInstitute");
 
-router.get("/institute-projects", async (req, res) => {
+router.get("/institute-projects", fetchInstitute, async (req, res) => {
   try {
-    const { institute } = req.query; 
-
-    if (!institute) {
-      return res.status(400).json({ success: false, msg: "Institute is required" });
-    }
+    const institute = req.institute.college;
 
     const users = await User.find({ Institute: institute });
     const userIds = users.map(user => user._id);
@@ -52,21 +50,19 @@ router.get("/institute-projects", async (req, res) => {
   }
 });
 
-router.get("/users", async (req, res) => {
-    try {
-      const { institute } = req.query;
-      if (!institute) {
-        return res.status(400).json({ success: false, msg: "Institute is required" });
-      }
-      const users = await User.find({ Institute: institute });
-      res.status(200).json({ success: true, users });
-    } catch (error) {
-      console.error("Error fetching users:", error.message);
-      res.status(500).json({ success: false, msg: "Failed to fetch users", error: error.message });
-    }
-  });
+router.get("/users", fetchInstitute, async (req, res) => {
+  try {
+    const institute = req.institute.college;
 
-  router.get("/:userId/accepted-proposals", async (req, res) => {
+    const users = await User.find({ Institute: institute });
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    console.error("Error fetching users:", error.message);
+    res.status(500).json({ success: false, msg: "Failed to fetch users", error: error.message });
+  }
+});
+
+  router.get("/:userId/accepted-proposals", fetchInstitute, async (req, res) => {
     try {
       const { userId } = req.params;
       const proposals = await Proposal.find({ userId: userId, status: "Accepted" });

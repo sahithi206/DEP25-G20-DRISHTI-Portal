@@ -14,7 +14,7 @@ const UserProposalsInsti = () => {
     const fetchProposals = async () => {
       try {
         const projects = await userInstiAcceptedProposals(userId);
-        console.log("Fetched Proposals:", projects); // Debugging
+        console.log("Fetched Proposals:", projects);
         setProposals(projects || []); 
       } catch (error) {
         console.error("Error fetching proposals:", error);

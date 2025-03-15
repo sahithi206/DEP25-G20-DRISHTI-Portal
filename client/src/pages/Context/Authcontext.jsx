@@ -452,7 +452,53 @@ const approvedProjects = async () => {
  // institute side 
 
 
- // to be used when institute verification done~
+ // to be used when institute verification done 
+ //  alright its done
+
+ const createInstitute = async (email, password, instituteName, otp) => {
+  try {
+    const response = await fetch(`${url}auth/create-institute`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, Institute: instituteName, otp }),
+    });
+
+    const json = await response.json();
+    if (!response.ok) throw new Error(json.message || "Failed to create institute");
+
+    console.log("Institute Created Successfully:", json);
+    if (json.success) {
+      localStorage.setItem("token", json.accessToken);
+      navigate("/formsubmission");
+    }
+  } catch (e) {
+    console.error("Cannot create institute:", e.message);
+    alert(e.message);
+  }
+};
+
+const loginInstitute = async (email, password) => {
+  try {
+    const response = await fetch(`${url}auth/institute-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const json = await response.json();
+    if (!response.ok) throw new Error(json.message || "Invalid credentials");
+
+    console.log("Institute Logged in successfully:", json);
+    if (json.success) {
+      localStorage.setItem("token", json.accessToken);
+      navigate("/institite-dashboard"); // make institute dashboard :(
+    }
+  } catch (e) {
+    console.error("Cannot Login:", e.message);
+    alert(e.msg || "Invalid Credentials");
+  }
+}
+ 
 const fetchInstituteProjects = async () => {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -461,7 +507,7 @@ const fetchInstituteProjects = async () => {
     return;
   }
   try {
-    const response = await fetch(`${url}form/institute-projects`, {
+    const response = await fetch(`${url}institute/institute-projects`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -481,13 +527,47 @@ const fetchInstituteProjects = async () => {
   }
 };
 
+const fetchInstituteUsers = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    console.log("Use a valid Token");
+    alert("Authentication required.");
+    return;
+  }
+  try {
+    const response = await fetch(`${url}institute/users`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "accessToken": `${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch institute users");
+    }
+    const json = await response.json();
+    console.log("Institute Users:", json.users);
+    return json.users;
+  } catch (error) {
+    console.error("Error fetching institute users:", error);
+    alert(error.message || "Failed to fetch institute users");
+  }
+};
 
 const userInstiAcceptedProposals = async (userId) => {
+  const token = localStorage.getItem("token");
+  if (!token) {   
+    console.log("Use a valid Token");
+    alert("Authentication required.");
+    return;
+  }
   try {
     const response = await fetch(`${url}institute/${userId}/accepted-proposals`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        "accessToken": `${token}`,
       },
     });
 
@@ -507,7 +587,7 @@ const userInstiAcceptedProposals = async (userId) => {
   return (
     <AuthContext.Provider value={{ sendOtp, verifyOtp, login,unsavedProposal, authState,getpi, submitProposal,logout,uploadFile, submitGeneralInfo, 
     submitResearchDetails, submitBudgetDetails, submitBankDetails, submitPIDetails, submitAcknowledgement, 
-    getuser, approvedProjects, fetchInstituteProjects, userInstiAcceptedProposals }}>
+    getuser, approvedProjects, fetchInstituteProjects, userInstiAcceptedProposals,createInstitute,fetchInstituteUsers}}>
       {props.children}
     </AuthContext.Provider>
   );
