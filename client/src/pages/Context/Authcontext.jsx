@@ -441,11 +441,76 @@ const approvedProjects = async () => {
     navigate("/");
     console.log("User logged out!!");
  }
+
+ // institute side 
+
+
+ // to be used when institute verification done~
+const fetchInstituteProjects = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    console.log("Use a valid Token");
+    alert("Authentication required.");
+    return;
+  }
+  try {
+    const response = await fetch(`${url}form/institute-projects`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "accessToken": `${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch institute projects");
+    }
+    const json = await response.json();
+    console.log("Institute Projects:", json.projects);
+    return json.projects;
+  } catch (error) {
+    console.error("Error fetching institute projects:", error);
+    alert(error.message || "Failed to fetch institute projects");
+  }
+};
+
+
+const userInstiAcceptedProposals = async (userId) => {
+  try {
+    const response = await fetch(`${url}institute/${userId}/accepted-proposals`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch accepted proposals");
+    }
+    const json = await response.json();
+    console.log("Accepted Proposals:", json.proposals);
+    return json.proposals;
+  } catch (error) {
+    console.error("Error fetching accepted proposals:", error);
+    alert(error.message || "Failed to fetch accepted proposals");
+  }
+};
+
+
   return (
-    <AuthContext.Provider value={{ sendOtp, verifyOtp, login,unsavedProposal, authState,getpi, submitProposal,logout,uploadFile, submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails, submitPIDetails, submitAcknowledgement, getuser, approvedProjects }}>
+    <AuthContext.Provider value={{ sendOtp, verifyOtp, login,unsavedProposal, authState,getpi, submitProposal,logout,uploadFile, submitGeneralInfo, 
+    submitResearchDetails, submitBudgetDetails, submitBankDetails, submitPIDetails, submitAcknowledgement, 
+    getuser, approvedProjects, fetchInstituteProjects, userInstiAcceptedProposals }}>
       {props.children}
     </AuthContext.Provider>
   );
+};
+
+
+const logout = () => {
+  localStorage.removeItem("token");
+  navigate("/");
+  console.log("User logged out!!");
 };
 
 export { AuthContext, AuthProvider };
