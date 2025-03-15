@@ -2,6 +2,7 @@ require("dotenv").config();
 const nodemailer = require("nodemailer");
 const OTPModel = require("../Models/otp");
 const User = require("../Models/user");
+const Institute = require("../Models/instituteID");
 const bcrypt=require("bcryptjs");
 const { fetchUser } = require("../Middlewares/fetchUser");
 const express= require("express");
@@ -260,4 +261,56 @@ router.get("/get-user", fetchUser, async (req, res) => {
            res.status(500).json({success:false,e,msg:"Couldn't Change Password"});
       }
      })
+
+  router.post("/create-institute", async (req, res) => {
+    const { email, password, college, otp } = req.body;
+  
+    try {
+      const validOtp = await OTPModel.findOne({ email, otp });
+      if (!validOtp || new Date() - new Date(validOtp.createdAt) > 5 * 60 * 1000) {
+        return res.status(400).json({ success: false, msg: "Invalid or expired OTP" });
+      }
+  
+      let institute = await Institute.findOne({ email });
+      if (institute) {
+        return res.status(400).json({ success: false, msg: "An Institute with this email already exists" });
+      }
+  
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      const newInstitute = new Institute({ email, password: hashedPassword, college });
+      await newInstitute.save();
+  
+      await OTPModel.deleteOne({ _id: validOtp._id });
+  
+      const accessToken = jwt.sign({ institute: newInstitute }, process.env.TOKEN, { expiresIn: "36000m" });
+      res.status(201).json({ success: true, msg: "Institute user created successfully", institute: newInstitute, accessToken });
+    } catch (error) {
+      console.error("Error creating institute user:", error.message);
+      res.status(500).json({ success: false, msg: "Failed to create institute user", error: error.message });
+    }
+  });
+
+  router.post("/institute-login", async (req, res) => {
+  
+    try {
+      const { email, password } = req.body;
+      const institute = await Institute.findOne({ email });
+      if (!institute) {
+        return res.status(401).json({ success: false, msg: "Institute not found" });
+      }
+  
+      const passwordMatch = await bcrypt.compare(password, institute.password);
+      if (!passwordMatch) {
+        return res.status(401).json({ success: false, msg: "Invalid credentials" });
+      }
+  
+      const accessToken = jwt.sign({ institute }, process.env.TOKEN, { expiresIn: "36000m" });
+      res.json({ success: true, msg: "Institute logged in successfully", accessToken });
+    } catch (error) {
+      console.error("Error logging in institute:", error.message);
+      res.status(500).json({ success: false, msg: "Failed to log in institute", error: error.message });
+    }
+  });
+  
   module.exports = router;

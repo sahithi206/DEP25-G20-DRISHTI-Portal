@@ -28,6 +28,10 @@ import FundCycleApproval from "./pages/Admin/FundCyclePage.jsx";
 import RequestsPage from "./pages/Admin/AdminRequests.jsx"; 
 import SchemeManagement from "./pages/admin/SchemeManagement.jsx";
 import ChangePassword from "./pages/ChangePassword.jsx";
+import RunningProjects from "./pages/college/RunningProjects.jsx";
+import InstituteUsers from "./pages/college/InstituteUsers.jsx";
+import UserProposalsInsti from "./pages/college/UserProposalsInsti.jsx";
+
 function App() {
   const getData = async () => {
     try {
@@ -80,12 +84,14 @@ function MainLayout() {
           <Route path="/error" element={<Error />} />
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
           <Route path="/review-proposals" element={<AdminReviewProposals />} />
           <Route path="/fund-cycle" element={<FundCycleApproval />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/schemes" element={<SchemeManagement />} />
-        </Route>
+          <Route path="/running-projects" element={<RunningProjects />} />
+          <Route path="/institute-users" element={<InstituteUsers />} />
+          <Route path="/institute/user-proposals/:userId" element={<UserProposalsInsti />} />
+         </Route>
       </Routes>
     </div>
   );

@@ -8,6 +8,7 @@ const app = express();
 const schemeRoutes = require("./routes/schemeRoutes");
 const fundCycleRoutes = require("./routes/fundCycleRoutes");
 const requestRoutes = require("./routes/requestRoutes");
+const institute = require("./routes/institute");
 const PORT=process.env.PORT||5000
 app.use(cors( ))
 app.use(express.json());
@@ -21,6 +22,7 @@ app.use("/form",Form);
 app.use("/schemes", schemeRoutes);
 app.use("/fundCycles", fundCycleRoutes);
 app.use("/requests", requestRoutes);
+app.use("/institute", institute);   
 
 
 
