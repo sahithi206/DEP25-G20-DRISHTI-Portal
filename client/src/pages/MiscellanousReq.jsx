@@ -54,11 +54,11 @@ const MiscRequest = () => {
                 body: JSON.stringify(formData),
             });
 
-            const data = await response.json(); // Convert response to JSON
+            const data = await response.json();
 
             if (response.ok) {
-                setRequests((prevRequests) => [...prevRequests, data.newRequest]); // Add new request to UI
-                setFormData({ requestType: "", description: "" }); // Reset form
+                setRequests((prevRequests) => [...prevRequests, data.newRequest]); 
+                setFormData({ requestType: "", description: "" });
                 alert("Request submitted successfully!");
             } else {
                 alert(data.msg || "Failed to submit request");
@@ -147,6 +147,7 @@ const MiscRequest = () => {
                                         <th className="p-2 border border-gray-300">Description</th>
                                         <th className="p-2 border border-gray-300">Date</th>
                                         <th className="p-2 border border-gray-300">Status</th>
+                                        <th className="p-2 border border-gray-300">Comments</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -158,6 +159,7 @@ const MiscRequest = () => {
                                                 <td className="p-2 border border-gray-300">{req.description}</td>
                                                 <td className="p-2 border border-gray-300">{new Date(req.date).toLocaleString()}</td>
                                                 <td className="p-2 border border-gray-300 text-blue-600">{req.status}</td>
+                                                <td className="p-2 border border-gray-300">{req.comments}</td>
                                             </tr>
                                         ))
                                     ) : (

@@ -24,6 +24,10 @@ const requestSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    comments: {
+        type: String,
+        default: "",
+    },
 });
 
 const Request = mongoose.model("Request", requestSchema);
