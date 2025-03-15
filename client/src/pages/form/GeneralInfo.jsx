@@ -13,7 +13,14 @@ const GeneralInfo=({generalInfo})=>{
                 const User = await getuser();
                 setData(User);
                 setId(User._id);
-                setProjects({
+            } catch (e) {
+                console.log(e);
+            }
+        };
+        user();
+        const nochange=()=>{
+            if(generalInfo){
+                 setProjects({
                     dbtProjectsOngoing:generalInfo.DBTproj_ong,
                     dbtProjectsCompleted:generalInfo.DBTproj_completed,
                     projectsOngoing:generalInfo.Proj_ong,
@@ -21,11 +28,9 @@ const GeneralInfo=({generalInfo})=>{
                     biodata:"",
                     photo:"",
                 });
-            } catch (e) {
-                console.log(e);
             }
-        };
-        user();
+        }
+        nochange()
     }, [getuser,generalInfo]);
     const handleChange = (e) => {
         setProjects({ ...projects, [e.target.name]: e.target.value });

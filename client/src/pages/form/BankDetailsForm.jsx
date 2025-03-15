@@ -2,9 +2,9 @@ import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
 import HomeNavbar from "../../utils/HomeNavbar";
 
-const BankDetailsForm = ({ formData, updateForm,bankDetails }) => {
+const BankDetailsForm = ({bankDetails }) => {
     const section = "bankDetails"; 
-    const [data, setData] = useState(formData);
+    const [data, setData] = useState({});
     const { submitBankDetails } = useContext(AuthContext);
 
     useEffect(() => {

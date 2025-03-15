@@ -49,38 +49,47 @@ const upload = multer({
 
 
 router.post("/ProposalID", fetchUser, async (req, res, next) => {
-    const {_id} = req.user;
-    const {Scheme}=req.body;
-    console.log(_id);
-    try {
-        const me= await User.findById({_id:req.user._id}).populate("proposals");
-        const proposals=me.proposals;
-        console.log(proposals);
-        const project=proposals&&proposals.filter(prop =>prop.Scheme===Scheme)
-        console.log(project);
-        if(project.length>0){
-           return res.status(404).json({success:false,msg:"A Proposal was Already Submitted for this Scheme"});
+  const { _id } = req.user; 
+  const { Scheme } = req.body; 
+
+  try {
+      const user = await User.findById(req.user._id).populate("proposals");
+      if (!user) {
+          return res.status(404).json({ success: false, msg: "User not found" });
+      }
+
+      const proposals = user.proposals;
+      console.log(proposals);
+      if(proposals.length>0){
+        const acceptedProposal = proposals.find(prop => prop.Scheme === Scheme && prop.status === "Approved");
+        if (acceptedProposal) {
+            return res.status(400).json({ success: false, msg: "Your proposal for this scheme has already been accepted. You cannot apply again." });
         }
+      }
+      const pendingProposal =  await Proposal.findOne({Scheme:Scheme ,userId:_id,status : "Pending"});
+      if (pendingProposal) {
+          return res.status(400).json({ success: false, msg: "You have already submitted a proposal for this scheme." });
+      }
+      const unsavedProposal = await Proposal.findOne({Scheme:Scheme,userId:_id,status : "Unsaved"});
+      if (unsavedProposal) {
+          return res.status(400).json({ success: false, msg: "You have an unsaved proposal for this scheme. Please complete it." });
+      }
+     
 
-        const prop = new Proposal({
-            userId: _id,
-            Scheme,
-            status: "Pending"
-        });
-        await prop.save();
-        
-        const user= await User.findByIdAndUpdate(_id,{ 
-            $push: { proposals: { ProposalId: prop._id, Scheme:Scheme} } 
-        },
-        {new:true} 
-         );
-         res.status(200).json({ success: true, msg: "Proposal ID Generated", prop });
+      const newProposal = new Proposal({
+          userId: _id,
+          Scheme,
+          status: "Unsaved"
+      });
 
+      await newProposal.save();
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, error, msg: "Failed to generate Proposal ID" });
-    }
+      res.status(200).json({ success: true, msg: "Proposal ID generated successfully", prop: newProposal });
+
+  } catch (error) {
+      console.error("Error generating proposal ID:", error);
+      res.status(500).json({ success: false, msg: "Failed to generate proposal ID", error: error.message });
+  }
 });
 
 const transporter = nodemailer.createTransport({
@@ -170,7 +179,6 @@ router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
       biodata,
       photo
     });
-    console.log(generalInfo);
     await generalInfo.save();
     res.status(200).json({ success: true, msg: "General info saved", generalInfo });
   } catch (error) {
@@ -208,6 +216,28 @@ router.post("/upload/:type/:id", upload.single("file"), (req, res) => {
   
 });
 
+router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) => {
+  const { Title,Duration,Summary,objectives,Output,other} = req.body;
+    const {proposalId}=req.params
+
+  try {
+    const props = await ResearchDetails.findOne({proposalId});
+    if(props){
+      await ResearchDetails.findOneAndUpdate({proposalId:proposalId},{Title,Duration,Summary,objectives,Output,other},{new:true});
+      return res.status(200).json({success:true,msg:"Research Details Updated!!"});
+    }
+    const researchDetails = new ResearchDetails({
+        Title,Duration,Summary,objectives,Output,other,proposalId
+    });
+    /*const details= await ResearchDetails.findOne({proposalId:proposal[0].ProposalId});
+    console.log(details);*/
+    await researchDetails.save();
+    res.status(200).json({ success: true, msg: "Research details saved" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, msg: "Failed to save research details" });
+  }
+});
 router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
   const { recurring_items, non_recurring_items } = req.body;
   console.log("Received budget data:", recurring_items, non_recurring_items);
@@ -322,6 +352,7 @@ router.post("/submit-acknowledgement/:proposalId", fetchUser, async (req, res) =
   const { proposalId } = req.params;
   console.log(proposalId);
   try {
+    const proposal=await Proposal.findByIdAndUpdate({_id:proposalId},{status:"Pending"},{new:true});
     const generalInfo = await GeneralInfo.findOne({ proposalId }).select("_id");
     const researchDetails = await ResearchDetails.findOne({ proposalId }).select("_id");
     const budgetSummary = await Budget.findOne({ proposalId }).select("_id");
@@ -343,6 +374,12 @@ router.post("/submit-acknowledgement/:proposalId", fetchUser, async (req, res) =
     if (!PIdetails) {
       return res.status(404).json({ success: false, msg: "Fill all fields in Principal Investigator Information" });
     }
+   /* when status:accepted
+   const user= await User.findByIdAndUpdate(_id,{ 
+      $push: { proposals: { ProposalId: prop._id, Scheme:Scheme} } 
+    },
+    {new:true} 
+    );*/
 
     const acknowledgement = new Acknowledgement({
       proposalId,
@@ -465,7 +502,11 @@ router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
   const {objectId} = req.params;
   try {
     console.log("Converted ObjectId:", objectId);
-    const proposal=await Proposal.findOne({_id:objectId,status:"Pending"});
+    const Pendingproposal=await Proposal.findOne({_id:objectId,status:"Pending"});
+    if(Pendingproposal){
+      return res.status(200).json({success:false,msg:"Proposal was Already Submitted"});
+    }
+    const proposal=await Proposal.findOne({_id:objectId,status:"Unsaved"});
     console.log(proposal);
     if(!proposal){
       return res.status(400).json({success:false,msg:"Proposal not found"})
