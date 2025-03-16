@@ -1,17 +1,49 @@
 import React, { useState } from "react";
+import { useParams,useNavigate } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";
 
 const SelectDate = () => {
     const [date, setDate] = useState("");
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
+     const {id}=useParams();
+     const navigate=useNavigate();
     const handleChange = (e) => {
         setDate(e.target.value);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async() => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.log("Use a valid Token");
+            alert("Authentication required.");
+            return;
+        }
         console.log("Selected Date:", date);
+        const formattedDate = new Date(date).toISOString().split('T')[0];
+        try{
+            const response= await fetch(`${import.meta.env.VITE_REACT_APP_URL}projects/createProject/${id}`,{
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "accessToken": `${token}`,
+                },
+                body:JSON.stringify({startDate:formattedDate})
+            })
+            console.log(response);
+            if (!response.ok) {
+                throw new Error("Failed to update user details");
+            }
+            const json = await response.json();
+            console.log("Created Proposal",json);
+
+            alert(json.msg);
+            if(json.success){
+              navigate("/savedproposals")
+            }
+        }catch(e){
+            console.error("Error Creating Project:",e);
+        }
     };
 
     return (

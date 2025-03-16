@@ -24,8 +24,8 @@ import Error from "./pages/Error"
 import Forgotpassword from "./pages/ForgotPassword";
 import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
 import AdminReviewProposals from "./pages/Admin/AdminReviewProposals";
-import FundCycleApproval from "./pages/Admin/FundCyclePage.jsx"; 
-import RequestsPage from "./pages/Admin/AdminRequests.jsx"; 
+import FundCycleApproval from "./pages/Admin/FundCyclePage.jsx";
+import RequestsPage from "./pages/Admin/AdminRequests.jsx";
 import SchemeManagement from "./pages/admin/SchemeManagement.jsx";
 import ChangePassword from "./pages/ChangePassword.jsx";
 import RunningProjects from "./pages/college/RunningProjects.jsx";
@@ -74,26 +74,26 @@ function MainLayout() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route element={<ProtectedRoute />}>
-        <Route path="/menupage" element={<MenuPage />} />
-        <Route path="/formsubmission" element={<ProposalScheme />} />
-        <Route path="/savedproposals" element={<SavedProposals />} />
-        <Route path="/proposalinbox" element={<ProposalInbox />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/changeofinstitute" element={<ChangeOfInstitute />} />
-        <Route path="/generalinfo" element={<GeneralInfo />} />
-        <Route path="/projectinvestigator" element={<ProjectInvestigator />} />
-        <Route path="/pi" element={<ProjectInvestigator />} />
-        <Route path="/techform" element={<Techform />} />
-        <Route path="/aboutus" element={<AboutUs />} />
-        <Route path="/misc-request" element={<MiscRequest />} />
-        <Route path="/view-profile" element={<UserProfile />} />
-        <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/menupage" element={<MenuPage />} />
+          <Route path="/formsubmission" element={<ProposalScheme />} />
+          <Route path="/savedproposals" element={<SavedProposals />} />
+          <Route path="/proposalinbox" element={<ProposalInbox />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/changeofinstitute" element={<ChangeOfInstitute />} />
+          <Route path="/generalinfo" element={<GeneralInfo />} />
+          <Route path="/projectinvestigator" element={<ProjectInvestigator />} />
+          <Route path="/pi" element={<ProjectInvestigator />} />
+          <Route path="/techform" element={<Techform />} />
+          <Route path="/aboutus" element={<AboutUs />} />
+          <Route path="/misc-request" element={<MiscRequest />} />
+          <Route path="/view-profile" element={<UserProfile />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/forgot-password" element={<Forgotpassword />} />
-          <Route path="/change-password" element={<ChangePassword/>} />
-          <Route path="/uc/:id" element={<UC/>} />
-          <Route path="/se/:id" element ={<SE/>}/>
-          <Route path="/project-approval/:id" element={<SelectDate/>}/>
-          <Route path="/sanctionedproposals" element={<SanctionedProposals/>}/>
+          <Route path="/change-password" element={<ChangePassword />} />
+          <Route path="/uc/:id" element={<UC />} />
+          <Route path="/se/:id" element={<SE />} />
+          <Route path="/project-approval/:id" element={<SelectDate />} />
+          <Route path="/sanctionedproposals" element={<SanctionedProposals />} />
           <Route path="/error" element={<Error />} />
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
@@ -104,11 +104,11 @@ function MainLayout() {
           <Route path="/running-projects" element={<RunningProjects />} />
           <Route path="/institute-users" element={<InstituteUsers />} />
           <Route path="/institute-login" element={<InstituteLogin />} />
-        <Route path="/register-institute" element={<RegisterInstitute />} />
-        <Route path="/institute-dashboard" element={<InstituteDashboard />} />
-        <Route path="/running-projects" element={<RunningProjects />} />
+          <Route path="/register-institute" element={<RegisterInstitute />} />
+          <Route path="/institute-dashboard" element={<InstituteDashboard />} />
+          <Route path="/running-projects" element={<RunningProjects />} />
           <Route path="/institute/user-proposals/:userId" element={<UserProposalsInsti />} />
-         </Route>
+        </Route>
       </Routes>
     </div>
   );

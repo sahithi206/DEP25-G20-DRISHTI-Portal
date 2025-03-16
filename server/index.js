@@ -10,6 +10,7 @@ const fundCycleRoutes = require("./routes/fundCycleRoutes");
 const requestRoutes = require("./routes/requestRoutes");
 const institute = require("./routes/institute");
 const PORT=process.env.PORT||5000
+const Project=require("./routes/project.js");
 app.use(cors( ))
 app.use(express.json());
 
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 
 app.use("/auth",Auth);
 app.use("/form",Form);
+app.use("/projects", Project);
 app.use("/schemes", schemeRoutes);
 app.use("/fundCycles", fundCycleRoutes);
 app.use("/requests", requestRoutes);
