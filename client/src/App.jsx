@@ -29,6 +29,11 @@ import SchemeManagement from "./pages/admin/SchemeManagement.jsx";
 import RunningProjects from "./pages/college/RunningProjects.jsx";
 import InstituteUsers from "./pages/college/InstituteUsers.jsx";
 import UserProposalsInsti from "./pages/college/UserProposalsInsti.jsx";
+import InstituteLogin from "./pages/college/InstituteLogin";
+import InstituteDashboard from "./pages/college/InstituteDashboard";
+import RegisterInstitute from "./pages/college/RegisterInstitute.jsx";
+
+
 
 function App() {
   const getData = async () => {
@@ -84,6 +89,9 @@ function MainLayout() {
       <Route path="/fund-cycle" element={<FundCycleApproval />} />
         <Route path="/requests" element={<RequestsPage />} />
         <Route path="/schemes" element={<SchemeManagement />} />
+        <Route path="/institute-login" element={<InstituteLogin />} />
+        <Route path="/register-institute" element={<RegisterInstitute />} />
+        <Route path="/institute-dashboard" element={<InstituteDashboard />} />
         <Route path="/running-projects" element={<RunningProjects />} />
         <Route path="/institute-users" element={<InstituteUsers />} />
         <Route path="/institute/user-proposals/:userId" element={<UserProposalsInsti />} />
