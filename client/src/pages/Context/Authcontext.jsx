@@ -55,6 +55,43 @@ const AuthProvider = (props) => {
      alert(e.msg||"Cannot fetch User Details");
     }
  }
+  const edituser = async (data) => {
+    const token = localStorage.getItem("token");
+    try {
+      console.log(token);
+      if (!token) {
+        console.log("Use valid Token");
+        return;
+      }
+      const response = await fetch(`${url}auth/edit-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`,
+        },
+        body: JSON.stringify({
+          Name: data.Name,
+          email: data.email,
+          DOB: data.DOB,
+          Mobile: data.Mobile,
+          Gender: data.Gender,
+          Dept: data.Dept,
+          idType: data.idType,
+          idNumber: data.idNumber,
+          address: data.address
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Cannot Edit userDetails");
+      }
+      const json = await response.json();
+      console.log(json);
+      return json;
+    } catch (e) {
+      console.log(e);
+      alert(e.msg || "Cannot Edit User Details");
+    }
+  }
  const getpi = async(email)=>{
   try{
     const response = await fetch(`${url}auth/get-pi`, {
@@ -413,7 +450,32 @@ const unsavedProposal=async()=>{
     throw e;
    }
 }
+const incompleteProposals = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+      console.log("Use a valid Token");
+      alert("Authentication required.");
+      return;
+  }
+  try {
+      const response = await fetch(`${url}form/incompleteProposals`, {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json",
+              "accessToken": `${token}`,
+          },
+      });
 
+      if (!response.ok) {
+          throw new Error("Failed to Fetch Proposals");
+      }
+      const json = await response.json();
+      return json.proposals;
+  } catch (error) {
+      console.error("Edit user error:", error);
+      alert(error.message || "Failed to fetch Proposals");
+  }
+};
 const approvedProjects = async () => {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -445,6 +507,7 @@ const approvedProjects = async () => {
 
  const logout = ()=>{
     localStorage.removeItem("token");
+    sessionStorage.clear();
     navigate("/");
     console.log("User logged out!!");
  }
@@ -585,20 +648,18 @@ const userInstiAcceptedProposals = async (userId) => {
 
 
   return (
-    <AuthContext.Provider value={{ sendOtp, verifyOtp, login,unsavedProposal, authState,getpi, submitProposal,logout,uploadFile, submitGeneralInfo, 
-    submitResearchDetails, submitBudgetDetails, submitBankDetails, submitPIDetails, submitAcknowledgement, 
-    getuser, approvedProjects, fetchInstituteProjects, userInstiAcceptedProposals,createInstitute,fetchInstituteUsers, loginInstitute}}>
+    <AuthContext.Provider value={{ sendOtp, verifyOtp, login,unsavedProposal,
+     authState,edituser,incompleteProposals,getpi, submitProposal,logout,uploadFile,
+      submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails,
+       submitPIDetails, submitAcknowledgement, getuser, approvedProjects , fetchInstituteProjects,
+        userInstiAcceptedProposals,createInstitute,fetchInstituteUsers, loginInstitute,loginInstitute}}>
       {props.children}
     </AuthContext.Provider>
   );
 };
 
 
-const logout = () => {
-  localStorage.removeItem("token");
-  navigate("/");
-  console.log("User logged out!!");
-};
+
 
 export { AuthContext, AuthProvider };
 /*

@@ -1,92 +1,52 @@
-import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
-import { useState } from "react";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa"; // Import icons
-
-const programs = [
-    { id: 1, name: "J. C. Bose Grant (JBG)", path: "/jcbose" },
-    { id: 2, name: "Partnerships for Accelerated Innovation and Research (PAIR)", path: "/pair" },
-    { id: 3, name: "Prime Minister Early Career Research Grant (PM ECRG)", path: "/pmecrg" },
-    { id: 4, name: "Mission for Advancement in High-impact Areas (EV-Mission)", path: "/evmission" },
-    { id: 5, name: "AI for Scientific Discovery", path: "/ai-discovery" },
-    { id: 6, name: "Quantum Technologies Initiative", path: "/quantum" },
-    { id: 7, name: "Green Energy Innovation", path: "/green-energy" },
-];
-
-const itemsPerPage = 4;
-const totalPages = Math.ceil(programs.length / itemsPerPage);
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
-    const [pageIndex, setPageIndex] = useState(0);
-
-    const goToPage = (index) => {
-        if (index >= 0 && index < totalPages) {
-            setPageIndex(index);
-        }
-    };
+    const navigate = useNavigate();
 
     return (
-        <div>
+        <div className="bg-gray-100 min-h-screen">
             <Navbar />
             <Hero />
 
-            {/* ANRF Programs Section */}
-            <div className="flex flex-col items-center justify-center py-10">
-                <h2 className="text-3xl font-bold mb-6">ANRF PROGRAMS</h2>
+            <div className="flex justify-center">
+                <div className="bg-white w-[100%] md:w-[100%] max-w-7xl p-8 shadow-lg rounded-lg">
+                    <h1 className="text-4xl font-bold text-center text-teal-700 mb-4 border-b-2 border-gray-300 pb-2">
+                        ANRF
+                    </h1>
 
-                <div className="w-full max-w-2xl bg-white shadow-lg rounded-lg p-6">
-                    {/* Display 4 programs per page */}
-                    {programs.slice(pageIndex * itemsPerPage, (pageIndex + 1) * itemsPerPage).map((program) => (
-                        <Link
-                            key={program.id}
-                            to={program.path}
-                            className="flex items-center space-x-4 p-4 border-b last:border-b-0 hover:bg-gray-100 transition"
+                    <p className="text-gray-700 text-lg leading-relaxed text-center">
+                        The <strong>Anusandhan National Research Foundation (ANRF)</strong> was established through the 
+                        <strong> ANRF Act, 2023</strong> to provide high-level strategic directions for research, innovation, 
+                        and entrepreneurship in the fields of natural sciences, engineering and technology, environmental 
+                        and earth sciences, health and agriculture, and scientific and technological interfaces of 
+                        humanities and social sciences.
+                    </p>
+                    
+                    <p className="text-gray-700 text-lg leading-relaxed text-center mt-4">
+                        ANRF has been established to promote research and development and foster a culture of research
+                        and innovation throughout India’s Universities, Colleges, Research Institutions, and R&D laboratories.
+                        ANRF acts as an apex body to provide high-level strategic direction of scientific research in the
+                        country as per recommendations of the National Education Policy. ANRF forges collaborations among
+                        the industry, academia, and government departments and research institutions.
+                    </p>
+
+                    <p className="italic font-semibold mt-6 text-gray-700 text-center">
+                        “ANRF strategies should align with the goals of <strong>Viksit Bharat 2047</strong> and implementation 
+                        should follow global best practices adopted by research and development agencies across the world.” 
+                        <br /> — <span className="text-teal-600">ANRF Governing Board</span>
+                    </p>
+
+                    <div className="flex justify-center mt-6">
+                        <button 
+                            onClick={() => navigate("/login")} 
+                            className="px-6 py-3 bg-teal-700 text-white rounded-md text-lg font-semibold 
+                                       hover:bg-teal-800 transition duration-300 ease-in-out shadow-md"
                         >
-                            <div className="w-10 h-10 bg-teal-600 text-white flex items-center justify-center rounded-full text-lg font-bold">
-                                {program.id}
-                            </div>
-                            <span className="text-lg font-semibold">{program.name}</span>
-                        </Link>
-                    ))}
-                </div>
-
-                {/* Pagination Controls */}
-                <div className="mt-4 flex items-center space-x-2">
-                    {/* Left Arrow */}
-                    <button
-                        onClick={() => goToPage(pageIndex - 1)}
-                        disabled={pageIndex === 0}
-                        className={`px-3 py-2 rounded-lg ${
-                            pageIndex === 0 ? "bg-gray-300 cursor-not-allowed" : "bg-gray-200 hover:bg-gray-300"
-                        }`}
-                    >
-                        <FaChevronLeft />
-                    </button>
-
-                    {/* Page Numbers */}
-                    {Array.from({ length: totalPages }).map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => goToPage(index)}
-                            className={`px-4 py-2 rounded-lg border ${
-                                index === pageIndex ? "bg-teal-600 text-white" : "bg-gray-200 hover:bg-gray-300"
-                            }`}
-                        >
-                            {index + 1}
+                            Sign Up
                         </button>
-                    ))}
-
-                    {/* Right Arrow */}
-                    <button
-                        onClick={() => goToPage(pageIndex + 1)}
-                        disabled={pageIndex === totalPages - 1}
-                        className={`px-3 py-2 rounded-lg ${
-                            pageIndex === totalPages - 1 ? "bg-gray-300 cursor-not-allowed" : "bg-gray-200 hover:bg-gray-300"
-                        }`}
-                    >
-                        <FaChevronRight />
-                    </button>
+                    </div>
                 </div>
             </div>
         </div>
