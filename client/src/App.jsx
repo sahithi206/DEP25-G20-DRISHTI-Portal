@@ -35,6 +35,12 @@ import UC from "./pages/uc/se/UC.jsx";
 import SelectDate from "./pages/SelectDate.jsx";
 import SanctionedProposals from "./pages/uc/se/SanctionedProposals.jsx"
 import SE from "./pages/uc/se/SE.jsx";
+import InstituteLogin from "./pages/college/InstituteLogin";
+import InstituteDashboard from "./pages/college/InstituteDashboard";
+import RegisterInstitute from "./pages/college/RegisterInstitute.jsx";
+
+
+
 function App() {
   const getData = async () => {
     try {
@@ -68,20 +74,20 @@ function MainLayout() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route element={<ProtectedRoute />}>
-          <Route path="/menupage" element={<MenuPage />} />
-          <Route path="/formsubmission" element={<ProposalScheme />} />
-          <Route path="/savedproposals" element={<SavedProposals />} />
-          <Route path="/proposalinbox" element={<ProposalInbox />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/changeofinstitute" element={<ChangeOfInstitute />} />
-          <Route path="/generalinfo" element={<GeneralInfo />} />
-          <Route path="/projectinvestigator" element={<ProjectInvestigator />} />
-          <Route path="/pi" element={<ProjectInvestigator />} />
-          <Route path="/techform" element={<Techform />} />
-          <Route path="/aboutus" element={<AboutUs />} />
-          <Route path="/misc-request" element={<MiscRequest />} />
-          <Route path="/view-profile" element={<UserProfile />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/menupage" element={<MenuPage />} />
+        <Route path="/formsubmission" element={<ProposalScheme />} />
+        <Route path="/savedproposals" element={<SavedProposals />} />
+        <Route path="/proposalinbox" element={<ProposalInbox />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/changeofinstitute" element={<ChangeOfInstitute />} />
+        <Route path="/generalinfo" element={<GeneralInfo />} />
+        <Route path="/projectinvestigator" element={<ProjectInvestigator />} />
+        <Route path="/pi" element={<ProjectInvestigator />} />
+        <Route path="/techform" element={<Techform />} />
+        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/misc-request" element={<MiscRequest />} />
+        <Route path="/view-profile" element={<UserProfile />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/forgot-password" element={<Forgotpassword />} />
           <Route path="/change-password" element={<ChangePassword/>} />
           <Route path="/uc/:id" element={<UC/>} />
@@ -97,6 +103,10 @@ function MainLayout() {
           <Route path="/schemes" element={<SchemeManagement />} />
           <Route path="/running-projects" element={<RunningProjects />} />
           <Route path="/institute-users" element={<InstituteUsers />} />
+          <Route path="/institute-login" element={<InstituteLogin />} />
+        <Route path="/register-institute" element={<RegisterInstitute />} />
+        <Route path="/institute-dashboard" element={<InstituteDashboard />} />
+        <Route path="/running-projects" element={<RunningProjects />} />
           <Route path="/institute/user-proposals/:userId" element={<UserProposalsInsti />} />
          </Route>
       </Routes>
