@@ -145,7 +145,6 @@ router.put("/update-proposals/:id", fetchUser, async (req, res) => {
       console.log("Proposal not found in database!");
       return res.status(404).json({ message: "Proposal not found" });
     }
-
     proposal=await Proposal.findByIdAndUpdate({_id:id},{status:status},{new:true});
     await sendEmailNotification(proposal.userId, status, comment);
 
@@ -457,37 +456,31 @@ router.post("/submit-bank-details/:proposalId", fetchUser, async (req, res) => {
 //   }
 // });
 
-
 router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
   try {
     const { piList, coPiList } = req.body;
     const { proposalId } = req.params;
 
-    // Check if piList and coPiList are provided
     if (!piList || !coPiList) {
       return res.status(400).json({ success: false, msg: "PI List and Co-PI List are required" });
     }
 
-    // Check if the user exists
     const user = await User.findById(req.user._id).populate("proposals");
     if (!user) {
       return res.status(404).json({ success: false, msg: "User not found" });
     }
 
-    // Check if the proposal exists
     const proposal = await Proposal.findById(proposalId);
     if (!proposal) {
       return res.status(404).json({ success: false, msg: "Proposal not found" });
     }
 
-    // Check if PI details already exist for the proposal
     const existingPI = await PI.findOne({ proposalId });
     if (existingPI) {
       await PI.findOneAndUpdate({ proposalId }, { piList, coPiList }, { new: true });
       return res.status(200).json({ success: true, msg: "Updated PI Details Successfully" });
     }
 
-    // Create new PI details
     const piDetails = new PI({ proposalId, piList, coPiList });
     await piDetails.save();
 

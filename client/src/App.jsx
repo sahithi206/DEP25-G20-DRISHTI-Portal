@@ -31,7 +31,10 @@ import ChangePassword from "./pages/ChangePassword.jsx";
 import RunningProjects from "./pages/college/RunningProjects.jsx";
 import InstituteUsers from "./pages/college/InstituteUsers.jsx";
 import UserProposalsInsti from "./pages/college/UserProposalsInsti.jsx";
-
+import UC from "./pages/uc/se/UC.jsx";
+import SelectDate from "./pages/SelectDate.jsx";
+import SanctionedProposals from "./pages/uc/se/SanctionedProposals.jsx"
+import SE from "./pages/uc/se/SE.jsx";
 function App() {
   const getData = async () => {
     try {
@@ -81,6 +84,10 @@ function MainLayout() {
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/forgot-password" element={<Forgotpassword />} />
           <Route path="/change-password" element={<ChangePassword/>} />
+          <Route path="/uc/:id" element={<UC/>} />
+          <Route path="/se/:id" element ={<SE/>}/>
+          <Route path="/project-approval/:id" element={<SelectDate/>}/>
+          <Route path="/sanctionedproposals" element={<SanctionedProposals/>}/>
           <Route path="/error" element={<Error />} />
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
