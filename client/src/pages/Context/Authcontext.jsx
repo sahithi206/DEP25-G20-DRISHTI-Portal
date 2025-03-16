@@ -491,7 +491,7 @@ const loginInstitute = async (email, password) => {
     console.log("Institute Logged in successfully:", json);
     if (json.success) {
       localStorage.setItem("token", json.accessToken);
-      navigate("/institite-dashboard"); // make institute dashboard :(
+      navigate("/institute-dashboard"); // make institute dashboard :(
     }
   } catch (e) {
     console.error("Cannot Login:", e.message);
@@ -587,7 +587,7 @@ const userInstiAcceptedProposals = async (userId) => {
   return (
     <AuthContext.Provider value={{ sendOtp, verifyOtp, login,unsavedProposal, authState,getpi, submitProposal,logout,uploadFile, submitGeneralInfo, 
     submitResearchDetails, submitBudgetDetails, submitBankDetails, submitPIDetails, submitAcknowledgement, 
-    getuser, approvedProjects, fetchInstituteProjects, userInstiAcceptedProposals,createInstitute,fetchInstituteUsers}}>
+    getuser, approvedProjects, fetchInstituteProjects, userInstiAcceptedProposals,createInstitute,fetchInstituteUsers, loginInstitute}}>
       {props.children}
     </AuthContext.Provider>
   );
