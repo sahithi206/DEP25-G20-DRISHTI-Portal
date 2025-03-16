@@ -8,7 +8,6 @@ const SavedProposals = () => {
     const navigate = useNavigate();
     const {approvedProjects}=useContext(AuthContext);
     const [acceptedProjects,setProjects]=useState();
-    const [id,setID]=useState();
     useEffect(()=>{
         const projects = async () =>{
          const proj=await approvedProjects();
@@ -56,7 +55,6 @@ const SavedProposals = () => {
                                                 <button
                                                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                                                     onClick={() => {
-                                                        setID(project.id);
                                                         navigate(`/project-approval/${project.id}`);
                                                     }}
                                                 >
