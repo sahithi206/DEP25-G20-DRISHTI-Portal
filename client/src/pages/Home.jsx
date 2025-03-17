@@ -10,17 +10,10 @@ const Home = () => {
             <Navbar />
             <Hero />
 
-<<<<<<< HEAD
-            <div className="flex justify-center">
-                <div className=" w-[100%] md:w-[100%] max-w-9xl p-8  ">
-                    <h1 className="text-4xl font-bold text-center text-teal-700 mb-4 border-b-2 border-gray-300 pb-2">
-                        ANRF
-=======
             <div className="flex justify-center px-4 py-12">
                 <div className="bg-white w-full max-w-6xl p-10 shadow-xl rounded-2xl border border-gray-200">
                     <h1 className="text-5xl font-extrabold text-center text-teal-800 mb-6 border-b-4 border-teal-600 pb-3">
                         Anusandhan National Research Foundation (ANRF)
->>>>>>> 38aed7a2baf4d1d4edc57d346cdadf43f2290465
                     </h1>
 
                     <p className="text-gray-700 text-lg leading-8 text-center">
