@@ -1,77 +1,3 @@
-
-
-// import React, { useEffect, useState } from "react";
-
-// const AdminRequests = () => {
-//     const [requests, setRequests] = useState([]);
-
-//     // Fetch requests from the backend
-//     useEffect(() => {
-//         fetch("http://localhost:5000/requests")
-//             .then((res) => res.json())
-//             .then((data) => setRequests(data))
-//             .catch((error) => console.error("Error fetching requests:", error));
-//     }, []);
-
-//     // Handle approve/reject action
-//     const updateRequestStatus = async (id, status) => {
-//         try {
-//             const response = await fetch(`http://localhost:5000/requests/${id}`, {
-//                 method: "PUT",
-//                 headers: { "Content-Type": "application/json" },
-//                 body: JSON.stringify({ status }),
-//             });
-
-//             if (response.ok) {
-//                 setRequests(requests.map(req => req._id === id ? { ...req, status } : req));
-//             } else {
-//                 alert("Failed to update request status");
-//             }
-//         } catch (error) {
-//             console.error("Error updating request:", error);
-//         }
-//     };
-
-//     return (
-//         <div className="p-6">
-//             <h2 className="text-2xl font-bold mb-4">Admin Requests Panel</h2>
-//             <table className="w-full border">
-//                 <thead>
-//                     <tr className="bg-gray-200">
-//                         <th className="p-2 border">Request Type</th>
-//                         <th className="p-2 border">Description</th>
-//                         <th className="p-2 border">Status</th>
-//                         <th className="p-2 border">Actions</th>
-//                     </tr>
-//                 </thead>
-//                 <tbody>
-//                     {requests.map((req) => (
-//                         <tr key={req._id} className="border text-center">
-//                             <td className="p-2 border">{req.requestType}</td>
-//                             <td className="p-2 border">{req.description}</td>
-//                             <td className={`p-2 border ${req.status === "Approved" ? "text-green-600" : req.status === "Rejected" ? "text-red-600" : "text-gray-600"}`}>{req.status}</td>
-//                             <td className="p-2 border">
-//                                 {req.status === "Pending" && (
-//                                     <>
-//                                         <button className="bg-green-500 text-white px-3 py-1 mr-2 rounded" onClick={() => updateRequestStatus(req._id, "Approved")}>
-//                                             Approve
-//                                         </button>
-//                                         <button className="bg-red-500 text-white px-3 py-1 rounded" onClick={() => updateRequestStatus(req._id, "Rejected")}>
-//                                             Reject
-//                                         </button>
-//                                     </>
-//                                 )}
-//                             </td>
-//                         </tr>
-//                     ))}
-//                 </tbody>
-//             </table>
-//         </div>
-//     );
-// };
-
-// export default AdminRequests;
-
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar"; 
 import { useLocation } from "react-router-dom";
@@ -80,18 +6,18 @@ const AdminRequests = () => {
     const [requests, setRequests] = useState([]);
     const [activeSection, setActiveSection] = useState("requests"); 
     const location = useLocation();
-    const [comments, setComments] = useState("");   
+    const [comments, setComments] = useState({});   
     
-    // Set active section based on current path when component mounts
     useEffect(() => {
-        const path = location.pathname;
-        const section = path === "/requests" ? "requests" : 
-                       path === "/" ? "dashboard" : 
-                       path === "/schemes" ? "schemes" : 
-                       path === "/review-proposals" ? "approvals" :
-                       path === "/grants" ? "grants" :
-                       path === "/fundCycle" ? "fundCycle" : "requests";
-        setActiveSection(section);
+        const pathToSection = {
+            "/requests": "requests",
+            "/": "dashboard",
+            "/schemes": "schemes",
+            "/review-proposals": "approvals",
+            "/grants": "grants",
+            "/fundCycle": "fundCycle"
+        };
+        setActiveSection(pathToSection[location.pathname] || "requests");
     }, [location]);
     
     useEffect(() => {
@@ -101,25 +27,35 @@ const AdminRequests = () => {
             .catch((error) => console.error("Error fetching requests:", error));
     }, []);
     
-    // Handle approve/reject action
-    const updateRequestStatus = async (id, status) => {
+    // Function to update request status and append comments
+    const updateRequest = async (id, status = null, newComment = null) => {
         try {
+            const request = requests.find(req => req._id === id);
+            if (!request) return;
+
+            // Append new comment while preserving old ones
+            const updatedComments = newComment ? [...(request.comments || []), newComment] : request.comments;
+
             const response = await fetch(`http://localhost:8000/requests/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status, comments }),
+                body: JSON.stringify({
+                    status: status || request.status, // Retain current status if no new status
+                    comments: updatedComments
+                }),
             });
+
             if (response.ok) {
-                setRequests(requests.map(req => req._id === id ? { ...req, status } : req));
-                setComments(""); 
+                setRequests(requests.map(req => req._id === id ? { ...req, status: status || req.status, comments: updatedComments } : req));
+                setComments(prev => ({ ...prev, [id]: "" })); 
             } else {
-                alert("Failed to update request status");
+                alert("Failed to update request");
             }
         } catch (error) {
             console.error("Error updating request:", error);
         }
     };
-    
+
     return (
         <div className="flex">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
@@ -132,32 +68,54 @@ const AdminRequests = () => {
                             <th className="p-2 border">Request Type</th>
                             <th className="p-2 border">Description</th>
                             <th className="p-2 border">Status</th>
-                            <th className="p-2 border">Actions</th>
                             <th className="p-2 border">Comments</th>
+                            <th className="p-2 border">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {requests.map((req) => (
                             <tr key={req._id} className="border text-center">
-                                 <td className="p-2 border">{req.userId}</td>
+                                <td className="p-2 border">{req.userId}</td>
                                 <td className="p-2 border">{req.requestType}</td>
                                 <td className="p-2 border">{req.description}</td>
-                                <td className={`p-2 border ${req.status === "Approved" ? "text-green-600" : req.status === "Rejected" ? "text-red-600" : "text-gray-600"}`}>{req.status}</td>
-                                <td className="p-2 border">{req.comments}</td>  
+                                <td className={`p-2 border ${req.status === "Approved" ? "text-green-600" : req.status === "Rejected" ? "text-red-600" : "text-gray-600"}`}>
+                                    {req.status}
+                                </td>
                                 <td className="p-2 border">
+                                    {req.comments && req.comments.length > 0 ? (
+                                        <ul className="text-left">
+                                            {req.comments.map((comment, index) => (
+                                                <li key={index} className="border-b p-1">{comment}</li>
+                                            ))}
+                                        </ul>
+                                    ) : "No comments yet"}
+                                </td>  
+                                <td className="p-2 border">
+                                    <input
+                                        type="text"
+                                        value={comments[req._id] || ""}
+                                        onChange={(e) => setComments({ ...comments, [req._id]: e.target.value })}
+                                        placeholder="Add Comment"
+                                        className="border p-2 rounded mb-2 w-full"
+                                    />
+                                    <button 
+                                        className="bg-blue-500 text-white px-3 py-1 rounded mb-2 w-full"
+                                        onClick={() => updateRequest(req._id, null, comments[req._id])}
+                                    >
+                                        Submit Comment
+                                    </button>
                                     {req.status === "Pending" && (
                                         <>
-                                            <input
-                                                type="text"
-                                                value={comments}
-                                                onChange={(e) => setComments(e.target.value)}
-                                                placeholder="Comments"
-                                                className="border p-2 rounded"
-                                            />
-                                            <button className="bg-green-500 text-white px-3 py-1 mr-2 rounded" onClick={() => updateRequestStatus(req._id, "Approved")}>
+                                            <button 
+                                                className="bg-green-500 text-white px-3 py-1 mr-2 rounded w-full"
+                                                onClick={() => updateRequest(req._id, "Approved", comments[req._id])}
+                                            >
                                                 Approve
                                             </button>
-                                            <button className="bg-red-500 text-white px-3 py-1 rounded" onClick={() => updateRequestStatus(req._id, "Rejected")}>
+                                            <button 
+                                                className="bg-red-500 text-white px-3 py-1 rounded w-full"
+                                                onClick={() => updateRequest(req._id, "Rejected", comments[req._id])}
+                                            >
                                                 Reject
                                             </button>
                                         </>
