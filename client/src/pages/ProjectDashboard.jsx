@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams ,useNavigate} from "react-router-dom";
 import Sidebar from "../utils/Sidebar";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import HomeNavbar from "../utils/HomeNavbar";
@@ -7,6 +7,7 @@ import HomeNavbar from "../utils/HomeNavbar";
 const ProjectDashboard = () => {
     const { id } = useParams();
     console.log(useParams());
+    const navigate=useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [projectDetails, setDetails] = useState({
         generalInfo: {},
@@ -59,7 +60,7 @@ const ProjectDashboard = () => {
         const timeLeft = endDate - currentDate;
         return ((timeLeft / totalTime) * 100).toFixed(2);
     };
-    const usedAmount=0;
+    const usedAmount = 0;
     const progressPercentage = ((usedAmount / projectDetails.budgetSummary.total) * 100).toFixed(2);
     const timeLeftPercentage = calculateTimeLeft();
 
@@ -75,20 +76,46 @@ const ProjectDashboard = () => {
 
     const COLORS = ["#10B981", "#E5E7EB"];
 
-    const ActionButton = ({ children, className }) => (
-        <button className={`flex items-center justify-center space-x-2 px-6 py-3 rounded-lg transition-transform transform hover:scale-105 shadow-md ${className}`}>
-            <span>{children}</span>
-        </button>
-    );
+    const HoverDropdownButton = ({ label, options, className }) => {
+        const [isOpen, setIsOpen] = useState(false);
+        return (
+            <div
+                className="relative"
+                onClick={() => { isOpen === true ? setIsOpen(false) : setIsOpen(true) }}
+            >
+               <button className={`w-full flex items-center justify-center px-6 py-3 rounded-lg transition-transform transform hover:scale-105 shadow-md ${className}`}>
+                {label}
+            </button>
+            {isOpen && (
+                <div className="absolute left-0 mt-1 w-full bg-white rounded-lg shadow-lg z-10">
+                    {options&&options.map((option, index) => (
+                        <button
+                            key={index}
+                            onClick={option.onClick}
+                            className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-200"
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+            </div>
+        );
+    };
 
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
-            
+
             <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-64 w-[calc(100%-16rem)]" : "ml-16 w-[calc(100%-4rem)]"}`}>
-                <HomeNavbar isSidebarOpen={isSidebarOpen}/>
-                <div className="p-6 space-y-6 mt-16">                
-                <div className="p-6 space-y-6">
+                <HomeNavbar isSidebarOpen={isSidebarOpen} />
+                <div className="p-6 space-y-6 mt-16">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <HoverDropdownButton label="RTGS/Quotations" options={[{label:"View RTGS",onClick:()=>navigate("/") }, {label:"Upload Quotation", onClick:()=>navigate("/")}]} className="bg-blue-500 text-white" />
+                        <HoverDropdownButton label="Upload SE/UC" options={[{label:"Upload SE",onClick:()=>navigate(`/se/${id}`) },{label:"Upload UC",onClick:()=>navigate(`/uc/${id}`) } ]} className="bg-green-500 text-white" />
+                        <HoverDropdownButton label="Upload Progress Report" options={[{label:"Yearly Report",onClick:()=>navigate("/") },{label:"Final Report",onClick:()=>navigate("/") }]} className="bg-red-500 text-white" />
+                        <HoverDropdownButton label="Apply for Next Cycle" options={[{label:"New Cycle Application",onClick:()=>navigate("/") },{label:"Renew Existing",onClick:()=>navigate("/") }]} className="bg-purple-500 text-white" />
+                    </div>
                     <div className="text-center">
                         <h2 className="text-3xl font-extrabold text-gray-900">{projectDetails.generalInfo.title}</h2>
                         <p className="text-gray-600 flex items-center justify-center space-x-2">
@@ -121,7 +148,7 @@ const ProjectDashboard = () => {
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
-                            
+
                             <p className="text-l text-gray-600 mt-1">Progress: {progressPercentage}% Used</p>
                         </div>
                     </div>
@@ -158,18 +185,11 @@ const ProjectDashboard = () => {
                             <p><strong>IFSC Code:</strong> {projectDetails.bankDetails.ifscCode}</p>
                         </div>
                     </div>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <ActionButton className="bg-blue-500 text-white">View Quotations</ActionButton>
-                        <ActionButton className="bg-green-500 text-white">Recurring Grant</ActionButton>
-                        <ActionButton className="bg-purple-500 text-white">Non-Recurring Grant</ActionButton>
-                        <ActionButton className="bg-orange-500 text-white">Apply Next Cycle</ActionButton>
-                    </div>
                 </div>
-            </div>
             </div>
         </div>
     );
 };
 
 export default ProjectDashboard;
+

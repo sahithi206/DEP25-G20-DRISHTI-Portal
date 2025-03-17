@@ -115,10 +115,10 @@ const ProposalInbox = () => {
                                     ) : filteredProposals.length > 0 ? (
                                         filteredProposals.map((proposal, index) => (
                                             <tr key={index} className="group hover:bg-blue-50 transition-colors border-b last:border-b-0">
-                                                <td className="p-4 text-center text-gray-700">{proposal.generalInfo?.instituteName}</td>
-                                                <td className="p-4 text-center text-gray-700">{proposal.generalInfo?.areaOfSpecialization}</td>
-                                                <td className="p-4 text-center text-gray-700">{proposal.researchDetails?.Title}</td>
-                                                <td className="p-4 text-center">
+                                                <td className="p-4 text-center font-semibold text-xs">{proposal.generalInfo?.instituteName}</td>
+                                                <td className="p-4 text-center font-semibold text-xs">{proposal.generalInfo?.areaOfSpecialization}</td>
+                                                <td className="p-4 text-center font-semibold text-xs">{proposal.researchDetails?.Title}</td>
+                                                <td className="p-4 text-center font-semibold text-xs">
                                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusColor("Pending")}`}>{"Pending"}</span>
                                                 </td>
                                             </tr>

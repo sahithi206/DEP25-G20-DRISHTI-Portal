@@ -8,7 +8,6 @@ const SavedProposals = () => {
     const navigate = useNavigate();
     const {approvedProjects}=useContext(AuthContext);
     const [acceptedProjects,setProjects]=useState();
-    const [id,setID]=useState();
     useEffect(()=>{
         const projects = async () =>{
          const proj=await approvedProjects();
@@ -35,9 +34,11 @@ const SavedProposals = () => {
                         <h2 className="text-xl font-semibold text-gray-700">Anusandhan National Research Foundation</h2>
                         <p className="mt-3 text-2xl font-bold text-blue-800">Accepted Proposals </p>
                     </div>
-                    <div className="mt-4">
-                    <table className="w-full text-sm">
-                    <thead className="bg-blue-700 text-white">
+                    <div className="bg-white shadow-md rounded-xl overflow-hidden">
+
+                    <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-blue-700 text-white">
                                 <tr>
                                     <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">File No.</th>
                                     <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Project Title</th>
@@ -47,18 +48,17 @@ const SavedProposals = () => {
                             <tbody>
                                 {acceptedProjects && acceptedProjects.length > 0 ? (
                                     acceptedProjects.map((project) => (
-                                        <tr key={project.id} className="bg-gray-100 hover:bg-gray-200 cursor-pointer">
-                                            <td className="p-4 text-center font-semibold text-xs border-b border-blue-600">{project.id}</td>
-                                            <td className="p-4 text-center font-semibold text-xs border-b border-blue-600">{project.title}</td>
-                                            <td className="p-4 text-center font-semibold text-xs border-b border-blue-600">
+                                        <tr key={project.id} className="bg-white-100 shadow-sm ">
+                                            <td className="p-4 text-center font-semibold text-xs">{project.id}</td>
+                                            <td className="p-4 text-center font-semibold text-xs">{project.title}</td>
+                                            <td className="p-4 text-center font-semibold text-xs">
                                                 <button
                                                     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                                                     onClick={() => {
-                                                        setID(project.id);
-                                                        navigate(`/project-dashboard/${project.id}`);
+                                                        navigate(`/project-approval/${project.id}`);
                                                     }}
                                                 >
-                                                    View Dashboard
+                                                    Select Grant Date
                                                 </button>
                                             </td>
                                         </tr>
@@ -76,6 +76,7 @@ const SavedProposals = () => {
                 </div>
             </div>
             </div>
+         </div>
         </div>
     );
 };
