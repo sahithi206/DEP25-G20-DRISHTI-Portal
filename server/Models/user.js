@@ -15,10 +15,7 @@ const userSchema = new Schema({
     idType: { type: String, required: true },
     idNumber: { type: String, required: true, unique: true },
     proposals: [
-        {
-            ProposalId: { type: String, required: true },
-            Scheme: { type: String }
-        }
+          { type: String, required: true },
     ]
 });
 

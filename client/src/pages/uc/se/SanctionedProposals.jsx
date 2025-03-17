@@ -4,16 +4,31 @@ import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
 import { AuthContext } from "../../Context/Authcontext";
 const SanctionedProposals = () => {
+    const url = import.meta.env.VITE_REACT_APP_URL;
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const navigate = useNavigate();
     const { approvedProjects } = useContext(AuthContext);
     const [acceptedProjects, setProjects] = useState();
     useEffect(() => {
         const projects = async () => {
-            const proj = await approvedProjects();
-            const Projects = await proj.map((project) => {
-                let id = project.proposalId;
-                let title = project.researchDetails.Title;
+            const token = localStorage.getItem("token");
+        if (!token) throw new Error("User not authenticated");
+
+        const response = await fetch(`${url}projects/get-projects`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "accessToken": `${token}`
+            },
+        });
+        if (!response.ok) {
+            throw new Error("Failed to update user details");
+        }
+        const json = await response.json();
+            const proj = json.projects;
+            const Projects = await proj&&proj.length>0&&proj.map((project) => {
+                let id = project._id;
+                let title = project.Title;
                 return { id, title };
             })
             setProjects(Projects);
