@@ -11,7 +11,7 @@ const Home = () => {
             <Hero />
 
             <div className="flex justify-center">
-                <div className="bg-white w-[100%] md:w-[100%] max-w-7xl p-8 shadow-lg rounded-lg">
+                <div className=" w-[100%] md:w-[100%] max-w-9xl p-8  ">
                     <h1 className="text-4xl font-bold text-center text-teal-700 mb-4 border-b-2 border-gray-300 pb-2">
                         ANRF
                     </h1>

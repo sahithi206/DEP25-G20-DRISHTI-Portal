@@ -18,6 +18,8 @@ const bankDetails = require("../Models/bankDetails.js");
 const budgetSanctioned = require("../Models/budgetSanctioned.js");
 const YearlyData = require("../Models/YearlyData.js");
 const {ObjectId}=require("mongodb");
+const  RecurringUC = require("../Models/UcRecurring.js");
+const NonRecurringUC  = require("../Models/UcNonrecurring.js");
 router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
     const { proposalId } = req.params;
     const { startDate } = req.body;
@@ -95,6 +97,7 @@ router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
         await project.save();
         const yearlyBudget = new YearlyData({
             projectId: project._id,
+            budgetUnspent:0,
             budgetSanctioned: budgetsanctioned.budgetSanctioned
         })
         const budgetCheck = await YearlyData.findOne({ projectId: project._id });
@@ -163,9 +166,10 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
         );
         const budget = ids.YearlyDataId?.[project.currentYear - 1]?.budgetSanctioned || null;
         const budgetused = ids.YearlyDataId?.[project.currentYear - 1]?.budgetUsed || null;
+        const budgetUnspent=ids.YearlyDataId?.[project.currentYear - 1]?.budgetUnspent || null;
         return res.status(200).json({
             success: true, msg: "Fetched Project's Details Successfully",
-            project, generalInfo, researchDetails, PIDetails, budget,budgetused
+            project, generalInfo, researchDetails, PIDetails, budget,budgetused,budgetUnspent
         })
     } catch (e) {
         console.log("ProjectError",e);
@@ -173,4 +177,116 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
     }
 })
 
+router.post("/uc/recurring/:id", fetchUser, async (req, res) => {
+    try {
+        const { data } = req.body;
+        if (!data) {
+            return res.status(400).json({ success:false,msg: "Missing data in request body" });
+        }
+        console.log("data",data);
+        const prev= await RecurringUC.findOne({projectId:req.params.id,currentYear:data.currentYear});
+        if(prev){
+            return res.status(400).json({ success:false,msg: "Already Submitted for Current Financial Year" });
+        }
+        const newGrant = new RecurringUC({
+            projectId: req.params.id,
+            title: data.title,
+            scheme: data.scheme,
+            currentYear: data.currentYear,
+            startDate: data.startDate,
+            endDate: data.endDate,
+            CarryForward: data.CarryForward,
+            yearTotal: data.yearTotal,
+            total: data.total,
+            type:"recurring",
+            recurringExp:data.recurring,
+            humanResource: data.human_resources,
+            consumables:data.consumables,
+            others:data.others
+        });
+
+        await newGrant.save();
+        res.status(201).json({success:true, msg: "Recurring Grant added successfully", grant: newGrant });
+    } catch (error) {
+        console.error("Error creating grant:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+router.post("/uc/nonRecurring/:id", fetchUser, async (req, res) => {
+    try {
+        const { data } = req.body;
+        console.log("data",data);
+        if (!data) {
+            return res.status(400).json({ error: "Missing data in request body" });
+        }
+        console.log("data",data);
+        const prev= await NonRecurringUC.findOne({projectId:req.params.id,currentYear:data.currentYear});
+        if(prev){
+            return res.status(400).json({ success:false,msg: "Already Submitted for Current Financial Year" });
+        }
+        const newGrant = new NonRecurringUC({
+            projectId: req.params.id,
+            title: data.title,
+            scheme: data.scheme,
+            currentYear: data.currentYear,
+            startDate: data.startDate,
+            endDate: data.endDate,
+            type:"nonRecurring",
+            CarryForward: data.CarryForward,
+            yearTotal: data.yearTotal,
+            total: data.total,
+                nonRecurringExp:data.nonRecurring,
+        });
+
+        await newGrant.save();
+        res.status(201).json({success:true, msg: "Recurring Grant added successfully", grant: newGrant });
+    } catch (error) {
+        console.error("Error creating grant:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+router.get("/ucforms/:id", fetchUser, async (req, res) => {
+    try {
+        const recurringgrant = await RecurringUC.find({projectId:req.params.id});
+        const grant = await NonRecurringUC.find({projectId:req.params.id});
+        
+        if (grant.length<=0&&recurringgrant.length<=0) {
+            return res.status(404).json({ succes:false,msg: "Utilization Certificates not found" });
+        }
+
+        res.status(200).json({success:true,grant,recurringgrant,msg:"Utilization Certificates Fetched"});
+    } catch (error) {
+        console.error("Error fetching grant:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+router.get("/ucforms/recurring/:id", fetchUser, async (req, res) => {
+    try {
+        const grant = await RecurringUC.findById(req.params.id);
+        
+        if (!grant) {
+            return res.status(404).json({ succes:false,msg: "Utilization Certificate not found" });
+        }
+        res.status(200).json({success:true,grant,msg:"Utilization Certificate Details Fetched"});
+    } catch (error) {
+        console.error("Error fetching grant:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+router.get("/ucforms/nonRecurring/:id", fetchUser, async (req, res) => {
+    try {
+        console.log(req.params.id);
+        const {id}=req.params
+        const grant = await NonRecurringUC.findById(id);
+        console.log(grant);
+        if (!grant) {
+            return res.status(404).json({ succes:false,msg: "Utilization Certificate not found" });
+        }
+        res.status(200).json({success:true,grant,msg:"Utilization Certificate  Details Fetched"});
+    } catch (error) {
+        console.error("Error fetching grant:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
 module.exports = router;

@@ -38,7 +38,8 @@ import SE from "./pages/uc/se/SE.jsx";
 import InstituteLogin from "./pages/college/InstituteLogin";
 import InstituteDashboard from "./pages/college/InstituteDashboard";
 import RegisterInstitute from "./pages/college/RegisterInstitute.jsx";
-
+import DisplayUC from "./pages/uc/se/DisplayUC.jsx"
+import Certificates from "./pages/uc/se/Certificate.jsx";
 
 
 function App() {
@@ -94,6 +95,8 @@ function MainLayout() {
           <Route path="/se/:id" element={<SE />} />
           <Route path="/project-approval/:id" element={<SelectDate />} />
           <Route path="/sanctionedproposals" element={<SanctionedProposals />} />
+          <Route path="/certificates/:id" element={<DisplayUC />} />
+          <Route path="/certificate-details/:type/:id" element={<Certificates />} />
           <Route path="/error" element={<Error />} />
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
