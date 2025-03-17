@@ -512,6 +512,35 @@ const approvedProjects = async () => {
     console.log("User logged out!!");
  }
 
+ const getProject = async (id) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+      console.log("Use a valid Token");
+      alert("Authentication required.");
+      return;
+  }
+ 
+  try {
+    console.log("Proposal",id);
+      const response = await fetch(`${url}projects/get-project/${id}`, {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json",
+              "accessToken": ` ${token}`,
+          },
+      });
+      console.log(response);
+      if (!response.ok) {
+          throw new Error("Failed to fetch project details");
+      }
+      const data = await response.json();
+      console.log("Data",data);
+      return {data};
+  } catch (error) {
+      console.error(error);
+  }
+};
+
  // institute side 
 
 
@@ -652,7 +681,7 @@ const userInstiAcceptedProposals = async (userId) => {
      authState,edituser,incompleteProposals,getpi, submitProposal,logout,uploadFile,
       submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails,
        submitPIDetails, submitAcknowledgement, getuser, approvedProjects , fetchInstituteProjects,
-        userInstiAcceptedProposals,createInstitute,fetchInstituteUsers, loginInstitute,loginInstitute}}>
+        userInstiAcceptedProposals,createInstitute,fetchInstituteUsers, loginInstitute,getProject}}>
       {props.children}
     </AuthContext.Provider>
   );
