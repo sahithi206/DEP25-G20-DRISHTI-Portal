@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 
 const YearlySchema = new Schema({
     projectId: { type: Schema.Types.ObjectId, ref: "Project", required: true },
+    budgetUnspent:{type:Number,default:0},
     budgetSanctioned:{
         nonRecurring:{type:Number,required:true},
         recurring:{
