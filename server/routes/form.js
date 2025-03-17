@@ -17,6 +17,7 @@ const path = require("path");
 const fs = require("fs");
 const nodemailer=require("nodemailer");
 const NonRecurring = require("../Models/NonRecurring");
+const budgetSanctioned = require("../Models/budgetSanctioned.js");
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -95,8 +96,8 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER, // Your email
-    pass: process.env.EMAIL_PASS, // App password
+    user: process.env.EMAIL_USER, 
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -138,6 +139,7 @@ async function sendEmailNotification(user, status, comment) {
 
 router.put("/update-proposals/:id", fetchUser, async (req, res) => {
   try {
+    let userId=req.user._id;
     let { status, comment } = req.body;
     let {id} = req.params;
     let proposal = await Proposal.findById(id).populate("userId");
@@ -145,11 +147,31 @@ router.put("/update-proposals/:id", fetchUser, async (req, res) => {
       console.log("Proposal not found in database!");
       return res.status(404).json({ message: "Proposal not found" });
     }
-
     proposal=await Proposal.findByIdAndUpdate({_id:id},{status:status},{new:true});
     await sendEmailNotification(proposal.userId, status, comment);
-
-    res.json({ message: "Proposal updated and email sent" });
+    if(status==="Approved"){
+      const {nonRecurringCost,recurringCost,yearTotal,TotalCost}=req.body;
+      if(!nonRecurringCost||!recurringCost||!yearTotal||!TotalCost){
+        return res.status(400).json({msg:"Enter all the Budget Details!!",success:false});
+      }
+      const budget= await new budgetSanctioned({
+        proposalId:proposal._id,
+        TotalCost:TotalCost,
+        budgetSanctioned:{
+           nonRecurring:nonRecurringCost,
+           recurring:{
+           human_resources:recurringCost.human_resources,
+           consumables:recurringCost.consumables,
+           others:recurringCost.others,
+           total:recurringCost.total
+          },
+          yearTotal:yearTotal
+        }
+       
+      }).save();
+     return  res.status(200).json({ success:true, budget,msg: "Proposal updated and Budget Alloted"});
+    }
+    res.status(200).json({success:true, msg: "Proposal updated" });
   } catch (error) {
     console.error("Error updating proposal:", error);
     res.status(500).json({ message: "Error updating proposal" });
@@ -229,8 +251,6 @@ router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) 
     const researchDetails = new ResearchDetails({
         Title,Duration,Summary,objectives,Output,other,proposalId
     });
-    /*const details= await ResearchDetails.findOne({proposalId:proposal[0].ProposalId});
-    console.log(details);*/
     await researchDetails.save();
     res.status(200).json({ success: true, msg: "Research details saved" });
   } catch (error) {
@@ -457,37 +477,31 @@ router.post("/submit-bank-details/:proposalId", fetchUser, async (req, res) => {
 //   }
 // });
 
-
 router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
   try {
     const { piList, coPiList } = req.body;
     const { proposalId } = req.params;
 
-    // Check if piList and coPiList are provided
     if (!piList || !coPiList) {
       return res.status(400).json({ success: false, msg: "PI List and Co-PI List are required" });
     }
 
-    // Check if the user exists
     const user = await User.findById(req.user._id).populate("proposals");
     if (!user) {
       return res.status(404).json({ success: false, msg: "User not found" });
     }
 
-    // Check if the proposal exists
     const proposal = await Proposal.findById(proposalId);
     if (!proposal) {
       return res.status(404).json({ success: false, msg: "Proposal not found" });
     }
 
-    // Check if PI details already exist for the proposal
     const existingPI = await PI.findOne({ proposalId });
     if (existingPI) {
       await PI.findOneAndUpdate({ proposalId }, { piList, coPiList }, { new: true });
       return res.status(200).json({ success: true, msg: "Updated PI Details Successfully" });
     }
 
-    // Create new PI details
     const piDetails = new PI({ proposalId, piList, coPiList });
     await piDetails.save();
 
@@ -603,11 +617,6 @@ router.get("/acceptedproposals", fetchUser, async (req, res) => {
     const data = await Promise.all(proposals.map(async (proposal) => {
       console.log("Processing Proposal ID:", proposal._id);
       const proposalId=proposal._id;
-    /*  const generalInfo = await GeneralInfo.findOne({ proposalId: proposal._id })
-        .select({ 'instituteName': 1, 'areaOfSpecialization': 1 });
-
-      console.log("General Info:", generalInfo);*/
-
       const researchDetails = await ResearchDetails.findOne({ proposalId: proposal._id })
         .select("Title");
       console.log("Research Details:", researchDetails);
