@@ -84,14 +84,14 @@ function MainLayout() {
         <Route path="/misc-request" element={<MiscRequest />} />
         <Route path="/view-profile" element={<UserProfile />} />
         <Route path="/edit-profile" element={<EditProfile />} />
-          <Route path="/forgot-password" element={<Forgotpassword />} />
-          <Route path="/change-password" element={<ChangePassword/>} />
+        <Route path="/forgot-password" element={<Forgotpassword />} />
+        <Route path="/change-password" element={<ChangePassword/>} />
         <Route path="/error" element={<Error />} />
-      <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
+        <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
-      <Route path="/review-proposals" element={<AdminReviewProposals />} />
-      <Route path="/fund-cycle" element={<FundCycleApproval />} />
+        <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
+        <Route path="/review-proposals" element={<AdminReviewProposals />} />
+        <Route path="/fund-cycle" element={<FundCycleApproval />} />
         <Route path="/requests" element={<RequestsPage />} />
         <Route path="/schemes" element={<SchemeManagement />} />
         <Route path="/institute-login" element={<InstituteLogin />} />
