@@ -539,8 +539,28 @@ const approvedProjects = async () => {
       console.error(error);
   }
 };
+  
+  const getSchemes = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/schemes/get-schemes", { // Ensure correct URL
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
- // institute side 
+      if (!response.ok) {
+        throw new Error(`Failed to fetch schemes: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching schemes:", error);
+      return [];
+    }
+  };
+// institute side 
 
 
  // to be used when institute verification done 
@@ -738,7 +758,7 @@ const fetchInstituteGetProject = async (projectId) => {
       submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails,
        submitPIDetails, submitAcknowledgement, getuser, approvedProjects , fetchInstituteProjects,
         userInstiAcceptedProposals,createInstitute,fetchInstituteUsers, loginInstitute,getProject,fetchSanctionedProjects,
-        fetchInstituteGetProject}}>
+        fetchInstituteGetProject,getSchemes}}>
       {props.children}
     </AuthContext.Provider>
   );
