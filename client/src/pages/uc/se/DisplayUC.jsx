@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate,useParams } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
@@ -35,7 +35,7 @@ const UtilizationCertificates = () => {
                     setError(data.msg || "Error fetching certificates");
                     return;
                 }
-
+                console.log("Display",data);
                 setRecurringCertificates(data.recurringgrant);
                 setNonRecurringCertificates(data.grant);
             } catch (error) {

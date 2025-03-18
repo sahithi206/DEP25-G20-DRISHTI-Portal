@@ -183,7 +183,6 @@ router.post("/uc/recurring/:id", fetchUser, async (req, res) => {
         if (!data) {
             return res.status(400).json({ success:false,msg: "Missing data in request body" });
         }
-        console.log("data",data);
         const prev= await RecurringUC.findOne({projectId:req.params.id,currentYear:data.currentYear});
         if(prev){
             return res.status(400).json({ success:false,msg: "Already Submitted for Current Financial Year" });
@@ -204,7 +203,7 @@ router.post("/uc/recurring/:id", fetchUser, async (req, res) => {
             consumables:data.consumables,
             others:data.others
         });
-
+        console.log("ucrecurring",newGrant);
         await newGrant.save();
         res.status(201).json({success:true, msg: "Recurring Grant added successfully", grant: newGrant });
     } catch (error) {

@@ -15,14 +15,14 @@ const YearlySchema = new Schema({
         yearTotal:{type:Number,required:true},
     },
     budgetUsed:{
-        nonRecurring:{type:Number},
+        nonRecurring:{type:Number,default:0},
         recurring:{
-            human_resources:{type:Number},
-            consumables:{type:Number},
-            others:{type:Number},
-            total:{type:Number}
+            human_resources:{type:Number,default:0},
+            consumables:{type:Number,default:0},
+            others:{type:Number,default:0},
+            total:{type:Number,default:0}
         },
-        yearTotal:{type:Number},
+        yearTotal:{type:Number,default:0},
     },
     progressReport:{ type: Schema.Types.ObjectId, ref: "Report"}
 });

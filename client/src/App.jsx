@@ -115,7 +115,7 @@ function MainLayout() {
           <Route path="/running-projects" element={<RunningProjects />} />
           <Route path="/institute/user-proposals/:userId" element={<UserProposalsInsti />} />
           <Route path="/sanctioned-projects" element={<SanctionedProjects />} />
-          <Route path="/sanctioned-project-dashboard/:projectId" element={<SanctionedDashboard />} />
+          <Route path="/sanctioned-project-dashboard/:id" element={<SanctionedDashboard />} />
         </Route>
       </Routes>
     </div>

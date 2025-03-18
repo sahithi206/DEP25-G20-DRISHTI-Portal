@@ -10,7 +10,6 @@ const UCForm = () => {
         const navigate = useNavigate();
                 const [user,setUser]=useState({});
                 const {getuser}=useContext(AuthContext);
-        
         const [data,setData]=useState({
             projectId:"",
             grantType:"nonRecurring",
@@ -43,6 +42,7 @@ const UCForm = () => {
                     setUser(user);
                     const json = await getProject(id);
                     const info = json.data;
+                    console.log(info);
                     const newData = {
                         projectId: info.project?._id || "",
                         institute: info.generalInfo?.instituteName || "NA",
@@ -50,17 +50,18 @@ const UCForm = () => {
                         title: info.project?.Title || "NA",
                         scheme: info.project?.Scheme || "NA",
                         currentYear: info.project?.currentYear || "NA",
-                        CarryForward: info.project?.CarryForward || 0,
                         grantType: data.grantType
                     };
                     console.log(info.budgetused);
                     if (data.grantType === "recurring") {
+                        newData.CarryForward= info.CarryForward?.info.CarryForward.recurring.total || 0,
                         newData.yearTotal= info.budget?.recurring.total || 0,
                         newData.recurring = info.budgetused?.recurring.total || 0;
                         newData.human_resources = info.budgetused?.recurring.human_resources || 0;
                         newData.consumables = info.budgetused?.recurring.consumables || 0;
                         newData.others = info.budgetused?.recurring.others || 0;
                     } else {
+                        newData.CarryForward= info.CarryForward?.info.CarryForward.nonRecurring|| 0,
                         newData.yearTotal= info.budget?.nonRecurring || 0,
                         newData.nonRecurring = info.budgetused?.nonRecurring || 0;
                     }
@@ -194,7 +195,7 @@ const UCForm = () => {
                                             <td className="border border-gray-400 px-4 py-2">₹ {data.yearTotal}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ {data.total}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ {data.grantType==="recurring"?data.recurring:data.nonRecurring}</td>
-                                            <td className="border border-gray-400 px-4 py-2">₹ {data.grantType==="recurring"?data.total-data.recurring:data.total-data.nonRecurring}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {data.grantType==="recurring"?parseFloat(data.total-data.recurring)||0:data.total-data.nonRecurring}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -225,7 +226,7 @@ const UCForm = () => {
                             <label className="font-semibold text-gray-700">Details of Grants Position at the End of the Year</label>
                             <ul className="list-disc pl-7">
                                 <li>Balance (Carry forward to Next Year) <span className="text-gray-500">: ₹ {data.CarryForward}</span></li>
-                                <li>Total Expenditure incurred <span className="text-gray-500">: ₹ {data.grantType==="recurring"?data.total-data.recurring:data.total-data.nonRecurring}</span></li>
+                                <li>Total Expenditure incurred <span className="text-gray-500">: ₹ {data.grantType==="recurring"?parseInt(data.total)-parseInt(data.recurring):data.total-data.nonRecurring}</span></li>
                             </ul>
                         </div>
 

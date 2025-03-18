@@ -11,6 +11,7 @@ const Certificates = () => {
     const { getuser } = useContext(AuthContext);
     const [data, setData] = useState({});
     const [user, setUser] = useState({});
+    const [closing,setClosing]=useState(data.total);
     const { id, type } = useParams();
 
     const [loading, setLoading] = useState(true);
@@ -48,6 +49,11 @@ const Certificates = () => {
                 const user = await getuser();
                 setUser(user);
                 console.log(user);
+                if(type==="nonRecurring"){
+                    setClosing(data.total - data.nonRecurringExp);
+                }else {
+                    setClosing(data.total - data.recurringExp);
+                }
             } catch (error) {
                 console.error("Error fetching certificates:", error);
                 setError("Internal Server Error");
@@ -55,7 +61,7 @@ const Certificates = () => {
         };
 
         fetchCertificates();
-    }, []);
+    }, [type]);
 
 
     return (
@@ -63,7 +69,7 @@ const Certificates = () => {
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                <HomeNavbar isSidebarOpen={isSidebarOpen} />
+                <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/certificates/${data.projectId}`} />
                 <div className="p-6 space-y-6 mt-16">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
                         <h1 className="text-3xl font-black text-gray-900 mb-2">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
@@ -120,7 +126,7 @@ const Certificates = () => {
                                             <td className="border border-gray-400 px-4 py-2">₹ {data.yearTotal}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ {data.total}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ {data.type === "recurring" ? data.recurringExp : data.nonRecurringExp}</td>
-                                            <td className="border border-gray-400 px-4 py-2">₹ {data.grantType === "recurring" ? data.total - data.recurringExp : data.total - data.nonRecurringExp}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {closing}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -151,21 +157,15 @@ const Certificates = () => {
                             <label className="font-semibold text-gray-700">Details of Grants Position at the End of the Year</label>
                             <ul className="list-disc pl-7">
                                 <li>Balance (Carry forward to Next Year) <span className="text-gray-500">: ₹ {data.CarryForward}</span></li>
-                                <li>Total Expenditure incurred <span className="text-gray-500">: ₹ {data.type === "recurring" ? data.total - data.recurringExp : data.total - data.nonRecurringExp}</span></li>
+                                <li>Total Expenditure incurred <span className="text-gray-500">: ₹ {closing}</span></li>
                             </ul>
                         </div>
 
                         <div className="mb-4 py-4 flex justify-center space-x-10">
     <button
-        className="mt-4 bg-blue-600 text-white px-6 py-2 w-1/5 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md"
+        className="mt-4 bg-blue-600 text-white px-6 py-2 w-full rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md"
     >
         Export as PDF
-    </button>
-    <button
-        className="mt-4 bg-blue-600 text-white px-6 py-2 w-1/5 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md"
-        onClick={() => navigate(`/certificates/${data.projectId}`)}
-    >
-        Back
     </button>
 </div>
 
