@@ -763,87 +763,6 @@ const fetchInstituteGetProject = async (projectId) => {
       console.error("Error deleting proposal:", error);
     }
   };
-  const adminVerifyOtp = async (data) => {
-    try {
-      console.log("Verifying OTP with data:", JSON.stringify(data));
-
-      const response = await fetch(`${url}auth/admin-verify-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        console.log("Signup Successful!", result);
-        console.log("Your token: " + result.accessToken);
-
-        localStorage.setItem("token", result.accessToken);
-        navigate("/adminLogin");
-      } else {
-        console.error("Error:", result.msg);
-        alert("Error: " + result.msg);
-      }
-    } catch (error) {
-      console.error("Error verifying OTP:", error);
-      alert("Something went wrong while verifying OTP.");
-    }
-  };
-
-  const getAdmin = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.log("Token not found. Please log in.");
-      return;
-    }
-
-    try {
-      const response = await fetch(`${url}auth/get-admin`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "accessToken": token,
-        },
-      });
-
-      const json = await response.json();
-      if (!json.success) {
-        console.error(json.msg);
-        return;
-      }
-
-      console.log("Logged-in Admin:", json.admin);
-      return json.admin;
-    } catch (error) {
-      console.error("Error fetching admin:", error);
-    }
-  };
-
-
-  const adminLogin = async (email, password, navigate) => {
-    try {
-      const response = await fetch(`${url}auth/admin-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const json = await response.json();
-      if (!response.ok) throw new Error(json.msg || "Invalid credentials");
-
-      console.log("Admin logged in successfully:", json);
-
-      if (json.success) {
-        localStorage.setItem("token", json.accessToken);
-          navigate("/admin");
-      }
-    } catch (e) {
-      console.error("Cannot Login:", e.message);
-      alert(e.message || "Invalid Credentials");
-    }
-  };
-
 
   return (
     <AuthContext.Provider value={{ sendOtp, verifyOtp, login,unsavedProposal,
@@ -851,7 +770,7 @@ const fetchInstituteGetProject = async (projectId) => {
       submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails,
        submitPIDetails, submitAcknowledgement, getuser, approvedProjects , fetchInstituteProjects,
         userInstiAcceptedProposals,createInstitute,fetchInstituteUsers, loginInstitute,getProject,fetchSanctionedProjects,
-        fetchInstituteGetProject,getSchemes,deleteProposal, adminLogin, adminVerifyOtp, getAdmin}}>
+        fetchInstituteGetProject,getSchemes,deleteProposal}}>
       {props.children}
     </AuthContext.Provider>
   );
