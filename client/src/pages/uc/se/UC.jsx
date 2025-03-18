@@ -100,15 +100,12 @@ const UCForm = () => {
                     "Content-Type": "application/json",
                     "accessToken": ` ${token}`,
                 },
-                body: JSON.stringify({data}),
-            });
-    
-            if (!response.ok) throw new Error("Submission failed");
-            
+                body: JSON.stringify({data:data}),
+            });            
             const json = await response.json();
             if(json.success)
             {alert("Data submitted successfully!");}
-            else{alert("Error in Submitting form");}
+            else{alert(json.msg);}
             navigate(`/project-dashboard/${id}`)
         } catch (error) {
             console.error("Error:", error);

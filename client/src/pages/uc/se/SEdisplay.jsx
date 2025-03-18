@@ -6,23 +6,24 @@ import { AuthContext } from "../../Context/Authcontext";
 const url = import.meta.env.VITE_REACT_APP_URL;
 
 const SEForm = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);;
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const navigate = useNavigate();
-    const [user, setUser] = useState();
-    const { getuser } = useContext(AuthContext);
+    const { id } = useParams();
+    const {getuser}=useContext(AuthContext)
+    const [user, setUser] = useState({});
     const [yearlyBudget, setYearly] = useState([]);
     const [budgetSanctioned, setSanctioned] = useState({});
     const [budget, setBudget] = useState([]);
     const [manpower, setManpower] = useState([]);
     const [consumables, setConsumables] = useState([]);
     const [total, setTotal] = useState([]);
-    const [totalExp,setExp]=useState({});
-    const [balance,setBalance]=useState({});
+    const [totalExp, setExp] = useState({});
+    const [balance, setBalance] = useState({});
     const [others, setOthers] = useState([]);
     const [equipment, setEquipment] = useState([]);
 
     const [data, setData] = useState({
-        name:"",
+        name: "",
         projectId: "",
         endDate: "",
         startDate: "",
@@ -32,155 +33,74 @@ const SEForm = () => {
         currentYear: "",
         TotalCost: 0
     });
-    const { id } = useParams();
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    const { getProject } = useContext(AuthContext);
     useEffect(() => {
-        const fetchProjectDetails = async () => {
+       
+        const fetchSe = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Authentication required.");
+                return;
+            }
             try {
-                const json = await getProject(id);
-                const info = json?.data || {};
-                console.log(info);
-    
-                setData(prevData => ({
-                    ...prevData,
-                    projectId: info.project?._id || "",
-                    institute: info.generalInfo?.instituteName || "NA",
-                    name: info.generalInfo?.name || "NA",
-                    title: info.project?.Title || "NA",
-                    scheme: info.project?.Scheme || "NA",
-                    currentYear: info.project?.currentYear || "NA",
-                    TotalCost: info.project?.TotalCost || 0,
-                }));
-                if(info.project?.budgetTotal){
-                    setSanctioned({
-                        "human_resources":info.project.budgetTotal?.recurring?.human_resources,
-                        "consumables":info.project.budgetTotal?.recurring?.consumables,
-                        "others":info.project.budgetTotal?.recurring?.others,
-                        "nonRecurring":info.project.budgetTotal?.nonRecurring,
-                        "total":info.project.budgetTotal?.total
-                    });
+                const get = await getuser();
+                setUser(get);
+                const response = await fetch(`${url}projects/se/${id}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "accessToken": token,
+                    },
+                });
 
+                if (!response.ok) throw new Error("Failed to fetch data");
+
+                const json = await response.json();
+                if (json.success) {
+                    setUser(json.se || {});
+                    setYearly(json.se?.yearlyBudget || []);
+                    setSanctioned(json.se?.budgetSanctioned || {});
+                    setBudget(json.se?.budget || []);
+                    setManpower(json.se?.manpower || []);
+                    setConsumables(json.se?.consumables || []);
+                    setTotal(json.se?.total || []);
+                    setExp(json.se?.totalExp || {});
+                    setBalance(json.se?.balance || {});
+                    setOthers(json.se?.others || []);
+                    setEquipment(json.se?.equipment || []);
+                    setData((prevData) => ({
+                        ...prevData,
+                        projectId: json.se?.projectId || "",
+                        institute: json.se?.institute || "",
+                        name: json.se?.name || "",
+                        scheme: json.se?.scheme || "",
+                        currentYear: json.se?.currentYear || "",
+                        startDate: json.se?.startDate || "",
+                        endDate: json.se?.endDate || "",
+                    }));
+                } else {
+                    alert("Error in Fetching form");
                 }
-                setYearly(info.yearlySanct || []);
-                setBudget(info.yearlyExp || []);
-            } catch (error) {
-                setError(error.message);
-            } finally {
-                setLoading(false);
+            } catch (e) {
+                console.error("Error fetching data:", e);
+                alert("Failed to fetch data.");
             }
         };
-    
-        fetchProjectDetails();
+        fetchSe();
     }, [id]);
-    
-    useEffect(() => {
-        if (!budget || !budgetSanctioned) return;
-    
-        let manpowerExp = 0, consumablesExp = 0, othersExp = 0, equipmentExp = 0, totalExp = 0;
-        let manpowerArray = [], consumablesArray = [], othersArray = [], equipmentArray = [], totalArray = [];
-    
-        budget.forEach(val => {
-            if (val?.recurring?.human_resources !== undefined) {
-                manpowerExp += val.recurring.human_resources;
-                manpowerArray.push(val.recurring.human_resources);
-            }
-            if (val?.recurring?.consumables !== undefined) {
-                consumablesExp += val.recurring.consumables;
-                consumablesArray.push(val.recurring.consumables);
-            }
-            if (val?.recurring?.others !== undefined) {
-                othersExp += val.recurring.others;
-                othersArray.push(val.recurring.others);
-            }
-            if (val?.nonRecurring !== undefined) {
-                equipmentExp += val.nonRecurring;
-                equipmentArray.push(val.nonRecurring);
-            }
-            if (val?.yearTotal !== undefined) {
-                totalExp += val.yearTotal;
-                totalArray.push(val.yearTotal);
-            }
-        });
-    
-        setManpower(manpowerArray);
-        setConsumables(consumablesArray);
-        setOthers(othersArray);
-        setEquipment(equipmentArray);
-        setTotal(totalArray);
-        
-        setExp({
-            human_resources: manpowerExp,
-            consumables: consumablesExp,
-            others: othersExp,
-            nonRecurring: equipmentExp,
-            total: totalExp
-          });
-          
-        
-          setBalance({
-            human_resources: (budgetSanctioned?.human_resources || 0) - manpowerExp,
-            consumables: (budgetSanctioned?.consumables || 0) - consumablesExp,
-            others: (budgetSanctioned?.others || 0) - othersExp,
-            nonRecurring: (budgetSanctioned?.nonRecurring || 0) - equipmentExp,
-            total: data.TotalCost - totalExp
-          });
-          
-    
-    }, [budget]);
-    
-
-    console.log(budget);
-    console.log("Manpower", manpower);
-    const handleChange = (e) => {
-        setData((prevData) => ({ ...prevData, [e.target.name]: e.target.value }));
-    };
-
-    const handleSubmit = async () => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Authentication required.");
-            return;
-        }
-        try {
-            const response = await fetch(`${url}projects/se`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "accessToken": ` ${token}`,
-                },
-                body: JSON.stringify({ data:data,yearlyBudget:yearlyBudget,
-                    budgetSanctioned:budgetSanctioned,
-                    manpower:manpower,consumables:consumables,
-                    others:others,equipment:equipment,
-                    total:total,totalExp:totalExp,balance:balance }),
-            });
-
-            if (!response.ok) throw new Error("Submission failed");
-
-            const json = await response.json();
-            if (json.success) { alert("Data submitted successfully!"); }
-            else { alert("Error in Submitting form"); }
-            navigate(`/project-dashboard/${id}`)
-        } catch (error) {
-            console.error("Error:", error);
-            alert("Error in submitting data!");
-        }
-    };
 
     return (
         <div className="flex bg-gray-100 min-h-screen">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/project-dashboard/${id}`} />
+                <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/certificates/${data.projectId}`} />
                 <div className="p-6 space-y-6 mt-16">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
                         <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-                        <p className="mt-3 text-2xl font-bold text-blue-800">Request for Annual Installment with Up-to-Date Statement of Expenditure</p>
+                        <p className="mt-3 text-2xl font-bold text-blue-800">
+                            Request for Annual Installment with Up-to-Date Statement of Expenditure
+                        </p>
                     </div>
 
                     <div className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
@@ -199,28 +119,15 @@ const SEForm = () => {
                             <label className="font-semibold text-gray-700">Present Year of Project</label>
                             <span className="px-3 py-1 w-full">: {data.currentYear}</span>
                             <label className="font-semibold text-gray-700">Start Date of Year</label>
-                            <input
-                                type="date"
-                                name="startDate"
-                                value={data.startDate}
-                                onChange={handleChange}
-                                required
-                                className="border border-gray-400 rounded px-3 py-1 w-full"
-                            />
+                            <span className="px-3 py-1 w-full">: {data.startDate}</span>
+
                             <label className="font-semibold text-gray-700">End Date of Year</label>
-                            <input
-                                type="date"
-                                name="endDate"
-                                value={data.endDate}
-                                onChange={handleChange}
-                                required
-                                className="border border-gray-400 rounded px-3 py-1 w-full"
-                            />
+                            <span className="px-3 py-1 w-full">: {data.endDate}</span>
                         </div>
 
                         <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
-                        <ul className="list-disc pl-6 ">
-                            {yearlyBudget && yearlyBudget.map((sanct, index) => (
+                        <ul className="list-disc pl-6">
+                            {yearlyBudget.map((sanct, index) => (
                                 <li key={index} className="px-3 py-1 text-gray-700 font-bold w-full">
                                     <span>Year {index + 1}: {sanct}</span>
                                 </li>
@@ -336,15 +243,6 @@ const SEForm = () => {
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-
-                        <div className="mb-4 text-center py-4">
-                            <button
-                                className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg w-full hover:bg-blue-700 transition-all duration-200 shadow-md"
-                                onClick={handleSubmit}
-                            >
-                                Submit
-                            </button>
                         </div>
                     </div>
                 </div>

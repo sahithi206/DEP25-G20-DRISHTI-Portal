@@ -10,6 +10,7 @@ const UtilizationCertificates = () => {
     const [error, setError] = useState("");
     const [recurringCertificates, setRecurringCertificates] = useState([]);
     const [nonRecurringCertificates, setNonRecurringCertificates] = useState([]);
+    const [expenditureCertificates, setSE] = useState([]);
     const navigate = useNavigate();
      const {id}=useParams();
     useEffect(() => {
@@ -38,6 +39,7 @@ const UtilizationCertificates = () => {
                 console.log("Display",data);
                 setRecurringCertificates(data.recurringgrant);
                 setNonRecurringCertificates(data.grant);
+                setSE(data.se);
             } catch (error) {
                 console.error("Error fetching certificates:", error);
                 setError("Internal Server Error");
@@ -69,22 +71,28 @@ const UtilizationCertificates = () => {
                     </div>
 
                     <div className="mt-6">
-                        <h2 className="text-xl font-bold text-gray-800">Recurring Utilization Certificates</h2>
+                        <h2 className="text-xl font-bold text-gray-800">Utilization Certificates</h2>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm bg-white rounded-lg shadow-md overflow-hidden">
-                                <thead className="bg-blue-700">
+                                <thead className="bg-blue-800">
                                     <tr>
                                         <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Certificate ID</th>
+                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Type</th>
+                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Year</th>
                                         <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Scheme</th>
+                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Status</th>
                                         <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {recurringCertificates.length > 0 ? (
-                                        recurringCertificates.map((certificate) => (
+                                    {recurringCertificates&&recurringCertificates.length > 0 && recurringCertificates.map((certificate) => (
                                             <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0">
                                                 <td className="p-4 text-center text-sm text-gray-600">{certificate._id}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.type}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.currentYear}</td>
                                                 <td className="p-4 text-center text-sm text-gray-600">{certificate.scheme}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.status}</td>
+
                                                 <td className="p-4 text-center">
                                                     <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
                                                         onClick={() => handleViewCertificate(certificate)}>
@@ -93,36 +101,55 @@ const UtilizationCertificates = () => {
                                                 </td>
                                             </tr>
                                         ))
-                                    ) : (
+                                    }{nonRecurringCertificates&&nonRecurringCertificates&&nonRecurringCertificates.length > 0 &&nonRecurringCertificates.map((certificate) => (
+                                            <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-gray-500 last:border-b-0">
+                                                <td className="p-4 text-center text-sm text-gray-600">{certificate._id}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.type}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.currentYear}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.scheme}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.status}</td>
+                                                <td className="p-4 text-center">
+                                                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
+                                                        onClick={() => handleViewCertificate(certificate)}>
+                                                        View Certificate
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    }                                      
+                                    {!nonRecurringCertificates&&!recurringCertificates&&
                                         <tr>
-                                            <td colSpan="3" className="p-6 text-center text-gray-500">No Recurring Certificates Found</td>
+                                            <td colSpan="3" className="p-6 text-center text-gray-500">No Non-Recurring Certificates Found</td>
                                         </tr>
-                                    )}
+                                    }
                                 </tbody>
                             </table>
                         </div>
                     </div>
-
                     <div className="mt-6">
-                        <h2 className="text-xl font-bold text-gray-800">Non-Recurring Utilization Certificates</h2>
+                        <h2 className="text-xl font-bold text-gray-800">Statement of Expenditure Certificates</h2>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm bg-white rounded-lg shadow-md overflow-hidden">
-                                <thead className="bg-green-700">
+                                <thead className="bg-blue-800">
                                     <tr>
-                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-green-200">Certificate ID</th>
-                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-green-200">Scheme</th>
-                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-green-200">Action</th>
+                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Certificate ID</th>
+                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Year</th>
+                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Scheme</th>
+                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Status</th>
+                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {nonRecurringCertificates.length > 0 ? (
-                                        nonRecurringCertificates.map((certificate) => (
-                                            <tr key={certificate._id} className="hover:bg-green-50 transition-colors border-b border-green-200 last:border-b-0">
+                                    {expenditureCertificates&&expenditureCertificates.length > 0 ? (
+                                        expenditureCertificates.map((certificate) => (
+                                            <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0">
                                                 <td className="p-4 text-center text-sm text-gray-600">{certificate._id}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.currentYear}</td>
                                                 <td className="p-4 text-center text-sm text-gray-600">{certificate.scheme}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.status}</td>
                                                 <td className="p-4 text-center">
-                                                    <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all"
-                                                        onClick={() => handleViewCertificate(certificate)}>
+                                                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
+                                                        onClick={() => {navigate(`/certificate-details/se/${certificate._id}`)}}>
                                                         View Certificate
                                                     </button>
                                                 </td>
@@ -130,7 +157,7 @@ const UtilizationCertificates = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="3" className="p-6 text-center text-gray-500">No Non-Recurring Certificates Found</td>
+                                            <td colSpan="3" className="p-6 text-center text-gray-500">No Expenditure Certificates Found</td>
                                         </tr>
                                     )}
                                 </tbody>

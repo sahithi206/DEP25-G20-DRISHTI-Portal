@@ -11,12 +11,10 @@ const MiscRequest = () => {
         description: "",
     });
 
-    // Handle form input changes
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Fetch requests for the logged-in user
     useEffect(() => {
         const fetchRequests = async () => {
             try {

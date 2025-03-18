@@ -50,8 +50,12 @@ const Certificates = () => {
                 setUser(user);
                 console.log(user);
                 if(type==="nonRecurring"){
+                    console.log(data.nonRecurringExp);
+                    console.log("nonRecurring",data.total - data.nonRecurringExp)
                     setClosing(data.total - data.nonRecurringExp);
                 }else {
+                    console.log(data.nonRecurringExp);
+                    console.log("Recurring",data.total - data.recurringExp)
                     setClosing(data.total - data.recurringExp);
                 }
             } catch (error) {
@@ -61,7 +65,7 @@ const Certificates = () => {
         };
 
         fetchCertificates();
-    }, [type]);
+    }, [id,type]);
 
 
     return (

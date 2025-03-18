@@ -19,7 +19,7 @@ const budgetSanctioned = require("../Models/budgetSanctioned.js");
 const YearlyData = require("../Models/YearlyData.js");
 const { fetchInstitute } = require("../MiddleWares/fetchInstitute");
 const {ObjectId}=require("mongodb");
-
+const mongoose=require("mongoose");
 
 router.get("/institute-projects", fetchInstitute, async (req, res) => {
   try {
@@ -125,6 +125,64 @@ router.get("/users", fetchInstitute, async (req, res) => {
         console.log("InstituteProjectError", e);
         return res.status(500).json({ success: false, msg: "Failed to Fetch Project Dashboard", error: "Internal Server Error" });
     }
+});
+
+router.get("/get-ucRecurring-insti", fetchInstitute, async (req, res) => {
+  try {
+      const institute = req.institute.college;
+      console.log(req.institute.college);
+      const users = await User.find({ Institute: institute }).select("_id");
+      const userIds = users.map(user => user._id);
+      const projects = await Project.find({ userId: { $in: userIds } });
+      // console.log("Projects Found:", projects);
+      // console.log("Imported RecurringUC Model:", RecurringUC);
+      // console.log("Type of RecurringUC:", typeof RecurringUC);
+    //   const recurring = await RecurringUC.find({
+    //     projectId: { $in: projects.map(project => project._id) }
+    // });
+    const projectIds = projects.map(project => new mongoose.Types.ObjectId(project._id));
+    // console.log("Project IDs:", projectIds);
+
+    const recurring = await mongoose.connection.db.collection('recurringucs').find(
+      { projectId: { $in: projectIds } ,
+      status: "Pending for institute approval."      
+    }).toArray();
+    // console.log("Recurring UC Found:", recurring);
+      if (!recurring.length) {
+          return res.status(404).json({ success: false, msg: "No Recurring UC found" });
+      }
+
+      return res.status(200).json({ success: true, recurring });
+  } catch (error) {
+      console.error("Error fetching Recurring UC:", error.message);
+      return res.status(500).json({ success: false, msg: "Failed to fetch Recurring UC", error: error.message });
+  }
+});
+
+router.get("/get-ucNonRecurring-insti", fetchInstitute, async (req, res) => {
+  try {
+      const institute = req.institute.college;
+      const users = await User.find({ Institute: institute }).select("_id");
+      const userIds = users.map(user => user._id);
+      const projects = await Project.find({ userId: { $in: userIds } });
+
+      const projectIds = projects.map(project => new mongoose.Types.ObjectId(project._id));
+      console.log("Project IDs:", projectIds);
+
+      const nonRecurring = await mongoose.connection.db.collection('nonrecurringucs').find(
+          { projectId: { $in: projectIds },
+          status: "Pending for institute approval."      
+      }).toArray();
+
+      if (!nonRecurring.length) {
+          return res.status(404).json({ success: false, msg: "No Non-Recurring UC found" });
+      }
+
+      return res.status(200).json({ success: true, nonRecurring });
+  } catch (error) {
+      console.error("Error fetching Non-Recurring UC:", error.message);
+      return res.status(500).json({ success: false, msg: "Failed to fetch Non-Recurring UC", error: error.message });
+  }
 });
 
 
