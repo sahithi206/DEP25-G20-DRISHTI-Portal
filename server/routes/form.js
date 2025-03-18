@@ -136,57 +136,190 @@ async function sendEmailNotification(user, status, comment) {
   }
 }
 
-
 router.put("/update-proposals/:id", fetchUser, async (req, res) => {
   try {
-    let userId=req.user._id;
-    let { status, comment } = req.body;
-    let {id} = req.params;
+    let userId = req.user._id;
+    let { status, comment, budgetsanctioned, budgettotal, TotalCost } = req.body;
+    let { id } = req.params;
+
     let proposal = await Proposal.findById(id).populate("userId");
-    console.log(proposal);
     if (!proposal) {
       console.log("Proposal not found in database!");
       return res.status(404).json({ message: "Proposal not found" });
     }
-    proposal=await Proposal.findByIdAndUpdate({_id:id},{status:status},{new:true});
+    proposal = await Proposal.findByIdAndUpdate(
+      { _id: id },
+      { status: status },
+      { new: true }
+    );
     await sendEmailNotification(req.user, status, comment);
-    if(status==="Approved"){
-      const {budgetsanctioned,budgettotal,TotalCost}=req.body;
-      console.log(budgetsanctioned,budgettotal,TotalCost);
-      if(!budgetsanctioned||!budgettotal||!TotalCost){
-        return res.status(400).json({msg:"Enter all the Budget Details!!",success:false});
+    if (status === "Approved") {
+      console.log("Budget Received:", budgetsanctioned, budgettotal, TotalCost);
+
+      if (!budgetsanctioned || !budgettotal || !TotalCost) {
+        return res.status(400).json({ msg: "Enter all the Budget Details!!", success: false });
       }
-      const budget= await new budgetSanctioned({
-        proposalId:proposal._id,
-        TotalCost:TotalCost,
-        budgetTotal:{
-          nonRecurring:budgettotal.nonRecurring,
-          recurring:{
-            human_resources:budgettotal.recurring.human_resources,
-            consumables:budgettotal.recurring.consumables,
-            others:budgettotal.recurring.others,
-            total:budgettotal.recurring.total
-           },
-           total:TotalCost,
-      },
-        budgetSanctioned:{
-           nonRecurring:budgetsanctioned.nonRecurring,
-           recurring:{
-           human_resources:budgetsanctioned.recurring.human_resources,
-           consumables:budgetsanctioned.recurring.consumables,
-           others:budgetsanctioned.recurring.others,
-           total:budgetsanctioned.recurring.total
+      const budget = new budgetSanctioned({
+        proposalId: proposal._id,
+        TotalCost: TotalCost,
+        budgetTotal: {
+          nonRecurring: budgettotal?.nonRecurring ?? 0,
+          recurring: {
+            human_resources: budgettotal?.recurring?.human_resources ?? 0,
+            consumables: budgettotal?.recurring?.consumables ?? 0,
+            others: budgettotal?.recurring?.others ?? 0,
+            total: budgettotal?.recurring?.total ?? 0,
           },
-          yearTotal:budgetsanctioned.yearTotal
-        }
-       
-      }).save();
-     return  res.status(200).json({ success:true, budget,msg: "Proposal updated and Budget Alloted"});
+          total: TotalCost,
+        },
+        budgetSanctioned: {
+          nonRecurring: budgetsanctioned?.nonRecurring ?? 0,
+          recurring: {
+            human_resources: budgetsanctioned?.recurring?.human_resources ?? 0,
+            consumables: budgetsanctioned?.recurring?.consumables ?? 0,
+            others: budgetsanctioned?.recurring?.others ?? 0,
+            total: budgetsanctioned?.recurring?.total ?? 0,
+          },
+          yearTotal: budgetsanctioned?.yearTotal ?? 0,
+        },
+      });
+      await budget.save();
+      return res.status(200).json({ success: true, budget, msg: "Proposal updated and Budget Allotted" });
     }
-    res.status(200).json({success:true, msg: "Proposal updated" });
+    res.status(200).json({ success: true, msg: "Proposal updated" });
   } catch (error) {
     console.error("Error updating proposal:", error);
     res.status(500).json({ message: "Error updating proposal" });
+  }
+});
+
+
+router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) => {
+  const { Title,Duration,Summary,objectives,Output,other} = req.body;
+    const {proposalId}=req.params
+
+  try {
+    const props = await ResearchDetails.findOne({proposalId});
+    if(props){
+      await ResearchDetails.findOneAndUpdate({proposalId:proposalId},{Title,Duration,Summary,objectives,Output,other},{new:true});
+      return res.status(200).json({success:true,msg:"Research Details Updated!!"});
+    }
+    const researchDetails = new ResearchDetails({
+        Title,Duration,Summary,objectives,Output,other,proposalId
+    });
+    await researchDetails.save();
+    res.status(200).json({ success: true, msg: "Research details saved" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, msg: "Failed to save research details" });
+  }
+});
+router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
+  const { recurring_items, non_recurring_items } = req.body;
+  console.log("Received budget data:", recurring_items, non_recurring_items);
+  const { proposalId } = req.params;
+
+  try {
+    let totalRecurring = 0, totalNonRecurring = 0;
+    let items = [], consumables = [], employees = [], others = [];
+
+    if (recurring_items?.human_resources?.length > 0) {
+      employees = recurring_items.human_resources.map(emp => {
+        const noOfEmployees = parseFloat(emp.noOfEmployees) || 0;
+        const Emoluments = parseFloat(emp.Emoluments) || 0;
+        const total = parseFloat(emp.total) || 0;
+        totalRecurring += total;
+        return {
+          designation: emp.designation,
+          noOfEmployees,
+          Emoluments,
+          total
+        };
+      });
+      console.log("Manpower", employees);
+    }
+
+    if (recurring_items?.consumables?.length > 0) {
+      consumables = recurring_items.consumables.map(item => {
+        const quantity = parseFloat(item.quantity) || 0;
+        const perUnitCost = parseFloat(item.perUnitCost) || 0;
+        const total = perUnitCost * quantity;
+        totalRecurring += total;
+        return {
+          item: item.material,
+          quantity,
+          perUnitCost,
+          total
+        };
+      });
+      console.log("Material", consumables);
+    }
+
+    if (recurring_items?.others?.length > 0) {
+      others = recurring_items.others.map(expense => {
+        const amount = parseFloat(expense.amount) || 0;
+        totalRecurring += amount;
+        return {
+          description: expense.description,
+          amount
+        };
+      });
+      console.log("Others", others);
+    }
+
+    if (non_recurring_items?.items?.length > 0) {
+      items = non_recurring_items.items.map(item => {
+        const UnitCost = parseFloat(item.UnitCost) || 0;
+        const quantity = parseFloat(item.quantity) || 0;
+        const total = UnitCost * quantity;
+        totalNonRecurring += total;
+        return {
+          item: item.item,
+          UnitCost,
+          quantity,
+          total
+        };
+      });
+      console.log("Non-Recurring Items", items);
+    }
+
+    const recurringUpdate = await Recurring.findOneAndUpdate(
+      { proposalId },
+      {
+        human_resources: employees,
+        consumables: consumables,
+        others: others
+      },
+      { new: true, upsert: true }
+    );
+
+    const nonRecurringUpdate = await NonRecurring.findOneAndUpdate(
+      { proposalId },
+      { items },
+      { new: true, upsert: true }
+    );
+
+    const budgetUpdate = await Budget.findOneAndUpdate(
+      { proposalId },
+      {
+        recurring_total: totalRecurring,
+        non_recurring_total: totalNonRecurring,
+        total: totalRecurring + totalNonRecurring
+      },
+      { new: true, upsert: true }
+    );
+
+    console.log("Saved:", recurringUpdate);
+
+    const message = (recurringUpdate && nonRecurringUpdate && budgetUpdate)
+      ? "Updated Budget Details Successfully"
+      : "Budget details saved successfully";
+
+    res.status(200).json({ success: true, msg: message });
+
+  } catch (error) {
+    console.error("Error saving budget:", error);
+    res.status(500).json({ success: false, msg: "Failed to save budget details" });
   }
 });
 
@@ -220,6 +353,7 @@ router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
     res.status(500).json({ success: false, error,msg: "Failed to save general info" });
   }
 });
+
 router.post("/upload/:type/:id", upload.single("file"), (req, res) => {
   console.log("Received file:", req.file); 
   try{
@@ -270,6 +404,7 @@ router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) 
     res.status(500).json({ success: false, msg: "Failed to save research details" });
   }
 });
+
 router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
   const { recurring_items, non_recurring_items } = req.body;
   console.log("Received budget data:", recurring_items, non_recurring_items);
@@ -499,6 +634,7 @@ router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
     res.status(500).json({ success: false, msg: "Failed to store PI details" });
   }
 });
+
 router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
   const {objectId} = req.params;
   try {
@@ -661,6 +797,7 @@ router.post("/proposals/:id/comment", async (req, res) => {
   }
 });
 
+
 router.post("/add-coordinator", fetchUser, async (req, res) => {
   try {
     const { userId, userRole } = req.body;
@@ -707,4 +844,5 @@ router.get("/users", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 module.exports = router;
