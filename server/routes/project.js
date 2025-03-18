@@ -20,6 +20,7 @@ const YearlyData = require("../Models/YearlyData.js");
 const {ObjectId}=require("mongodb");
 const  RecurringUC = require("../Models/UcRecurring.js");
 const NonRecurringUC  = require("../Models/UcNonrecurring.js");
+const SE =require("../Models/se/SE.js");
 router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
     const { proposalId } = req.params;
     const { startDate } = req.body;
@@ -158,10 +159,16 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
         const generalInfo = await GeneralInfo.findById(ids.generalInfoId);
         const researchDetails = await ResearchDetails.findById(ids.researchDetailsId);
         const PIDetails = await PI.findById(ids.PIDetailsId);
-        const yearlyData = await Promise.all(
+        const yearlyExp = await Promise.all(
             ids.YearlyDataId.map(async (Id) => {
                 const budget = await YearlyData.findById(Id);
-                return budget ? budget.budgetSanctioned : null;
+                return budget ? budget.budgetUsed : null;
+            })
+        );
+        const yearlySanct = await Promise.all(
+            ids.YearlyDataId.map(async (Id) => {
+                const budget = await YearlyData.findById(Id);
+                return budget ? budget.budgetSanctioned.yearTotal : null;
             })
         );
         const budget = ids.YearlyDataId?.[project.currentYear - 1]?.budgetSanctioned || null;
@@ -169,7 +176,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
         const budgetUnspent=ids.YearlyDataId?.[project.currentYear - 1]?.budgetUnspent || null;
         return res.status(200).json({
             success: true, msg: "Fetched Project's Details Successfully",
-            project, generalInfo, researchDetails, PIDetails, budget,budgetused,budgetUnspent
+            project, generalInfo, researchDetails, PIDetails, budget,budgetused,budgetUnspent,yearlyExp,yearlySanct,
         })
     } catch (e) {
         console.log("ProjectError",e);
@@ -183,7 +190,7 @@ router.post("/uc/recurring/:id", fetchUser, async (req, res) => {
         if (!data) {
             return res.status(400).json({ success:false,msg: "Missing data in request body" });
         }
-        const prev= await RecurringUC.findOne({projectId:req.params.id,currentYear:data.currentYear});
+        const prev= await RecurringUC.findOne({projectId:req.params.id,scheme:data.scheme,currentYear:data.currentYear});
         if(prev){
             return res.status(400).json({ success:false,msg: "Already Submitted for Current Financial Year" });
         }
@@ -219,7 +226,7 @@ router.post("/uc/nonRecurring/:id", fetchUser, async (req, res) => {
             return res.status(400).json({ error: "Missing data in request body" });
         }
         console.log("data",data);
-        const prev= await NonRecurringUC.findOne({projectId:req.params.id,currentYear:data.currentYear});
+        const prev= await NonRecurringUC.findOne({projectId:req.params.id,scheme:data.scheme,currentYear:data.currentYear});
         if(prev){
             return res.status(400).json({ success:false,msg: "Already Submitted for Current Financial Year" });
         }
@@ -248,14 +255,15 @@ router.get("/ucforms/:id", fetchUser, async (req, res) => {
     try {
         const recurringgrant = await RecurringUC.find({projectId:req.params.id});
         const grant = await NonRecurringUC.find({projectId:req.params.id});
+        const se = await SE.find({projectId:req.params.id});
         
-        if (grant.length<=0&&recurringgrant.length<=0) {
-            return res.status(404).json({ succes:false,msg: "Utilization Certificates not found" });
+        if (grant.length<=0&&recurringgrant.length<=0&&se.length<=0) {
+            return res.status(404).json({ succes:false,msg: "Certificates not found" });
         }
 
-        res.status(200).json({success:true,grant,recurringgrant,msg:"Utilization Certificates Fetched"});
+        res.status(200).json({success:true,grant,se,recurringgrant,msg:"Certificates Fetched"});
     } catch (error) {
-        console.error("Error fetching grant:", error);
+        console.error("Error fetching Certificates:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
@@ -280,7 +288,7 @@ router.get("/ucforms/nonRecurring/:id", fetchUser, async (req, res) => {
         const grant = await NonRecurringUC.findById(id);
         console.log(grant);
         if (!grant) {
-            return res.status(404).json({ succes:false,msg: "Utilization Certificate not found" });
+            return res.status(400).json({ succes:false,msg: "Utilization Certificate not found" });
         }
         res.status(200).json({success:true,grant,msg:"Utilization Certificate  Details Fetched"});
     } catch (error) {
@@ -288,4 +296,59 @@ router.get("/ucforms/nonRecurring/:id", fetchUser, async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+router.post("/se",fetchUser,async(req,res)=>{
+ try{
+   const { data,yearlyBudget,budgetSanctioned,manpower,consumables,others,equipment,total,totalExp,balance } = req.body;
+   if(!data||!yearlyBudget||!budgetSanctioned||!manpower||!consumables||!others||!equipment||!total||!totalExp||!balance){
+    return res.status(400).json({ success:false,msg:"Fill all the Details" });
+   }
+      const seCheck= await SE.findOne({projectId:data.projectId,scheme:data.scheme,currentYear:data.currentYear});
+      console.log(seCheck);
+      if(seCheck){
+        return res.status(400).json({success:false,msg:"Statement for Current Financial Year was already Submitted"})
+      }
+   const se= new SE({
+      projectId:data.projectId,
+      name:data.name,
+      institute:data.institute,
+        scheme:data.scheme,
+        currentYear:data.currentYear,
+        startDate:data.startDate,
+        endDate:data.endDate,
+        TotalCost:data.TotalCost,
+        status:"Pending for institute approval.",
+        yearlyBudget:yearlyBudget,
+        budgetSanctioned:budgetSanctioned,
+        human_resources:manpower,
+        consumables:consumables,
+        others:others,
+        nonRecurring:equipment,
+        total:total,
+        totalExp:totalExp,
+        balance:balance,
+   });
+   await se.save();
+
+   res.status(200).json({success:true,msg:"Statement of Expenditure not Submitted",se});
+ }
+ catch(e){
+    console.error("Error Submitting SE:", e);
+        res.status(500).json({ error: "Internal Server Error" });
+ }
+})
+
+router.get("/se/:id",fetchUser,async(req,res)=>{
+    try{
+       const {id}=req.params;
+       const se=await SE.findById(id);
+       if(!se){
+         return res.status(400).json({success:false,msg:"Statement of Expenditure Not Found"})
+       }
+      res.status(200).json({success:true,msg:"Statement of Expenditure not Submitted",se});
+    }
+    catch(e){
+       console.error("Error Fetching SE:", e);
+           res.status(500).json({ error: "Internal Server Error" });
+    }
+   })
 module.exports = router;

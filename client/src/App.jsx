@@ -42,6 +42,7 @@ import RegisterInstitute from "./pages/college/RegisterInstitute.jsx";
 import DisplayUC from "./pages/uc/se/DisplayUC.jsx"
 import Certificates from "./pages/uc/se/Certificate.jsx";
 import SanctionedDashboard from "./pages/college/SanctionedDashboard.jsx";
+import SEForm from "./pages/uc/se/SEdisplay.jsx";
  
 
 
@@ -100,6 +101,7 @@ function MainLayout() {
           <Route path="/sanctionedproposals" element={<SanctionedProposals />} />
           <Route path="/certificates/:id" element={<DisplayUC />} />
           <Route path="/certificate-details/:type/:id" element={<Certificates />} />
+          <Route path="/certificate-details/se/:id" element={<SEForm />} />
           <Route path="/error" element={<Error />} />
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />

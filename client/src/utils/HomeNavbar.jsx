@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { FaUserCircle,FaArrowLeft,FaPowerOff,FaBackward } from "react-icons/fa";
+import { FaUserCircle,FaArrowLeft,FaPowerOff,FaChevronLeft } from "react-icons/fa";
 import { AuthContext } from "../pages/Context/Authcontext";
 import {useNavigate,useParams} from "react-router-dom";
 const Navbar = ({isSidebarOpen, path}) => {
@@ -19,7 +19,7 @@ const Navbar = ({isSidebarOpen, path}) => {
     <header className={`bg-blue-900 text-white p-4 flex justify-between items-center fixed shadow-md z-50 transition-all duration-300 ${isSidebarOpen ? " w-[calc(100%-16rem)]" : " w-[calc(100%-4rem)]"}`}>
       <h2 className="text-2xl font-semibold">ResearchX</h2>
       <div className="flex items-center space-x-4">
-        <FaArrowLeft className="text-2xl" onClick={()=>{navigate(path)}}  />
+        <FaChevronLeft className="text-2xl" onClick={()=>{navigate(path)}}  />
         <FaUserCircle className="text-2xl" />
         {user && <span>Welcome, {user.Name}</span>}
         <FaPowerOff className="text-xl cursor-pointer text-red-500" onClick={logout}/>
