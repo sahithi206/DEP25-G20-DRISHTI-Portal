@@ -6,45 +6,45 @@ const Home = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="bg-gray-100 min-h-screen">
+        <div className="bg-gray-50 min-h-screen">
             <Navbar />
             <Hero />
 
-            <div className="flex justify-center">
-                <div className="bg-white w-[100%] md:w-[100%] max-w-7xl p-8 shadow-lg rounded-lg">
-                    <h1 className="text-4xl font-bold text-center text-teal-700 mb-4 border-b-2 border-gray-300 pb-2">
-                        ANRF
+            <div className="flex justify-center px-4 py-12">
+                <div className="bg-white w-full max-w-6xl p-10 shadow-xl rounded-2xl border border-gray-200">
+                    <h1 className="text-5xl font-extrabold text-center text-teal-800 mb-6 border-b-4 border-teal-600 pb-3">
+                        Anusandhan National Research Foundation (ANRF)
                     </h1>
 
-                    <p className="text-gray-700 text-lg leading-relaxed text-center">
+                    <p className="text-gray-700 text-lg leading-8 text-center">
                         The <strong>Anusandhan National Research Foundation (ANRF)</strong> was established through the 
-                        <strong> ANRF Act, 2023</strong> to provide high-level strategic directions for research, innovation, 
+                        <strong> ANRF Act, 2023</strong> to provide high-level strategic direction for research, innovation, 
                         and entrepreneurship in the fields of natural sciences, engineering and technology, environmental 
                         and earth sciences, health and agriculture, and scientific and technological interfaces of 
                         humanities and social sciences.
                     </p>
                     
-                    <p className="text-gray-700 text-lg leading-relaxed text-center mt-4">
-                        ANRF has been established to promote research and development and foster a culture of research
-                        and innovation throughout India’s Universities, Colleges, Research Institutions, and R&D laboratories.
-                        ANRF acts as an apex body to provide high-level strategic direction of scientific research in the
-                        country as per recommendations of the National Education Policy. ANRF forges collaborations among
-                        the industry, academia, and government departments and research institutions.
+                    <p className="text-gray-700 text-lg leading-8 text-center mt-6">
+                        ANRF fosters a culture of research and innovation across universities, colleges, research institutions, and R&D laboratories in India. 
+                        Acting as an apex body, ANRF directs scientific research aligned with the National Education Policy, 
+                        forging strong collaborations between industry, academia, and government sectors.
                     </p>
 
-                    <p className="italic font-semibold mt-6 text-gray-700 text-center">
-                        “ANRF strategies should align with the goals of <strong>Viksit Bharat 2047</strong> and implementation 
-                        should follow global best practices adopted by research and development agencies across the world.” 
-                        <br /> — <span className="text-teal-600">ANRF Governing Board</span>
-                    </p>
+                    <div className="mt-8 p-6 bg-gray-100 rounded-xl border-l-4 border-teal-700">
+                        <p className="italic font-semibold text-gray-800 text-lg text-center">
+                            “ANRF strategies should align with the goals of <strong>Viksit Bharat 2047</strong>, implementing 
+                            global best practices adopted by research and development agencies worldwide.” 
+                            <br /> — <span className="text-teal-700 font-bold">ANRF Governing Board</span>
+                        </p>
+                    </div>
 
-                    <div className="flex justify-center mt-6">
+                    <div className="flex justify-center mt-8">
                         <button 
                             onClick={() => navigate("/login")} 
-                            className="px-6 py-3 bg-teal-700 text-white rounded-md text-lg font-semibold 
-                                       hover:bg-teal-800 transition duration-300 ease-in-out shadow-md"
+                            className="px-8 py-3 text-lg font-semibold bg-gradient-to-r from-teal-700 to-teal-600 text-white 
+                                       rounded-lg shadow-lg transform transition hover:scale-105 hover:shadow-2xl"
                         >
-                            Sign Up
+                            SignUp
                         </button>
                     </div>
                 </div>

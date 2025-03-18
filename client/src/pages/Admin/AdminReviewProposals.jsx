@@ -1,150 +1,3 @@
-// import React, { useEffect, useState } from "react";
-// import AdminSidebar from "../../components/AdminSidebar";
-// import { Bell, Settings, LogOut } from "lucide-react";
-
-// const AdminProposalReview = () => {
-//     const [activeSection, setActiveSection] = useState("approvals");
-//     const [proposals, setProposals] = useState([]);
-//     const [selectedProposal, setSelectedProposal] = useState(null);
-//     const [comment, setComment] = useState("");
-//     const [loading, setLoading] = useState(true);
-//     const [error, setError] = useState("");
-//     const URL = import.meta.env.VITE_REACT_APP_URL;
-
-//     useEffect(() => {
-//         const fetchPendingProposals = async () => {
-//             const token = localStorage.getItem("token");
-//             if (!token) {
-//                 setError("Please log in to view proposals.");
-//                 setLoading(false);
-//                 return;
-//             }
-//             try {
-//                 const response = await fetch(`${URL}form/proposals?status=Pending`, {
-//                     method: "GET",
-//                     headers: { "accessToken": token },
-//                 });
-//                 const data = await response.json();
-//                 setProposals(data.data || []);
-//             } catch (err) {
-//                 setError(err.message);
-//             } finally {
-//                 setLoading(false);
-//             }
-//         };
-//         fetchPendingProposals();
-//     }, []);
-
-//     const handleApproval = async (proposalId, status) => {
-//         try {
-//             const token = localStorage.getItem("token");
-//             if (!token) throw new Error("User not authenticated");
-
-//             const response = await fetch(`${URL}form/update-proposals/${proposalId}`, {
-//                 method: "PUT",
-//                 headers: {
-//                     "Content-Type": "application/json",
-//                     "accessToken": token,
-//                 },
-//                 body: JSON.stringify({ status, comment }),
-//             });
-
-//             const data = await response.json();
-
-//             if (!response.ok) throw new Error(data.message || "Failed to update proposal status");
-
-//             setProposals(proposals.filter(proposal => proposal.proposal._id !== proposalId));
-//             setSelectedProposal(null);
-//             setComment("");
-//         } catch (err) {
-//             console.error("Network error:", err.message);
-//             setError(err.message);
-//         }
-//     };
-
-//     return (
-//         <div className="flex h-screen bg-gray-100">
-//             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-//             <div className="flex-1 p-6">
-//                 <div className="flex justify-between items-center bg-white p-4 shadow-md rounded-lg">
-//                     <h1 className="text-2xl font-semibold">Proposal Approvals</h1>
-//                     <div className="flex space-x-4">
-//                         <button className="p-2 bg-blue-500 text-white rounded-md"><Bell className="w-5 h-5" /></button>
-//                         <button className="p-2 bg-gray-500 text-white rounded-md"><Settings className="w-5 h-5" /></button>
-//                         <button className="p-2 bg-red-500 text-white rounded-md"><LogOut className="w-5 h-5" /></button>
-//                     </div>
-//                 </div>
-
-//                 <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
-//                     {loading ? (
-//                         <p className="text-center text-gray-500">Loading proposals...</p>
-//                     ) : error ? (
-//                         <p className="text-center text-red-500">{error}</p>
-//                     ) : proposals.length === 0 ? (
-//                         <p className="text-center text-gray-500">No pending proposals.</p>
-//                     ) : (
-//                         <table className="w-full border-collapse border border-gray-300">
-//                             <thead>
-//                                 <tr className="bg-gray-200">
-//                                     <th className="border border-gray-300 p-2">Proposal ID</th>
-//                                     <th className="border border-gray-300 p-2">Institute</th>
-//                                     <th className="border border-gray-300 p-2">Title</th>
-//                                     <th className="border border-gray-300 p-2">Actions</th>
-//                                 </tr>
-//                             </thead>
-//                             <tbody>
-//                                 {proposals.map(proposal => (
-//                                     <tr key={proposal._id} className="text-center border-b">
-//                                         <td className="border border-gray-300 p-2">{proposal.proposal._id}</td>
-//                                         <td className="border border-gray-300 p-2">{proposal.generalInfo?.instituteName}</td>
-//                                         <td className="border border-gray-300 p-2">{proposal.researchDetails?.Title}</td>
-//                                         <td className="border border-gray-300 p-2">
-//                                             <button onClick={() => setSelectedProposal(proposal)} className="px-3 py-1 bg-blue-500 text-white rounded mr-2">View</button>
-//                                         </td>
-//                                     </tr>
-//                                 ))}
-//                             </tbody>
-//                         </table>
-//                     )}
-//                 </div>
-
-//                 {selectedProposal && (
-//                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-//                         <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-//                             <h2 className="text-xl font-semibold mb-4">Proposal Details</h2>
-//                             <p><strong>Title:</strong> {selectedProposal.researchDetails?.Title}</p>
-//                             <p><strong>Description:</strong> {selectedProposal.researchDetails?.Summary}</p>
-//                             <p><strong>Submitted By:</strong> {selectedProposal.user?.Name}</p>
-//                             <p><strong>Institute:</strong> {selectedProposal.generalInfo?.instituteName}</p>
-//                             <p><strong>Area of Specialization:</strong> {selectedProposal.generalInfo?.areaOfSpecialization}</p>
-//                             <p><strong>Recurring cost:</strong> {selectedProposal.totalBudget?.recurring_total}</p>
-//                             <p><strong>Non-Recurring Cost:</strong> {selectedProposal.totalBudget?.non_recurring_total}</p>
-
-//                             <textarea
-//                                 className="w-full border border-gray-300 rounded-md p-2 mt-4"
-//                                 placeholder="Add a comment (optional)"
-//                                 value={comment}
-//                                 onChange={(e) => setComment(e.target.value)}
-//                             ></textarea>
-//                             <div className="flex justify-end space-x-2 mt-4">
-//                                 <button onClick={() => handleApproval(selectedProposal.proposal._id, "Approved")} className="px-4 py-2 bg-green-500 text-white rounded">Approve</button>
-//                                 <button onClick={() => handleApproval(selectedProposal.proposal._id, "Rejected")} className="px-4 py-2 bg-red-500 text-white rounded">Reject</button>
-//                                 <button onClick={() => setSelectedProposal(null)} className="px-4 py-2 bg-gray-500 text-white rounded">Close</button>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 )}
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default AdminProposalReview;
-
-
-
-
-
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import { Bell, Settings, LogOut } from "lucide-react";
@@ -156,6 +9,7 @@ const AdminProposalReview = () => {
     const [comment, setComment] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
     const URL = import.meta.env.VITE_REACT_APP_URL;
 
     useEffect(() => {
@@ -171,9 +25,7 @@ const AdminProposalReview = () => {
                     method: "GET",
                     headers: { "accessToken": token },
                 });
-                // if (!response.ok) throw new Error("Failed to fetch proposals");
                 const data = await response.json();
-                console.log(data);
                 setProposals(data.data || []);
             } catch (err) {
                 setError(err.message);
@@ -186,7 +38,51 @@ const AdminProposalReview = () => {
 
     const handleApproval = async (proposalId, status) => {
         try {
-            console.log(`Approving proposal: ${proposalId}`);
+            const token = localStorage.getItem("token");
+            if (!token) throw new Error("User not authenticated");
+    
+            console.log("Approving proposal:", proposalId, "with status:", status);
+            
+            const response = await fetch(`${URL}form/update-proposals/${proposalId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "accessToken": token,
+                },
+                body: JSON.stringify({ 
+                    status, 
+                    comment: comment.trim() ? comment : `Proposal ${status.toLowerCase()} by admin.`
+                }),
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Failed to update proposal status");
+            }
+    
+            const responseData = await response.json();
+            console.log("Response data:", responseData);
+            
+            setProposals(proposals.filter(proposal => proposal.proposal._id !== proposalId));
+            setSelectedProposal(null);
+            setComment("");
+            setSuccessMessage(`Proposal ${status} successfully`);
+            setTimeout(() => setSuccessMessage(""), 3000);
+        } catch (err) {
+            console.error("Error in handleApproval:", err);
+            setError(err.message);
+            setTimeout(() => setError(""), 3000);
+        }
+    };
+
+    const requestRevision = async (proposalId) => {
+        if (!comment.trim()) {
+            setError("Please add a comment detailing the required revisions");
+            setTimeout(() => setError(""), 3000);
+            return;
+        }
+        
+        try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("User not authenticated");
     
@@ -196,75 +92,118 @@ const AdminProposalReview = () => {
                     "Content-Type": "application/json",
                     "accessToken": token,
                 },
-                body: JSON.stringify({ status, comment }),
+                body: JSON.stringify({ 
+                    status: "Needs Revision",
+                    comment 
+                }),
             });
     
-            console.log("Raw response:", response);
-    
-            const text = await response.text();  // Get raw response text
-            console.log("Response text:", text);
-    
-            // If response is empty, throw an error
-            if (!text.trim()) throw new Error("Empty response from server");
-    
-            try {
-                const data = JSON.parse(text);
-                console.log("Parsed response:", data);
-    
-                if (!response.ok) throw new Error(data.message || "Failed to update proposal status");
-    
-                setProposals(proposals.filter(proposal => proposal.proposal._id !== proposalId));
-                setSelectedProposal(null);
-                setComment("");
-            } catch (jsonError) {
-                throw new Error("Invalid JSON response from server");
-            }
+            if (!response.ok) throw new Error("Failed to request revision");
+            
+            setProposals(proposals.filter(proposal => proposal.proposal._id !== proposalId));
+            setSelectedProposal(null);
+            setComment("");
+            setSuccessMessage("Revision requested successfully");
+            setTimeout(() => setSuccessMessage(""), 3000);
         } catch (err) {
-            console.error("Network error:", err.message);
             setError(err.message);
+            setTimeout(() => setError(""), 3000);
         }
     };
+
+    const submitComment = async (proposalId) => {
+        if (!comment.trim()) {
+            setError("Please add a comment before submitting");
+            setTimeout(() => setError(""), 3000);
+            return;
+        }
+        
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) throw new Error("User not authenticated");
     
+            const response = await fetch(`${URL}form/proposals/${proposalId}/comment`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "accessToken": token,
+                },
+                body: JSON.stringify({ text: comment }),
+            });
     
+            if (!response.ok) throw new Error("Failed to submit comment");
+    
+            const data = await response.json();
+            
+            const updatedProposals = proposals.map(p => {
+                if (p.proposal._id === proposalId) {
+                    return {
+                        ...p,
+                        proposal: {
+                            ...p.proposal,
+                            comments: [...(p.proposal.comments || []), { text: comment }]
+                        }
+                    };
+                }
+                return p;
+            });
+            
+            setProposals(updatedProposals);
+            setComment("");
+            setSuccessMessage("Comment added successfully");
+            setTimeout(() => setSuccessMessage(""), 3000);
+        } catch (err) {
+            setError(err.message);
+            setTimeout(() => setError(""), 3000);
+        }
+    };
     
     return (
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-            <div className="flex-1 p-6">
-                <div className="flex justify-between items-center bg-white p-4 shadow-md rounded-lg">
-                    <h1 className="text-2xl font-semibold">Proposal Approvals</h1>
-                    <div className="flex space-x-4">
-                        <button className="p-2 bg-blue-500 text-white rounded-md"><Bell className="w-5 h-5" /></button>
-                        <button className="p-2 bg-gray-500 text-white rounded-md"><Settings className="w-5 h-5" /></button>
-                        <button className="p-2 bg-red-500 text-white rounded-md"><LogOut className="w-5 h-5" /></button>
+            <div className="flex-1 p-6 overflow-y-auto">
+                <h1 className="text-2xl font-semibold">Proposal Approvals</h1>
+                
+                {successMessage && (
+                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4">
+                        {successMessage}
                     </div>
-                </div>
-
+                )}
+                
+                {error && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
+                        {error}
+                    </div>
+                )}
+                
                 <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
                     {loading ? (
-                        <p className="text-center text-gray-500">Loading proposals...</p>
-                    ) : error ? (
-                        <p className="text-center text-red-500">{error}</p>
+                        <p>Loading proposals...</p>
                     ) : proposals.length === 0 ? (
-                        <p className="text-center text-gray-500">No pending proposals.</p>
+                        <p>No pending proposals.</p>
                     ) : (
-                        <table className="w-full border-collapse border border-gray-300">
+                        <table className="w-full border">
                             <thead>
                                 <tr className="bg-gray-200">
-                                    <th className="border border-gray-300 p-2">Proposal ID</th>
-                                    <th className="border border-gray-300 p-2">Institute</th>
-                                    <th className="border border-gray-300 p-2">Title</th>
-                                    <th className="border border-gray-300 p-2">Actions</th>
+                                    <th className="p-2 text-left">Proposal ID</th>
+                                    <th className="p-2 text-left">Institute</th>
+                                    <th className="p-2 text-left">Title</th>
+                                    <th className="p-2 text-left">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {proposals.map(proposal => (
-                                    <tr key={proposal._id} className="text-center border-b">
-                                        <td className="border border-gray-300 p-2">{proposal.proposal._id}</td>
-                                        <td className="border border-gray-300 p-2">{proposal.generalInfo?.instituteName}</td>
-                                        <td className="border border-gray-300 p-2">{proposal.researchDetails?.Title}</td>
-                                        <td className="border border-gray-300 p-2">
-                                            <button onClick={() => setSelectedProposal(proposal)} className="px-3 py-1 bg-blue-500 text-white rounded mr-2">View</button>
+                                    <tr key={proposal.proposal._id} className="border-b">
+                                        <td className="p-2">{proposal.proposal._id}</td>
+                                        <td className="p-2">{proposal.generalInfo?.instituteName}</td>
+                                        <td className="p-2">{proposal.researchDetails?.Title}</td>
+                                        <td className="p-2">
+                                            <button 
+                                                onClick={() => setSelectedProposal(proposal)} 
+                                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                                            >
+                                                View
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -274,27 +213,75 @@ const AdminProposalReview = () => {
                 </div>
 
                 {selectedProposal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-                            <h2 className="text-xl font-semibold mb-4">Proposal Details</h2>
-                            <p><strong>Title:</strong> {selectedProposal.researchDetails?.Title}</p>
-                            <p><strong>Description:</strong> {selectedProposal.researchDetails?.Summary}</p>
-                            <p><strong>Submitted By:</strong> {selectedProposal.user?.Name}</p>
-                            <p><strong>Institute:</strong> {selectedProposal.generalInfo?.instituteName}</p>
-                            <p><strong>Area of Specialization:</strong> {selectedProposal.generalInfo?.areaOfSpecialization}</p>
-                            <p><strong>Recurring cost:</strong> {selectedProposal.totalBudget?.recurring_total}</p>
-                            <p><strong>Non-Recurring Cost:</strong> {selectedProposal.totalBudget?.non_recurring_total}</p>
-
-                            <textarea
-                                className="w-full border border-gray-300 rounded-md p-2 mt-4"
-                                placeholder="Add a comment (optional)"
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                            ></textarea>
-                            <div className="flex justify-end space-x-2 mt-4">
-                                <button onClick={() => handleApproval(selectedProposal.proposal._id, "Approved")} className="px-4 py-2 bg-green-500 text-white rounded">Approve</button>
-                                <button onClick={() => handleApproval(selectedProposal.proposal._id, "Rejected")} className="px-4 py-2 bg-red-500 text-white rounded">Reject</button>
-                                <button onClick={() => setSelectedProposal(null)} className="px-4 py-2 bg-gray-500 text-white rounded">Close</button>
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <h2 className="text-xl font-semibold">Proposal Details</h2>
+                            <div className="mt-4 space-y-2">
+                                <p><strong>Title:</strong> {selectedProposal.researchDetails?.Title}</p>
+                                <p><strong>Institute:</strong> {selectedProposal.generalInfo?.instituteName}</p>
+                                <p><strong>Description:</strong> {selectedProposal.researchDetails?.Summary}</p>
+                                
+                                {selectedProposal.proposal.comments && selectedProposal.proposal.comments.length > 0 && (
+                                    <div className="mt-4">
+                                        <h3 className="font-medium">Previous Comments:</h3>
+                                        <div className="mt-2 bg-gray-50 p-3 rounded">
+                                            {selectedProposal.proposal.comments.map((comment, idx) => (
+                                                <div key={idx} className="border-b pb-2 mb-2 last:border-0 last:mb-0 last:pb-0">
+                                                    <p>{comment.text}</p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {comment.createdAt ? new Date(comment.createdAt).toLocaleString() : ""}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div className="mt-4">
+                                    <label htmlFor="comment" className="block font-medium mb-1">
+                                        Add Comment:
+                                    </label>
+                                    <textarea
+                                        id="comment"
+                                        className="w-full border p-2 rounded"
+                                        placeholder="Add a comment or revision request"
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                        rows="4"
+                                    ></textarea>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap justify-end gap-2 mt-6">
+                                <button 
+                                    onClick={() => submitComment(selectedProposal.proposal._id)} 
+                                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                >
+                                    Add Comment
+                                </button>
+                                <button 
+                                    onClick={() => requestRevision(selectedProposal.proposal._id)} 
+                                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                                >
+                                    Request Revision
+                                </button>
+                                <button 
+                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Approved")} 
+                                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                                >
+                                    Approve
+                                </button>
+                                <button 
+                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Rejected")} 
+                                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                                >
+                                    Reject
+                                </button>
+                                <button 
+                                    onClick={() => setSelectedProposal(null)} 
+                                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                                >
+                                    Close
+                                </button>
                             </div>
                         </div>
                     </div>

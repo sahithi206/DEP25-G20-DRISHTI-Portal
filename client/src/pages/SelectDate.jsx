@@ -32,14 +32,15 @@ const SelectDate = () => {
             })
             console.log(response);
             if (!response.ok) {
+                alert("Couldn't Confirm Date")
                 throw new Error("Failed to update user details");
             }
             const json = await response.json();
             console.log("Created Proposal",json);
-
-            alert(json.msg);
-            if(json.success){
-              navigate("/savedproposals")
+         
+            if(json&&json.success){
+              navigate("/savedproposals");
+              alert(json.msg);
             }
         }catch(e){
             console.error("Error Creating Project:",e);

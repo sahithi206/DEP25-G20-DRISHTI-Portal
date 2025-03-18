@@ -12,6 +12,8 @@ const projectSchema = new Schema({
     startDate:{type:String,required:true},
     endDate:{type:String,required:true},
     TotalCost:{type:Number,required:true},
+    TotalUsed:{type:Number,default:0},
+    CarryForward:{type:Number,default:0},
     generalInfoId:{ type: Schema.Types.ObjectId, ref: "GeneralInfo", required: true },
     bankDetailsId:{ type: Schema.Types.ObjectId, ref: "BankDetails", required: true },
     researchDetailsId:{ type: Schema.Types.ObjectId, ref: "ResearchDetails", required: true },
