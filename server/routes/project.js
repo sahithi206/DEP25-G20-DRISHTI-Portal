@@ -55,7 +55,7 @@ router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
         const generalInfoId = await GeneralInfo.findOne({ proposalId: proposal._id }).select("_id");
         const bankDetailsId = await bankDetails.findOne({ proposalId: proposal._id }).select("_id");
         const researchDetails = await ResearchDetails.findOne({ proposalId: proposal._id });
-        const budgetsanctioned = await budgetSanctioned.findOne({ proposalId: proposalId }).select("TotalCost budgetSanctioned");
+        const budgetsanctioned = await budgetSanctioned.findOne({ proposalId: proposalId }).select("TotalCost budgetSanctioned budgetTotal");
         console.log(budgetsanctioned);
         if(!budgetsanctioned){
             return res.status(404).json({ success: false, msg: "Budget wasn't allocated!!" });
@@ -81,6 +81,7 @@ router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
             startDate: startDate,
             TotalCost: budgetsanctioned.TotalCost,
             TotalUsed:0,
+            budgetTotal:budgetSanctioned.budgetTotal,
             endDate: calculatedEndDate,
             generalInfoId: generalInfoId,
             bankDetailsId: bankDetailsId,

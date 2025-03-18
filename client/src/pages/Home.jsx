@@ -13,20 +13,20 @@ const Home = () => {
             <div className="flex justify-center px-4 py-12">
                 <div className="bg-white w-full max-w-6xl p-10 shadow-xl rounded-2xl border border-gray-200">
                     <h1 className="text-5xl font-extrabold text-center text-teal-800 mb-6 border-b-4 border-teal-600 pb-3">
-                        Anusandhan National Research Foundation (ANRF)
+                        ResearchX 
                     </h1>
 
                     <p className="text-gray-700 text-lg leading-8 text-center">
-                        The <strong>Anusandhan National Research Foundation (ANRF)</strong> was established through the 
-                        <strong> ANRF Act, 2023</strong> to provide high-level strategic direction for research, innovation, 
+                        The <strong>ResearchX </strong> was established through the 
+                        <strong> ResearchX Act, 2023</strong> to provide high-level strategic direction for research, innovation, 
                         and entrepreneurship in the fields of natural sciences, engineering and technology, environmental 
                         and earth sciences, health and agriculture, and scientific and technological interfaces of 
                         humanities and social sciences.
                     </p>
                     
                     <p className="text-gray-700 text-lg leading-8 text-center mt-6">
-                        ANRF fosters a culture of research and innovation across universities, colleges, research institutions, and R&D laboratories in India. 
-                        Acting as an apex body, ANRF directs scientific research aligned with the National Education Policy, 
+                        ResearchX fosters a culture of research and innovation across universities, colleges, research institutions, and R&D laboratories in India. 
+                        Acting as an apex body, ResearchX directs scientific research aligned with the National Education Policy, 
                         forging strong collaborations between industry, academia, and government sectors.
                     </p>
 
@@ -34,7 +34,7 @@ const Home = () => {
                         <p className="italic font-semibold text-gray-800 text-lg text-center">
                             “ANRF strategies should align with the goals of <strong>Viksit Bharat 2047</strong>, implementing 
                             global best practices adopted by research and development agencies worldwide.” 
-                            <br /> — <span className="text-teal-700 font-bold">ANRF Governing Board</span>
+                            <br /> — <span className="text-teal-700 font-bold">ResearchX Governing Board</span>
                         </p>
                     </div>
 

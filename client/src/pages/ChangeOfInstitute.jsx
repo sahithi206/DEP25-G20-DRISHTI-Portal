@@ -1,23 +1,19 @@
 import React, { useState } from "react";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";
-import { FaUserCircle, FaPowerOff } from "react-icons/fa";
-
 
 const ChangeOfInstitute = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
+    
     return (
         <div className="flex bg-gray-100 min-h-screen">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-            <HomeNavbar isSidebarOpen={isSidebarOpen}/>
+            <HomeNavbar isSidebarOpen={isSidebarOpen} />
             <div className="p-6 space-y-6 mt-16"> 
                 <div className="p-6 space-y-6">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                        <h1 className="text-3xl font-black text-gray-900 mb-2">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
-                        <h2 className="text-xl font-semibold text-gray-700">Anusandhan National Research Foundation</h2>
+                        <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
                         <p className="mt-3 text-2xl font-bold text-blue-800">Change of Institute </p>
                     </div>
 
