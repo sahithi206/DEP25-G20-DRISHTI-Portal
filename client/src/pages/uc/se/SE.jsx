@@ -43,6 +43,7 @@ const SEForm = () => {
                     setUser(user);
                     const json = await getProject(id);
                     const info = json.data;
+                    console.log(info);
                     const newData = {
                         projectId: info.project?._id || "",
                         institute: info.generalInfo?.instituteName || "NA",
@@ -50,17 +51,18 @@ const SEForm = () => {
                         title: info.project?.Title || "NA",
                         scheme: info.project?.Scheme || "NA",
                         currentYear: info.project?.currentYear || "NA",
-                        CarryForward: info.project?.CarryForward || 0,
                         grantType: data.grantType
                     };
                     console.log(info.budgetused);
                     if (data.grantType === "recurring") {
+                        newData.CarryForward= info.CarryForward?.info.CarryForward.recurring.total || 0,
                         newData.yearTotal= info.budget?.recurring.total || 0,
                         newData.recurring = info.budgetused?.recurring.total || 0;
                         newData.human_resources = info.budgetused?.recurring.human_resources || 0;
                         newData.consumables = info.budgetused?.recurring.consumables || 0;
                         newData.others = info.budgetused?.recurring.others || 0;
                     } else {
+                        newData.CarryForward= info.CarryForward?.info.CarryForward.nonRecurring|| 0,
                         newData.yearTotal= info.budget?.nonRecurring || 0,
                         newData.nonRecurring = info.budgetused?.nonRecurring || 0;
                     }
@@ -136,6 +138,8 @@ const SEForm = () => {
                         <div className="grid grid-cols-2 gap-4 mb-4">
                             <label className="font-semibold text-gray-700">Name of the grant receiving Organization</label>
                             <span className="px-3 py-1 w-full">: {data.institute}</span>
+                            <label className="font-semibold text-gray-700">Name of Principal Investigator:</label>
+                            <span className="px-3 py-1 w-full">: {user.Name}</span>
                             <label className="font-semibold text-gray-700">Title of the Project</label>
                             <span className="px-3 py-1 w-full">: {data.title}</span>
                             <label className="font-semibold text-gray-700">Name of the Scheme</label>
@@ -162,20 +166,13 @@ const SEForm = () => {
                             />
                         </div>
 
-                        <h3 className="text-lg font-semibold text-blue-700 mb-4">Grant Details</h3>
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                            <label className="font-semibold text-gray-700">Grants Recieved in Each Year:<span className="text-red-500">*</span></label>
-                                (<label className="font-semibold text-gray-700">Year {index+1}</label>
-                                <span className="px-3 py-1 w-full">: {data.projectId}</span>
-                                )
-                        </div>
                         <div className="mb-4">
                             <div className="overflow-x-auto">
                                 <table className="w-full border border-gray-300 rounded-lg">
                                     <thead>
                                         <tr className="bg-blue-100 text-gray-700">
-                                        <th className="border border-gray-400 px-4 py-2" >Sanctioned Heads</th>
-                                            <th className="border border-gray-400 px-4 py-2" >Total Funds Sanctioned</th>
+                                        <th className="border border-gray-400 px-4 py-2" >Unspent Balances</th>
+                                            <th className="border border-gray-400 px-4 py-2" >Grant Received</th>
                                             <th className="border border-gray-400 px-4 py-2">Total</th>
                                             <th className="border border-gray-400 px-4 py-2">Expenditure Incurred</th>
                                             <th className="border border-gray-400 px-4 py-2">Closing Balance</th>

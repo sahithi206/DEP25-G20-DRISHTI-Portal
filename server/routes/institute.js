@@ -66,11 +66,12 @@ router.get("/users", fetchInstitute, async (req, res) => {
   router.get("/sanctioned-projects", fetchInstitute, async (req, res) => {
     try {
       const institute = req.institute.college;
-
+      console.log(req);
       const users = await User.find({ Institute: institute }).select("_id");
       const userIds = users.map(user => user._id); 
-
+      console.log("Projects",users,userIds);
       const projects = await Project.find({ userId: { $in: userIds } });
+      console.log("Projects",projects);
       if (!projects.length) {
         return res.status(404).json({ success: false, msg: "No sanctioned projects found" });
       } 
@@ -106,7 +107,7 @@ router.get("/users", fetchInstitute, async (req, res) => {
         );
 
         const budget = ids.YearlyDataId?.[project.currentYear - 1]?.budgetSanctioned || null;
-        const budgetUsed = ids.YearlyDataId?.[project.currentYear - 1]?.budgetUsed || null;
+        const budgetused = ids.YearlyDataId?.[project.currentYear - 1]?.budgetUsed || null;
         const budgetUnspent = ids.YearlyDataId?.[project.currentYear - 1]?.budgetUnspent || null;
 
         return res.status(200).json({
@@ -117,7 +118,7 @@ router.get("/users", fetchInstitute, async (req, res) => {
             researchDetails,
             PIDetails,
             budget,
-            budgetUsed,
+            budgetused,
             budgetUnspent
         });
     } catch (e) {

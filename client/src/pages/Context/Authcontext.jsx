@@ -706,6 +706,7 @@ const fetchSanctionedProjects = async () => {
 const fetchInstituteGetProject = async (projectId) => {
 
   const token = localStorage.getItem("token");  
+  console.log(token);
   if (!token) {
     console.log("Use a valid Token");
     alert("Authentication required.");
@@ -719,7 +720,6 @@ const fetchInstituteGetProject = async (projectId) => {
         "accessToken": ` ${token}`,
       },
   });
-  console.log(response);
   if (!response.ok) {
       throw new Error("Failed to fetch project details");
   }

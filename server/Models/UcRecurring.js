@@ -12,10 +12,11 @@ const RecurringGrantSchema = new mongoose.Schema({
     total: { type: Number, required: true },
     type:{type:String,required:true},
     recurringExp: { type: Number, required: true },
+    nonRecurringExp:{type:Number,default:0},
     humanResource: { type: Number, required: true, default: 0 },
     consumables: { type: Number, required: true, default: 0 },
     others: { type: Number, required: true, default: 0 },
-    status: { type: String, required: true, default: "Pending for institute approval." }, // change to submitted when institute approves
+    status: { type: String, required: true, default: "Pending for institute approval." },
 });
  
 
