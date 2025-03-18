@@ -31,6 +31,7 @@ import ChangePassword from "./pages/ChangePassword.jsx";
 import RunningProjects from "./pages/college/RunningProjects.jsx";
 import InstituteUsers from "./pages/college/InstituteUsers.jsx";
 import UserProposalsInsti from "./pages/college/UserProposalsInsti.jsx";
+import SanctionedProjects from "./pages/college/SanctionedProjects.jsx";  
 import UC from "./pages/uc/se/UC.jsx";
 import SelectDate from "./pages/SelectDate.jsx";
 import SanctionedProposals from "./pages/uc/se/SanctionedProposals.jsx"
@@ -40,6 +41,8 @@ import InstituteDashboard from "./pages/college/InstituteDashboard";
 import RegisterInstitute from "./pages/college/RegisterInstitute.jsx";
 import DisplayUC from "./pages/uc/se/DisplayUC.jsx"
 import Certificates from "./pages/uc/se/Certificate.jsx";
+import SanctionedDashboard from "./pages/college/SanctionedDashboard.jsx";
+ 
 
 
 function App() {
@@ -111,6 +114,8 @@ function MainLayout() {
           <Route path="/institute-dashboard" element={<InstituteDashboard />} />
           <Route path="/running-projects" element={<RunningProjects />} />
           <Route path="/institute/user-proposals/:userId" element={<UserProposalsInsti />} />
+          <Route path="/sanctioned-projects" element={<SanctionedProjects />} />
+          <Route path="/sanctioned-project-dashboard/:projectId" element={<SanctionedDashboard />} />
         </Route>
       </Routes>
     </div>
