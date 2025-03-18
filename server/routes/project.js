@@ -21,6 +21,7 @@ const {ObjectId}=require("mongodb");
 const  RecurringUC = require("../Models/UcRecurring.js");
 const NonRecurringUC  = require("../Models/UcNonrecurring.js");
 const SE =require("../Models/se/SE.js");
+const Report = require("../Models/progressReport.js");
 router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
     const { proposalId } = req.params;
     const { startDate } = req.body;
@@ -351,4 +352,44 @@ router.get("/se/:id",fetchUser,async(req,res)=>{
            res.status(500).json({ error: "Internal Server Error" });
     }
    })
+
+   router.post("/progress-report/:id", fetchUser, async (req, res) => {
+    const { id } = req.params; 
+    const { data } = req.body; 
+
+    try {
+        const formattedData = {
+            ...data,
+            approvedObjectives: Array.isArray(data.approvedObjectives)
+                ? data.approvedObjectives.join("\n")
+                : data.approvedObjectives,
+            majorEquipment: Array.isArray(data.majorEquipment)
+                ? data.majorEquipment
+                : [data.majorEquipment] 
+        };
+
+        const progressReport = new Report({
+            projectId: id,
+            ...formattedData
+        });
+
+        await progressReport.save();
+        res.status(201).json({ success: true, msg: "Progress report submitted successfully", data: progressReport });
+    } catch (error) {
+        console.error("Error submitting progress report:", error);
+        res.status(500).json({ success: false, msg: "Server error" });
+    }
+});
+
+router.get("/progress-report/:id", fetchUser, async (req, res) => {
+    const { id } = req.params; 
+
+    try {
+        const progressReports = await Report.find({ projectId: id });
+        res.status(200).json({ success: true, data: progressReports });
+    } catch (error) {
+        console.error("Error fetching progress reports:", error);
+        res.status(500).json({ success: false, msg: "Server error" });
+    }
+});
 module.exports = router;

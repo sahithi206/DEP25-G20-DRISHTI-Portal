@@ -43,6 +43,8 @@ import DisplayUC from "./pages/uc/se/DisplayUC.jsx"
 import Certificates from "./pages/uc/se/Certificate.jsx";
 import SanctionedDashboard from "./pages/college/SanctionedDashboard.jsx";
 import SEForm from "./pages/uc/se/SEdisplay.jsx";
+import ProgressReportForm from "./pages/uc/se/ProgressReportForm.jsx";
+import FinalReport from "./pages/uc/se/FinalReport.jsx";
  
 
 
@@ -93,6 +95,8 @@ function MainLayout() {
           <Route path="/misc-request" element={<MiscRequest />} />
           <Route path="/view-profile" element={<UserProfile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/progress-report/:id" element={<ProgressReportForm />} />
+          <Route path="/final-report/:id" element={<FinalReport />} />
           <Route path="/forgot-password" element={<Forgotpassword />} />
           <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/uc/:id" element={<UC />} />

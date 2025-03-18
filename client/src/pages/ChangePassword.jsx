@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import Sidebar from "../utils/Sidebar";
+import HomeNavbar from "../utils/HomeNavbar";
 export default function ChangePassword() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -90,7 +93,13 @@ export default function ChangePassword() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+    <div className="flex bg-gray-100 min-h-screen">
+                <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+    
+                <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
+                    <HomeNavbar isSidebarOpen={isSidebarOpen} />
+    
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Change Password</h2>
@@ -211,5 +220,7 @@ export default function ChangePassword() {
         </div>
       </div>
     </div>
+    </div>
+      </div>
   );
 }
