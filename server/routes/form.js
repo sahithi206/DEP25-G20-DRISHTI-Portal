@@ -10,6 +10,7 @@ const Acknowledgement = require("../Models/acknowledgement");
 const Proposal = require("../Models/Proposal");
 const Auth=require("./auth.js");
 const User=require("../Models/user");
+const Coordinator=require("../Models/coordinator");
 const PI=require("../Models/PI");
 const router = express.Router();
 const multer = require("multer");
@@ -657,6 +658,53 @@ router.post("/proposals/:id/comment", async (req, res) => {
   } catch (error) {
     console.error("Error adding comment:", error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+});
+
+router.post("/add-coordinator", fetchUser, async (req, res) => {
+  try {
+    const { userId, userRole } = req.body;
+
+    if (!userId || !["head_coordinator", "coordinator"].includes(userRole)) {
+      return res.status(400).json({ msg: "Invalid user ID or role" });
+    }
+
+    const existingCoordinator = await Coordinator.findOne({ userId });
+    if (existingCoordinator) {
+      return res.status(400).json({ msg: "User is already a coordinator" });
+    }
+
+    const newCoordinator = new Coordinator({ userId, userRole });
+    await newCoordinator.save();
+
+    res.status(201).json({ msg: "Coordinator added successfully", coordinator: newCoordinator });
+  } catch (error) {
+    console.error("Error adding coordinator:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
+router.get("/users", async (req, res) => {
+  try {
+    const users = await User.find();
+    const coordinators = await Coordinator.find();
+    // Merge users with their coordinator roles
+    const usersWithRoles = users.map(user => {
+      const coordinator = coordinators.find(c => c.userId === user._id.toString());
+      return {
+        _id: user._id,
+        name: user.Name,
+        email: user.email,
+        userRole: coordinator ? coordinator.userRole : "none" // Default to "none" if not found
+      };
+    });
+
+    console.log("user with roles:", usersWithRoles)
+
+    res.json(usersWithRoles);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 module.exports = router;
