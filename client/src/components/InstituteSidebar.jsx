@@ -7,6 +7,7 @@ const InstituteSidebar = ({ activeSection, setActiveSection }) => {
     { label: "Dashboard", icon: Home, id: "dashboard", path: "/institute-dashboard" },
     { label: "Accepted Projects", icon: ClipboardList, id: "projects", path: "/running-projects" },
     { label: "Institute Users", icon: Users, id: "users", path: "/institute-users" },
+    { label: "Sanctioned Projects", icon: ClipboardList, id: "sanctioned-projects", path: "/sanctioned-projects" },
     // { label: "Proposals", icon: FileText, id: "proposals", path: "/user-proposals" },
     // { label: "Payments", icon: DollarSign, id: "payments", path: "/payments" },
     // { label: "Completed Projects", icon: CheckCircle, id: "completed-projects", path: "/completed-projects" },
