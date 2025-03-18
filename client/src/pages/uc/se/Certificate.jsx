@@ -1,4 +1,4 @@
-import React, { useState,useContext,useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
@@ -7,56 +7,57 @@ const url = import.meta.env.VITE_REACT_APP_URL;
 
 const Certificates = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);;
-        const navigate = useNavigate();
-        const {getuser}=useContext(AuthContext);
-        const [data,setData]=useState({ });
-        const [user,setUser]=useState({});
-        const { id,type } = useParams();
+    const navigate = useNavigate();
+    const { getuser } = useContext(AuthContext);
+    const [data, setData] = useState({});
+    const [user, setUser] = useState({});
+    const { id, type } = useParams();
 
-        const [loading, setLoading] = useState(true);
-        const [error, setError] = useState(null);
-       
-         useEffect(() => {
-                const fetchCertificates = async () => {
-                    const token=localStorage.getItem("token");
-                    if(!token){
-                        alert("UnAuthorized Access");
-                        navigate("/");
-                    }
-                    try {
-                        
-                        const endpoint = type === "recurring" 
-                        ? `${url}projects/ucforms/recurring/${id}`
-                        : `${url}projects/ucforms/nonRecurring/${id}`;
-                      
-                      const response = await fetch(endpoint, {
-                          method: "GET",
-                          headers: {
-                              "Content-Type": "application/json",
-                              "accessToken": ` ${token}`,
-                          }}
-                        );
-        
-                        const json = await response.json();
-        
-                        if (!json.success) {
-                            setError(json.msg || "Error fetching certificates");
-                            return;
-                        }
-                         setData(json.grant);
-                         const user= await getuser();
-                         setUser(user);
-                         console.log(user);
-                    } catch (error) {
-                        console.error("Error fetching certificates:", error);
-                        setError("Internal Server Error");
-                    }
-                };
-        
-                fetchCertificates();
-            }, []);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    
+    useEffect(() => {
+        const fetchCertificates = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("UnAuthorized Access");
+                navigate("/");
+            }
+            try {
+
+                const endpoint = type === "recurring"
+                    ? `${url}projects/ucforms/recurring/${id}`
+                    : `${url}projects/ucforms/nonRecurring/${id}`;
+
+                const response = await fetch(endpoint, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "accessToken": ` ${token}`,
+                    }
+                }
+                );
+
+                const json = await response.json();
+
+                if (!json.success) {
+                    setError(json.msg || "Error fetching certificates");
+                    return;
+                }
+                setData(json.grant);
+                const user = await getuser();
+                setUser(user);
+                console.log(user);
+            } catch (error) {
+                console.error("Error fetching certificates:", error);
+                setError("Internal Server Error");
+            }
+        };
+
+        fetchCertificates();
+    }, []);
+
+
     return (
         <div className="flex bg-gray-100 min-h-screen">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
@@ -106,7 +107,7 @@ const Certificates = () => {
                                 <table className="w-full border border-gray-300 rounded-lg">
                                     <thead>
                                         <tr className="bg-blue-100 text-gray-700">
-                                        <th className="border border-gray-400 px-4 py-2" >Unspent Balances</th>
+                                            <th className="border border-gray-400 px-4 py-2" >Unspent Balances</th>
                                             <th className="border border-gray-400 px-4 py-2" >Grant Received</th>
                                             <th className="border border-gray-400 px-4 py-2">Total</th>
                                             <th className="border border-gray-400 px-4 py-2">Expenditure Incurred</th>
@@ -118,8 +119,8 @@ const Certificates = () => {
                                             <td className="border border-gray-400 px-4 py-2">₹ {data.CarryForward}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ {data.yearTotal}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ {data.total}</td>
-                                            <td className="border border-gray-400 px-4 py-2">₹ {data.type==="recurring"?data.recurringExp:data.nonRecurringExp}</td>
-                                            <td className="border border-gray-400 px-4 py-2">₹ {data.grantType==="recurring"?data.total-data.recurringExp:data.total-data.nonRecurringExp}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {data.type === "recurring" ? data.recurringExp : data.nonRecurringExp}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {data.grantType === "recurring" ? data.total - data.recurringExp : data.total - data.nonRecurringExp}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -150,17 +151,25 @@ const Certificates = () => {
                             <label className="font-semibold text-gray-700">Details of Grants Position at the End of the Year</label>
                             <ul className="list-disc pl-7">
                                 <li>Balance (Carry forward to Next Year) <span className="text-gray-500">: ₹ {data.CarryForward}</span></li>
-                                <li>Total Expenditure incurred <span className="text-gray-500">: ₹ {data.type==="recurring"?data.total-data.recurringExp:data.total-data.nonRecurringExp}</span></li>
+                                <li>Total Expenditure incurred <span className="text-gray-500">: ₹ {data.type === "recurring" ? data.total - data.recurringExp : data.total - data.nonRecurringExp}</span></li>
                             </ul>
                         </div>
 
-                        <div className="mb-4 text-center py-4">
-                        <button
-                            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg w-full hover:bg-blue-700 transition-all duration-200 shadow-md"
-                        >
-                         Export as PDF
-                        </button>
-                        </div>
+                        <div className="mb-4 py-4 flex justify-center space-x-10">
+    <button
+        className="mt-4 bg-blue-600 text-white px-6 py-2 w-1/5 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md"
+    >
+        Export as PDF
+    </button>
+    <button
+        className="mt-4 bg-blue-600 text-white px-6 py-2 w-1/5 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md"
+        onClick={() => navigate(`/certificates/${data.projectId}`)}
+    >
+        Back
+    </button>
+</div>
+
+
                     </div>
                 </div>
             </div>

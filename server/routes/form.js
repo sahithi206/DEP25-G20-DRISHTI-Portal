@@ -136,7 +136,6 @@ async function sendEmailNotification(user, status, comment) {
 }
 
 
-
 router.put("/update-proposals/:id", fetchUser, async (req, res) => {
   try {
     let userId=req.user._id;
@@ -150,22 +149,32 @@ router.put("/update-proposals/:id", fetchUser, async (req, res) => {
     proposal=await Proposal.findByIdAndUpdate({_id:id},{status:status},{new:true});
     await sendEmailNotification(proposal.userId, status, comment);
     if(status==="Approved"){
-      const {nonRecurringCost,recurringCost,yearTotal,TotalCost}=req.body;
-      if(!nonRecurringCost||!recurringCost||!yearTotal||!TotalCost){
+      const {budgetsanctioned,bugdettotal,TotalCost}=req.body;
+      if(!budgetsanctioned||!bugdettotal||!TotalCost){
         return res.status(400).json({msg:"Enter all the Budget Details!!",success:false});
       }
       const budget= await new budgetSanctioned({
         proposalId:proposal._id,
         TotalCost:TotalCost,
+        budgetTotal:{
+          nonRecurring:bugdettotal.nonRecurringCost,
+          recurring:{
+            human_resources:bugdettotalrecurringCost.human_resources,
+            consumables:bugdettotalrecurringCost.consumables,
+            others:bugdettotalrecurringCost.others,
+            total:bugdettotalrecurringCost.total
+           },
+           total:TotalCost,
+      },
         budgetSanctioned:{
-           nonRecurring:nonRecurringCost,
+           nonRecurring:budgetsanctioned.nonRecurringCost,
            recurring:{
-           human_resources:recurringCost.human_resources,
-           consumables:recurringCost.consumables,
-           others:recurringCost.others,
-           total:recurringCost.total
+           human_resources:budgetsanctioned.recurringCost.human_resources,
+           consumables:budgetsanctioned.recurringCost.consumables,
+           others:budgetsanctioned.recurringCost.others,
+           total:budgetsanctioned.recurringCost.total
           },
-          yearTotal:yearTotal
+          yearTotal:budgetsanctioned.yearTotal
         }
        
       }).save();

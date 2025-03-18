@@ -9,18 +9,14 @@ const Navbar = () => {
 
   return (
     <nav className="bg-gray-100 text-gray-900">
-
-      {/* Main Navbar */}
-      <div className="flex justify-between items-center px-8 py-3 bg-teal-700 text-white">
-        {/* Logo & Name */}
+      <div className="flex justify-between items-center px-8 py-2 bg-teal-700 text-white">
         <div>
-          <h1 className="text-lg font-bold leading-tight">
-            अनुसंधान नेशनल रिसर्च फाउंडेशन <br />
-            <span className="text-sm" onClick={() => navigate("/")}>Anusandhan National Research Foundation</span>
+          <h1 className="text-3xl font-bold leading-tight space-y-1">
+            <span className="mb-1">ResearchX</span><br />
+            <span className="text-sm" onClick={() => navigate("/")}>Research Grant Management portal</span>
           </h1>
         </div>
 
-        {/* Navigation Links */}
         <div className="flex items-center space-x-6">
           <span className="hover:text-gray-300 cursor-pointer" onClick={() => navigate("/aboutus")}>About Us</span>
           <span className="hover:text-gray-300 cursor-pointer">Contact Us</span>
