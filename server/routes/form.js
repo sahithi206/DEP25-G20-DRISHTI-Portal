@@ -461,31 +461,6 @@ router.post("/submit-bank-details/:proposalId", fetchUser, async (req, res) => {
   }
 });
 
-// router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
-//   try {
-//       const {piList,coPiList}=req.body;
-//       const {proposalId}=req.params;
-//       const user = await User.findById(req.user._id).populate("proposals");
-//       if (!user) {
-//           return res.status(404).json({ success: false, msg: "User not found" });
-//       }
-//       const props= await PI.findOne({proposalId:proposalId});
-//       if(props){
-//         await PI.findOneAndUpdate({proposalId:proposalId},{piList,coPiList},{new:true});
-//        return res.status(200).json({success:true,msg:"Updated PI Details Successfully"});
-//       }
-      
-//       const piDetails = new PI({proposalId,piList,coPiList});
-//       await piDetails.save();
-
-//       res.status(200).json({ success: true,piDetails, msg: "PI details stored successfully" });
-
-//   } catch (error) {
-//       console.error("Error storing PI details:", error);
-//       res.status(500).json({ success: false, msg: "Failed to store PI details" });
-//   }
-// });
-
 router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
   try {
     const { piList, coPiList } = req.body;
@@ -642,4 +617,44 @@ router.get("/acceptedproposals", fetchUser, async (req, res) => {
   }
 });
 
+router.post("/proposals/:id/comment", async (req, res) => {
+  try {
+    const { text } = req.body;
+    const proposalId = req.params.id;
+    if (!text || text.trim() === "") {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+    const userId = req.user?.id || "admin"; 
+    const userName = req.user?.name || "Admin User";
+
+    const comment = {
+      text,
+      createdBy: userId,
+      createdByName: userName,
+      createdAt: new Date(),
+      isAdminComment: true 
+    };
+
+    const updatedProposal = await Proposal.findByIdAndUpdate(
+      proposalId,
+      { $push: { comments: comment } },
+      { new: true }
+    );
+
+    if (!updatedProposal) {
+      return res.status(404).json({ message: "Proposal not found" });
+    }
+
+    const newComment = updatedProposal.comments[updatedProposal.comments.length - 1];
+    
+    res.status(200).json({ 
+      message: "Comment added successfully", 
+      proposal: updatedProposal,
+      comment: newComment
+    });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+});
 module.exports = router;
