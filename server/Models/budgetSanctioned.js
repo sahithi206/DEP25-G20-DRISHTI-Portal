@@ -12,7 +12,7 @@ const budgetSchema = new Schema({
             others:{type:Number,required:true},
             total:{type:Number,required:true}
         },
-        yearTotal:{type:Number,required:true},
+        total:{type:Number,required:true},
     },
     budgetSanctioned:{
         nonRecurring:{type:Number,required:true},
