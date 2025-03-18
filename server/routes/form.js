@@ -647,5 +647,5 @@ router.post("/proposals/:id/comment", async (req, res) => {
     console.error("Error adding comment:", error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
-
+});
 module.exports = router;
