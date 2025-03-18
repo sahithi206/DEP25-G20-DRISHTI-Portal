@@ -845,4 +845,20 @@ router.get("/users", async (req, res) => {
   }
 });
 
+router.delete("/deleteProposal/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedProposal = await Proposal.findByIdAndDelete(id);
+
+        if (!deletedProposal) {
+            return res.status(404).json({ success: false, msg: "Proposal not found" });
+        }
+
+        res.json({ success: true, msg: "Proposal deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting proposal:", error);
+        res.status(500).json({ success: false, msg: "Internal server error" });
+    }
+});
+
 module.exports = router;
