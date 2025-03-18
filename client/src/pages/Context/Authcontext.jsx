@@ -674,13 +674,71 @@ const userInstiAcceptedProposals = async (userId) => {
   }
 };
 
+const fetchSanctionedProjects = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    console.log("Use a valid Token");
+    alert("Authentication required.");
+    return;
+  }
+  try {
+    const response = await fetch(`${url}institute/sanctioned-projects`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "accessToken": `${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch sanctioned projects");
+    }
+
+    const json = await response.json();
+    console.log("Sanctioned Projects:", json.projects);
+    return json.projects;
+  } catch (error) {
+    console.error("Error fetching sanctioned projects:", error);
+    alert(error.message || "Failed to fetch sanctioned projects");
+  }
+};
+
+const fetchInstituteGetProject = async (projectId) => {
+
+  const token = localStorage.getItem("token");  
+  if (!token) {
+    console.log("Use a valid Token");
+    alert("Authentication required.");
+    return;
+  }
+  try {
+    const response = await fetch(`${url}institute/get-project-insti/${projectId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application",
+        "accessToken": ` ${token}`,
+      },
+  });
+  console.log(response);
+  if (!response.ok) {
+      throw new Error("Failed to fetch project details");
+  }
+  const data = await response.json();
+  console.log("Data",data);
+  return {data};
+} catch (error) {
+  console.error(error);
+}
+};
+
 
   return (
     <AuthContext.Provider value={{ sendOtp, verifyOtp, login,unsavedProposal,
      authState,edituser,incompleteProposals,getpi, submitProposal,logout,uploadFile,
       submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails,
        submitPIDetails, submitAcknowledgement, getuser, approvedProjects , fetchInstituteProjects,
-        userInstiAcceptedProposals,createInstitute,fetchInstituteUsers, loginInstitute,getProject}}>
+        userInstiAcceptedProposals,createInstitute,fetchInstituteUsers, loginInstitute,getProject,fetchSanctionedProjects,
+        fetchInstituteGetProject}}>
       {props.children}
     </AuthContext.Provider>
   );

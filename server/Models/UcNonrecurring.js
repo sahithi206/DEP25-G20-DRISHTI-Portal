@@ -11,6 +11,7 @@ const NonRecurringGrantSchema = new mongoose.Schema({
     yearTotal: { type: Number, required: true },
     total: { type: Number, required: true },
     nonRecurringExp:{type:Number,required:true},
+    status: { type: String, required: true, default: "Pending for institute approval." }, // change to submitted when institute approves
 
 });
 

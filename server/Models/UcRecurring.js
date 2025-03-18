@@ -14,7 +14,8 @@ const RecurringGrantSchema = new mongoose.Schema({
     recurringExp: { type: Number, required: true },
     humanResource: { type: Number, required: true, default: 0 },
     consumables: { type: Number, required: true, default: 0 },
-    others: { type: Number, required: true, default: 0 }
+    others: { type: Number, required: true, default: 0 },
+    status: { type: String, required: true, default: "Pending for institute approval." }, // change to submitted when institute approves
 });
  
 
