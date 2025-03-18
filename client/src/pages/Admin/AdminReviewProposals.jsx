@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import { Bell, Settings, LogOut } from "lucide-react";
+// In your main component file
+import BudgetAllocationForm from './BudgetAllocationForm';
 
 const AdminProposalReview = () => {
     const [activeSection, setActiveSection] = useState("approvals");
     const [proposals, setProposals] = useState([]);
     const [selectedProposal, setSelectedProposal] = useState(null);
+    const [showBudgetForm, setShowBudgetForm] = useState(false);
     const [comment, setComment] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const URL = import.meta.env.VITE_REACT_APP_URL;
-
+    
     useEffect(() => {
         const fetchPendingProposals = async () => {
             const token = localStorage.getItem("token");
@@ -41,7 +44,12 @@ const AdminProposalReview = () => {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("User not authenticated");
     
-            console.log("Approving proposal:", proposalId, "with status:", status);
+            console.log("Handling proposal:", proposalId, "with status:", status);
+            
+            if (status === "Approved") {
+                setShowBudgetForm(true);
+                return;
+            }
             
             const response = await fetch(`${URL}form/update-proposals/${proposalId}`, {
                 method: "PUT",
@@ -49,8 +57,8 @@ const AdminProposalReview = () => {
                     "Content-Type": "application/json",
                     "accessToken": token,
                 },
-                body: JSON.stringify({ 
-                    status, 
+                body: JSON.stringify({
+                    status,
                     comment: comment.trim() ? comment : `Proposal ${status.toLowerCase()} by admin.`
                 }),
             });
@@ -75,6 +83,67 @@ const AdminProposalReview = () => {
         }
     };
 
+
+    const handleBudgetSubmit = async (budgetData) => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) throw new Error("User not authenticated");
+    
+            console.log("Budget data to submit:", budgetData);
+    
+            // Validate that all required budget fields are provided
+            if (
+                !budgetData.TotalCost ||
+                !budgetData.budgetTotal ||
+                !budgetData.budgetSanctioned ||
+                !budgetData.budgetTotal.total ||
+                !budgetData.budgetSanctioned.yearTotal
+            ) {
+                throw new Error("All budget details must be provided!");
+            }
+    
+            // Ensure comment is defined
+            const finalComment = comment?.trim() ? comment : "Proposal approved with budget allocation.";
+    
+            // First update the proposal status to Approved (including budget data)
+            const approvalResponse = await fetch(`${URL}form/update-proposals/${budgetData.proposalId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "accessToken": token,
+                },
+                body: JSON.stringify({
+                    status: "Approved",
+                    comment: finalComment,
+                    budgetsanctioned: budgetData.budgetSanctioned,
+                    budgettotal: budgetData.budgetTotal,
+                    TotalCost: budgetData.TotalCost,
+                }),
+            });
+    
+            const approvalResult = await approvalResponse.json();
+            console.log("Approval Response:", approvalResult);
+    
+            if (!approvalResponse.ok) {
+                throw new Error(approvalResult.msg || "Failed to approve proposal");
+            }
+    
+            setProposals(proposals.filter(proposal => proposal.proposal._id !== budgetData.proposalId));
+            setSelectedProposal(null);
+            setComment("");
+            setShowBudgetForm(false);
+            setSuccessMessage("Proposal approved and budget allocated successfully");
+            setTimeout(() => setSuccessMessage(""), 3000);
+        } catch (err) {
+            console.error("Error in handleBudgetSubmit:", err);
+            setError(err.message);
+            setTimeout(() => setError(""), 3000);
+        }
+    };
+    
+    
+    
+    
     const requestRevision = async (proposalId) => {
         if (!comment.trim()) {
             setError("Please add a comment detailing the required revisions");
@@ -135,6 +204,7 @@ const AdminProposalReview = () => {
     
             const data = await response.json();
             
+            // Update the proposal in the list with the new comment
             const updatedProposals = proposals.map(p => {
                 if (p.proposal._id === proposalId) {
                     return {
@@ -164,6 +234,7 @@ const AdminProposalReview = () => {
             <div className="flex-1 p-6 overflow-y-auto">
                 <h1 className="text-2xl font-semibold">Proposal Approvals</h1>
                 
+                {/* Success/Error messages */}
                 {successMessage && (
                     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4">
                         {successMessage}
@@ -221,6 +292,7 @@ const AdminProposalReview = () => {
                                 <p><strong>Institute:</strong> {selectedProposal.generalInfo?.instituteName}</p>
                                 <p><strong>Description:</strong> {selectedProposal.researchDetails?.Summary}</p>
                                 
+                                {/* Display existing comments */}
                                 {selectedProposal.proposal.comments && selectedProposal.proposal.comments.length > 0 && (
                                     <div className="mt-4">
                                         <h3 className="font-medium">Previous Comments:</h3>
@@ -285,6 +357,14 @@ const AdminProposalReview = () => {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {showBudgetForm && selectedProposal && (
+                  <BudgetAllocationForm
+                    selectedProposal={selectedProposal}
+                    onClose={() => setShowBudgetForm(false)}
+                    onSubmit={handleBudgetSubmit}
+                  />
                 )}
             </div>
         </div>
