@@ -9,8 +9,24 @@ const ProposalScheme = () => {
     const [selectedProposal, setSelectedProposal] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
-    const { submitProposal, incompleteProposals } = useContext(AuthContext);
+    const { submitProposal, incompleteProposals, getSchemes } = useContext(AuthContext);
     const [incompProposals, setProposals] = useState([]);
+
+    const [schemes, setSchemes] = useState([]);
+
+    useEffect(() => {
+        const fetchSchemes = async () => {
+            try {
+                const schemeList = await getSchemes();
+                setSchemes(schemeList);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchSchemes();
+    }, []);
+
     useEffect(() => {
         const proposals = async () => {
             try {
@@ -42,7 +58,7 @@ const ProposalScheme = () => {
             setError("Failed to create proposal");
         }
     };
-    const handleEdit = async ({proposal}) => {
+    const handleEdit = async ({ proposal }) => {
 
         try {
 
@@ -93,12 +109,13 @@ const ProposalScheme = () => {
                                     }}
                                 >
                                     <option value="">Select scheme</option>
-                                    <option value="scheme1">Scheme 1</option>
-                                    <option value="scheme2">Scheme 2</option>
-                                    <option value="scheme3">Scheme 3</option>
-                                    <option value="scheme4">Scheme 4</option>
-                                    <option value="scheme5">Scheme 5</option>
+                                    {schemes.map((scheme) => (
+                                        <option key={scheme._id} value={scheme._id}>
+                                            {scheme.name} {/* Adjust based on your API response */}
+                                        </option>
+                                    ))}
                                 </select>
+
                             </div>
                             {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
                         </div>
@@ -116,55 +133,55 @@ const ProposalScheme = () => {
                             </button>
                         </div>
                         <div className="mt-6">
-    <div className="overflow-x-auto">
-        <table className="w-full text-sm bg-white rounded-lg shadow-md overflow-hidden">
-            <thead className="bg-blue-900">
-                <tr>
-                    <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200 rounded-tl-lg">
-                        Proposal ID
-                    </th>
-                    <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">
-                        Scheme
-                    </th>
-                    <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200 rounded-tr-lg">
-                        Action
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                {incompProposals.length > 0 ? (
-                    incompProposals.map((proposal) => (
-                        <tr
-                            key={proposal._id}
-                            className="group hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0"
-                        >
-                            <td className="p-4 text-center font-medium text-sm text-gray-600">
-                                {proposal._id}
-                            </td>
-                            <td className="p-4 text-center font-medium text-sm text-gray-600">
-                                {proposal.Scheme}
-                            </td>
-                            <td className="p-4 text-center font-medium text-sm text-gray-600">
-                                <button
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
-                                    onClick={() => handleEdit({proposal})}
-                                >
-                                    Edit Proposal
-                                </button>
-                            </td>
-                        </tr>
-                    ))
-                ) : (
-                    <tr>
-                        <td colSpan="3" className="p-6 text-center text-gray-500">
-                            No Incomplete Proposals Found
-                        </td>
-                    </tr>
-                )}
-            </tbody>
-        </table>
-    </div>
-</div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm bg-white rounded-lg shadow-md overflow-hidden">
+                                    <thead className="bg-blue-900">
+                                        <tr>
+                                            <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200 rounded-tl-lg">
+                                                Proposal ID
+                                            </th>
+                                            <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">
+                                                Scheme
+                                            </th>
+                                            <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200 rounded-tr-lg">
+                                                Action
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {incompProposals.length > 0 ? (
+                                            incompProposals.map((proposal) => (
+                                                <tr
+                                                    key={proposal._id}
+                                                    className="group hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0"
+                                                >
+                                                    <td className="p-4 text-center font-medium text-sm text-gray-600">
+                                                        {proposal._id}
+                                                    </td>
+                                                    <td className="p-4 text-center font-medium text-sm text-gray-600">
+                                                        {proposal.Scheme}
+                                                    </td>
+                                                    <td className="p-4 text-center font-medium text-sm text-gray-600">
+                                                        <button
+                                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
+                                                            onClick={() => handleEdit({ proposal })}
+                                                        >
+                                                            Edit Proposal
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="3" className="p-6 text-center text-gray-500">
+                                                    No Incomplete Proposals Found
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
 
 
                     </div>
