@@ -65,7 +65,7 @@ const SelectDate = () => {
                             required
                             className="border border-gray-300 rounded-md px-4 py-2 w-full text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                         />
-                        <label className="block text-gray-500 font-xxs mt-4 mb-2">* This request will be forwarded to institute</label>
+                        <label className="block text-gray-500 font-xxs mt-4 mb-2">* Earliest Date is 5 days from Today</label>
                         <button
                             className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg w-full hover:bg-blue-700 transition-all duration-200 shadow-md"
                             onClick={handleSubmit}

@@ -142,37 +142,39 @@ router.put("/update-proposals/:id", fetchUser, async (req, res) => {
     let { status, comment } = req.body;
     let {id} = req.params;
     let proposal = await Proposal.findById(id).populate("userId");
+    console.log(proposal);
     if (!proposal) {
       console.log("Proposal not found in database!");
       return res.status(404).json({ message: "Proposal not found" });
     }
     proposal=await Proposal.findByIdAndUpdate({_id:id},{status:status},{new:true});
-    await sendEmailNotification(proposal.userId, status, comment);
+    await sendEmailNotification(req.user, status, comment);
     if(status==="Approved"){
-      const {budgetsanctioned,bugdettotal,TotalCost}=req.body;
-      if(!budgetsanctioned||!bugdettotal||!TotalCost){
+      const {budgetsanctioned,budgettotal,TotalCost}=req.body;
+      console.log(budgetsanctioned,budgettotal,TotalCost);
+      if(!budgetsanctioned||!budgettotal||!TotalCost){
         return res.status(400).json({msg:"Enter all the Budget Details!!",success:false});
       }
       const budget= await new budgetSanctioned({
         proposalId:proposal._id,
         TotalCost:TotalCost,
         budgetTotal:{
-          nonRecurring:bugdettotal.nonRecurringCost,
+          nonRecurring:budgettotal.nonRecurring,
           recurring:{
-            human_resources:bugdettotalrecurringCost.human_resources,
-            consumables:bugdettotalrecurringCost.consumables,
-            others:bugdettotalrecurringCost.others,
-            total:bugdettotalrecurringCost.total
+            human_resources:budgettotal.recurring.human_resources,
+            consumables:budgettotal.recurring.consumables,
+            others:budgettotal.recurring.others,
+            total:budgettotal.recurring.total
            },
            total:TotalCost,
       },
         budgetSanctioned:{
-           nonRecurring:budgetsanctioned.nonRecurringCost,
+           nonRecurring:budgetsanctioned.nonRecurring,
            recurring:{
-           human_resources:budgetsanctioned.recurringCost.human_resources,
-           consumables:budgetsanctioned.recurringCost.consumables,
-           others:budgetsanctioned.recurringCost.others,
-           total:budgetsanctioned.recurringCost.total
+           human_resources:budgetsanctioned.recurring.human_resources,
+           consumables:budgetsanctioned.recurring.consumables,
+           others:budgetsanctioned.recurring.others,
+           total:budgetsanctioned.recurring.total
           },
           yearTotal:budgetsanctioned.yearTotal
         }
@@ -595,7 +597,7 @@ router.get("/acceptedproposals", fetchUser, async (req, res) => {
     const proposals = await Proposal.find({ userId:userId, status: "Approved" });
     console.log("Fetched Proposals:", proposals);
     if (!proposals.length) {
-      return res.status(404).json({ success: false, msg: "No proposals found" });
+      return res.status(400).json({ success: false, msg: "No proposals found" });
     }
 
     const data = await Promise.all(proposals.map(async (proposal) => {

@@ -21,7 +21,7 @@ const projectSchema = new Schema({
             others:{type:Number,required:true},
             total:{type:Number,required:true}
         },
-        yearTotal:{type:Number,required:true},
+        total:{type:Number,required:true},
     },
     CarryForward:{
         nonRecurring:{type:Number,default:0},
@@ -31,7 +31,7 @@ const projectSchema = new Schema({
             others:{type:Number,default:0},
             total:{type:Number,default:0}
         },
-        yearTotal:{type:Number,required:true},
+        yearTotal:{type:Number,default:0},
     },
     generalInfoId:{ type: Schema.Types.ObjectId, ref: "GeneralInfo", required: true },
     bankDetailsId:{ type: Schema.Types.ObjectId, ref: "BankDetails", required: true },
