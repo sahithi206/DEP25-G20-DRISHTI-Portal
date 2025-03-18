@@ -42,7 +42,8 @@ import RegisterInstitute from "./pages/college/RegisterInstitute.jsx";
 import DisplayUC from "./pages/uc/se/DisplayUC.jsx"
 import Certificates from "./pages/uc/se/Certificate.jsx";
 import SanctionedDashboard from "./pages/college/SanctionedDashboard.jsx";
- 
+import AdminLogin from "./pages/Admin/AdminLogin.jsx";
+import AdminSignup from "./pages/Admin/AdminSignup.jsx";
 
 
 function App() {
@@ -103,6 +104,8 @@ function MainLayout() {
           <Route path="/error" element={<Error />} />
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/adminLogin" element={<AdminLogin />} />
+          <Route path="/adminSignup" element={<AdminSignup />} />
           <Route path="/review-proposals" element={<AdminReviewProposals />} />
           <Route path="/fund-cycle" element={<FundCycleApproval />} />
           <Route path="/requests" element={<RequestsPage />} />
