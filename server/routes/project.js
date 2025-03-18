@@ -64,12 +64,12 @@ router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
             return res.status(404).json({ success: false, msg: "Couldn't find Required Information" });
         }
         const durationMonths = parseInt(researchDetails.Duration, 10) || 0;
-        console.log(4);
         if (durationMonths === 0) {
             return res.status(400).json({ succes: false, msg: "Duration Time of the Project is not Valid" });
         }
         const calculatedEndDate = new Date(new Date(startDate).setMonth(new Date(startDate).getMonth() + durationMonths)).toISOString().split('T')[0];
         console.log(parseFloat(researchDetails.Duration) / 12);
+        console.log(budgetsanctioned.budgetTotal);
         const project = new Project({
             userId: req.user._id,
             Scheme: proposal.Scheme,
@@ -81,7 +81,7 @@ router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
             startDate: startDate,
             TotalCost: budgetsanctioned.TotalCost,
             TotalUsed:0,
-            budgetTotal:budgetSanctioned.budgetTotal,
+            budgetTotal:budgetsanctioned.budgetTotal,
             endDate: calculatedEndDate,
             generalInfoId: generalInfoId,
             bankDetailsId: bankDetailsId,
@@ -121,7 +121,6 @@ router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
         const proposal1 = await Proposal.findByIdAndUpdate(proposalId,{status:"Sanctioned"},{new:true});
         res.json({ success: true, msg: "Project Created", projectUpdated });
     } catch (error) {
-        console.msg(error);
         console.error("Error fetching proposals:", error);
         res.status(500).json({ success: false, msg: "Failed to Fetch Projects", error: "Internal Server Error" });
     }
