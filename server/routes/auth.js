@@ -2,6 +2,7 @@ require("dotenv").config();
 const nodemailer = require("nodemailer");
 const OTPModel = require("../Models/otp");
 const User = require("../Models/user");
+const Admin = require("../Models/Admin");
 const Institute = require("../Models/instituteID");
 const bcrypt=require("bcryptjs");
 const { fetchUser } = require("../Middlewares/fetchUser");
