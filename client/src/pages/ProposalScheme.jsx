@@ -9,9 +9,8 @@ const ProposalScheme = () => {
     const [selectedProposal, setSelectedProposal] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
-    const { submitProposal, incompleteProposals, getSchemes } = useContext(AuthContext);
+    const { submitProposal, incompleteProposals, getSchemes, deleteProposal } = useContext(AuthContext);
     const [incompProposals, setProposals] = useState([]);
-
     const [schemes, setSchemes] = useState([]);
 
     useEffect(() => {
@@ -39,6 +38,16 @@ const ProposalScheme = () => {
         }
         proposals();
     }, [incompleteProposals]);
+
+    const handleDelete = async (proposalId) => {
+        try {
+            await deleteProposal(proposalId);
+            setProposals(incompProposals.filter(proposal => proposal._id !== proposalId));
+        } catch (error) {
+            console.error("Error deleting proposal:", error.message);
+        }
+    };
+
     const handleNext = async () => {
         if (!selectedProposal) {
             setError("Please select a scheme before proceeding.");
@@ -58,10 +67,9 @@ const ProposalScheme = () => {
             setError("Failed to create proposal");
         }
     };
+
     const handleEdit = async ({ proposal }) => {
-
         try {
-
             if (proposal && proposal._id) {
                 localStorage.setItem("ProposalID", proposal._id);
                 navigate("/dashboard");
@@ -111,11 +119,10 @@ const ProposalScheme = () => {
                                     <option value="">Select scheme</option>
                                     {schemes.map((scheme) => (
                                         <option key={scheme._id} value={scheme._id}>
-                                            {scheme.name} {/* Adjust based on your API response */}
+                                            {scheme.name}
                                         </option>
                                     ))}
                                 </select>
-
                             </div>
                             {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
                         </div>
@@ -151,10 +158,7 @@ const ProposalScheme = () => {
                                     <tbody>
                                         {incompProposals.length > 0 ? (
                                             incompProposals.map((proposal) => (
-                                                <tr
-                                                    key={proposal._id}
-                                                    className="group hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0"
-                                                >
+                                                <tr key={proposal._id} className="group hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0">
                                                     <td className="p-4 text-center font-medium text-sm text-gray-600">
                                                         {proposal._id}
                                                     </td>
@@ -162,11 +166,11 @@ const ProposalScheme = () => {
                                                         {proposal.Scheme}
                                                     </td>
                                                     <td className="p-4 text-center font-medium text-sm text-gray-600">
-                                                        <button
-                                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
-                                                            onClick={() => handleEdit({ proposal })}
-                                                        >
+                                                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all" onClick={() => handleEdit({ proposal })}>
                                                             Edit Proposal
+                                                        </button>
+                                                        <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all ml-2" onClick={() => handleDelete(proposal._id)}>
+                                                            Delete Proposal
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -182,12 +186,9 @@ const ProposalScheme = () => {
                                 </table>
                             </div>
                         </div>
-
-
                     </div>
                 </div>
             </div>
-
         </div>
     );
 };

@@ -61,6 +61,7 @@ const AdminRequests = () => {
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6">
                 <h2 className="text-2xl font-bold mb-4">Admin Requests Panel</h2>
+                <AdminNavbar />
                 <table className="w-full border">
                     <thead>
                         <tr className="bg-gray-200">
