@@ -312,5 +312,5 @@ router.get("/get-user", fetchUser, async (req, res) => {
       res.status(500).json({ success: false, msg: "Failed to log in institute", error: error.message });
     }
   });
-  
+
   module.exports = router;

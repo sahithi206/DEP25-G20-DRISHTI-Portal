@@ -42,8 +42,11 @@ import RegisterInstitute from "./pages/college/RegisterInstitute.jsx";
 import DisplayUC from "./pages/uc/se/DisplayUC.jsx"
 import Certificates from "./pages/uc/se/Certificate.jsx";
 import SanctionedDashboard from "./pages/college/SanctionedDashboard.jsx";
+<<<<<<< HEAD
 import SEForm from "./pages/uc/se/SEdisplay.jsx";
  
+=======
+>>>>>>> 970a25e35566c797c33be889cd594ea36b07ef0c
 
 
 function App() {

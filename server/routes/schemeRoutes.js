@@ -3,7 +3,7 @@ const Scheme = require("../Models/Scheme");
 const router = express.Router();
 
 // Get all schemes
-router.get("/", async (req, res) => {
+router.get("/get-schemes", async (req, res) => {
   try {
     const schemes = await Scheme.find();
     res.json(schemes);
@@ -13,9 +13,10 @@ router.get("/", async (req, res) => {
 });
 
 // Create a new scheme
-router.post("/", async (req, res) => {
+router.post("/new-scheme", async (req, res) => {
   try {
     const newScheme = new Scheme(req.body);
+    console.log(newScheme);
     await newScheme.save();
     res.status(201).json(newScheme);
   } catch (err) {
@@ -24,3 +25,4 @@ router.post("/", async (req, res) => {
 });
 
 module.exports = router;
+
