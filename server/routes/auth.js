@@ -312,5 +312,103 @@ router.get("/get-user", fetchUser, async (req, res) => {
       res.status(500).json({ success: false, msg: "Failed to log in institute", error: error.message });
     }
   });
+router.post("/admin-login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await Admin.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ success: false, msg: "User doesn't exist" });
+    }
+
+    // let passwordMatch = await bcrypt.compare(password, user.password);
+    if (password != user.password) {
+      return res.status(401).json({ success: false, msg: "Incorrect password" });
+    }
+
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.TOKEN, { expiresIn: "1h" });
+
+    res.status(200).json({
+      success: true,
+      msg: "Login successful",
+      accessToken: token,
+      role: user.role // Send role to frontend
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, msg: "Internal server error" });
+  }
+});
+
+router.post("/admin-verify-otp", async (req, res) => {
+  const { email, password, name, role, otp } = req.body;
+  try {
+    console.log("In the /admin-verify-otp");
+    if (!email || !otp || !name || !password || !role) {
+      return res.status(400).json({ success: true, msg: "All fields are required" });
+    }
+    console.log(otp);
+    const uer = await Admin.findOne({ email });
+    if (uer) return res.status(400).json({ success: false, msg: "Admin already exists with this email" });
+
+    const validOtp = await OTPModel.findOne({ email, otp });
+    console.log(validOtp);
+    if (!validOtp || new Date() - new Date(validOtp.createdAt) > 5 * 60 * 1000) {
+      return res.status(400).json({ success: false, msg: "Invalid or expired OTP" });
+    }
+    console.log(validOtp._id);
+    await OTPModel.deleteOne({ _id: validOtp._id });
+    const isUser = await Admin.findOne({ email });
+    if (isUser) return res.status(400).json({ success: false, msg: "User already exists with this email" });
+
+    // const salt = await bcrypt.genSalt(10);
+    // const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = new Admin({
+      name,
+      email,
+      password,
+      role
+    });
+    await user.save();
+
+
+    const accessToken = jwt.sign({ user }, process.env.TOKEN, { expiresIn: "36000m" });
+    res.status(200).json({ success: true, user, accessToken, msg: "Signup successful" });
+  }
+  catch (e) {
+    console.log(e);
+    res.status(500).json({ success: false, e, msg: "Couldn't verify OTP" });
+  }
+});
+
+const authenticateAdmin = async (req, res, next) => {
+  try {
+    const token = req.headers.accesstoken;
+    if (!token) {
+      return res.status(401).json({ success: false, msg: "Access token missing" });
+    }
+
+    const decoded = jwt.verify(token, process.env.TOKEN);
+    req.adminId = decoded.id;
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, msg: "Invalid or expired token" });
+  }
+};
+
+router.get("/get-admin", authenticateAdmin, async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.adminId).select("-password"); // Exclude password field
+    if (!admin) {
+      return res.status(404).json({ success: false, msg: "Admin not found" });
+    }
+
+    res.status(200).json({ success: true, admin });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, msg: "Internal server error" });
+  }
+});
   
   module.exports = router;
