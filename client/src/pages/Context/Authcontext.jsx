@@ -492,15 +492,15 @@ const approvedProjects = async () => {
       });
 
       if (!response.ok) {
-          throw new Error("Failed to update user details");
+          throw new Error("Failed to Fetch Proposals");
       }
       const json = await response.json();
       alert(json.msg);
       console.log(json.msg);
       return json.data;
   } catch (error) {
-      console.error("Edit user error:", error);
-      alert(error.message || "Failed to update user details");
+      console.error("Fetch Proposals error:", error);
+      alert(error.message || "Failed to Fetch Proposals");
   }
 };
 
