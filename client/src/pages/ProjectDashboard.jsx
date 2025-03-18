@@ -116,7 +116,7 @@ const ProjectDashboard = () => {
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
             <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                <HomeNavbar isSidebarOpen={isSidebarOpen} />
+                <HomeNavbar isSidebarOpen={isSidebarOpen} path={"/sanctionedproposals"} />
 
                 <div className="p-6 space-y-6 mt-16">
                     <div className="p-6 space-y-6">
@@ -324,16 +324,6 @@ const ProjectDashboard = () => {
                                                 </>
                                             ) : ([])}
                                     </div>
-                                </div>
-
-
-                                <div className="mt-6 text-center">
-                                    <button
-                                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                                        onClick={() => navigate("/sanctioned-proposals")}
-                                    >
-                                        Back to Sanctioned Proposals
-                                    </button>
                                 </div>
                             </div>
                         )}
