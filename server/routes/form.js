@@ -712,8 +712,9 @@ router.get("/pendingProposals", fetchAdmin, async (req, res) => {
         const bankInfo = await Bank.findOne({ proposalId: proposal._id });
         const user = await User.findOne({ _id: proposal.userId });
         const totalBudget = await Budget.findOne({ proposalId: proposal._id });
+        const piInfo = await PI.findOne({ proposalId: proposal._id });
 
-        return { proposal, generalInfo, researchDetails, bankInfo, user, totalBudget };
+        return { proposal, generalInfo, researchDetails, bankInfo, user, totalBudget, piInfo };
       })
     );
 
