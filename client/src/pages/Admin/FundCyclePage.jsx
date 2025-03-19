@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import AdminSidebar from "../../components/AdminSidebar"; 
+import AdminSidebar from "../../components/AdminSidebar";
 import { FaCheck, FaTimes } from "react-icons/fa";
+const URL = import.meta.env.VITE_REACT_APP_URL;
 
 const FundCycleApproval = () => {
     const [fundRequests, setFundRequests] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:8000/fund-cycle-requests")
+        fetch(`${URL}fund-cycle-requests`)
             .then((res) => res.json())
             .then((data) => setFundRequests(data))
             .catch((error) => console.error("Error fetching fund cycle requests:", error));
@@ -14,7 +15,7 @@ const FundCycleApproval = () => {
 
     const updateFundRequestStatus = async (id, status) => {
         try {
-            const response = await fetch(`http://localhost:8000/fund-cycle-requests/${id}`, {
+            const response = await fetch(`${URL}fund-cycle-requests/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status }),

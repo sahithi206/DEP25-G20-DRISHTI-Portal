@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Bell, Settings, LogOut } from "lucide-react";
+import { AuthContext } from "../pages/Context/Authcontext";
+import { useNavigate, useParams } from "react-router-dom";
 
 const sectionTitles = {
   dashboard: "Dashboard",
@@ -11,8 +13,21 @@ const sectionTitles = {
 };
 
 const AdminNavbar = ({ activeSection }) => {
+  const { getAdmin, logout } = useContext(AuthContext);
+  const [admin, setAdmin] = useState();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchAdminDetails = async () => {
+      const adminData = await getAdmin();
+      setAdmin(adminData);
+    };
+
+    fetchAdminDetails();
+  }, [getAdmin]);
+
   const title = sectionTitles[activeSection] || "Admin Dashboard";
-  console.log("Navbar Title:", title); 
+  console.log("Navbar Title:", title);
   return (
     <div className="flex justify-between items-center bg-white p-4 shadow-md rounded-lg">
       <h1 className="text-2xl font-semibold">{title}</h1>
@@ -24,7 +39,7 @@ const AdminNavbar = ({ activeSection }) => {
           <Settings className="w-5 h-5" />
         </button>
         <button className="p-2 bg-red-500 text-white rounded-md flex items-center hover:bg-red-600 transition">
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-5 h-5" onClick={logout} />
         </button>
       </div>
     </div>

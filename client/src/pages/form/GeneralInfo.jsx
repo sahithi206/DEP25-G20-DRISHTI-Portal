@@ -1,14 +1,15 @@
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { AuthContext } from "../Context/Authcontext";
-const GeneralInfo=({generalInfo})=>{
+const API_BASE_URL = import.meta.env.VITE_REACT_APP_URL;
+const GeneralInfo = ({ generalInfo }) => {
     const [userId, setId] = useState(null);
     const [data, setData] = useState({});
     const [projects, setProjects] = useState({});
     const { getuser, submitGeneralInfo } = useContext(AuthContext);
     useEffect(() => {
         const user = async () => {
-            console.log("Gen",generalInfo);
+            console.log("Gen", generalInfo);
             try {
                 const User = await getuser();
                 setData(User);
@@ -18,20 +19,20 @@ const GeneralInfo=({generalInfo})=>{
             }
         };
         user();
-        const nochange=()=>{
-            if(generalInfo){
-                 setProjects({
-                    dbtProjectsOngoing:generalInfo.DBTproj_ong,
-                    dbtProjectsCompleted:generalInfo.DBTproj_completed,
-                    projectsOngoing:generalInfo.Proj_ong,
-                    projectsCompleted:generalInfo.Proj_completed,
-                    biodata:"",
-                    photo:"",
+        const nochange = () => {
+            if (generalInfo) {
+                setProjects({
+                    dbtProjectsOngoing: generalInfo.DBTproj_ong,
+                    dbtProjectsCompleted: generalInfo.DBTproj_completed,
+                    projectsOngoing: generalInfo.Proj_ong,
+                    projectsCompleted: generalInfo.Proj_completed,
+                    biodata: "",
+                    photo: "",
                 });
             }
         }
         nochange()
-    }, [getuser,generalInfo]);
+    }, [getuser, generalInfo]);
     const handleChange = (e) => {
         setProjects({ ...projects, [e.target.name]: e.target.value });
     };
@@ -49,8 +50,8 @@ const GeneralInfo=({generalInfo})=>{
                 DBTproj_completed: projects.dbtProjectsCompleted,
                 Proj_ong: projects.projectsOngoing,
                 Proj_completed: projects.projectsCompleted,
-                biodata:projects.biodata, 
-                photo:projects.photo
+                biodata: projects.biodata,
+                photo: projects.photo
             });
             if (response.success) {
                 alert(response.msg);
@@ -69,16 +70,16 @@ const GeneralInfo=({generalInfo})=>{
         const formData = new FormData();
         formData.append("file", file);
         try {
-            const url = `http://localhost:8000/form/upload/${fileType}/${userId}`;
+            const url = `${API_BASE_URL}form/upload/${fileType}/${userId}`;
             const response = await axios.post(url, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
-            if(fileType === "pdf"){
+            if (fileType === "pdf") {
                 setProjects((prevProjects) => ({
                     ...prevProjects,
                     biodata: response.data.filePath || response.data.filename
                 }));
-            }else{
+            } else {
                 setProjects((prevProjects) => ({
                     ...prevProjects,
                     photo: response.data.filePath || response.data.filename

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
+import AdminNavbar from "../../components/AdminNavbar";
 import { Bell, Settings, LogOut } from "lucide-react";
-const API_BASE_URL = import.meta.env.VITE_REACT_APP_URL;
+const URL = import.meta.env.VITE_REACT_APP_URL;
 
 
 const SchemeManagement = ({ userRole }) => {
@@ -21,12 +22,12 @@ const SchemeManagement = ({ userRole }) => {
     const [status, setStatus] = useState("Active");
     const [selectedCoordinator, setSelectedCoordinator] = useState("");
     const [schemes, setSchemes] = useState([]);
-    const [users, setUsers] = useState([]); 
+    const [users, setUsers] = useState([]);
 
     useEffect(() => {
         const fetchSchemes = async () => {
             try {
-                const response = await fetch("http://localhost:5000/schemes/get-schemes");
+                const response = await fetch(`${URL}schemes/get-schemes`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch schemes");
                 }
@@ -43,7 +44,7 @@ const SchemeManagement = ({ userRole }) => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch("http://localhost:5000/form/users");
+                const response = await fetch(`${URL}form/users`);
                 const data = await response.json();
                 setUsers(data);
             } catch (error) {
@@ -72,7 +73,7 @@ const SchemeManagement = ({ userRole }) => {
 
 
         try {
-            const response = await fetch("http://localhost:5000/schemes/new-scheme", {
+            const response = await fetch(`${URL}schemes/new-scheme`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -85,7 +86,7 @@ const SchemeManagement = ({ userRole }) => {
             }
 
             const savedScheme = await response.json();
-            setSchemes([...schemes, savedScheme]); 
+            setSchemes([...schemes, savedScheme]);
             setSchemeName("");
             setDescription("");
             setBudget("");
@@ -107,14 +108,7 @@ const SchemeManagement = ({ userRole }) => {
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6">
-                <div className="flex justify-between items-center bg-white p-4 shadow-md rounded-lg">
-                    <h1 className="text-2xl font-semibold">Scheme Management</h1>
-                    <div className="flex space-x-4">
-                        <button className="p-2 bg-blue-500 text-white rounded-md"><Bell className="w-5 h-5" /></button>
-                        <button className="p-2 bg-gray-500 text-white rounded-md"><Settings className="w-5 h-5" /></button>
-                        <button className="p-2 bg-red-500 text-white rounded-md"><LogOut className="w-5 h-5" /></button>
-                    </div>
-                </div>
+                <AdminNavbar />
 
                 {/* Scheme Creation Form */}
                 <div className="mt-6 bg-white p-6 rounded-lg shadow-md">

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
-import { Bell, Settings, LogOut } from "lucide-react";
-// In your main component file
+import AdminNavbar from "../../components/AdminNavbar";
 import BudgetAllocationForm from './BudgetAllocationForm';
 
 const AdminProposalReview = () => {
@@ -14,7 +13,7 @@ const AdminProposalReview = () => {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const URL = import.meta.env.VITE_REACT_APP_URL;
-    
+
     useEffect(() => {
         const fetchPendingProposals = async () => {
             const token = localStorage.getItem("token");
@@ -24,7 +23,7 @@ const AdminProposalReview = () => {
                 return;
             }
             try {
-                const response = await fetch(`${URL}form/proposals?status=Pending`, {
+                const response = await fetch(`${URL}form/pendingProposals`, {
                     method: "GET",
                     headers: { "accessToken": token },
                 });
@@ -43,14 +42,14 @@ const AdminProposalReview = () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("User not authenticated");
-    
+
             console.log("Handling proposal:", proposalId, "with status:", status);
-            
+
             if (status === "Approved") {
                 setShowBudgetForm(true);
                 return;
             }
-            
+
             const response = await fetch(`${URL}form/update-proposals/${proposalId}`, {
                 method: "PUT",
                 headers: {
@@ -62,15 +61,15 @@ const AdminProposalReview = () => {
                     comment: comment.trim() ? comment : `Proposal ${status.toLowerCase()} by admin.`
                 }),
             });
-    
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || "Failed to update proposal status");
             }
-    
+
             const responseData = await response.json();
             console.log("Response data:", responseData);
-            
+
             setProposals(proposals.filter(proposal => proposal.proposal._id !== proposalId));
             setSelectedProposal(null);
             setComment("");
@@ -88,9 +87,9 @@ const AdminProposalReview = () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("User not authenticated");
-    
+
             console.log("Budget data to submit:", budgetData);
-    
+
             // Validate that all required budget fields are provided
             if (
                 !budgetData.TotalCost ||
@@ -101,10 +100,10 @@ const AdminProposalReview = () => {
             ) {
                 throw new Error("All budget details must be provided!");
             }
-    
+
             // Ensure comment is defined
             const finalComment = comment?.trim() ? comment : "Proposal approved with budget allocation.";
-    
+
             // First update the proposal status to Approved (including budget data)
             const approvalResponse = await fetch(`${URL}form/update-proposals/${budgetData.proposalId}`, {
                 method: "PUT",
@@ -120,14 +119,14 @@ const AdminProposalReview = () => {
                     TotalCost: budgetData.TotalCost,
                 }),
             });
-    
+
             const approvalResult = await approvalResponse.json();
             console.log("Approval Response:", approvalResult);
-    
+
             if (!approvalResponse.ok) {
                 throw new Error(approvalResult.msg || "Failed to approve proposal");
             }
-    
+
             setProposals(proposals.filter(proposal => proposal.proposal._id !== budgetData.proposalId));
             setSelectedProposal(null);
             setComment("");
@@ -140,35 +139,35 @@ const AdminProposalReview = () => {
             setTimeout(() => setError(""), 3000);
         }
     };
-    
-    
-    
-    
+
+
+
+
     const requestRevision = async (proposalId) => {
         if (!comment.trim()) {
             setError("Please add a comment detailing the required revisions");
             setTimeout(() => setError(""), 3000);
             return;
         }
-        
+
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("User not authenticated");
-    
+
             const response = await fetch(`${URL}form/update-proposals/${proposalId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "accessToken": token,
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     status: "Needs Revision",
-                    comment 
+                    comment
                 }),
             });
-    
+
             if (!response.ok) throw new Error("Failed to request revision");
-            
+
             setProposals(proposals.filter(proposal => proposal.proposal._id !== proposalId));
             setSelectedProposal(null);
             setComment("");
@@ -186,11 +185,11 @@ const AdminProposalReview = () => {
             setTimeout(() => setError(""), 3000);
             return;
         }
-        
+
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("User not authenticated");
-    
+
             const response = await fetch(`${URL}form/proposals/${proposalId}/comment`, {
                 method: "POST",
                 headers: {
@@ -199,11 +198,11 @@ const AdminProposalReview = () => {
                 },
                 body: JSON.stringify({ text: comment }),
             });
-    
+
             if (!response.ok) throw new Error("Failed to submit comment");
-    
+
             const data = await response.json();
-            
+
             // Update the proposal in the list with the new comment
             const updatedProposals = proposals.map(p => {
                 if (p.proposal._id === proposalId) {
@@ -217,7 +216,7 @@ const AdminProposalReview = () => {
                 }
                 return p;
             });
-            
+
             setProposals(updatedProposals);
             setComment("");
             setSuccessMessage("Comment added successfully");
@@ -227,26 +226,25 @@ const AdminProposalReview = () => {
             setTimeout(() => setError(""), 3000);
         }
     };
-    
+
     return (
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
-                <h1 className="text-2xl font-semibold">Proposal Approvals</h1>
-                
+                <AdminNavbar />
                 {/* Success/Error messages */}
                 {successMessage && (
                     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4">
                         {successMessage}
                     </div>
                 )}
-                
+
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
                         {error}
                     </div>
                 )}
-                
+
                 <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
                     {loading ? (
                         <p>Loading proposals...</p>
@@ -269,8 +267,8 @@ const AdminProposalReview = () => {
                                         <td className="p-2">{proposal.generalInfo?.instituteName}</td>
                                         <td className="p-2">{proposal.researchDetails?.Title}</td>
                                         <td className="p-2">
-                                            <button 
-                                                onClick={() => setSelectedProposal(proposal)} 
+                                            <button
+                                                onClick={() => setSelectedProposal(proposal)}
                                                 className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                                             >
                                                 View
@@ -291,7 +289,7 @@ const AdminProposalReview = () => {
                                 <p><strong>Title:</strong> {selectedProposal.researchDetails?.Title}</p>
                                 <p><strong>Institute:</strong> {selectedProposal.generalInfo?.instituteName}</p>
                                 <p><strong>Description:</strong> {selectedProposal.researchDetails?.Summary}</p>
-                                
+
                                 {/* Display existing comments */}
                                 {selectedProposal.proposal.comments && selectedProposal.proposal.comments.length > 0 && (
                                     <div className="mt-4">
@@ -308,7 +306,7 @@ const AdminProposalReview = () => {
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 <div className="mt-4">
                                     <label htmlFor="comment" className="block font-medium mb-1">
                                         Add Comment:
@@ -324,32 +322,32 @@ const AdminProposalReview = () => {
                                 </div>
                             </div>
                             <div className="flex flex-wrap justify-end gap-2 mt-6">
-                                <button 
-                                    onClick={() => submitComment(selectedProposal.proposal._id)} 
+                                <button
+                                    onClick={() => submitComment(selectedProposal.proposal._id)}
                                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                                 >
                                     Add Comment
                                 </button>
-                                <button 
-                                    onClick={() => requestRevision(selectedProposal.proposal._id)} 
+                                <button
+                                    onClick={() => requestRevision(selectedProposal.proposal._id)}
                                     className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
                                 >
                                     Request Revision
                                 </button>
-                                <button 
-                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Approved")} 
+                                <button
+                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Approved")}
                                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                                 >
                                     Approve
                                 </button>
-                                <button 
-                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Rejected")} 
+                                <button
+                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Rejected")}
                                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                                 >
                                     Reject
                                 </button>
-                                <button 
-                                    onClick={() => setSelectedProposal(null)} 
+                                <button
+                                    onClick={() => setSelectedProposal(null)}
                                     className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
                                 >
                                     Close
@@ -360,11 +358,11 @@ const AdminProposalReview = () => {
                 )}
 
                 {showBudgetForm && selectedProposal && (
-                  <BudgetAllocationForm
-                    selectedProposal={selectedProposal}
-                    onClose={() => setShowBudgetForm(false)}
-                    onSubmit={handleBudgetSubmit}
-                  />
+                    <BudgetAllocationForm
+                        selectedProposal={selectedProposal}
+                        onClose={() => setShowBudgetForm(false)}
+                        onSubmit={handleBudgetSubmit}
+                    />
                 )}
             </div>
         </div>

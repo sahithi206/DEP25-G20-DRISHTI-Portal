@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaUserCircle, FaPowerOff } from "react-icons/fa";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";
+const URL = import.meta.env.VITE_REACT_APP_URL;
 
 const MiscRequest = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -18,7 +19,7 @@ const MiscRequest = () => {
     useEffect(() => {
         const fetchRequests = async () => {
             try {
-                const response = await fetch("http://localhost:8000/requests/user-requests", {
+                const response = await fetch(`${URL}requests/user-requests`, {
                     headers: {
                         "accessToken": localStorage.getItem("token"),
                     },
@@ -43,7 +44,7 @@ const MiscRequest = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:8000/requests/submit-request", {
+            const response = await fetch(`${URL}requests/submit-request`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -55,7 +56,7 @@ const MiscRequest = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setRequests((prevRequests) => [...prevRequests, data.newRequest]); 
+                setRequests((prevRequests) => [...prevRequests, data.newRequest]);
                 setFormData({ requestType: "", description: "" });
                 alert("Request submitted successfully!");
             } else {
