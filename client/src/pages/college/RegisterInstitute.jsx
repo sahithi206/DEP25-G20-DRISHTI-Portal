@@ -3,6 +3,7 @@ import axios from "axios";
 import { AuthContext } from "../Context/Authcontext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+const URL = import.meta.env.VITE_REACT_APP_URL;
 
 const RegisterInstitute = () => {
   const { createInstitute, sendOtp } = useContext(AuthContext);
@@ -64,7 +65,7 @@ const RegisterInstitute = () => {
     }
     try {
       setLoading(true);
-      const response = await axios.post("http://localhost:8000/auth/send-otp", { email: data.email });
+      const response = await axios.post(`${URL}auth/send-otp`, { email: data.email });
 
       // Check if the OTP is successfully sent
       if (response.data.success) {
@@ -79,7 +80,7 @@ const RegisterInstitute = () => {
     } finally {
       setLoading(false);
     }
-};
+  };
 
 
   const handleSubmit = async (e) => {

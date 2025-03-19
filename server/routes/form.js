@@ -1,5 +1,6 @@
 const express = require("express");
 const { fetchUser } = require("../Middlewares/fetchUser");
+const { fetchAdmin } = require("../MiddleWares/fetchAdmin");
 const GeneralInfo = require("../Models/General_Info");
 const ResearchDetails = require("../Models/researchDetails");
 const Budget = require("../Models/Budget");
@@ -8,95 +9,97 @@ const Bank = require("../Models/bankDetails.js");
 const OtherExpenses = require("../Models/OtherExpenses");
 const Acknowledgement = require("../Models/acknowledgement");
 const Proposal = require("../Models/Proposal");
-const Auth=require("./auth.js");
-const User=require("../Models/user");
-const PI=require("../Models/PI");
+const Auth = require("./auth.js");
+const User = require("../Models/user");
+const Admin = require("../Models/Admin");
+const Schemes = require("../Models/Scheme");
+const PI = require("../Models/PI");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const nodemailer=require("nodemailer");
+const nodemailer = require("nodemailer");
 const NonRecurring = require("../Models/NonRecurring");
 const budgetSanctioned = require("../Models/budgetSanctioned.js");
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-      cb(null, uploadDir);
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-      const id = req.params.id || "unknown";
-      cb(null, `${id}_${Date.now()}${path.extname(file.originalname)}`);
+    const id = req.params.id || "unknown";
+    cb(null, `${id}_${Date.now()}${path.extname(file.originalname)}`);
   }
 });
 
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-      const fileType = req.params.type; 
-      const isImage = file.mimetype.startsWith("image/");
-      const isPDF = file.mimetype === "application/pdf";
+    const fileType = req.params.type;
+    const isImage = file.mimetype.startsWith("image/");
+    const isPDF = file.mimetype === "application/pdf";
 
-      if ((fileType === "photo" && isImage) || (fileType === "pdf" && isPDF)) {
-          cb(null, true);
-      } else {
-          cb(new Error("Invalid file type! Only images and PDFs are allowed."));
-      }
+    if ((fileType === "photo" && isImage) || (fileType === "pdf" && isPDF)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type! Only images and PDFs are allowed."));
+    }
   }
 });
 
 
 router.post("/ProposalID", fetchUser, async (req, res, next) => {
-  const { _id } = req.user; 
-  const { Scheme } = req.body; 
+  const { _id } = req.user;
+  const { Scheme } = req.body;
 
   try {
-      const user = await User.findById(req.user._id).populate("proposals");
-      if (!user) {
-          return res.status(404).json({ success: false, msg: "User not found" });
-      }
+    const user = await User.findById(req.user._id).populate("proposals");
+    if (!user) {
+      return res.status(404).json({ success: false, msg: "User not found" });
+    }
 
-      const proposals = user.proposals;
-      console.log(proposals);
-      if(proposals.length>0){
-        const acceptedProposal = proposals.find(prop => prop.Scheme === Scheme && prop.status === "Approved");
-        if (acceptedProposal) {
-            return res.status(400).json({ success: false, msg: "Your proposal for this scheme has already been accepted. You cannot apply again." });
-        }
+    const proposals = user.proposals;
+    console.log(proposals);
+    if (proposals.length > 0) {
+      const acceptedProposal = proposals.find(prop => prop.Scheme === Scheme && prop.status === "Approved");
+      if (acceptedProposal) {
+        return res.status(400).json({ success: false, msg: "Your proposal for this scheme has already been accepted. You cannot apply again." });
       }
-      const pendingProposal =  await Proposal.findOne({Scheme:Scheme ,userId:_id,status : "Pending"});
-      if (pendingProposal) {
-          return res.status(400).json({ success: false, msg: "You have already submitted a proposal for this scheme." });
-      }
-      const unsavedProposal = await Proposal.findOne({Scheme:Scheme,userId:_id,status : "Unsaved"});
-      if (unsavedProposal) {
-          return res.status(400).json({ success: false, msg: "You have an unsaved proposal for this scheme. Please complete it." });
-      }
-     
+    }
+    const pendingProposal = await Proposal.findOne({ Scheme: Scheme, userId: _id, status: "Pending" });
+    if (pendingProposal) {
+      return res.status(400).json({ success: false, msg: "You have already submitted a proposal for this scheme." });
+    }
+    const unsavedProposal = await Proposal.findOne({ Scheme: Scheme, userId: _id, status: "Unsaved" });
+    if (unsavedProposal) {
+      return res.status(400).json({ success: false, msg: "You have an unsaved proposal for this scheme. Please complete it." });
+    }
 
-      const newProposal = new Proposal({
-          userId: _id,
-          Scheme,
-          status: "Unsaved"
-      });
 
-      await newProposal.save();
+    const newProposal = new Proposal({
+      userId: _id,
+      Scheme,
+      status: "Unsaved"
+    });
 
-      res.status(200).json({ success: true, msg: "Proposal ID generated successfully", prop: newProposal });
+    await newProposal.save();
+
+    res.status(200).json({ success: true, msg: "Proposal ID generated successfully", prop: newProposal });
 
   } catch (error) {
-      console.error("Error generating proposal ID:", error);
-      res.status(500).json({ success: false, msg: "Failed to generate proposal ID", error: error.message });
+    console.error("Error generating proposal ID:", error);
+    res.status(500).json({ success: false, msg: "Failed to generate proposal ID", error: error.message });
   }
 });
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER, 
+    user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
@@ -135,55 +138,51 @@ async function sendEmailNotification(user, status, comment) {
   }
 }
 
-router.put("/update-proposals/:id", fetchUser, async (req, res) => {
+router.put("/update-proposals/:id", fetchAdmin, async (req, res) => {
   try {
-    let userId = req.user._id;
-    let { status, comment, budgetsanctioned, budgettotal, TotalCost } = req.body;
+    let { status, comment } = req.body;
     let { id } = req.params;
-
-    let proposal = await Proposal.findById(id).populate("userId");
+    let proposal = await Proposal.findById(id);
+    console.log(proposal);
     if (!proposal) {
       console.log("Proposal not found in database!");
       return res.status(404).json({ message: "Proposal not found" });
     }
-    proposal = await Proposal.findByIdAndUpdate(
-      { _id: id },
-      { status: status },
-      { new: true }
-    );
-    await sendEmailNotification(req.user, status, comment);
+    proposal = await Proposal.findByIdAndUpdate({ _id: id }, { status: status }, { new: true });
+    let user = await User.findById(proposal.userId);
+    await sendEmailNotification(user, status, comment);
     if (status === "Approved") {
-      console.log("Budget Received:", budgetsanctioned, budgettotal, TotalCost);
-
+      const { budgetsanctioned, budgettotal, TotalCost } = req.body;
+      console.log(budgetsanctioned, budgettotal, TotalCost);
       if (!budgetsanctioned || !budgettotal || !TotalCost) {
         return res.status(400).json({ msg: "Enter all the Budget Details!!", success: false });
       }
-      const budget = new budgetSanctioned({
+      const budget = await new budgetSanctioned({
         proposalId: proposal._id,
         TotalCost: TotalCost,
         budgetTotal: {
-          nonRecurring: budgettotal?.nonRecurring ?? 0,
+          nonRecurring: budgettotal.nonRecurring,
           recurring: {
-            human_resources: budgettotal?.recurring?.human_resources ?? 0,
-            consumables: budgettotal?.recurring?.consumables ?? 0,
-            others: budgettotal?.recurring?.others ?? 0,
-            total: budgettotal?.recurring?.total ?? 0,
+            human_resources: budgettotal.recurring.human_resources,
+            consumables: budgettotal.recurring.consumables,
+            others: budgettotal.recurring.others,
+            total: budgettotal.recurring.total
           },
           total: TotalCost,
         },
         budgetSanctioned: {
-          nonRecurring: budgetsanctioned?.nonRecurring ?? 0,
+          nonRecurring: budgetsanctioned.nonRecurring,
           recurring: {
-            human_resources: budgetsanctioned?.recurring?.human_resources ?? 0,
-            consumables: budgetsanctioned?.recurring?.consumables ?? 0,
-            others: budgetsanctioned?.recurring?.others ?? 0,
-            total: budgetsanctioned?.recurring?.total ?? 0,
+            human_resources: budgetsanctioned.recurring.human_resources,
+            consumables: budgetsanctioned.recurring.consumables,
+            others: budgetsanctioned.recurring.others,
+            total: budgetsanctioned.recurring.total
           },
-          yearTotal: budgetsanctioned?.yearTotal ?? 0,
-        },
-      });
-      await budget.save();
-      return res.status(200).json({ success: true, budget, msg: "Proposal updated and Budget Allotted" });
+          yearTotal: budgetsanctioned.yearTotal
+        }
+
+      }).save();
+      return res.status(200).json({ success: true, budget, msg: "Proposal updated and Budget Alloted" });
     }
     res.status(200).json({ success: true, msg: "Proposal updated" });
   } catch (error) {
@@ -192,27 +191,6 @@ router.put("/update-proposals/:id", fetchUser, async (req, res) => {
   }
 });
 
-
-router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) => {
-  const { Title,Duration,Summary,objectives,Output,other} = req.body;
-    const {proposalId}=req.params
-
-  try {
-    const props = await ResearchDetails.findOne({proposalId});
-    if(props){
-      await ResearchDetails.findOneAndUpdate({proposalId:proposalId},{Title,Duration,Summary,objectives,Output,other},{new:true});
-      return res.status(200).json({success:true,msg:"Research Details Updated!!"});
-    }
-    const researchDetails = new ResearchDetails({
-        Title,Duration,Summary,objectives,Output,other,proposalId
-    });
-    await researchDetails.save();
-    res.status(200).json({ success: true, msg: "Research details saved" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, msg: "Failed to save research details" });
-  }
-});
 router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
   const { recurring_items, non_recurring_items } = req.body;
   console.log("Received budget data:", recurring_items, non_recurring_items);
@@ -323,24 +301,24 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
 });
 
 router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
-  const { name, address, mobileNo, email, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed,biodata,photo} = req.body; const { proposalId } = req.params
+  const { name, address, mobileNo, email, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed, biodata, photo } = req.body; const { proposalId } = req.params
   const props = await GeneralInfo.findOne({ proposalId });
   if (props) {
-    await GeneralInfo.findOneAndUpdate({ proposalId: proposalId }, { name, address, mobileNo, email,photo,biodata, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed }, { new: true });
+    await GeneralInfo.findOneAndUpdate({ proposalId: proposalId }, { name, address, mobileNo, email, photo, biodata, instituteName, areaOfSpecialization, DBTproj_ong, DBTproj_completed, Proj_ong, Proj_completed }, { new: true });
     return res.status(200).json({ success: true, msg: "General Info Updated!!" });
   }
   try {
     const generalInfo = new GeneralInfo({
       proposalId,
-      name, 
-      address, 
-      mobileNo, 
-      email, 
-      instituteName, 
-      areaOfSpecialization, 
-      DBTproj_ong, 
-      DBTproj_completed, 
-      Proj_ong, 
+      name,
+      address,
+      mobileNo,
+      email,
+      instituteName,
+      areaOfSpecialization,
+      DBTproj_ong,
+      DBTproj_completed,
+      Proj_ong,
       Proj_completed,
       biodata,
       photo
@@ -349,52 +327,52 @@ router.post("/submitGI/:proposalId", fetchUser, async (req, res) => {
     res.status(200).json({ success: true, msg: "General info saved", generalInfo });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error,msg: "Failed to save general info" });
+    res.status(500).json({ success: false, error, msg: "Failed to save general info" });
   }
 });
 
 router.post("/upload/:type/:id", upload.single("file"), (req, res) => {
-  console.log("Received file:", req.file); 
-  try{
+  console.log("Received file:", req.file);
+  try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
-  
+
     const fileSize = req.file.size;
     const fileType = req.params.type;
     const isPDF = req.file.mimetype === "application/pdf";
     const isImage = req.file.mimetype.startsWith("image/");
-  
+
     if (fileType === "pdf" && (!isPDF || fileSize > 10 * 1024 * 1024)) {
       return res.status(400).json({ error: "PDF size exceeds 10MB or invalid file type" });
     } else if (fileType === "photo" && (!isImage || fileSize > 500 * 1024)) {
       return res.status(400).json({ error: "Image size exceeds 500KB or invalid file type" });
     }
-  
+
     res.status(200).json({
-      success:true,
+      success: true,
       msg: "File uploaded successfully",
       filePath: `/uploads/${req.file.filename}`,
     });
   }
-  catch(e){
-    return res.status(500).json({success:false,msg:"Couldn't save image",e})
+  catch (e) {
+    return res.status(500).json({ success: false, msg: "Couldn't save image", e })
   }
-  
+
 });
 
 router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) => {
-  const { Title,Duration,Summary,objectives,Output,other} = req.body;
-    const {proposalId}=req.params
+  const { Title, Duration, Summary, objectives, Output, other } = req.body;
+  const { proposalId } = req.params
 
   try {
-    const props = await ResearchDetails.findOne({proposalId});
-    if(props){
-      await ResearchDetails.findOneAndUpdate({proposalId:proposalId},{Title,Duration,Summary,objectives,Output,other},{new:true});
-      return res.status(200).json({success:true,msg:"Research Details Updated!!"});
+    const props = await ResearchDetails.findOne({ proposalId });
+    if (props) {
+      await ResearchDetails.findOneAndUpdate({ proposalId: proposalId }, { Title, Duration, Summary, objectives, Output, other }, { new: true });
+      return res.status(200).json({ success: true, msg: "Research Details Updated!!" });
     }
     const researchDetails = new ResearchDetails({
-        Title,Duration,Summary,objectives,Output,other,proposalId
+      Title, Duration, Summary, objectives, Output, other, proposalId
     });
     await researchDetails.save();
     res.status(200).json({ success: true, msg: "Research details saved" });
@@ -404,13 +382,12 @@ router.post("/submit-research-details/:proposalId", fetchUser, async (req, res) 
   }
 });
 
-
 router.post("/submit-acknowledgement/:proposalId", fetchUser, async (req, res) => {
   const { accept } = req.body;
   const { proposalId } = req.params;
   console.log(proposalId);
   try {
-    const proposal=await Proposal.findByIdAndUpdate({_id:proposalId},{status:"Pending"},{new:true});
+    const proposal = await Proposal.findByIdAndUpdate({ _id: proposalId }, { status: "Pending" }, { new: true });
     const generalInfo = await GeneralInfo.findOne({ proposalId }).select("_id");
     const researchDetails = await ResearchDetails.findOne({ proposalId }).select("_id");
     const budgetSummary = await Budget.findOne({ proposalId }).select("_id");
@@ -432,12 +409,12 @@ router.post("/submit-acknowledgement/:proposalId", fetchUser, async (req, res) =
     if (!PIdetails) {
       return res.status(404).json({ success: false, msg: "Fill all fields in Principal Investigator Information" });
     }
-   /* when status:accepted
-   const user= await User.findByIdAndUpdate(_id,{ 
-      $push: { proposals: { ProposalId: prop._id, Scheme:Scheme} } 
-    },
-    {new:true} 
-    );*/
+    /* when status:accepted
+    const user= await User.findByIdAndUpdate(_id,{ 
+       $push: { proposals: { ProposalId: prop._id, Scheme:Scheme} } 
+     },
+     {new:true} 
+     );*/
 
     const acknowledgement = new Acknowledgement({
       proposalId,
@@ -527,38 +504,38 @@ router.post("/submit-pi-details/:proposalId", fetchUser, async (req, res) => {
 });
 
 router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
-  const {objectId} = req.params;
+  const { objectId } = req.params;
   try {
     console.log("Converted ObjectId:", objectId);
-    const Pendingproposal=await Proposal.findOne({_id:objectId,status:"Pending"});
-    if(Pendingproposal){
-      return res.status(200).json({success:false,msg:"Proposal was Already Submitted"});
+    const Pendingproposal = await Proposal.findOne({ _id: objectId, status: "Pending" });
+    if (Pendingproposal) {
+      return res.status(200).json({ success: false, msg: "Proposal was Already Submitted" });
     }
-    const proposal=await Proposal.findOne({_id:objectId,status:"Unsaved"});
+    const proposal = await Proposal.findOne({ _id: objectId, status: "Unsaved" });
     console.log(proposal);
-    if(!proposal){
-      return res.status(400).json({success:false,msg:"Proposal not found"})
+    if (!proposal) {
+      return res.status(400).json({ success: false, msg: "Proposal not found" })
     }
     const generalInfo = await GeneralInfo.findOne({ proposalId: objectId });
     const researchDetails = await ResearchDetails.findOne({ proposalId: objectId });
     const budgetSummary = await Budget.findOne({ proposalId: objectId });
-    const recurring=await Recurring.findOne({proposalId:objectId});
-    const nonRecurring=await NonRecurring.findOne({proposalId:objectId});
+    const recurring = await Recurring.findOne({ proposalId: objectId });
+    const nonRecurring = await NonRecurring.findOne({ proposalId: objectId });
     const bankDetails = await Bank.findOne({ proposalId: objectId });
     const PIdetails = await PI.findOne({ proposalId: objectId });
     const acknowledgements = await Acknowledgement.findOne({ proposalId: objectId });
 
-    if (!generalInfo&&!researchDetails&&!budgetSummary&&!bankDetails&&!PIdetails) {
+    if (!generalInfo && !researchDetails && !budgetSummary && !bankDetails && !PIdetails) {
       return res.status(200).json({ success: true, msg: "No details Found" });
     }
 
-    if(acknowledgements){
-      return res.status(200).json({success:false,msg:"Proposal was Submitted"})
+    if (acknowledgements) {
+      return res.status(200).json({ success: false, msg: "Proposal was Submitted" })
     }
 
     res.status(200).json({
       success: true,
-      data: { generalInfo, PIdetails, researchDetails, budgetSummary, recurring,nonRecurring,bankDetails, acknowledgements },
+      data: { generalInfo, PIdetails, researchDetails, budgetSummary, recurring, nonRecurring, bankDetails, acknowledgements },
       msg: "Proposal fetched successfully",
     });
   } catch (error) {
@@ -567,16 +544,16 @@ router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
   }
 });
 
-router.get("/incompleteProposals",fetchUser,async(req,res)=>{
-  try{
-    const {_id}=req.user;
-    const proposals=await Proposal.find({userId:_id,status:"Unsaved"});
-    if(!proposals){
-      return res.json({success:false,msg:"No proposals found"});
+router.get("/incompleteProposals", fetchUser, async (req, res) => {
+  try {
+    const { _id } = req.user;
+    const proposals = await Proposal.find({ userId: _id, status: "Unsaved" });
+    if (!proposals) {
+      return res.json({ success: false, msg: "No proposals found" });
     }
-    console.log("Proposals",proposals);
-    res.status(200).json({success:true,msg:"Incomplete Proposals are Fetched",proposals});
-  }catch(error){
+    console.log("Proposals", proposals);
+    res.status(200).json({ success: true, msg: "Incomplete Proposals are Fetched", proposals });
+  } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, msg: "Failed to fetch proposals" });
   }
@@ -620,9 +597,9 @@ router.get("/proposals", fetchUser, async (req, res) => {
 
 router.get("/acceptedproposals", fetchUser, async (req, res) => {
   try {
-    const userId = req.user._id; 
+    const userId = req.user._id;
     console.log("User ID from Token:", userId);
-    const proposals = await Proposal.find({ userId:userId, status: "Approved" });
+    const proposals = await Proposal.find({ userId: userId, status: "Approved" });
     console.log("Fetched Proposals:", proposals);
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No proposals found" });
@@ -630,7 +607,7 @@ router.get("/acceptedproposals", fetchUser, async (req, res) => {
 
     const data = await Promise.all(proposals.map(async (proposal) => {
       console.log("Processing Proposal ID:", proposal._id);
-      const proposalId=proposal._id;
+      const proposalId = proposal._id;
       const researchDetails = await ResearchDetails.findOne({ proposalId: proposal._id })
         .select("Title");
       console.log("Research Details:", researchDetails);
@@ -654,7 +631,7 @@ router.post("/proposals/:id/comment", async (req, res) => {
     if (!text || text.trim() === "") {
       return res.status(400).json({ message: "Comment text is required" });
     }
-    const userId = req.user?.id || "admin"; 
+    const userId = req.user?.id || "admin";
     const userName = req.user?.name || "Admin User";
 
     const comment = {
@@ -662,7 +639,7 @@ router.post("/proposals/:id/comment", async (req, res) => {
       createdBy: userId,
       createdByName: userName,
       createdAt: new Date(),
-      isAdminComment: true 
+      isAdminComment: true
     };
 
     const updatedProposal = await Proposal.findByIdAndUpdate(
@@ -676,9 +653,9 @@ router.post("/proposals/:id/comment", async (req, res) => {
     }
 
     const newComment = updatedProposal.comments[updatedProposal.comments.length - 1];
-    
-    res.status(200).json({ 
-      message: "Comment added successfully", 
+
+    res.status(200).json({
+      message: "Comment added successfully",
       proposal: updatedProposal,
       comment: newComment
     });
@@ -688,40 +665,100 @@ router.post("/proposals/:id/comment", async (req, res) => {
   }
 });
 
+// Fetch pending proposals for the logged-in Coordinator along with related details.
+router.get("/pendingProposals", fetchAdmin, async (req, res) => {
+  try {
+    const adminId = req.admin.id; // Logged-in admin's ID
+    const adminRole = req.admin.role; // Logged-in admin's role
+
+    console.log("Logged-in Admin ID:", adminId);
+    console.log("Logged-in Admin Role:", adminRole);
+
+    // Ensure only a Coordinator can access this route
+    if (adminRole !== "Coordinator") {
+      console.log("Access denied: Not a Coordinator");
+      return res.status(403).json({ success: false, msg: "Access denied" });
+    }
+
+    // Step 1: Find schemes assigned to this Coordinator
+    const schemes = await Schemes.find({ coordinator: adminId });
+
+    console.log("Fetched Schemes for Admin:", schemes);
+
+    if (!schemes.length) {
+      console.log("No schemes assigned to this Coordinator.");
+      return res.status(404).json({ success: false, msg: "No schemes assigned to this Coordinator" });
+    }
+
+    // Extract scheme IDs
+    const schemeIds = schemes.map((scheme) => scheme._id);
+    console.log("Extracted Scheme IDs:", schemeIds);
+
+    // Step 2: Fetch proposals for the found schemes where status is "Pending"
+    const proposals = await Proposal.find({ status: "Pending", Scheme: { $in: schemeIds } });
+
+    console.log("Fetched Pending Proposals:", proposals);
+
+    if (!proposals.length) {
+      console.log("No pending proposals found for this Coordinator.");
+      return res.status(404).json({ success: false, msg: "No pending proposals found" });
+    }
+
+    // Step 3: Fetch related data for each proposal
+    const data = await Promise.all(
+      proposals.map(async (proposal) => {
+        const generalInfo = await GeneralInfo.findOne({ proposalId: proposal._id });
+        const researchDetails = await ResearchDetails.findOne({ proposalId: proposal._id });
+        const bankInfo = await Bank.findOne({ proposalId: proposal._id });
+        const user = await User.findOne({ _id: proposal.userId });
+        const totalBudget = await Budget.findOne({ proposalId: proposal._id });
+
+        return { proposal, generalInfo, researchDetails, bankInfo, user, totalBudget };
+      })
+    );
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error("Error fetching proposals:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
 
 router.get("/users", async (req, res) => {
   try {
-    const users = await User.find();
+    // Fetch all admins with role "coordinator"
+    const coordinators = await Admin.find({ role: "Coordinator" });
 
-    const usersWithRoles = users.map(user => ({
+    // Format the response
+    const usersWithRoles = coordinators.map(user => ({
       _id: user._id,
-      name: user.Name,
+      name: user.name,
       email: user.email,
-      userRole: user.userRole || "none" // Default to "none" if userRole is not defined
+      userRole: user.role
     }));
 
-    console.log("Users:", usersWithRoles);
+    console.log("Coordinators:", usersWithRoles);
     res.json(usersWithRoles);
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error fetching coordinators:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
 router.delete("/deleteProposal/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
-        const deletedProposal = await Proposal.findByIdAndDelete(id);
+  try {
+    const { id } = req.params;
+    const deletedProposal = await Proposal.findByIdAndDelete(id);
 
-        if (!deletedProposal) {
-            return res.status(404).json({ success: false, msg: "Proposal not found" });
-        }
-
-        res.json({ success: true, msg: "Proposal deleted successfully" });
-    } catch (error) {
-        console.error("Error deleting proposal:", error);
-        res.status(500).json({ success: false, msg: "Internal server error" });
+    if (!deletedProposal) {
+      return res.status(404).json({ success: false, msg: "Proposal not found" });
     }
+
+    res.json({ success: true, msg: "Proposal deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting proposal:", error);
+    res.status(500).json({ success: false, msg: "Internal server error" });
+  }
 });
 
 module.exports = router;
