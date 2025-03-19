@@ -62,7 +62,7 @@ const AdminRequests = () => {
         <div className="flex">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6">
-                <AdminNavbar />
+                <AdminNavbar activeSection={activeSection} />
                 <table className="w-full border">
                     <thead>
                         <tr className="bg-gray-200">
