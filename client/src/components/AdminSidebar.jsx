@@ -34,7 +34,7 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
 
     // Define the sidebar menu items
     const menuItems = [
-        { label: "Dashboard", icon: Home, id: "dashboard", path: "/" },
+        { label: "Dashboard", icon: Home, id: "dashboard", path: "/admin" },
         { label: "Quotations/SE/UC Grants", icon: DollarSign, id: "grants", path: "/grants" },
         { label: "Fund Cycle Approval", icon: CheckCircle, id: "fundCycle", path: "/fundCycle" },
         { label: "Requests", icon: FileText, id: "requests", path: "/requests" }

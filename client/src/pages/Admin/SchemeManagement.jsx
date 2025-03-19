@@ -178,7 +178,7 @@ const SchemeManagement = ({ userRole }) => {
         <div className="flex h-screen bg-gray-50">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 flex flex-col overflow-hidden">
-                <AdminNavbar />
+                <AdminNavbar activeSection={activeSection} />
 
                 <div className="flex-1 overflow-y-auto p-6">
                     {/* Notification */}
