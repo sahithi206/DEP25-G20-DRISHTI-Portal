@@ -43,7 +43,7 @@ const AdminRequests = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     status: status || request.status, // Retain current status if no new status
-                    comments: updatedComments
+                    comments: Array.isArray(updatedComments) ? updatedComments : []
                 }),
             });
 
@@ -51,12 +51,16 @@ const AdminRequests = () => {
                 setRequests(requests.map(req => req._id === id ? { ...req, status: status || req.status, comments: updatedComments } : req));
                 setComments(prev => ({ ...prev, [id]: "" }));
             } else {
+                const errorData = await response.json();
+            console.error("Failed to update request:", errorData);
                 alert("Failed to update request");
             }
         } catch (error) {
             console.error("Error updating request:", error);
         }
     };
+
+
 
     return (
         <div className="flex">
@@ -84,7 +88,7 @@ const AdminRequests = () => {
                                     {req.status}
                                 </td>
                                 <td className="p-2 border">
-                                    {req.comments && req.comments.length > 0 ? (
+                                    {Array.isArray(req.comments) && req.comments.length > 0  ? (
                                         <ul className="text-left">
                                             {req.comments.map((comment, index) => (
                                                 <li key={index} className="border-b p-1">{comment}</li>
