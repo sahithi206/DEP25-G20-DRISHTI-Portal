@@ -36,8 +36,8 @@ import UC from "./pages/uc/se/UC.jsx";
 import SelectDate from "./pages/SelectDate.jsx";
 import SanctionedProposals from "./pages/uc/se/SanctionedProposals.jsx"
 import SE from "./pages/uc/se/SE.jsx";
-import InstituteLogin from "./pages/college/InstituteLogin";
-import InstituteDashboard from "./pages/college/InstituteDashboard";
+import InstituteLogin from "./pages/college/InstituteLogin.jsx";
+import InstituteDashboard from "./pages/college/InstituteDashboard.jsx";
 import RegisterInstitute from "./pages/college/RegisterInstitute.jsx";
 import DisplayUC from "./pages/uc/se/DisplayUC.jsx"
 import Certificates from "./pages/uc/se/Certificate.jsx";
@@ -47,6 +47,8 @@ import ProgressReportForm from "./pages/uc/se/ProgressReportForm.jsx";
 import FinalReport from "./pages/uc/se/FinalReport.jsx";
 import AdminLogin from "./pages/Admin/AdminLogin.jsx";
 import AdminSignup from "./pages/Admin/AdminSignup.jsx";
+import AddExpenses from "./pages/college/AddExpenses.jsx";
+import ViewExpenses from "./pages/college/ViewExpenses.jsx";
 
 function App() {
   const getData = async () => {
@@ -125,6 +127,8 @@ function MainLayout() {
           <Route path="/institute/user-proposals/:userId" element={<UserProposalsInsti />} />
           <Route path="/sanctioned-projects" element={<SanctionedProjects />} />
           <Route path="/sanctioned-project-dashboard/:id" element={<SanctionedDashboard />} />
+          <Route path="/add-expenses/:projectId" element={<AddExpenses />} />
+          <Route path="/view-expenses/:projectId" element={<ViewExpenses />} />
         </Route>
       </Routes>
     </div>
