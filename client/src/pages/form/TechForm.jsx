@@ -88,7 +88,7 @@ const TechForm = ({ researchDetails }) => {
                     htmlFor="fileInput"
                     className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
                 >
-                    Import JSON
+                    Import CSV
                 </label>
             </div>
 
