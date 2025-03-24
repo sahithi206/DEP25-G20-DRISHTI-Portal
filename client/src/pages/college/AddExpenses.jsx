@@ -28,7 +28,8 @@ const AddExpense = () => {
     description: "",
     amount: "",
     date: "",
-    category: ""
+    committedDate: "",
+    type: ""
   });
 
 
@@ -108,7 +109,7 @@ const AddExpense = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5000/api/add-expense", {
+      const response = await fetch(`${url}institute/add-expense`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -124,7 +125,8 @@ const AddExpense = () => {
           description: "",
           amount: "",
           date: "",
-          category: ""
+          committedDate: "",
+          type: ""
         });
       } else {
         alert(`Failed to add expense: ${result.message}`);
@@ -134,6 +136,16 @@ const AddExpense = () => {
       alert("Failed to add expense.");
     }
   };
+
+  const expenseTypes = [
+    { value: "materials", label: "Materials" },
+    { value: "equipment", label: "Equipment" },
+    { value: "labor", label: "Labor" },
+    { value: "travel", label: "Travel" },
+    { value: "consulting", label: "Consulting" },
+    { value: "overhead", label: "Overhead" },
+    { value: "other", label: "Other" }
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -151,7 +163,6 @@ const AddExpense = () => {
                 <div className="bg-gray-100 p-4 mb-6 rounded">
                   <h2 className="text-xl font-semibold mb-2">Project: {project.Title}</h2>
                   <p><strong>ID:</strong> {projectId}</p>
-                  {/* <p><strong>Status:</strong> {project.status}</p> */}
                 </div>
               ) : (
                 <p className="text-center text-red-500 mb-6">Project not found.</p>
@@ -237,7 +248,7 @@ const AddExpense = () => {
 
                     <div className="mb-4">
                       <label className="block text-gray-700 mb-1" htmlFor="date">
-                        Date
+                        Transaction Date
                       </label>
                       <input
                         type="date"
@@ -251,23 +262,38 @@ const AddExpense = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-gray-700 mb-1" htmlFor="category">
-                        Category
+                      <label className="block text-gray-700 mb-1" htmlFor="committedDate">
+                        Committed Date
+                      </label>
+                      <input
+                        type="date"
+                        id="committedDate"
+                        name="committedDate"
+                        value={manualExpense.committedDate}
+                        onChange={handleManualInputChange}
+                        className="w-full p-2 border rounded"
+                        required
+                      />
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block text-gray-700 mb-1" htmlFor="type">
+                        Expense Type
                       </label>
                       <select
-                        id="category"
-                        name="category"
-                        value={manualExpense.category}
+                        id="type"
+                        name="type"
+                        value={manualExpense.type}
                         onChange={handleManualInputChange}
                         className="w-full p-2 border rounded"
                         required
                       >
-                        <option value="">Select a category</option>
-                        <option value="materials">Materials</option>
-                        <option value="equipment">Equipment</option>
-                        <option value="labor">Labor</option>
-                        <option value="travel">Travel</option>
-                        <option value="other">Other</option>
+                        <option value="">Select an expense type</option>
+                        {expenseTypes.map((type) => (
+                          <option key={type.value} value={type.value}>
+                            {type.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
