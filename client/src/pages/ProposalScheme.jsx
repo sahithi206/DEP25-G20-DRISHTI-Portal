@@ -18,6 +18,7 @@ const ProposalScheme = () => {
             try {
                 const schemeList = await getSchemes();
                 setSchemes(schemeList);
+                console.log(schemeList);
             } catch (error) {
                 console.error(error);
             }
