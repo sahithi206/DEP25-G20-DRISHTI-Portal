@@ -543,11 +543,7 @@ const AuthProvider = (props) => {
 
   const getSchemes = async () => {
     try {
-<<<<<<< HEAD
-      const response = await fetch("http://localhost:8000/schemes/get-schemes", { // Ensure correct URL
-=======
       const response = await fetch(`${url}schemes/get-schemes`, { // Ensure correct URL
->>>>>>> 94d81a9f8302a3c9ee47956d0662f739468f6b00
         method: "GET",
         headers: {
           "Content-Type": "application/json",

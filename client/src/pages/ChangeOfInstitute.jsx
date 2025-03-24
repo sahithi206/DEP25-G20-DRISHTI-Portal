@@ -4,11 +4,6 @@ import HomeNavbar from "../utils/HomeNavbar";
 
 const ChangeOfInstitute = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 94d81a9f8302a3c9ee47956d0662f739468f6b00
     return (
         <div className="flex bg-gray-100 min-h-screen">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
