@@ -58,14 +58,16 @@ const ProposalScheme = () => {
         try {
             const response = await submitProposal(selectedProposal);
             if (response && response.success) {
+                setError(response.msg);
                 localStorage.setItem("ProposalID", response.prop._id);
                 navigate("/dashboard");
             } else {
-                setError(response.msg || "Failed to create proposal");
+                setError(response.msg);
             }
         } catch (error) {
             console.error("Error creating proposal:", error.message);
-            setError("Failed to create proposal");
+            const parsedMessage = JSON.parse(error.message);
+            if (parsedMessage.msg) setError(parsedMessage.msg);
         }
     };
 
