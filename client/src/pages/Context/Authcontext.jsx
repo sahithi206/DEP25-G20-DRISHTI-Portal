@@ -1,4 +1,4 @@
-import { useState, useEffect,createContext } from "react";
+import { useState, useEffect, createContext } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
@@ -14,7 +14,7 @@ const AuthProvider = (props) => {
     const checkTabs = () => {
       const activeTab = localStorage.getItem("activeTab");
       if (activeTab && activeTab !== newTabId) {
-        navigate("/"); 
+        navigate("/");
       }
     };
 
@@ -22,39 +22,40 @@ const AuthProvider = (props) => {
 
     return () => {
       window.removeEventListener("storage", checkTabs);
-      localStorage.removeItem("activeTab"); 
+      localStorage.removeItem("activeTab");
     };
   }, [navigate]);
 
-  const getuser=async()=>{
-    const token= localStorage.getItem("token");
-    try{
-        console.log(token);
-        if(!token){
-         console.log("Use valid Token");
-         return;
-        }
-        const response = await fetch(`${url}auth/get-user`, {
-         method: "GET",
-         headers: { "Content-Type": "application/json",
-           "accessToken":`${token}`,
-         },
-       });
-       if(!response.ok){
-         throw new Error("Cannot fetch userDetails");
-       }
-       const json= await response.json();
-       const user=json.user;
-       if(!json.success){
-         alert(json.msg);
-         return ;
-       }
-       return user;
-    }catch(e){
-     console.log(e);
-     alert(e.msg||"Cannot fetch User Details");
+  const getuser = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      console.log(token);
+      if (!token) {
+        console.log("Use valid Token");
+        return;
+      }
+      const response = await fetch(`${url}auth/get-user`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Cannot fetch userDetails");
+      }
+      const json = await response.json();
+      const user = json.user;
+      if (!json.success) {
+        alert(json.msg);
+        return;
+      }
+      return user;
+    } catch (e) {
+      console.log(e);
+      alert(e.msg || "Cannot fetch User Details");
     }
- }
+  }
   const edituser = async (data) => {
     const token = localStorage.getItem("token");
     try {
@@ -92,21 +93,21 @@ const AuthProvider = (props) => {
       alert(e.msg || "Cannot Edit User Details");
     }
   }
- const getpi = async(email)=>{
-  try{
-    const response = await fetch(`${url}auth/get-pi`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-  
-    const json = await response.json();
-    if (!response.ok) throw new Error(json.message || "Failed to Fetch details");
-    return json;
-  }catch(e){
-    console.log(e);
+  const getpi = async (email) => {
+    try {
+      const response = await fetch(`${url}auth/get-pi`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.message || "Failed to Fetch details");
+      return json;
+    } catch (e) {
+      console.log(e);
+    }
   }
- }
   const sendOtp = async (email) => {
     try {
       console.log(email);
@@ -174,38 +175,38 @@ const AuthProvider = (props) => {
       alert(e.msg || "Invalid Credentials");
     }
   };
-  
+
   const submitProposal = async (scheme) => {
     try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("User not authenticated");
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not authenticated");
 
-        const response = await fetch(`${url}form/ProposalID`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "accessToken": `${token}`
-            },
-            body: JSON.stringify({ Scheme: scheme }),
-        });
+      const response = await fetch(`${url}form/ProposalID`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`
+        },
+        body: JSON.stringify({ Scheme: scheme }),
+      });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || "Failed to create proposal");
-        }
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to create proposal");
+      }
 
-        const json = await response.json();
-        console.log("Proposal Submitted Successfully:", json);
-        return json;
+      const json = await response.json();
+      console.log("Proposal Submitted Successfully:", json);
+      return json;
     } catch (e) {
-        console.error("Error submitting proposal:", e.message);
-        throw e;
+      console.error("Error submitting proposal:", e.message);
+      throw e;
     }
-};
-  
+  };
 
-const submitGeneralInfo = async (generalInfoData) => {
-  try {
+
+  const submitGeneralInfo = async (generalInfoData) => {
+    try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("User not authenticated");
 
@@ -213,47 +214,47 @@ const submitGeneralInfo = async (generalInfoData) => {
       if (!proposalId) throw new Error("Proposal ID not found in local storage");
 
       const response = await fetch(`${url}form/submitGI/${proposalId}`, {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-              "accessToken": `${token}`
-          },
-          body: JSON.stringify(generalInfoData),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`
+        },
+        body: JSON.stringify(generalInfoData),
       });
 
       if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || "Failed to submit general info");
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to submit general info");
       }
 
       const json = await response.json();
       console.log("General Info Submitted:", json);
       return json;
-  } catch (e) {
+    } catch (e) {
       console.error("Cannot submit general info:", e.message);
       throw e;
-  }
-};
-const uploadFile = async (file, type, userId) => {
-  const formData = new FormData();
-  formData.append("file", file);
+    }
+  };
+  const uploadFile = async (file, type, userId) => {
+    const formData = new FormData();
+    formData.append("file", file);
 
-  try {
+    try {
       const response = await fetch(`${url}upload/${type}/${userId}`, {
-          method: "POST",
-          body: formData, 
+        method: "POST",
+        body: formData,
       });
       console.log(response);
       if (!response.ok) {
-          throw new Error("Upload failed");
+        throw new Error("Upload failed");
       }
 
-      return await response.json(); 
-  } catch (error) {
+      return await response.json();
+    } catch (error) {
       console.error(`Error uploading ${type}:`, error);
       return { success: false, message: error.message || "Upload failed" };
-  }
-};
+    }
+  };
 
 
 
@@ -270,12 +271,12 @@ const uploadFile = async (file, type, userId) => {
       const response = await fetch(`${url}form/submit-research-details/${proposalId}`, {
         method: "POST",
         headers: {
-           "Content-Type": "application/json" ,
+          "Content-Type": "application/json",
           "accessToken": `${token}`
         },
         body: JSON.stringify(researchDetailsData),
       });
-console.log("REsearch",response);
+      console.log("REsearch", response);
       const json = await response.json();
       if (!response.ok) throw new Error(json.msg || "Failed to submit research details");
 
@@ -290,37 +291,37 @@ console.log("REsearch",response);
 
   const submitBudgetDetails = async (budgetDetailsData) => {
     try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("User not authenticated");
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not authenticated");
 
-        const proposalId = localStorage.getItem("ProposalID");
-        if (!proposalId) throw new Error("Proposal ID not found in local storage");
-        console.log(JSON.stringify(budgetDetailsData));
-        const response = await fetch(`${url}form/submit-budget/${proposalId}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "accessToken": `${token}`
-            },
-            body: JSON.stringify(budgetDetailsData),
-        });
+      const proposalId = localStorage.getItem("ProposalID");
+      if (!proposalId) throw new Error("Proposal ID not found in local storage");
+      console.log(JSON.stringify(budgetDetailsData));
+      const response = await fetch(`${url}form/submit-budget/${proposalId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`
+        },
+        body: JSON.stringify(budgetDetailsData),
+      });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || "Failed to submit budget details");
-        }
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to submit budget details");
+      }
 
-        const json = await response.json();
-        console.log("Budget Details Submitted:", json);
-        return json;
+      const json = await response.json();
+      console.log("Budget Details Submitted:", json);
+      return json;
     } catch (e) {
-        console.error("Cannot submit budget details:", e.message);
-        throw e;
+      console.error("Cannot submit budget details:", e.message);
+      throw e;
     }
-};
+  };
 
-const submitBankDetails = async (bankDetailsData) => {
-  try {
+  const submitBankDetails = async (bankDetailsData) => {
+    try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("User not authenticated");
 
@@ -328,31 +329,31 @@ const submitBankDetails = async (bankDetailsData) => {
       if (!proposalId) throw new Error("Proposal ID not found in local storage");
 
       const response = await fetch(`${url}form/submit-bank-details/${proposalId}`, {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-              "accessToken": `${token}`
-          },
-          body: JSON.stringify(bankDetailsData),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`
+        },
+        body: JSON.stringify(bankDetailsData),
       });
 
       if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || "Failed to submit bank details");
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to submit bank details");
       }
 
       const json = await response.json();
       console.log("Bank Details Submitted:", json);
       return json;
-  } catch (e) {
+    } catch (e) {
       console.error("Cannot submit bank details:", e.message);
       throw e;
-  }
-};
+    }
+  };
 
 
-const submitPIDetails = async ({ piList,coPiList})=>{
-  try {
+  const submitPIDetails = async ({ piList, coPiList }) => {
+    try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("User not authenticated");
 
@@ -360,189 +361,193 @@ const submitPIDetails = async ({ piList,coPiList})=>{
       if (!proposalId) throw new Error("Proposal ID not found in local storage");
 
       const response = await fetch(`${url}form/submit-pi-details/${proposalId}`, {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-              "accessToken": `${token}`
-          },
-          body: JSON.stringify({ piList,coPiList})
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`
+        },
+        body: JSON.stringify({ piList, coPiList })
       });
       console.log(response);
       if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || "Failed to submit PI details");
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to submit PI details");
       }
       const json = await response.json();
       console.log("PI Details Submitted:", json);
       alert("PI/Co-PI details Submitted!!");
       return json;
-  } catch (e) {
+    } catch (e) {
       console.error("Cannot submit PI details:", e.message);
       throw e;
-  }
-};
-
-const submitAcknowledgement = async (accept) => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) throw new Error("User not authenticated");
-
-    const proposalId = localStorage.getItem("ProposalID");
-    if (!proposalId) throw new Error("Proposal ID not found in local storage");
-
-    const response = await fetch(`${url}form/submit-acknowledgement/${proposalId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "accessToken": `${token}`
-      },
-      body: JSON.stringify({ accept }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || "Failed to submit acknowledgement");
     }
-    await localStorage.removeItem("ProposalID");
-    const json = await response.json();
-    console.log("Acknowledgement Submitted:", json);
-    return json;
-  } catch (e) {
-    console.error("Cannot submit acknowledgement:", e.message);
-    throw e;
-  }
-};
-const unsavedProposal=async()=>{
-   const token=localStorage.getItem("token");
-   const proposalId=localStorage.getItem("ProposalID");
-   try{
-    if (!token){
-      navigate("/formsubmission");
-      throw new Error("User not authenticated");
-    } 
-    if (!proposalId) {
-      navigate("/formsubmission");
-      throw new Error("Proposal ID not found in local storage");
-    }
+  };
 
-    const response = await fetch(`${url}form/get-proposal/${proposalId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "accessToken": `${token}`
-      },
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || "Failed to Fetch Proposal");
-    }
-    const json = await response.json();
-    console.log(json);
-    if(json.msg==="Proposal was Already Submitted"){
-      navigate("/formsubmission");
-      return ;
-    }
-    return json;
-   }catch(e){
-    console.error("Cannot Fetch the Proposal:", e.message);
-    throw e;
-   }
-}
-const incompleteProposals = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-      console.log("Use a valid Token");
-      alert("Authentication required.");
-      return;
-  }
-  try {
-      const response = await fetch(`${url}form/incompleteProposals`, {
-          method: "GET",
-          headers: {
-              "Content-Type": "application/json",
-              "accessToken": `${token}`,
-          },
+  const submitAcknowledgement = async (accept) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not authenticated");
+
+      const proposalId = localStorage.getItem("ProposalID");
+      if (!proposalId) throw new Error("Proposal ID not found in local storage");
+
+      const response = await fetch(`${url}form/submit-acknowledgement/${proposalId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`
+        },
+        body: JSON.stringify({ accept }),
       });
 
       if (!response.ok) {
-          throw new Error("Failed to Fetch Proposals");
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to submit acknowledgement");
+      }
+      await localStorage.removeItem("ProposalID");
+      const json = await response.json();
+      console.log("Acknowledgement Submitted:", json);
+      return json;
+    } catch (e) {
+      console.error("Cannot submit acknowledgement:", e.message);
+      throw e;
+    }
+  };
+  const unsavedProposal = async () => {
+    const token = localStorage.getItem("token");
+    const proposalId = localStorage.getItem("ProposalID");
+    try {
+      if (!token) {
+        navigate("/formsubmission");
+        throw new Error("User not authenticated");
+      }
+      if (!proposalId) {
+        navigate("/formsubmission");
+        throw new Error("Proposal ID not found in local storage");
+      }
+
+      const response = await fetch(`${url}form/get-proposal/${proposalId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to Fetch Proposal");
+      }
+      const json = await response.json();
+      console.log(json);
+      if (json.msg === "Proposal was Already Submitted") {
+        navigate("/formsubmission");
+        return;
+      }
+      return json;
+    } catch (e) {
+      console.error("Cannot Fetch the Proposal:", e.message);
+      throw e;
+    }
+  }
+  const incompleteProposals = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("Use a valid Token");
+      alert("Authentication required.");
+      return;
+    }
+    try {
+      const response = await fetch(`${url}form/incompleteProposals`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to Fetch Proposals");
       }
       const json = await response.json();
       return json.proposals;
-  } catch (error) {
+    } catch (error) {
       console.error("Edit user error:", error);
       alert(error.message || "Failed to fetch Proposals");
-  }
-};
-const approvedProjects = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
+    }
+  };
+  const approvedProjects = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
       console.log("Use a valid Token");
       alert("Authentication required.");
       return;
-  }
-  try {
+    }
+    try {
       const response = await fetch(`${url}form/acceptedproposals`, {
-          method: "GET",
-          headers: {
-              "Content-Type": "application/json",
-              "accessToken": `${token}`,
-          },
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`,
+        },
       });
 
       if (!response.ok) {
-          throw new Error("Failed to Fetch Proposals");
+        throw new Error("Failed to Fetch Proposals");
       }
       const json = await response.json();
       alert(json.msg);
       console.log(json.msg);
       return json.data;
-  } catch (error) {
+    } catch (error) {
       console.error("Fetch Proposals error:", error);
       alert(error.message || "Failed to Fetch Proposals");
-  }
-};
+    }
+  };
 
- const logout = ()=>{
+  const logout = () => {
     localStorage.removeItem("token");
     sessionStorage.clear();
     navigate("/");
     console.log("User logged out!!");
- }
+  }
 
- const getProject = async (id) => {
-  const token = localStorage.getItem("token");
-  if (!token) {
+  const getProject = async (id) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
       console.log("Use a valid Token");
       alert("Authentication required.");
       return;
-  }
- 
-  try {
-    console.log("Proposal",id);
+    }
+
+    try {
+      console.log("Proposal", id);
       const response = await fetch(`${url}projects/get-project/${id}`, {
-          method: "GET",
-          headers: {
-              "Content-Type": "application/json",
-              "accessToken": ` ${token}`,
-          },
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": ` ${token}`,
+        },
       });
       console.log(response);
       if (!response.ok) {
-          throw new Error("Failed to fetch project details");
+        throw new Error("Failed to fetch project details");
       }
       const data = await response.json();
-      console.log("Data",data);
-      return {data};
-  } catch (error) {
+      console.log("Data", data);
+      return { data };
+    } catch (error) {
       console.error(error);
-  }
-};
-  
+    }
+  };
+
   const getSchemes = async () => {
     try {
+<<<<<<< HEAD
       const response = await fetch("http://localhost:8000/schemes/get-schemes", { // Ensure correct URL
+=======
+      const response = await fetch(`${url}schemes/get-schemes`, { // Ensure correct URL
+>>>>>>> 94d81a9f8302a3c9ee47956d0662f739468f6b00
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -560,196 +565,196 @@ const approvedProjects = async () => {
       return [];
     }
   };
-// institute side 
+  // institute side 
 
 
- // to be used when institute verification done 
- //  alright its done
+  // to be used when institute verification done 
+  //  alright its done
 
- const createInstitute = async (email, password, instituteName, otp) => {
-  try {
-    const response = await fetch(`${url}auth/create-institute`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, Institute: instituteName, otp }),
-    });
+  const createInstitute = async (email, password, instituteName, otp) => {
+    try {
+      const response = await fetch(`${url}auth/create-institute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, Institute: instituteName, otp }),
+      });
 
-    const json = await response.json();
-    if (!response.ok) throw new Error(json.message || "Failed to create institute");
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.message || "Failed to create institute");
 
-    console.log("Institute Created Successfully:", json);
-    if (json.success) {
-      localStorage.setItem("token", json.accessToken);
-      navigate("/formsubmission");
+      console.log("Institute Created Successfully:", json);
+      if (json.success) {
+        localStorage.setItem("token", json.accessToken);
+        navigate("/formsubmission");
+      }
+    } catch (e) {
+      console.error("Cannot create institute:", e.message);
+      alert(e.message);
     }
-  } catch (e) {
-    console.error("Cannot create institute:", e.message);
-    alert(e.message);
-  }
-};
+  };
 
-const loginInstitute = async (email, password) => {
-  try {
-    const response = await fetch(`${url}auth/institute-login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+  const loginInstitute = async (email, password) => {
+    try {
+      const response = await fetch(`${url}auth/institute-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const json = await response.json();
-    if (!response.ok) throw new Error(json.message || "Invalid credentials");
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.message || "Invalid credentials");
 
-    console.log("Institute Logged in successfully:", json);
-    if (json.success) {
-      localStorage.setItem("token", json.accessToken);
-      navigate("/institute-dashboard"); // make institute dashboard :(
+      console.log("Institute Logged in successfully:", json);
+      if (json.success) {
+        localStorage.setItem("token", json.accessToken);
+        navigate("/institute-dashboard"); // make institute dashboard :(
+      }
+    } catch (e) {
+      console.error("Cannot Login:", e.message);
+      alert(e.msg || "Invalid Credentials");
     }
-  } catch (e) {
-    console.error("Cannot Login:", e.message);
-    alert(e.msg || "Invalid Credentials");
   }
-}
- 
-const fetchInstituteProjects = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.log("Use a valid Token");
-    alert("Authentication required.");
-    return;
-  }
-  try {
-    const response = await fetch(`${url}institute/institute-projects`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "accessToken": `${token}`,
-      },
-    });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch institute projects");
+  const fetchInstituteProjects = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("Use a valid Token");
+      alert("Authentication required.");
+      return;
     }
-    const json = await response.json();
-    console.log("Institute Projects:", json.projects);
-    return json.projects;
-  } catch (error) {
-    console.error("Error fetching institute projects:", error);
-    alert(error.message || "Failed to fetch institute projects");
-  }
-};
+    try {
+      const response = await fetch(`${url}institute/institute-projects`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`,
+        },
+      });
 
-const fetchInstituteUsers = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.log("Use a valid Token");
-    alert("Authentication required.");
-    return;
-  }
-  try {
-    const response = await fetch(`${url}institute/users`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "accessToken": `${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch institute users");
+      if (!response.ok) {
+        throw new Error("Failed to fetch institute projects");
+      }
+      const json = await response.json();
+      console.log("Institute Projects:", json.projects);
+      return json.projects;
+    } catch (error) {
+      console.error("Error fetching institute projects:", error);
+      alert(error.message || "Failed to fetch institute projects");
     }
-    const json = await response.json();
-    console.log("Institute Users:", json.users);
-    return json.users;
-  } catch (error) {
-    console.error("Error fetching institute users:", error);
-    alert(error.message || "Failed to fetch institute users");
-  }
-};
+  };
 
-const userInstiAcceptedProposals = async (userId) => {
-  const token = localStorage.getItem("token");
-  if (!token) {   
-    console.log("Use a valid Token");
-    alert("Authentication required.");
-    return;
-  }
-  try {
-    const response = await fetch(`${url}institute/${userId}/accepted-proposals`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "accessToken": `${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch accepted proposals");
+  const fetchInstituteUsers = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("Use a valid Token");
+      alert("Authentication required.");
+      return;
     }
-    const json = await response.json();
-    console.log("Accepted Proposals:", json.proposals);
-    return json.proposals;
-  } catch (error) {
-    console.error("Error fetching accepted proposals:", error);
-    alert(error.message || "Failed to fetch accepted proposals");
-  }
-};
+    try {
+      const response = await fetch(`${url}institute/users`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`,
+        },
+      });
 
-const fetchSanctionedProjects = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.log("Use a valid Token");
-    alert("Authentication required.");
-    return;
-  }
-  try {
-    const response = await fetch(`${url}institute/sanctioned-projects`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "accessToken": `${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch sanctioned projects");
+      if (!response.ok) {
+        throw new Error("Failed to fetch institute users");
+      }
+      const json = await response.json();
+      console.log("Institute Users:", json.users);
+      return json.users;
+    } catch (error) {
+      console.error("Error fetching institute users:", error);
+      alert(error.message || "Failed to fetch institute users");
     }
+  };
 
-    const json = await response.json();
-    console.log("Sanctioned Projects:", json.projects);
-    return json.projects;
-  } catch (error) {
-    console.error("Error fetching sanctioned projects:", error);
-    alert(error.message || "Failed to fetch sanctioned projects");
-  }
-};
+  const userInstiAcceptedProposals = async (userId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("Use a valid Token");
+      alert("Authentication required.");
+      return;
+    }
+    try {
+      const response = await fetch(`${url}institute/${userId}/accepted-proposals`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`,
+        },
+      });
 
-const fetchInstituteGetProject = async (projectId) => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch accepted proposals");
+      }
+      const json = await response.json();
+      console.log("Accepted Proposals:", json.proposals);
+      return json.proposals;
+    } catch (error) {
+      console.error("Error fetching accepted proposals:", error);
+      alert(error.message || "Failed to fetch accepted proposals");
+    }
+  };
 
-  const token = localStorage.getItem("token");  
-  console.log(token);
-  if (!token) {
-    console.log("Use a valid Token");
-    alert("Authentication required.");
-    return;
-  }
-  try {
-    const response = await fetch(`${url}institute/get-project-insti/${projectId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application",
-        "accessToken": ` ${token}`,
-      },
-  });
-  if (!response.ok) {
-      throw new Error("Failed to fetch project details");
-  }
-  const data = await response.json();
-  console.log("Data",data);
-  return {data};
-} catch (error) {
-  console.error(error);
-}
-};
+  const fetchSanctionedProjects = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("Use a valid Token");
+      alert("Authentication required.");
+      return;
+    }
+    try {
+      const response = await fetch(`${url}institute/sanctioned-projects`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": `${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch sanctioned projects");
+      }
+
+      const json = await response.json();
+      console.log("Sanctioned Projects:", json.projects);
+      return json.projects;
+    } catch (error) {
+      console.error("Error fetching sanctioned projects:", error);
+      alert(error.message || "Failed to fetch sanctioned projects");
+    }
+  };
+
+  const fetchInstituteGetProject = async (projectId) => {
+
+    const token = localStorage.getItem("token");
+    console.log(token);
+    if (!token) {
+      console.log("Use a valid Token");
+      alert("Authentication required.");
+      return;
+    }
+    try {
+      const response = await fetch(`${url}institute/get-project-insti/${projectId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application",
+          "accessToken": ` ${token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch project details");
+      }
+      const data = await response.json();
+      console.log("Data", data);
+      return { data };
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const deleteProposal = async (proposalId) => {
     try {
       const response = await fetch(`${url}form/deleteProposal/${proposalId}`, {
@@ -763,14 +768,97 @@ const fetchInstituteGetProject = async (projectId) => {
       console.error("Error deleting proposal:", error);
     }
   };
+  const adminVerifyOtp = async (data) => {
+    try {
+      console.log("Verifying OTP with data:", JSON.stringify(data));
+
+      const response = await fetch(`${url}auth/admin-verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log("Signup Successful!", result);
+        console.log("Your token: " + result.accessToken);
+
+        localStorage.setItem("token", result.accessToken);
+        navigate("/adminLogin");
+      } else {
+        console.error("Error:", result.msg);
+        alert("Error: " + result.msg);
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      alert("Something went wrong while verifying OTP.");
+    }
+  };
+
+  const getAdmin = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("Token not found. Please log in.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${url}auth/get-admin`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": token,
+        },
+      });
+
+      const json = await response.json();
+      if (!json.success) {
+        console.error(json.msg);
+        return;
+      }
+
+      // console.log("Logged-in Admin:", json.admin);
+      return json.admin;
+    } catch (error) {
+      console.error("Error fetching admin:", error);
+    }
+  };
+
+
+  const adminLogin = async (email, password, navigate) => {
+    try {
+      const response = await fetch(`${url}auth/admin-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.msg || "Invalid credentials");
+
+      console.log("Admin logged in successfully:", json);
+
+      if (json.success) {
+        localStorage.setItem("token", json.accessToken);
+        navigate("/admin");
+      }
+    } catch (e) {
+      console.error("Cannot Login:", e.message);
+      alert(e.message || "Invalid Credentials");
+    }
+  };
+
 
   return (
-    <AuthContext.Provider value={{ sendOtp, verifyOtp, login,unsavedProposal,
-     authState,edituser,incompleteProposals,getpi, submitProposal,logout,uploadFile,
+    <AuthContext.Provider value={{
+      sendOtp, verifyOtp, login, unsavedProposal,
+      authState, edituser, incompleteProposals, getpi, submitProposal, logout, uploadFile,
       submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails,
-       submitPIDetails, submitAcknowledgement, getuser, approvedProjects , fetchInstituteProjects,
-        userInstiAcceptedProposals,createInstitute,fetchInstituteUsers, loginInstitute,getProject,fetchSanctionedProjects,
-        fetchInstituteGetProject,getSchemes,deleteProposal}}>
+      submitPIDetails, submitAcknowledgement, getuser, approvedProjects, fetchInstituteProjects,
+      userInstiAcceptedProposals, createInstitute, fetchInstituteUsers, loginInstitute, getProject, fetchSanctionedProjects,
+      fetchInstituteGetProject, getSchemes, deleteProposal, adminLogin, adminVerifyOtp, getAdmin
+    }}>
       {props.children}
     </AuthContext.Provider>
   );

@@ -28,7 +28,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
       <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-xl">
-        
+
         <div className="mb-8 text-center">
           <h2 className="text-3xl font-bold text-gray-800">Login</h2>
         </div>
@@ -79,6 +79,7 @@ const Login = () => {
 
           <div className="flex justify-between text-sm text-blue-600 mt-3">
             <a href="/forgot-password" className="hover:underline">Forgot Password?</a>
+            <a href="/adminLogin" className="hover:underline">Admin Login?</a>
             <a href="/signup" className="hover:underline">New User?</a>
           </div>
         </form>

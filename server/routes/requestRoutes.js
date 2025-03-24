@@ -62,6 +62,7 @@ router.put("/:id", async (req, res) => {
 
         res.json(updatedRequest);
     } catch (error) {
+        console.error("Server error:", error);
         res.status(500).json({ message: "Server error", error });
     }
 });
