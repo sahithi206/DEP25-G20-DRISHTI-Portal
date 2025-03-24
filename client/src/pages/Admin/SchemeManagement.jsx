@@ -30,14 +30,6 @@ const SchemeManagement = ({ userRole }) => {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-<<<<<<< HEAD
-                const response = await fetch("http://localhost:8000/schemes/get-schemes");
-                if (!response.ok) {
-                    throw new Error("Failed to fetch schemes");
-                }
-                const data = await response.json();
-                setSchemes(data);
-=======
                 const [schemesResponse, usersResponse] = await Promise.all([
                     fetch(`${URL}schemes/get-schemes`),
                     fetch(`${URL}form/users`)
@@ -51,7 +43,6 @@ const SchemeManagement = ({ userRole }) => {
 
                 setSchemes(schemesData);
                 setUsers(usersData);
->>>>>>> 94d81a9f8302a3c9ee47956d0662f739468f6b00
             } catch (error) {
                 console.error("Error fetching data:", error);
                 showNotification("Failed to load data. Please try again.", "error");
@@ -63,17 +54,6 @@ const SchemeManagement = ({ userRole }) => {
         fetchData();
     }, []);
 
-<<<<<<< HEAD
-    // Fetch users from API
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await fetch("http://localhost:8000/form/users");
-                const data = await response.json();
-                setUsers(data);
-            } catch (error) {
-                console.error("Error fetching users:", error);
-=======
     // Show notification helper
     const showNotification = (message, type = "success") => {
         setNotification({ show: true, message, type });
@@ -106,7 +86,6 @@ const SchemeManagement = ({ userRole }) => {
         requiredFields.forEach(({ field, label }) => {
             if (!formData[field]) {
                 errors[field] = `${label} is required`;
->>>>>>> 94d81a9f8302a3c9ee47956d0662f739468f6b00
             }
         });
 
@@ -147,11 +126,7 @@ const SchemeManagement = ({ userRole }) => {
         };
 
         try {
-<<<<<<< HEAD
-            const response = await fetch("http://localhost:8000/schemes/new-scheme", {
-=======
             const response = await fetch(`${URL}schemes/new-scheme`, {
->>>>>>> 94d81a9f8302a3c9ee47956d0662f739468f6b00
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
