@@ -64,7 +64,6 @@ const UserProposalsInsti = () => {
           <p className="text-center">No accepted proposals found for this user.</p>
         )}
       </main>
-      <Footer />
     </div>
   </div>
   );

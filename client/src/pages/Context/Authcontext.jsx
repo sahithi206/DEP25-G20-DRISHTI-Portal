@@ -543,7 +543,7 @@ const AuthProvider = (props) => {
 
   const getSchemes = async () => {
     try {
-      const response = await fetch(`${url}schemes/get-schemes`, { // Ensure correct URL
+      const response = await fetch(`${url}schemes/get-schemes`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -675,6 +675,7 @@ const AuthProvider = (props) => {
       return;
     }
     try {
+       console.log(token); 
       const response = await fetch(`${url}institute/${userId}/accepted-proposals`, {
         method: "GET",
         headers: {

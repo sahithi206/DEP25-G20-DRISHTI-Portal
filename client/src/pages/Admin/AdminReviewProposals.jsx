@@ -336,26 +336,8 @@ const AdminProposalReview = () => {
                                     Add Comment
                                 </button>
                                 <button
-                                    onClick={() => requestRevision(selectedProposal.proposal._id)}
-                                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-                                >
-                                    Request Revision
-                                </button>
-                                <button
-                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Approved")}
-                                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                                >
-                                    Approve
-                                </button>
-                                <button
-                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Rejected")}
-                                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                                >
-                                    Reject
-                                </button>
-                                <button
                                     onClick={() => setShowFullDetails(true)}
-                                    className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                                 >
                                     View More
                                 </button>
