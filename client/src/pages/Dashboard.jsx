@@ -102,7 +102,7 @@ const Dashboard = () => {
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
             <div className={`flex flex-col flex-1 transition-all duration-300  ${isSidebarOpen ? "ml-64" : "ml-16"}`}>
-                <HomeNavbar isSidebarOpen={isSidebarOpen} />
+                <HomeNavbar isSidebarOpen={isSidebarOpen} path={"/formsubmission"} />
                 <div className="p-6 space-y-6 mt-16">
                     <main className="flex-1 p-6">
                         <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6 border mt-6">
