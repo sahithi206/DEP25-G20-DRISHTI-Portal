@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import  Toast from "./utils/toast";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -78,6 +79,7 @@ function MainLayout() {
 
   return (
     <div className="flex flex-col min-h-screen">
+ <Toast style={{width: "900px"}} theme={"light"}/>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />

@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";
 import { AuthContext } from "./Context/Authcontext";
 import HomeNavbar from "../utils/HomeNavbar";
+import { ToastContainer, toast } from 'react-toastify';
+
 
 const ProposalScheme = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [selectedProposal, setSelectedProposal] = useState("");
-    const [error, setError] = useState("");
+    const [error,setError] = useState("");
     const navigate = useNavigate();
     const { submitProposal, incompleteProposals, getSchemes, deleteProposal } = useContext(AuthContext);
     const [incompProposals, setProposals] = useState([]);
@@ -18,6 +20,7 @@ const ProposalScheme = () => {
             try {
                 const schemeList = await getSchemes();
                 setSchemes(schemeList);
+                console.log(schemeList);
             } catch (error) {
                 console.error(error);
             }
@@ -50,21 +53,23 @@ const ProposalScheme = () => {
 
     const handleNext = async () => {
         if (!selectedProposal) {
-            setError("Please select a scheme before proceeding.");
+            toast.warning("Please select a scheme before proceeding.");
             return;
         }
 
         try {
             const response = await submitProposal(selectedProposal);
             if (response && response.success) {
+                toast.success(response.msg || "Proposal submitted successfully!");
                 localStorage.setItem("ProposalID", response.prop._id);
                 navigate("/dashboard");
             } else {
-                setError(response.msg || "Failed to create proposal");
+                toast.error(response.msg);
             }
         } catch (error) {
             console.error("Error creating proposal:", error.message);
-            setError("Failed to create proposal");
+            const parsedMessage = JSON.parse(error.message);
+            if (parsedMessage.msg) toast.error(parsedMessage.msg|| "Proposal submitted successfully!");
         }
     };
 
@@ -74,11 +79,11 @@ const ProposalScheme = () => {
                 localStorage.setItem("ProposalID", proposal._id);
                 navigate("/dashboard");
             } else {
-                setError("Failed to redirect");
+                toast.info("Failed to redirect");
             }
         } catch (error) {
             console.error("Error Editing proposal:", error.message);
-            setError("Failed to Edit proposal");
+            toast.error("Failed to Edit proposal");
         }
     };
 
@@ -113,7 +118,6 @@ const ProposalScheme = () => {
                                     value={selectedProposal}
                                     onChange={(e) => {
                                         setSelectedProposal(e.target.value);
-                                        setError("");
                                     }}
                                 >
                                     <option value="">Select scheme</option>
@@ -142,7 +146,7 @@ const ProposalScheme = () => {
                         <div className="mt-6">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm bg-white rounded-lg shadow-md overflow-hidden">
-                                    <thead className="bg-blue-900">
+                                    <thead className="bg-blue-700">
                                         <tr>
                                             <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200 rounded-tl-lg">
                                                 Proposal ID
