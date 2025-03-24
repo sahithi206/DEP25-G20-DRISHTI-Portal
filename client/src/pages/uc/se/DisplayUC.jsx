@@ -157,7 +157,7 @@ const UtilizationCertificates = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="3" className="p-6 text-center text-gray-500">No Expenditure Certificates Found</td>
+                                            <td colSpan="5" className="p-6 text-center text-gray-500">No Expenditure Certificates Found</td>
                                         </tr>
                                     )}
                                 </tbody>

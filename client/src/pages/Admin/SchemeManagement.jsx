@@ -26,7 +26,7 @@ const SchemeManagement = ({ userRole }) => {
     useEffect(() => {
         const fetchSchemes = async () => {
             try {
-                const response = await fetch("http://localhost:5000/schemes/get-schemes");
+                const response = await fetch("http://localhost:8000/schemes/get-schemes");
                 if (!response.ok) {
                     throw new Error("Failed to fetch schemes");
                 }
@@ -43,7 +43,7 @@ const SchemeManagement = ({ userRole }) => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch("http://localhost:5000/form/users");
+                const response = await fetch("http://localhost:8000/form/users");
                 const data = await response.json();
                 setUsers(data);
             } catch (error) {
@@ -72,7 +72,7 @@ const SchemeManagement = ({ userRole }) => {
 
 
         try {
-            const response = await fetch("http://localhost:5000/schemes/new-scheme", {
+            const response = await fetch("http://localhost:8000/schemes/new-scheme", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

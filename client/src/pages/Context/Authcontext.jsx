@@ -542,7 +542,7 @@ const approvedProjects = async () => {
   
   const getSchemes = async () => {
     try {
-      const response = await fetch("http://localhost:5000/schemes/get-schemes", { // Ensure correct URL
+      const response = await fetch("http://localhost:8000/schemes/get-schemes", { // Ensure correct URL
         method: "GET",
         headers: {
           "Content-Type": "application/json",
