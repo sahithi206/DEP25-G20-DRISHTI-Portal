@@ -26,12 +26,12 @@ import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
 import AdminReviewProposals from "./pages/Admin/AdminReviewProposals";
 import FundCycleApproval from "./pages/Admin/FundCyclePage.jsx";
 import RequestsPage from "./pages/Admin/AdminRequests.jsx";
-import SchemeManagement from "./pages/admin/SchemeManagement.jsx";
+import SchemeManagement from "./pages/Admin/SchemeManagement.jsx";
 import ChangePassword from "./pages/ChangePassword.jsx";
 import RunningProjects from "./pages/college/RunningProjects.jsx";
 import InstituteUsers from "./pages/college/InstituteUsers.jsx";
 import UserProposalsInsti from "./pages/college/UserProposalsInsti.jsx";
-import SanctionedProjects from "./pages/college/SanctionedProjects.jsx";  
+import SanctionedProjects from "./pages/college/SanctionedProjects.jsx";
 import UC from "./pages/uc/se/UC.jsx";
 import SelectDate from "./pages/SelectDate.jsx";
 import SanctionedProposals from "./pages/uc/se/SanctionedProposals.jsx"
@@ -45,8 +45,8 @@ import SanctionedDashboard from "./pages/college/SanctionedDashboard.jsx";
 import SEForm from "./pages/uc/se/SEdisplay.jsx";
 import ProgressReportForm from "./pages/uc/se/ProgressReportForm.jsx";
 import FinalReport from "./pages/uc/se/FinalReport.jsx";
- 
-
+import AdminLogin from "./pages/Admin/AdminLogin.jsx";
+import AdminSignup from "./pages/Admin/AdminSignup.jsx";
 
 function App() {
   const getData = async () => {
@@ -80,6 +80,9 @@ function MainLayout() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/adminLogin" element={<AdminLogin />} />
+        <Route path="/adminSignup" element={<AdminSignup />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/menupage" element={<MenuPage />} />
           <Route path="/formsubmission" element={<ProposalScheme />} />

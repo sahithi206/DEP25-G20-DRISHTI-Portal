@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
-import AdminSidebar from "../../components/AdminSidebar"; 
+import AdminSidebar from "../../components/AdminSidebar";
+import AdminNavbar from "../../components/AdminNavbar";
 import { useLocation } from "react-router-dom";
+const URL = import.meta.env.VITE_REACT_APP_URL;
 
 const AdminRequests = () => {
     const [requests, setRequests] = useState([]);
-    const [activeSection, setActiveSection] = useState("requests"); 
+    const [activeSection, setActiveSection] = useState("requests");
     const location = useLocation();
-    const [comments, setComments] = useState({});   
-    
+    const [comments, setComments] = useState({});
+
     useEffect(() => {
         const pathToSection = {
             "/requests": "requests",
@@ -19,14 +21,14 @@ const AdminRequests = () => {
         };
         setActiveSection(pathToSection[location.pathname] || "requests");
     }, [location]);
-    
+
     useEffect(() => {
-        fetch("http://localhost:8000/requests")
+        fetch(`${URL}requests`)
             .then((res) => res.json())
             .then((data) => setRequests(data))
             .catch((error) => console.error("Error fetching requests:", error));
     }, []);
-    
+
     // Function to update request status and append comments
     const updateRequest = async (id, status = null, newComment = null) => {
         try {
@@ -36,19 +38,21 @@ const AdminRequests = () => {
             // Append new comment while preserving old ones
             const updatedComments = newComment ? [...(request.comments || []), newComment] : request.comments;
 
-            const response = await fetch(`http://localhost:8000/requests/${id}`, {
+            const response = await fetch(`${URL}requests/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     status: status || request.status, // Retain current status if no new status
-                    comments: updatedComments
+                    comments: Array.isArray(updatedComments) ? updatedComments : []
                 }),
             });
 
             if (response.ok) {
                 setRequests(requests.map(req => req._id === id ? { ...req, status: status || req.status, comments: updatedComments } : req));
-                setComments(prev => ({ ...prev, [id]: "" })); 
+                setComments(prev => ({ ...prev, [id]: "" }));
             } else {
+                const errorData = await response.json();
+            console.error("Failed to update request:", errorData);
                 alert("Failed to update request");
             }
         } catch (error) {
@@ -56,12 +60,13 @@ const AdminRequests = () => {
         }
     };
 
+
+
     return (
         <div className="flex">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6">
-                <h2 className="text-2xl font-bold mb-4">Admin Requests Panel</h2>
-                <AdminNavbar />
+                <AdminNavbar activeSection={activeSection} />
                 <table className="w-full border">
                     <thead>
                         <tr className="bg-gray-200">
@@ -83,14 +88,14 @@ const AdminRequests = () => {
                                     {req.status}
                                 </td>
                                 <td className="p-2 border">
-                                    {req.comments && req.comments.length > 0 ? (
+                                    {Array.isArray(req.comments) && req.comments.length > 0  ? (
                                         <ul className="text-left">
                                             {req.comments.map((comment, index) => (
                                                 <li key={index} className="border-b p-1">{comment}</li>
                                             ))}
                                         </ul>
                                     ) : "No comments yet"}
-                                </td>  
+                                </td>
                                 <td className="p-2 border">
                                     <input
                                         type="text"
@@ -99,7 +104,7 @@ const AdminRequests = () => {
                                         placeholder="Add Comment"
                                         className="border p-2 rounded mb-2 w-full"
                                     />
-                                    <button 
+                                    <button
                                         className="bg-blue-500 text-white px-3 py-1 rounded mb-2 w-full"
                                         onClick={() => updateRequest(req._id, null, comments[req._id])}
                                     >
@@ -107,13 +112,13 @@ const AdminRequests = () => {
                                     </button>
                                     {req.status === "Pending" && (
                                         <>
-                                            <button 
+                                            <button
                                                 className="bg-green-500 text-white px-3 py-1 mr-2 rounded w-full"
                                                 onClick={() => updateRequest(req._id, "Approved", comments[req._id])}
                                             >
                                                 Approve
                                             </button>
-                                            <button 
+                                            <button
                                                 className="bg-red-500 text-white px-3 py-1 rounded w-full"
                                                 onClick={() => updateRequest(req._id, "Rejected", comments[req._id])}
                                             >

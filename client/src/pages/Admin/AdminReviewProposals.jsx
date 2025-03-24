@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
-import { Bell, Settings, LogOut } from "lucide-react";
-// In your main component file
+import AdminNavbar from "../../components/AdminNavbar";
 import BudgetAllocationForm from './BudgetAllocationForm';
 
 const AdminProposalReview = () => {
@@ -13,8 +12,18 @@ const AdminProposalReview = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+    const [showFullDetails, setShowFullDetails] = useState(false);
     const URL = import.meta.env.VITE_REACT_APP_URL;
-    
+
+    useEffect(() => {
+        if (selectedProposal) {
+            console.log("Selected Proposal Data:", selectedProposal);
+            console.log("PI Details:", selectedProposal.piInfo);
+            console.log("Budget Summary:", selectedProposal.totalBudget);
+            console.log("Bank Details:", selectedProposal.bankInfo);
+        }
+    }, [selectedProposal]);
+
     useEffect(() => {
         const fetchPendingProposals = async () => {
             const token = localStorage.getItem("token");
@@ -24,11 +33,12 @@ const AdminProposalReview = () => {
                 return;
             }
             try {
-                const response = await fetch(`${URL}form/proposals?status=Pending`, {
+                const response = await fetch(`${URL}form/pendingProposals`, {
                     method: "GET",
                     headers: { "accessToken": token },
                 });
                 const data = await response.json();
+                console.log("Data:", data);
                 setProposals(data.data || []);
             } catch (err) {
                 setError(err.message);
@@ -43,14 +53,14 @@ const AdminProposalReview = () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("User not authenticated");
-    
+
             console.log("Handling proposal:", proposalId, "with status:", status);
-            
+
             if (status === "Approved") {
                 setShowBudgetForm(true);
                 return;
             }
-            
+
             const response = await fetch(`${URL}form/update-proposals/${proposalId}`, {
                 method: "PUT",
                 headers: {
@@ -62,15 +72,15 @@ const AdminProposalReview = () => {
                     comment: comment.trim() ? comment : `Proposal ${status.toLowerCase()} by admin.`
                 }),
             });
-    
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || "Failed to update proposal status");
             }
-    
+
             const responseData = await response.json();
             console.log("Response data:", responseData);
-            
+
             setProposals(proposals.filter(proposal => proposal.proposal._id !== proposalId));
             setSelectedProposal(null);
             setComment("");
@@ -83,14 +93,13 @@ const AdminProposalReview = () => {
         }
     };
 
-
     const handleBudgetSubmit = async (budgetData) => {
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("User not authenticated");
-    
+
             console.log("Budget data to submit:", budgetData);
-    
+
             // Validate that all required budget fields are provided
             if (
                 !budgetData.TotalCost ||
@@ -101,10 +110,10 @@ const AdminProposalReview = () => {
             ) {
                 throw new Error("All budget details must be provided!");
             }
-    
+
             // Ensure comment is defined
             const finalComment = comment?.trim() ? comment : "Proposal approved with budget allocation.";
-    
+
             // First update the proposal status to Approved (including budget data)
             const approvalResponse = await fetch(`${URL}form/update-proposals/${budgetData.proposalId}`, {
                 method: "PUT",
@@ -120,14 +129,14 @@ const AdminProposalReview = () => {
                     TotalCost: budgetData.TotalCost,
                 }),
             });
-    
+
             const approvalResult = await approvalResponse.json();
             console.log("Approval Response:", approvalResult);
-    
+
             if (!approvalResponse.ok) {
                 throw new Error(approvalResult.msg || "Failed to approve proposal");
             }
-    
+
             setProposals(proposals.filter(proposal => proposal.proposal._id !== budgetData.proposalId));
             setSelectedProposal(null);
             setComment("");
@@ -140,35 +149,32 @@ const AdminProposalReview = () => {
             setTimeout(() => setError(""), 3000);
         }
     };
-    
-    
-    
-    
+
     const requestRevision = async (proposalId) => {
         if (!comment.trim()) {
             setError("Please add a comment detailing the required revisions");
             setTimeout(() => setError(""), 3000);
             return;
         }
-        
+
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("User not authenticated");
-    
+
             const response = await fetch(`${URL}form/update-proposals/${proposalId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "accessToken": token,
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     status: "Needs Revision",
-                    comment 
+                    comment
                 }),
             });
-    
+
             if (!response.ok) throw new Error("Failed to request revision");
-            
+
             setProposals(proposals.filter(proposal => proposal.proposal._id !== proposalId));
             setSelectedProposal(null);
             setComment("");
@@ -186,11 +192,11 @@ const AdminProposalReview = () => {
             setTimeout(() => setError(""), 3000);
             return;
         }
-        
+
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("User not authenticated");
-    
+
             const response = await fetch(`${URL}form/proposals/${proposalId}/comment`, {
                 method: "POST",
                 headers: {
@@ -199,11 +205,11 @@ const AdminProposalReview = () => {
                 },
                 body: JSON.stringify({ text: comment }),
             });
-    
+
             if (!response.ok) throw new Error("Failed to submit comment");
-    
+
             const data = await response.json();
-            
+
             // Update the proposal in the list with the new comment
             const updatedProposals = proposals.map(p => {
                 if (p.proposal._id === proposalId) {
@@ -217,7 +223,7 @@ const AdminProposalReview = () => {
                 }
                 return p;
             });
-            
+
             setProposals(updatedProposals);
             setComment("");
             setSuccessMessage("Comment added successfully");
@@ -227,26 +233,25 @@ const AdminProposalReview = () => {
             setTimeout(() => setError(""), 3000);
         }
     };
-    
+
     return (
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
-                <h1 className="text-2xl font-semibold">Proposal Approvals</h1>
-                
+                <AdminNavbar activeSection={activeSection} />
                 {/* Success/Error messages */}
                 {successMessage && (
                     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4">
                         {successMessage}
                     </div>
                 )}
-                
+
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
                         {error}
                     </div>
                 )}
-                
+
                 <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
                     {loading ? (
                         <p>Loading proposals...</p>
@@ -269,9 +274,9 @@ const AdminProposalReview = () => {
                                         <td className="p-2">{proposal.generalInfo?.instituteName}</td>
                                         <td className="p-2">{proposal.researchDetails?.Title}</td>
                                         <td className="p-2">
-                                            <button 
-                                                onClick={() => setSelectedProposal(proposal)} 
-                                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                                            <button
+                                                onClick={() => setSelectedProposal(proposal)}
+                                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2"
                                             >
                                                 View
                                             </button>
@@ -283,7 +288,7 @@ const AdminProposalReview = () => {
                     )}
                 </div>
 
-                {selectedProposal && (
+                {selectedProposal && !showFullDetails && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                             <h2 className="text-xl font-semibold">Proposal Details</h2>
@@ -291,7 +296,7 @@ const AdminProposalReview = () => {
                                 <p><strong>Title:</strong> {selectedProposal.researchDetails?.Title}</p>
                                 <p><strong>Institute:</strong> {selectedProposal.generalInfo?.instituteName}</p>
                                 <p><strong>Description:</strong> {selectedProposal.researchDetails?.Summary}</p>
-                                
+
                                 {/* Display existing comments */}
                                 {selectedProposal.proposal.comments && selectedProposal.proposal.comments.length > 0 && (
                                     <div className="mt-4">
@@ -308,7 +313,7 @@ const AdminProposalReview = () => {
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 <div className="mt-4">
                                     <label htmlFor="comment" className="block font-medium mb-1">
                                         Add Comment:
@@ -324,32 +329,38 @@ const AdminProposalReview = () => {
                                 </div>
                             </div>
                             <div className="flex flex-wrap justify-end gap-2 mt-6">
-                                <button 
-                                    onClick={() => submitComment(selectedProposal.proposal._id)} 
+                                <button
+                                    onClick={() => submitComment(selectedProposal.proposal._id)}
                                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                                 >
                                     Add Comment
                                 </button>
-                                <button 
-                                    onClick={() => requestRevision(selectedProposal.proposal._id)} 
+                                <button
+                                    onClick={() => requestRevision(selectedProposal.proposal._id)}
                                     className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
                                 >
                                     Request Revision
                                 </button>
-                                <button 
-                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Approved")} 
+                                <button
+                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Approved")}
                                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                                 >
                                     Approve
                                 </button>
-                                <button 
-                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Rejected")} 
+                                <button
+                                    onClick={() => handleApproval(selectedProposal.proposal._id, "Rejected")}
                                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                                 >
                                     Reject
                                 </button>
-                                <button 
-                                    onClick={() => setSelectedProposal(null)} 
+                                <button
+                                    onClick={() => setShowFullDetails(true)}
+                                    className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                                >
+                                    View More
+                                </button>
+                                <button
+                                    onClick={() => setSelectedProposal(null)}
                                     className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
                                 >
                                     Close
@@ -359,12 +370,275 @@ const AdminProposalReview = () => {
                     </div>
                 )}
 
+                {selectedProposal && showFullDetails && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl h-[90vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-2xl font-bold">Complete Proposal Details</h2>
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => {
+                                            setShowFullDetails(false);
+                                        }}
+                                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                    >
+                                        Back to Summary
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowFullDetails(false);
+                                            setSelectedProposal(null);
+                                        }}
+                                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* General Information */}
+                            {selectedProposal.generalInfo && (
+                                <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-6 shadow-sm">
+                                    <h3 className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2">
+                                        General Information
+                                    </h3>
+                                    <ul className="space-y-3">
+                                        {[
+                                            ["Name", selectedProposal.generalInfo.name],
+                                            ["Email", selectedProposal.generalInfo.email],
+                                            ["Address", selectedProposal.generalInfo.address],
+                                            ["Mobile No", selectedProposal.generalInfo.mobileNo],
+                                            ["Institute", selectedProposal.generalInfo.instituteName],
+                                            ["Department", selectedProposal.generalInfo.areaOfSpecialization],
+                                            ["Ongoing DBT Projects", selectedProposal.generalInfo.DBTproj_ong || "0"],
+                                            ["Completed DBT Projects", selectedProposal.generalInfo.DBTproj_completed || "0"],
+                                            ["Other Ongoing Projects", selectedProposal.generalInfo.Proj_ong || "0"],
+                                            ["Other Completed Projects", selectedProposal.generalInfo.Proj_completed || "0"],
+                                        ].map(([label, value], index) => (
+                                            <li key={index} className="flex">
+                                                <span className="w-1/3 font-semibold text-gray-700">{label}:</span>
+                                                <span className="w-2/3 text-gray-900">{value || "N/A"}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* PI Details */}
+                            {selectedProposal.piInfo && (
+                                <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-6 shadow-sm">
+
+                                    {/* PI List */}
+                                    {selectedProposal.piInfo.piList?.length > 0 && (
+                                        <div className="mb-6">
+                                            <h3 className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2">
+                                                Principal Investigator(s)
+                                            </h3>
+                                            <div className="overflow-x-auto">
+                                                <table className="min-w-full bg-white border border-blue-300 rounded-lg">
+                                                    <thead>
+                                                        <tr className="bg-blue-100 text-gray-800">
+                                                            <th className="p-2 border border-gray-300">Name</th>
+                                                            <th className="p-2 border border-gray-300">Email</th>
+                                                            <th className="p-2 border border-gray-300">Mobile</th>
+                                                            <th className="p-2 border border-gray-300">Institute</th>
+                                                            <th className="p-2 border border-gray-300">Department</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {selectedProposal.piInfo.piList.map((pi, index) => (
+                                                            <tr key={index} className="border-b hover:bg-blue-50">
+                                                                <td className="p-2 border border-gray-200">{pi.Name || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{pi.email || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{pi.Mobile || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{pi.Institute || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{pi.Dept || "N/A"}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Co-PI List */}
+                                    {selectedProposal.piInfo.coPiList?.length > 0 && (
+                                        <div>
+                                            <h3 className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2">
+                                                Co-Principal Investigator(s)
+                                            </h3>
+                                            <div className="overflow-x-auto">
+                                                <table className="min-w-full bg-white border border-blue-300 rounded-lg">
+                                                    <thead>
+                                                        <tr className="bg-blue-100 text-gray-800">
+                                                            <th className="p-2 border border-gray-300">Name</th>
+                                                            <th className="p-2 border border-gray-300">Email</th>
+                                                            <th className="p-2 border border-gray-300">Mobile</th>
+                                                            <th className="p-2 border border-gray-300">Institute</th>
+                                                            <th className="p-2 border border-gray-300">Department</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {selectedProposal.piInfo.coPiList.map((coPi, index) => (
+                                                            <tr key={index} className="border-b hover:bg-blue-50">
+                                                                <td className="p-2 border border-gray-200">{coPi.Name || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{coPi.email || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{coPi.Mobile || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{coPi.Institute || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{coPi.Dept || "N/A"}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Research Details */}
+                            {selectedProposal.researchDetails && (
+                                <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-6 shadow-sm">
+                                    <h3 className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2">
+                                        Technical Details
+                                    </h3>
+                                    <h4 className="text-xl font-bold text-gray-900 mb-3">
+                                        {selectedProposal.researchDetails.Title}
+                                    </h4>
+
+                                    <p className="mb-3">
+                                        <span className="font-semibold">Duration:</span> {selectedProposal.researchDetails.Duration} months
+                                    </p>
+
+                                    <div className="mb-4">
+                                        <span className="font-semibold">Summary:</span>
+                                        <p className="mt-1">{selectedProposal.researchDetails.Summary}</p>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <span className="font-semibold">Objectives:</span>
+                                        {selectedProposal.researchDetails.objectives?.length > 0 ? (
+                                            <ul className="list-disc list-inside mt-1">
+                                                {selectedProposal.researchDetails.objectives.map((obj, index) => (
+                                                    <li key={index}>{obj}</li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p className="mt-1 italic text-gray-500">None specified</p>
+                                        )}
+                                    </div>
+
+                                    <p className="mb-3">
+                                        <span className="font-semibold">Expected Output:</span> {selectedProposal.researchDetails.Output}
+                                    </p>
+
+                                    {selectedProposal.researchDetails.other && (
+                                        <p className="mb-3">
+                                            <span className="font-semibold">Other Details:</span> {selectedProposal.researchDetails.other}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Budget Details */}
+                            {selectedProposal.totalBudget && (
+                                <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-6 shadow-sm">
+                                    <h3 className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2">
+                                        Budget Summary
+                                    </h3>
+
+                                    <div className="flex justify-between mb-3">
+                                        <span className="font-semibold">Non-Recurring Cost:</span>
+                                        <span className="text-blue-800">${selectedProposal.totalBudget.non_recurring_total}</span>
+                                    </div>
+
+                                    <div className="flex justify-between mb-3">
+                                        <span className="font-semibold">Recurring Cost:</span>
+                                        <span className="text-blue-800">${selectedProposal.totalBudget.recurring_total}</span>
+                                    </div>
+
+                                    <div className="flex justify-between pt-3 border-t-2">
+                                        <span className="font-bold">Total Cost:</span>
+                                        <span className="font-bold text-green-700">${selectedProposal.totalBudget.total}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* // Bank Details
+                            {selectedProposal.bankInfo && (
+                                <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-6 shadow-sm">
+                                    <h3 className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2">
+                                        Bank Details
+                                    </h3>
+                                    <ul className="space-y-3">
+                                        {[
+                                            ["Name", selectedProposal.bankInfo.name],
+                                            ["Account Number", selectedProposal.bankInfo.accountNumber],
+                                            ["Account Type", selectedProposal.bankInfo.accountType],
+                                            ["Bank Name", selectedProposal.bankInfo.bankName],
+                                            ["IFSC Code", selectedProposal.bankInfo.ifscCode],
+                                        ].map(([label, value], index) => (
+                                            <li key={index} className="flex">
+                                                <span className="w-1/3 font-semibold text-gray-700">{label}:</span>
+                                                <span className="w-2/3 text-gray-900">{value || "N/A"}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )} */}
+
+                            {/* Action Buttons */}
+                            <div className="flex justify-between">
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => {
+                                            setShowFullDetails(false);
+                                        }}
+                                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                                    >
+                                        Back
+                                    </button>
+                                </div>
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => {
+                                            setShowFullDetails(false);
+                                            requestRevision(selectedProposal.proposal._id);
+                                        }}
+                                        className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                                    >
+                                        Request Revision
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowFullDetails(false);
+                                            handleApproval(selectedProposal.proposal._id, "Approved");
+                                        }}
+                                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                                    >
+                                        Approve
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowFullDetails(false);
+                                            handleApproval(selectedProposal.proposal._id, "Rejected");
+                                        }}
+                                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                                    >
+                                        Reject
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {showBudgetForm && selectedProposal && (
-                  <BudgetAllocationForm
-                    selectedProposal={selectedProposal}
-                    onClose={() => setShowBudgetForm(false)}
-                    onSubmit={handleBudgetSubmit}
-                  />
+                    <BudgetAllocationForm
+                        selectedProposal={selectedProposal}
+                        onClose={() => setShowBudgetForm(false)}
+                        onSubmit={handleBudgetSubmit}
+                    />
                 )}
             </div>
         </div>
