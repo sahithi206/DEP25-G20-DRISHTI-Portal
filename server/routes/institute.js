@@ -23,6 +23,7 @@ const { ObjectId } = require("mongodb");
 const mongoose = require("mongoose");
 const moment = require("moment");
 
+
 router.get("/institute-projects", fetchInstitute, async (req, res) => {
   try {
     const institute = req.institute.college;
@@ -198,6 +199,7 @@ router.get("/get-ucNonRecurring-insti", fetchInstitute, async (req, res) => {
   }
 });
 
+// Upload expenses from CSV
 router.post("/upload-expenses", async (req, res) => {
   try {
     const { projectId, csvData } = req.body;
@@ -205,11 +207,10 @@ router.post("/upload-expenses", async (req, res) => {
     if (!projectId || !csvData) {
       return res.status(400).json({ success: false, message: "Missing project ID or CSV data." });
     }
-
-    const rows = [];
     const stream = require("stream");
+    const rows = [];
     const readable = new stream.Readable();
-    readable._read = () => { };
+    readable._read = () => {};
     readable.push(csvData);
     readable.push(null);
 
@@ -226,22 +227,19 @@ router.post("/upload-expenses", async (req, res) => {
         const expenses = [];
 
         for (let i = 0; i < rows.length; i++) {
-          const { Date, Category, Description, Amount } = rows[i];
+          const { Date, CommittedDate, Description, Amount, Type } = rows[i];
 
-          console.log(`Row ${i + 1} -> Date: ${Date}, Category: ${Category}, Description: ${Description}, Amount: ${Amount}`);
-
-          if (!Date || !Category || !Description || !Amount) {
+          if (!Date || !CommittedDate || !Description || !Amount || !Type) {
             console.error(`Skipping row ${i + 1} due to missing fields.`);
             continue;
           }
-          const parsedDate = moment(Date, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
 
-          if (!parsedDate.isValid()) {
-            console.error(`Invalid date format for row ${i + 2}:`, Date);
-            return res.status(400).json({
-              success: false,
-              message: `Invalid date format in row ${i + 2}: "${Date}". Expected format: YYYY-MM-DD.`,
-            });
+          const parsedDate = moment(Date, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
+          const parsedCommittedDate = moment(CommittedDate, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
+
+          if (!parsedDate.isValid() || !parsedCommittedDate.isValid()) {
+            console.error(`Invalid date format in row ${i + 1}: ${Date} or ${CommittedDate}`);
+            continue;
           }
 
           expenses.push({
@@ -249,20 +247,38 @@ router.post("/upload-expenses", async (req, res) => {
             description: Description.trim(),
             amount: parseFloat(Amount.trim()),
             date: parsedDate.toDate(),
-            category: Category.trim(),
+            committedDate: parsedCommittedDate.toDate(),
+            type: Type.trim(),
           });
         }
 
-        await Expense.insertMany(expenses);
+        if (expenses.length === 0) {
+          return res.status(400).json({ success: false, message: "No valid expenses to upload." });
+        }
 
+        console.log("Final expenses to insert:", expenses);
+        await Expense.insertMany(expenses);
         res.status(200).json({ success: true, message: "Expenses uploaded successfully!", added: expenses.length });
       });
   } catch (error) {
-    console.error("Error uploading expenses:", error);
-    res.status(500).json({ success: false, message: "Server error while uploading expenses." });
+    console.error("Error uploading expenses:", error.message, error.stack);
+    res.status(500).json({ success: false, message: "Server error while uploading expenses.", errorDetails: error.message });
   }
 });
 
+// Helper function to parse CSV
+function parseCSV(csvData) {
+  try {
+    // Implement CSV parsing logic
+    // Could use libraries like csv-parse
+    return csvParser.parse(csvData, { columns: true });
+  } catch (error) {
+    console.error('CSV Parsing Error:', error);
+    throw new Error('Failed to parse CSV data');
+  }
+}
+
+// Get expenses by project ID
 router.get("/expenses/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -274,6 +290,7 @@ router.get("/expenses/:id", async (req, res) => {
   }
 });
 
+// Delete an expense by ID
 router.delete("/delete-expense/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -283,7 +300,7 @@ router.delete("/delete-expense/:id", async (req, res) => {
       return res.status(404).json({ success: false, msg: "Expense not found" });
     }
 
-    res.json({ success: true, msg: "expense deleted successfully" });
+    res.json({ success: true, msg: "Expense deleted successfully" });
   } catch (error) {
     console.error("Error deleting expense:", error);
     res.status(500).json({ success: false, msg: "Internal server error" });
@@ -293,10 +310,7 @@ router.delete("/delete-expense/:id", async (req, res) => {
 // Update an expense by ID
 router.put("/edit-expense/:expenseId", async (req, res) => {
   try {
-    console.log("BODY:", req.body);
-    console.log("Expense ID:", req.params.expenseId); // Corrected logging
-
-    const { description, amount, category } = req.body;
+    const { description, amount, committedDate, type } = req.body;
     const { expenseId } = req.params;
 
     if (!expenseId) {
@@ -305,20 +319,53 @@ router.put("/edit-expense/:expenseId", async (req, res) => {
 
     const updatedExpense = await Expense.findByIdAndUpdate(
       expenseId,
-      { $set: { description, amount, category } },
-      { new: true, runValidators: true } // Return updated doc & validate
+      { $set: { description, amount, committedDate, type } },
+      { new: true, runValidators: true }
     );
 
     if (!updatedExpense) {
       return res.status(404).json({ message: "Expense not found" });
     }
 
-    console.log("Updated Expense:", updatedExpense);
     res.status(200).json({ message: "Expense updated successfully", updatedExpense });
   } catch (error) {
     console.error("Error updating expense:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
+// Add a single expense
+router.post("/add-expense", async (req, res) => {
+  try {
+    const { projectId, description, amount, date, committedDate, type } = req.body;
+
+    if (!projectId || !description || !amount || !date || !committedDate || !type) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    const parsedDate = moment(date, "YYYY-MM-DD", true);
+    const parsedCommittedDate = moment(committedDate, "YYYY-MM-DD", true);
+
+    if (!parsedDate.isValid() || !parsedCommittedDate.isValid()) {
+      return res.status(400).json({ success: false, message: "Invalid date format" });
+    }
+
+    const newExpense = new Expense({
+      projectId,
+      description,
+      amount: parseFloat(amount),
+      date: parsedDate.toDate(),
+      committedDate: parsedCommittedDate.toDate(),
+      type
+    });
+
+    await newExpense.save();
+    res.status(201).json({ success: true, message: "Expense added successfully!", newExpense });
+  } catch (error) {
+    console.error("Error adding expense:", error);
+    res.status(500).json({ success: false, message: "Server error while adding expense." });
+  }
+});
+
 
 module.exports = router;

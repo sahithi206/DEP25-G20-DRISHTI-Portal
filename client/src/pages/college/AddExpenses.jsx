@@ -72,26 +72,52 @@ const AddExpense = () => {
       alert("Please convert an Excel file first.");
       return;
     }
-
+  
     setIsUploading(true);
-
+  
     try {
+      if (!csvData || csvData.trim() === '') {
+        throw new Error("CSV data is empty or invalid");
+      }
+  
+      console.log('Upload Payload:', {
+        projectId,
+        csvDataLength: csvData.length,
+        csvDataPreview: csvData.substring(0, 500)
+      });
+  
       const response = await fetch(`${url}institute/upload-expenses`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, csvData }),
+        headers: { 
+          "Content-Type": "application/json" 
+        },
+        body: JSON.stringify({ 
+          projectId, 
+          csvData 
+        }),
       });
-
-      const result = await response.json();
-      if (response.ok) {
-        setUploadSuccess(true);
-        setCsvData(""); // Clear data after successful upload
-      } else {
-        alert(`Upload failed: ${result.message}`);
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Detailed Server Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorBody: errorText
+        });
+        throw new Error(`Upload failed with status ${response.status}: ${errorText}`);
       }
+  
+      const result = await response.json();
+      setUploadSuccess(true);
+      alert(result.message);
+      setCsvData("");
     } catch (error) {
-      console.error("Error uploading expenses:", error);
-      alert("Failed to upload expenses.");
+      console.error("Comprehensive Upload Error:", {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+      alert(`Upload failed: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -107,33 +133,45 @@ const AddExpense = () => {
 
   const handleManualSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       const response = await fetch(`${url}institute/add-expense`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json" 
+        },
         body: JSON.stringify({
           projectId,
           ...manualExpense
         }),
       });
-
-      const result = await response.json();
-      if (response.ok) {
-        alert("Expense added successfully!");
-        setManualExpense({
-          description: "",
-          amount: "",
-          date: "",
-          committedDate: "",
-          type: ""
-        });
-      } else {
-        alert(`Failed to add expense: ${result.message}`);
+      console.log('Response status:', response.status);
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+  
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON Parsing Error:', parseError);
+        throw new Error(`Server returned non-JSON response: ${responseText}`);
       }
+  
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to add expense');
+      }
+  
+      alert("Expense added successfully!");
+      setManualExpense({
+        description: "",
+        amount: "",
+        date: "",
+        committedDate: "",
+        type: ""
+      });
     } catch (error) {
-      console.error("Error adding expense:", error);
-      alert("Failed to add expense.");
+      console.error("Detailed error adding expense:", error);
+      alert(`Failed to add expense: ${error.message}`);
     }
   };
 
