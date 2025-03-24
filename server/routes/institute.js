@@ -52,7 +52,9 @@ router.get("/users", fetchInstitute, async (req, res) => {
   router.get("/:userId/accepted-proposals", fetchInstitute, async (req, res) => {
     try {
       const { userId } = req.params;
+      console.log(userId);
       const proposals = await Proposal.find({ userId: userId, status: "Accepted" });
+      console.log(proposals);
       if (!proposals.length) {
         return res.status(404).json({ success: false, msg: "No accepted proposals found" });
       }

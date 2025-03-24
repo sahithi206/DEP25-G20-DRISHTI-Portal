@@ -92,7 +92,6 @@ const BudgetAllocationForm = ({ selectedProposal, onClose, onSubmit }) => {
       return;
     }
 
-    // Prepare the data according to the schema
     const budgetData = {
       proposalId: selectedProposal.proposal._id,
       TotalCost: budget?.TotalCost ?? 0,
@@ -196,6 +195,7 @@ const BudgetAllocationForm = ({ selectedProposal, onClose, onSubmit }) => {
                   <p className="text-xs text-gray-500 mt-1">{hint}</p>
                 </div>
               ))}
+              
             </div>
 
             <div className="mt-6 p-4 bg-gray-50 rounded">
