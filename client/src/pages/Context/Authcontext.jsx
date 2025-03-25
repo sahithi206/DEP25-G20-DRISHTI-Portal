@@ -875,7 +875,9 @@ const AuthProvider = (props) => {
         body: JSON.stringify({
           description: updatedExpense.description,
           amount: updatedExpense.amount,
-          category: updatedExpense.category
+          type: updatedExpense.type,
+          // date: updatedExpense.date,
+          // committedDate: updatedExpense, committedDate
         }),
       });
 
