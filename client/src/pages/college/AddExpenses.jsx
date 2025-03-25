@@ -176,13 +176,11 @@ const AddExpense = () => {
   };
 
   const expenseTypes = [
-    { value: "materials", label: "Materials" },
-    { value: "equipment", label: "Equipment" },
-    { value: "labor", label: "Labor" },
+    { value: "human_resources", label: "Human Resources" },
     { value: "travel", label: "Travel" },
-    { value: "consulting", label: "Consulting" },
+    { value: "consumables", label: "Consumables" },
     { value: "overhead", label: "Overhead" },
-    { value: "other", label: "Other" }
+    { value: "others", label: "Others" }
   ];
 
   return (
