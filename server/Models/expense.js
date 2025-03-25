@@ -10,17 +10,20 @@ const ExpenseSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    amount: {
-        type: Number,
-        required: true,
-    },
     date: {
         type: Date,
         required: true,
     },
-    category: {
+    committedDate: {
+        type: Date,
+        required: true,
+    },
+    amount: {
+        type: Number,
+        required: true,
+    },
+    type: {
         type: String,
-        // enum: ["materials", "equipment", "labor", "travel", "other"],
         required: true,
     },
     createdAt: {

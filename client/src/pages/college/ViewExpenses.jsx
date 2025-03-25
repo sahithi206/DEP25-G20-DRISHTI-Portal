@@ -19,19 +19,23 @@ const ProjectExpenses = () => {
         id: "",
         description: "",
         amount: "",
-        category: "",
+        type: "",
+        date: "",
+        committedDate: ""
     });
 
     const [filter, setFilter] = useState({
-        category: "",
+        type: "",
         startDate: "",
         endDate: "",
+        startCommittedDate: "",
+        endCommittedDate: "",
         minAmount: "",
         maxAmount: ""
     });
     const [summary, setSummary] = useState({
         total: 0,
-        byCategory: {}
+        byType: {}
     });
 
     useEffect(() => {
@@ -66,7 +70,7 @@ const ProjectExpenses = () => {
     }, [projectId, fetchInstituteGetProject]);
 
     const calculateSummary = (expenseData) => {
-        const byCategory = {};
+        const byType = {};
         let total = 0;
 
         expenseData.forEach(expense => {
@@ -74,14 +78,14 @@ const ProjectExpenses = () => {
             const amount = parseFloat(expense.amount);
             total += amount;
 
-            // Group by category
-            if (!byCategory[expense.category]) {
-                byCategory[expense.category] = 0;
+            // Group by type
+            if (!byType[expense.type]) {
+                byType[expense.type] = 0;
             }
-            byCategory[expense.category] += amount;
+            byType[expense.type] += amount;
         });
 
-        setSummary({ total, byCategory });
+        setSummary({ total, byType });
     };
 
     const handleFilterChange = (e) => {
@@ -93,19 +97,23 @@ const ProjectExpenses = () => {
     };
 
     const applyFilters = () => {
-        // Fetch expenses with filters
         setLoading(true);
 
         const queryParams = new URLSearchParams();
-        if (filter.category) queryParams.append("category", filter.category);
+        if (filter.type) queryParams.append("type", filter.type);
         if (filter.startDate) queryParams.append("startDate", filter.startDate);
         if (filter.endDate) queryParams.append("endDate", filter.endDate);
-        if (filter.minAmount) queryParams.append("minAmount", filter.minAmount);
-        if (filter.maxAmount) queryParams.append("maxAmount", filter.maxAmount);
+        if (filter.startCommittedDate) queryParams.append("startCommittedDate", filter.startCommittedDate);
+        if (filter.endCommittedDate) queryParams.append("endCommittedDate", filter.endCommittedDate);
+        if (filter.minAmount) queryParams.append("minAmount", Number(filter.minAmount));
+        if (filter.maxAmount) queryParams.append("maxAmount", Number(filter.maxAmount));
+
+        console.log("Applying Filters:", queryParams.toString()); // Debugging step
 
         fetch(`${url}institute/expenses/${projectId}?${queryParams.toString()}`)
             .then(response => response.json())
             .then(data => {
+                console.log("Filtered Data:", data); // Debugging step
                 setExpenses(data || []);
                 calculateSummary(data || []);
                 setLoading(false);
@@ -117,11 +125,14 @@ const ProjectExpenses = () => {
             });
     };
 
+
     const resetFilters = () => {
         setFilter({
-            category: "",
+            type: "",
             startDate: "",
             endDate: "",
+            startCommittedDate: "",
+            endCommittedDate: "",
             minAmount: "",
             maxAmount: ""
         });
@@ -151,8 +162,10 @@ const ProjectExpenses = () => {
         });
     };
 
-    // Function to get category color for visual distinction
-    const getCategoryColor = (category) => {
+    // Function to get type color for visual distinction
+    const getTypeColor = (type) => {
+        if (!type) return "bg-gray-100 text-gray-800"; // Default color for undefined types
+
         const colors = {
             materials: "bg-blue-100 text-blue-800",
             equipment: "bg-green-100 text-green-800",
@@ -161,8 +174,9 @@ const ProjectExpenses = () => {
             other: "bg-gray-100 text-gray-800"
         };
 
-        return colors[category.toLowerCase()] || "bg-gray-100 text-gray-800";
+        return colors[type.toLowerCase()] || "bg-gray-100 text-gray-800";
     };
+
 
     const handleDeleteExpense = async (expenseId) => {
         if (!confirm("Are you sure you want to delete this expense?")) {
@@ -189,7 +203,9 @@ const ProjectExpenses = () => {
             id: expense._id,
             description: expense.description,
             amount: expense.amount,
-            category: expense.category
+            type: expense.type,
+            date: expense.date ? expense.date.substring(0, 10) : "",
+            committedDate: expense.committedDate ? expense.committedDate.substring(0, 10) : ""
         });
         setIsEditModalOpen(true);
     };
@@ -213,11 +229,12 @@ const ProjectExpenses = () => {
         const updatedExpense = {
             description: editExpenseData.description,
             amount: editExpenseData.amount,
-            category: editExpenseData.category
+            type: editExpenseData.type,
+            // date: editExpenseData.date,
+            // committedDate: editExpenseData.committedDate
         };
 
         try {
-
             console.log("Before Updated Expense:", updatedExpense);
             const response = await editExpense(editExpenseData.id, updatedExpense);
 
@@ -294,11 +311,11 @@ const ProjectExpenses = () => {
                                     <p className="text-3xl font-bold text-blue-600">{formatCurrency(summary.total)}</p>
                                 </div>
                                 <div className="bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 md:col-span-2 border-t-4 border-green-500">
-                                    <h3 className="text-lg font-semibold mb-3 text-gray-700">Expenses by Category</h3>
+                                    <h3 className="text-lg font-semibold mb-3 text-gray-700">Expenses by Type</h3>
                                     <div className="flex flex-wrap gap-3">
-                                        {Object.entries(summary.byCategory).map(([category, amount]) => (
-                                            <div key={category} className={`px-4 py-2 rounded-full ${getCategoryColor(category)} shadow-sm`}>
-                                                <span className="font-medium">{category}:</span> {formatCurrency(amount)}
+                                        {Object.entries(summary.byType).map(([type, amount]) => (
+                                            <div key={type} className={`px-4 py-2 rounded-full ${getTypeColor(type)} shadow-sm`}>
+                                                <span className="font-medium">{type}:</span> {formatCurrency(amount)}
                                             </div>
                                         ))}
                                     </div>
@@ -308,36 +325,16 @@ const ProjectExpenses = () => {
                             {/* Filters */}
                             <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                                 <h3 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Filter Expenses</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                                         <input
                                             type="text"
-                                            name="category"
-                                            value={filter.category}
+                                            name="type"
+                                            value={filter.type}
                                             onChange={handleFilterChange}
                                             className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                            placeholder="Enter category"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                                        <input
-                                            type="date"
-                                            name="startDate"
-                                            value={filter.startDate}
-                                            onChange={handleFilterChange}
-                                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                                        <input
-                                            type="date"
-                                            name="endDate"
-                                            value={filter.endDate}
-                                            onChange={handleFilterChange}
-                                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                            placeholder="Enter type"
                                         />
                                     </div>
                                     <div>
@@ -365,6 +362,60 @@ const ProjectExpenses = () => {
                                         />
                                     </div>
                                 </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Date Range (Expense Date)</label>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-xs text-gray-500">From</label>
+                                                <input
+                                                    type="date"
+                                                    name="startDate"
+                                                    value={filter.startDate}
+                                                    onChange={handleFilterChange}
+                                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-500">To</label>
+                                                <input
+                                                    type="date"
+                                                    name="endDate"
+                                                    value={filter.endDate}
+                                                    onChange={handleFilterChange}
+                                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Date Range (Committed Date)</label>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-xs text-gray-500">From</label>
+                                                <input
+                                                    type="date"
+                                                    name="startCommittedDate"
+                                                    value={filter.startCommittedDate}
+                                                    onChange={handleFilterChange}
+                                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-500">To</label>
+                                                <input
+                                                    type="date"
+                                                    name="endCommittedDate"
+                                                    value={filter.endCommittedDate}
+                                                    onChange={handleFilterChange}
+                                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="mt-5 flex gap-4 justify-end">
                                     <button
                                         onClick={resetFilters}
@@ -403,8 +454,9 @@ const ProjectExpenses = () => {
                                             <thead className="bg-gray-50 text-left">
                                                 <tr>
                                                     <th className="p-4 border-b font-medium text-gray-700">Date</th>
+                                                    <th className="p-4 border-b font-medium text-gray-700">Committed Date</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Description</th>
-                                                    <th className="p-4 border-b font-medium text-gray-700">Category</th>
+                                                    <th className="p-4 border-b font-medium text-gray-700">Type</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Amount</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Created At</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Actions</th>
@@ -414,10 +466,11 @@ const ProjectExpenses = () => {
                                                 {expenses.map((expense) => (
                                                     <tr key={expense._id} className="hover:bg-gray-50 transition-colors duration-150">
                                                         <td className="p-4 border-b text-gray-600">{formatDate(expense.date)}</td>
+                                                        <td className="p-4 border-b text-gray-600">{formatDate(expense.committedDate)}</td>
                                                         <td className="p-4 border-b text-gray-800">{expense.description}</td>
                                                         <td className="p-4 border-b">
-                                                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(expense.category)}`}>
-                                                                {expense.category}
+                                                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(expense.type)}`}>
+                                                                {expense.type}
                                                             </span>
                                                         </td>
                                                         <td className="p-4 border-b font-semibold text-gray-800">{formatCurrency(expense.amount)}</td>
@@ -455,74 +508,104 @@ const ProjectExpenses = () => {
                     )}
                 </main>
             </div>
-            <Footer />
 
             {/* Edit Expense Modal */}
             {isEditModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl p-6 w-96 max-w-full mx-4">
-                        <h3 className="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Edit Expense</h3>
-                        <div className="space-y-4">
-                            <div>
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-xl p-6 relative">
+                        <button
+                            onClick={() => setIsEditModalOpen(false)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <h3 className="text-xl font-semibold mb-4">Edit Expense</h3>
+                        <form onSubmit={handleEditExpense}>
+                            {/* Form fields for editing expense */}
+                            <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                                 <input
                                     type="text"
                                     name="description"
                                     value={editExpenseData.description}
                                     onChange={handleChange}
-                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                                    placeholder="Enter description"
+                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                    required
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                                <input
-                                    type="number"
-                                    name="amount"
-                                    value={editExpenseData.amount}
-                                    onChange={handleChange}
-                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                                    placeholder="Enter amount"
-                                    min="0"
-                                    step="0.01"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                                    <input
+                                        type="number"
+                                        name="amount"
+                                        value={editExpenseData.amount}
+                                        onChange={handleChange}
+                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                        step="0.01"
+                                        min="0"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                    <input
+                                        type="text"
+                                        name="type"
+                                        value={editExpenseData.type}
+                                        onChange={handleChange}
+                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                        required
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                                <select
-                                    name="category"
-                                    value={editExpenseData.category}
-                                    onChange={handleChange}
-                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Expense Date</label>
+                                    <input
+                                        type="date"
+                                        name="date"
+                                        value={formatDate(editExpenseData.date)}
+                                        onChange={handleChange}
+                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Committed Date</label>
+                                    <input
+                                        type="date"
+                                        name="committedDate"
+                                        value={formatDate(editExpenseData.committedDate)}
+                                        onChange={handleChange}
+                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                        required
+                                    />
+                                </div>
+                            </div> */}
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-200 text-gray-700"
                                 >
-                                    <option value="materials">Materials</option>
-                                    <option value="equipment">Equipment</option>
-                                    <option value="labor">Labor</option>
-                                    <option value="travel">Travel</option>
-                                    <option value="other">Other</option>
-                                </select>
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 shadow-sm"
+                                >
+                                    Update Expense
+                                </button>
                             </div>
-                        </div>
-                        <div className="mt-6 flex justify-end gap-3">
-                            <button
-                                onClick={() => setIsEditModalOpen(false)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-200 text-gray-700"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleEditExpense}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 shadow-sm"
-                            >
-                                Save Changes
-                            </button>
-                        </div>
+                        </form>
                     </div>
                 </div>
             )}
+
         </div>
     );
-};
-
+}
 export default ProjectExpenses;
