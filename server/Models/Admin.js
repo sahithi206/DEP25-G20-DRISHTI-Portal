@@ -21,12 +21,12 @@ const AdminSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ["Head Coordinator", "Coordinator"], // Only allows these two values
+            enum: ["Head Coordinator", "Coordinator"], 
             required: true,
             default: "Coordinator"
         }
     },
-    { timestamps: true }  // Automatically adds createdAt and updatedAt
+    { timestamps: true } 
 );
 
 module.exports = mongoose.model("Admin", AdminSchema);

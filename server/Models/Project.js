@@ -14,9 +14,12 @@ const projectSchema = new Schema({
     TotalCost:{type:Number,required:true},
     TotalUsed:{type:Number,default:0},
     budgetTotal:{
+        overhead:{type:Number,required:true},
         nonRecurring:{type:Number,required:true},
         recurring:{
+            overhead:{type:Number,required:true},
             human_resources:{type:Number,required:true},
+            travel:{type:Number,required:true},
             consumables:{type:Number,required:true},
             others:{type:Number,required:true},
             total:{type:Number,required:true}
@@ -24,12 +27,14 @@ const projectSchema = new Schema({
         total:{type:Number,required:true},
     },
     CarryForward:{
+        overhead:{type:Number,required:true},
         nonRecurring:{type:Number,default:0},
         recurring:{
-            human_resources:{type:Number,default:0},
-            consumables:{type:Number,default:0},
-            others:{type:Number,default:0},
-            total:{type:Number,default:0}
+            human_resources:{type:Number,required:true},
+            travel:{type:Number,required:true},
+            consumables:{type:Number,required:true},
+            others:{type:Number,required:true},
+            total:{type:Number,required:true}
         },
         yearTotal:{type:Number,default:0},
     },

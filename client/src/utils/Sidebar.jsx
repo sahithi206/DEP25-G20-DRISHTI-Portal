@@ -19,7 +19,7 @@ const SidebarMenu = [
         title: "Projects",
         icon: <FaMoneyBillWave className='inline-block mr-2' />,
         dropdown: [
-            { name: "Submitted Forms", path: "/proposalinbox" },
+            { name: "Submitted Proposals", path: "/proposalinbox" },
             { name: "Accepted Proposals", path: "/savedproposals" },
             { name: "Sanctioned Projects", path: "/sanctionedproposals" }
         ],

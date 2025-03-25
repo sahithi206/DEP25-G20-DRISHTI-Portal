@@ -4,14 +4,19 @@ import { AuthContext } from "../Context/Authcontext";
 const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
     const [activeTab, setActiveTab] = useState("Non-Recurring");
     const [nonRecurringItems, setNonRecurringItems] = useState([]);
+    const [overhead, setOverhead] = useState(0);
     const [materials, setMaterials] = useState([]);
     const [manpower, setManpower] = useState([]);
+    const [travel, setTravel] = useState(0);
+
     const [otherExpenses, setOtherExpenses] = useState([]);
     const { submitBudgetDetails } = useContext(AuthContext);
 
     useEffect(() => {
+        console.log(recurring);
         const func = async () => {
             if (recurring) {
+                setTravel(recurring.travel);
                 setMaterials(recurring.consumables);
                 setManpower(recurring.human_resources);
                 setOtherExpenses(recurring.others);
@@ -19,9 +24,12 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
             if (nonRecurring) {
                 setNonRecurringItems(nonRecurring.items);
             }
+            if (budgetSummary) {
+                setOverhead(parseFloat(budgetSummary.overhead));
+            }
         };
         func();
-    }, [budgetSummary, recurring, nonRecurring]);
+    }, [budgetSummary, recurring, overhead, nonRecurring]);
 
     const handleChange = (index, field, value, setState, state) => {
         const updatedItems = [...state];
@@ -35,7 +43,8 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
             const perUnitCost = parseFloat(updatedItems[index].perUnitCost) || 0;
             const quantity = parseFloat(updatedItems[index].quantity) || 0;
             updatedItems[index].total = (perUnitCost * quantity).toFixed(2);
-        } else if (field === "noOfEmployees" || field === "Emoluments") {
+        }
+        else if (field === "noOfEmployees" || field === "Emoluments") {
             const noOfEmployees = parseFloat(updatedItems[index].noOfEmployees) || 0;
             const Emoluments = parseFloat(updatedItems[index].Emoluments) || 0;
             updatedItems[index].total = (noOfEmployees * Emoluments).toFixed(2);
@@ -53,6 +62,7 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                     const jsonData = JSON.parse(e.target.result);
                     setNonRecurringItems(jsonData.nonRecurringItems || []);
                     setMaterials(jsonData.materials || []);
+                    setOverhead(jsonData.overhead || {});
                     setManpower(jsonData.manpower || []);
                     setOtherExpenses(jsonData.otherExpenses || []);
                 } catch (error) {
@@ -78,9 +88,11 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
             const response = await submitBudgetDetails({
                 recurring_items: {
                     human_resources: manpower,
+                    travel: travel,
                     consumables: materials,
                     others: otherExpenses
                 },
+                overhead: overhead,
                 non_recurring_items: {
                     items: nonRecurringItems
                 }
@@ -100,16 +112,18 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
     };
 
     const calculateTotalRecurring = () => {
+        const totalTravel = parseFloat(travel);
         const totalMaterials = materials.reduce((total, item) => total + parseFloat(item.total || 0), 0);
         const totalManpower = manpower.reduce((total, item) => total + parseFloat(item.total || 0), 0);
         const totalOtherExpenses = otherExpenses.reduce((total, item) => total + parseFloat(item.amount || 0), 0);
-        return (totalMaterials + totalManpower + totalOtherExpenses).toFixed(2);
+        return (totalTravel + totalMaterials + totalManpower + totalOtherExpenses).toFixed(2);
     };
 
     const calculateTotal = () => {
+        const Overhead = parseFloat(overhead);
         const totalNonRecurring = parseFloat(calculateTotalNonRecurring());
         const totalRecurring = parseFloat(calculateTotalRecurring());
-        return (totalNonRecurring + totalRecurring).toFixed(2);
+        return (totalNonRecurring + totalRecurring + Overhead).toFixed(2);
     };
 
     const renderForm = () => {
@@ -117,7 +131,16 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
             case "Non-Recurring":
                 return (
                     <div className="p-6 bg-white rounded-lg shadow-md">
-                        <h2 className="text-2xl font-bold mb-4">Non-Recurring</h2>
+                        <div className="grid grid-cols-2  p-4 border rounded-lg">
+                            <h2 className="text-2xl font-bold mb-4">Overhead</h2>
+
+                            <input type="number" placeholder="Overhead" className="border p-2 rounded w-full"
+                                value={overhead}
+                                onChange={(e) => { setOverhead(e.target.value) }}
+                            />
+                        </div>
+                        <div className="p-4 space-x-4"></div>
+                        <h2 className="text-2xl font-bold mb-2">Non-Recurring</h2>
                         <h3 className="text-lg font-semibold mb-2">Equipment Details</h3>
                         {nonRecurringItems.map((item, index) => (
                             <div key={index} className="grid grid-cols-5 gap-4 p-4 border rounded-lg">
@@ -153,7 +176,13 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                 return (
                     <div className="p-6 bg-white rounded-lg shadow-md">
                         <h2 className="text-2xl font-bold mb-4">Recurring</h2>
-
+                        <div className="grid grid-cols-2 gap-4 p-4 border mb-4 rounded-lg">
+                            <h3 className="text-lg font-semibold ">Travel</h3>
+                            <input type="number" placeholder="Travel" className="border p-2 rounded w-full"
+                                value={travel}
+                                onChange={(e) => setTravel(e.target.value)}
+                            />
+                        </div>
                         <h3 className="text-lg font-semibold mb-2">Materials</h3>
                         {materials.map((material, index) => (
                             <div key={index} className="grid grid-cols-5 gap-4 p-4 border rounded-lg">
@@ -186,10 +215,16 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                         <h3 className="text-lg font-semibold mt-6">Manpower</h3>
                         {manpower.map((mp, index) => (
                             <div key={index} className="grid grid-cols-5 gap-4 p-4 border rounded-lg">
-                                <input type="text" placeholder="Designation" className="border p-2 rounded w-full"
+                                <select
+                                    className="border p-2 rounded w-full"
                                     value={mp.designation}
                                     onChange={(e) => handleChange(index, "designation", e.target.value, setManpower, manpower)}
-                                />
+                                >
+                                    <option value="">Select Designation</option>
+                                    <option value="JRF">JRF</option>
+                                    <option value="Lab asst">Lab asst.</option>
+                                    <option value="SRF">SRF</option>
+                                </select>
                                 <input type="number" placeholder="No. of Employees" className="border p-2 rounded w-full"
                                     value={mp.noOfEmployees}
                                     onChange={(e) => handleChange(index, "noOfEmployees", e.target.value, setManpower, manpower)}
@@ -243,16 +278,20 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                         <h2 className="text-2xl font-bold mb-4">Summary</h2>
                         <div className="space-y-4">
                             <div className="flex justify-between">
+                                <span className="text-lg font-semibold">Overhead:</span>
+                                <span className="text-lg">₹{overhead || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
                                 <span className="text-lg font-semibold">Total Non-Recurring Cost:</span>
-                                <span className="text-lg">${calculateTotalNonRecurring()}</span>
+                                <span className="text-lg">₹{calculateTotalNonRecurring()}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-lg font-semibold">Total Recurring Cost:</span>
-                                <span className="text-lg">${calculateTotalRecurring()}</span>
+                                <span className="text-lg">₹{calculateTotalRecurring()}</span>
                             </div>
                             <div className="flex justify-between border-t pt-4">
                                 <span className="text-lg font-semibold">Total Cost:</span>
-                                <span className="text-lg font-bold">${calculateTotal()}</span>
+                                <span className="text-lg font-bold">₹{calculateTotal()}</span>
                             </div>
                         </div>
                     </div>

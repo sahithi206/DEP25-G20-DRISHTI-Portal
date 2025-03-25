@@ -9,6 +9,7 @@ const recurringSchema = new Schema({
         Emoluments: { type: Number, required: true },
         total: { type: Number, required: true }
     }],
+    travel: { type: Number, required: true },
     consumables: [{
         item: { type: String, required: true },
         quantity: { type: Number, required: true },

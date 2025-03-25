@@ -56,11 +56,6 @@ const AdminProposalReview = () => {
 
             console.log("Handling proposal:", proposalId, "with status:", status);
 
-            if (status === "Approved") {
-                setShowBudgetForm(true);
-                return;
-            }
-
             const response = await fetch(`${URL}form/update-proposals/${proposalId}`, {
                 method: "PUT",
                 headers: {
@@ -111,10 +106,8 @@ const AdminProposalReview = () => {
                 throw new Error("All budget details must be provided!");
             }
 
-            // Ensure comment is defined
-            const finalComment = comment?.trim() ? comment : "Proposal approved with budget allocation.";
+            const finalComment = comment?.trim() ? comment : "Proposal approved. Budget Allocation Pending.";
 
-            // First update the proposal status to Approved (including budget data)
             const approvalResponse = await fetch(`${URL}form/update-proposals/${budgetData.proposalId}`, {
                 method: "PUT",
                 headers: {
@@ -123,10 +116,7 @@ const AdminProposalReview = () => {
                 },
                 body: JSON.stringify({
                     status: "Approved",
-                    comment: finalComment,
-                    budgetsanctioned: budgetData.budgetSanctioned,
-                    budgettotal: budgetData.budgetTotal,
-                    TotalCost: budgetData.TotalCost,
+                    comment: finalComment
                 }),
             });
 
@@ -531,17 +521,17 @@ const AdminProposalReview = () => {
 
                                     <div className="flex justify-between mb-3">
                                         <span className="font-semibold">Non-Recurring Cost:</span>
-                                        <span className="text-blue-800">${selectedProposal.totalBudget.non_recurring_total}</span>
+                                        <span className="text-blue-800">₹{selectedProposal.totalBudget.non_recurring_total}</span>
                                     </div>
 
                                     <div className="flex justify-between mb-3">
                                         <span className="font-semibold">Recurring Cost:</span>
-                                        <span className="text-blue-800">${selectedProposal.totalBudget.recurring_total}</span>
+                                        <span className="text-blue-800">₹{selectedProposal.totalBudget.recurring_total}</span>
                                     </div>
 
                                     <div className="flex justify-between pt-3 border-t-2">
                                         <span className="font-bold">Total Cost:</span>
-                                        <span className="font-bold text-green-700">${selectedProposal.totalBudget.total}</span>
+                                        <span className="font-bold text-green-700">₹{selectedProposal.totalBudget.total}</span>
                                     </div>
                                 </div>
                             )}
@@ -613,14 +603,6 @@ const AdminProposalReview = () => {
                             </div>
                         </div>
                     </div>
-                )}
-
-                {showBudgetForm && selectedProposal && (
-                    <BudgetAllocationForm
-                        selectedProposal={selectedProposal}
-                        onClose={() => setShowBudgetForm(false)}
-                        onSubmit={handleBudgetSubmit}
-                    />
                 )}
             </div>
         </div>

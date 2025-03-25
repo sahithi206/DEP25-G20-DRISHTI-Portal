@@ -26,8 +26,8 @@ const GeneralInfo = ({ generalInfo }) => {
                     dbtProjectsCompleted: generalInfo.DBTproj_completed,
                     projectsOngoing: generalInfo.Proj_ong,
                     projectsCompleted: generalInfo.Proj_completed,
-                    biodata: "",
-                    photo: "",
+                    biodata: generalInfo.biodata,
+                    photo: generalInfo.photo,
                 });
             }
         }
@@ -119,7 +119,7 @@ const GeneralInfo = ({ generalInfo }) => {
                         <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, "photo")} />
                     </div>
                     <div>
-                        <label className="block font-semibold">No. of DBT Projects (Ongoing):</label>
+                        <label className="block font-semibold">No. of ResearchX Projects (Ongoing):</label>
                         <input
                             type="number"
                             name="dbtProjectsOngoing"
@@ -130,7 +130,7 @@ const GeneralInfo = ({ generalInfo }) => {
                         />
                     </div>
                     <div>
-                        <label className="block font-semibold">No. of DBT Projects (Completed):</label>
+                        <label className="block font-semibold">No. of ResearchX Projects (Completed):</label>
                         <input
                             type="number"
                             name="dbtProjectsCompleted"

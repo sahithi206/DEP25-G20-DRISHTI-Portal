@@ -33,7 +33,7 @@ const ProposalScheme = () => {
         const proposals = async () => {
             try {
                 const props = await incompleteProposals();
-                setProposals(props);
+                setProposals(props||[]);
                 console.log(props);
             } catch (error) {
                 console.error(error);
@@ -167,14 +167,14 @@ const ProposalScheme = () => {
                                                         {proposal._id}
                                                     </td>
                                                     <td className="p-4 text-center font-medium text-sm text-gray-600">
-                                                        {proposal.Scheme}
+                                                        {proposal.schemeName}
                                                     </td>
-                                                    <td className="p-4 text-center font-medium text-sm text-gray-600 ">
+                                                    <td className="p-4 text-center font-medium  space-x-6 text-sm text-gray-600 ">
                                                         <button className="bg-blue-600 text-white px-4 py-2 pr-4 rounded-lg hover:bg-blue-700 transition-all" onClick={() => handleEdit({ proposal })}>
-                                                            Edit Proposal
+                                                            Edit
                                                         </button>
                                                         <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all ml-2" onClick={() => handleDelete(proposal._id)}>
-                                                            Delete Proposal
+                                                            Delete
                                                         </button>
                                                     </td>
                                                 </tr>

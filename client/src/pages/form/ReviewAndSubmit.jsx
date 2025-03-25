@@ -200,9 +200,9 @@ export const ReviewAndSubmit = ({ generalInfo, PIdetails, researchDetails, budge
             doc.setFontSize(12);
 
             const budgetDetails = [
-                `Non-Recurring Cost: $${budgetSummary.non_recurring_total || "0"}`,
-                `Recurring Cost: $${budgetSummary.recurring_total || "0"}`,
-                `Total Cost: $${budgetSummary.total || "0"}`,
+                `Non-Recurring Cost: ₹${budgetSummary.non_recurring_total || "0"}`,
+                `Recurring Cost: ₹${budgetSummary.recurring_total || "0"}`,
+                `Total Cost: ₹${budgetSummary.total || "0"}`,
             ];
 
             budgetDetails.forEach((text) => {
@@ -420,20 +420,23 @@ export const ReviewAndSubmit = ({ generalInfo, PIdetails, researchDetails, budge
                                                     Edit
                                                 </button>
                                             </div>
-
+                                            <div className="flex justify-between mb-4">
+                                                <span className="text-gray-700 text-lg font-medium">Overhead:</span>
+                                                <span className="font-bold text-blue-800">₹{budgetSummary.overhead}</span>
+                                            </div>
                                             <div className="flex justify-between mb-4">
                                                 <span className="text-gray-700 text-lg font-medium">Non-Recurring Cost:</span>
-                                                <span className="font-bold text-blue-800">${budgetSummary.non_recurring_total}</span>
+                                                <span className="font-bold text-blue-800">₹{budgetSummary.non_recurring_total}</span>
                                             </div>
 
                                             <div className="flex justify-between mb-4">
                                                 <span className="text-gray-700 text-lg font-medium">Recurring Cost:</span>
-                                                <span className="font-bold text-blue-800">${budgetSummary.recurring_total}</span>
+                                                <span className="font-bold text-blue-800">₹{budgetSummary.recurring_total}</span>
                                             </div>
 
                                             <div className="flex justify-between mt-2 border-t pt-4">
                                                 <span className="text-gray-900 font-semibold text-lg">Total Cost:</span>
-                                                <span className="font-bold text-green-700">${budgetSummary.total}</span>
+                                                <span className="font-bold text-green-700">₹{budgetSummary.total}</span>
                                             </div>
                                         </div>
                                     )}

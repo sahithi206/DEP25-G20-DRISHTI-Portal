@@ -5,9 +5,11 @@ const budgetSchema = new Schema({
     proposalId: { type: Schema.Types.ObjectId, ref: "Proposal", required: true },
     TotalCost:{type:Number,required:true},
     budgetTotal:{
+        overhead:{type:Number,required:true},
         nonRecurring:{type:Number,required:true},
         recurring:{
             human_resources:{type:Number,required:true},
+            travel:{type:Number,required:true},
             consumables:{type:Number,required:true},
             others:{type:Number,required:true},
             total:{type:Number,required:true}
@@ -15,9 +17,11 @@ const budgetSchema = new Schema({
         total:{type:Number,required:true},
     },
     budgetSanctioned:{
+        overhead:{type:Number,required:true},
         nonRecurring:{type:Number,required:true},
         recurring:{
             human_resources:{type:Number,required:true},
+            travel:{type:Number,required:true},
             consumables:{type:Number,required:true},
             others:{type:Number,required:true},
             total:{type:Number,required:true}
