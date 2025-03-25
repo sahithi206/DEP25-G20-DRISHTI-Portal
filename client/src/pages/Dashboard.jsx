@@ -106,7 +106,7 @@ const Dashboard = () => {
                 <div className="p-6 space-y-6 mt-16">
                     <main className="flex-1 p-6">
                         <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6 border mt-6">
-                            <div className="grid grid-cols-7 gap-2 mb-6">
+                            <div className="grid grid-cols-6 gap-2 mb-6">
                                 {tabs.map((tab) => (
                                     <button
                                         key={tab}

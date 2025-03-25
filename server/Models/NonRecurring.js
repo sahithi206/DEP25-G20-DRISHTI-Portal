@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Overhead = require("./OtherExpenses");
 const Schema = mongoose.Schema;
 
 const nonRecurringSchema = new Schema({

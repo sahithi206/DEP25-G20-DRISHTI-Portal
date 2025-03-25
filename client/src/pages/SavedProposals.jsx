@@ -14,7 +14,9 @@ const SavedProposals = () => {
          const Projects=await proj.map((project)=>{
             let id = project.proposalId;
             let title = project.researchDetails.Title;
-            return {id, title};
+            let duration = project.researchDetails.Duration;
+
+            return {id, title,duration};
          })
          setProjects(Projects);
         }
@@ -42,7 +44,8 @@ const SavedProposals = () => {
                                 <tr>
                                     <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">File No.</th>
                                     <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Project Title</th>
-                                    <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Action</th>
+                                    <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Project Duration</th>
+
                                 </tr>
                             </thead>
                             <tbody>
@@ -51,16 +54,8 @@ const SavedProposals = () => {
                                         <tr key={project.id} className="bg-white-100 shadow-sm ">
                                             <td className="p-4 text-center font-semibold text-xs">{project.id}</td>
                                             <td className="p-4 text-center font-semibold text-xs">{project.title}</td>
-                                            <td className="p-4 text-center font-semibold text-xs">
-                                                <button
-                                                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                                                    onClick={() => {
-                                                        navigate(`/project-approval/${project.id}`);
-                                                    }}
-                                                >
-                                                    Select Grant Date
-                                                </button>
-                                            </td>
+                                            <td className="p-4 text-center font-semibold text-xs">{project.duration}</td>
+
                                         </tr>
                                     ))
                                 ) : (

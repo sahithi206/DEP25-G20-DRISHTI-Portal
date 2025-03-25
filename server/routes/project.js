@@ -24,25 +24,16 @@ const SE =require("../Models/se/SE.js");
 const Report = require("../Models/progressReport.js");
 router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
     const { proposalId } = req.params;
-    const { startDate } = req.body;
     const userId = req.user._id;
     try {
-        console.log(1);
-        if (!startDate || isNaN(new Date(startDate))) {
-            return res.status(400).json({ success: false, msg: "Invalid start date" });
-        }
-        console.log(2);
-        if (new Date(startDate) - new Date() < 5 * 24 * 60 * 60 * 1000) {
-            return res.status(400).json({ success: false, msg: "Please Select Valid Date" });
-        }
+       
         const proposal = await Proposal.findById(proposalId);
         console.log("Fetched Proposals:", proposal);
         console.log(3);
         
-        if (!proposal || proposal.status !== 'Approved') {
+        if (!proposal || proposal.status !== 'Sanctioned') {
             return res.status(400).json({ success: false, msg: "No Approved proposal found" });
         }
-
 
         const Principal = await PI.findOne({ proposalId: proposal._id });
         if (!Principal) {
@@ -80,7 +71,7 @@ router.post("/createProject/:proposalId", fetchUser, async (req, res) => {
             CoPI: coPIS,
             years: parseFloat(researchDetails.Duration) / 12,
             currentYear: 1,
-            startDate: startDate,
+            startDate: new Date(),
             TotalCost: budgetsanctioned.TotalCost,
             TotalUsed:0,
             budgetTotal:budgetsanctioned.budgetTotal,

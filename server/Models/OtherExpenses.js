@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const otherExpensesSchema = new Schema({
+const overHeadSchema = new Schema({
     proposalId: { type: Schema.Types.ObjectId, required: true },
     noOfEquip: { type: Number, default: 0 },
     expense: [{
@@ -10,4 +10,4 @@ const otherExpensesSchema = new Schema({
     }]
 });
 
-module.exports = mongoose.model("OtherExpenses", otherExpensesSchema);
+module.exports = mongoose.model("overHead", overHeadSchema);

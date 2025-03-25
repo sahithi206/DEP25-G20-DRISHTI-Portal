@@ -21,6 +21,7 @@ const fs = require("fs");
 const nodemailer = require("nodemailer");
 const NonRecurring = require("../Models/NonRecurring");
 const budgetSanctioned = require("../Models/budgetSanctioned.js");
+const Scheme = require("../Models/Scheme");
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -151,39 +152,6 @@ router.put("/update-proposals/:id", fetchAdmin, async (req, res) => {
     proposal = await Proposal.findByIdAndUpdate({ _id: id }, { status: status }, { new: true });
     let user = await User.findById(proposal.userId);
     await sendEmailNotification(user, status, comment);
-    if (status === "Approved") {
-      const { budgetsanctioned, budgettotal, TotalCost } = req.body;
-      console.log(budgetsanctioned, budgettotal, TotalCost);
-      if (!budgetsanctioned || !budgettotal || !TotalCost) {
-        return res.status(400).json({ msg: "Enter all the Budget Details!!", success: false });
-      }
-      const budget = await new budgetSanctioned({
-        proposalId: proposal._id,
-        TotalCost: TotalCost,
-        budgetTotal: {
-          nonRecurring: budgettotal.nonRecurring,
-          recurring: {
-            human_resources: budgettotal.recurring.human_resources,
-            consumables: budgettotal.recurring.consumables,
-            others: budgettotal.recurring.others,
-            total: budgettotal.recurring.total
-          },
-          total: TotalCost,
-        },
-        budgetSanctioned: {
-          nonRecurring: budgetsanctioned.nonRecurring,
-          recurring: {
-            human_resources: budgetsanctioned.recurring.human_resources,
-            consumables: budgetsanctioned.recurring.consumables,
-            others: budgetsanctioned.recurring.others,
-            total: budgetsanctioned.recurring.total
-          },
-          yearTotal: budgetsanctioned.yearTotal
-        }
-
-      }).save();
-      return res.status(200).json({ success: true, budget, msg: "Proposal updated and Budget Alloted" });
-    }
     res.status(200).json({ success: true, msg: "Proposal updated" });
   } catch (error) {
     console.error("Error updating proposal:", error);
@@ -192,14 +160,16 @@ router.put("/update-proposals/:id", fetchAdmin, async (req, res) => {
 });
 
 router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
-  const { recurring_items, non_recurring_items } = req.body;
+  const { recurring_items, non_recurring_items,overhead } = req.body;
   console.log("Received budget data:", recurring_items, non_recurring_items);
   const { proposalId } = req.params;
 
   try {
     let totalRecurring = 0, totalNonRecurring = 0;
     let items = [], consumables = [], employees = [], others = [];
-
+    if(!overhead){
+      return res.status(400).json({success:false,msg:"Fill all the Required Fields"});
+    }
     if (recurring_items?.human_resources?.length > 0) {
       employees = recurring_items.human_resources.map(emp => {
         const noOfEmployees = parseFloat(emp.noOfEmployees) || 0;
@@ -265,6 +235,7 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
       {
         human_resources: employees,
         consumables: consumables,
+        travel:parseFloat(recurring_items?.travel)||0,
         others: others
       },
       { new: true, upsert: true }
@@ -272,16 +243,18 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
 
     const nonRecurringUpdate = await NonRecurring.findOneAndUpdate(
       { proposalId },
-      { items },
+      { 
+        items },
       { new: true, upsert: true }
     );
 
     const budgetUpdate = await Budget.findOneAndUpdate(
       { proposalId },
       {
-        recurring_total: totalRecurring,
+        overhead:overhead,
+        recurring_total: totalRecurring+parseFloat(recurring_items?.travel),
         non_recurring_total: totalNonRecurring,
-        total: totalRecurring + totalNonRecurring
+        total: totalRecurring + totalNonRecurring+parseFloat(overhead)
       },
       { new: true, upsert: true }
     );
@@ -548,16 +521,33 @@ router.get("/incompleteProposals", fetchUser, async (req, res) => {
   try {
     const { _id } = req.user;
     const proposals = await Proposal.find({ userId: _id, status: "Unsaved" });
-    if (!proposals) {
-      return res.json({ success: false, msg: "No proposals found" });
+
+    if (!proposals.length) {
+      return res.status(400).json({ success: false, msg: "No proposals found" });
     }
-    console.log("Proposals", proposals);
-    res.status(200).json({ success: true, msg: "Incomplete Proposals are Fetched", proposals });
+
+    const schemeIds = proposals.map((proposal) => proposal.Scheme);
+    const schemes = await Scheme.find({ _id: { $in: schemeIds } }).select("name");
+
+    const schemeMap = {};
+    schemes.forEach((scheme) => {
+      schemeMap[scheme._id.toString()] = scheme.name;
+    });
+
+    const updatedProposals = proposals.map((proposal) => ({
+      ...proposal._doc, 
+      schemeName: schemeMap[proposal.Scheme.toString()] || "Unknown Scheme",
+    }));
+
+    console.log("Proposals with Scheme Names", updatedProposals);
+    res.status(200).json({ success: true, msg: "Incomplete Proposals are Fetched", proposals: updatedProposals });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, msg: "Failed to fetch proposals" });
   }
-})
+});
+
 router.get("/proposals", fetchUser, async (req, res) => {
   try {
     const userId = req.user._id;
@@ -609,7 +599,7 @@ router.get("/acceptedproposals", fetchUser, async (req, res) => {
       console.log("Processing Proposal ID:", proposal._id);
       const proposalId = proposal._id;
       const researchDetails = await ResearchDetails.findOne({ proposalId: proposal._id })
-        .select("Title");
+        .select("Title Duration");
       console.log("Research Details:", researchDetails);
 
       return { proposalId, researchDetails };
@@ -665,22 +655,18 @@ router.post("/proposals/:id/comment", async (req, res) => {
   }
 });
 
-// Fetch pending proposals for the logged-in Coordinator along with related details.
 router.get("/pendingProposals", fetchAdmin, async (req, res) => {
   try {
-    const adminId = req.admin.id; // Logged-in admin's ID
-    const adminRole = req.admin.role; // Logged-in admin's role
+    const adminId = req.admin.id; 
+    const adminRole = req.admin.role; 
 
     console.log("Logged-in Admin ID:", adminId);
     console.log("Logged-in Admin Role:", adminRole);
-
-    // Ensure only a Coordinator can access this route
     if (adminRole !== "Coordinator") {
       console.log("Access denied: Not a Coordinator");
       return res.status(403).json({ success: false, msg: "Access denied" });
     }
 
-    // Step 1: Find schemes assigned to this Coordinator
     const schemes = await Schemes.find({ coordinator: adminId });
 
     console.log("Fetched Schemes for Admin:", schemes);
@@ -690,11 +676,9 @@ router.get("/pendingProposals", fetchAdmin, async (req, res) => {
       return res.status(404).json({ success: false, msg: "No schemes assigned to this Coordinator" });
     }
 
-    // Extract scheme IDs
     const schemeIds = schemes.map((scheme) => scheme._id);
     console.log("Extracted Scheme IDs:", schemeIds);
 
-    // Step 2: Fetch proposals for the found schemes where status is "Pending"
     const proposals = await Proposal.find({ status: "Pending", Scheme: { $in: schemeIds } });
 
     console.log("Fetched Pending Proposals:", proposals);
@@ -704,7 +688,6 @@ router.get("/pendingProposals", fetchAdmin, async (req, res) => {
       return res.status(404).json({ success: false, msg: "No pending proposals found" });
     }
 
-    // Step 3: Fetch related data for each proposal
     const data = await Promise.all(
       proposals.map(async (proposal) => {
         const generalInfo = await GeneralInfo.findOne({ proposalId: proposal._id });

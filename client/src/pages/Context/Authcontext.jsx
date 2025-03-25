@@ -572,7 +572,7 @@ const AuthProvider = (props) => {
       const response = await fetch(`${url}auth/create-institute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, Institute: instituteName, otp }),
+        body: JSON.stringify({ email, password, college: instituteName, otp }),
       });
 
       const json = await response.json();
@@ -581,7 +581,7 @@ const AuthProvider = (props) => {
       console.log("Institute Created Successfully:", json);
       if (json.success) {
         localStorage.setItem("token", json.accessToken);
-        navigate("/formsubmission");
+        navigate("/institute-dashboard");
       }
     } catch (e) {
       console.error("Cannot create institute:", e.message);
@@ -738,8 +738,8 @@ const AuthProvider = (props) => {
       const response = await fetch(`${url}institute/get-project-insti/${projectId}`, {
         method: "GET",
         headers: {
-          "Content-Type": "application",
-          "accessToken": ` ${token}`,
+          "Content-Type": "application/json",
+          "accessToken": `${token}`,
         },
       });
       if (!response.ok) {
@@ -752,6 +752,7 @@ const AuthProvider = (props) => {
       console.error(error);
     }
   };
+
   const deleteProposal = async (proposalId) => {
     try {
       const response = await fetch(`${url}form/deleteProposal/${proposalId}`, {
@@ -847,14 +848,60 @@ const AuthProvider = (props) => {
   };
 
 
+  const deleteExpense = async (expenseId) => {
+    try {
+      const response = await fetch(`${url}institute/delete-expense/${expenseId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      return await response.json();
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+    }
+  };
+
+  const editExpense = async (expenseId, updatedExpense) => {
+    try {
+      if (!updatedExpense || typeof updatedExpense !== "object") {
+        throw new Error("Invalid updatedExpense object");
+      }
+
+      const response = await fetch(`${url}institute/edit-expense/${expenseId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          description: updatedExpense.description,
+          amount: updatedExpense.amount,
+          category: updatedExpense.category
+        }),
+      });
+
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(errorMessage || "Failed to update expense");
+      }
+
+      return await response.json(); // Return the parsed JSON response
+    } catch (error) {
+      console.error("Error updating expense:", error);
+      return { success: false, message: error.message };
+    }
+  };
+
+
   return (
     <AuthContext.Provider value={{
       sendOtp, verifyOtp, login, unsavedProposal,
       authState, edituser, incompleteProposals, getpi, submitProposal, logout, uploadFile,
       submitGeneralInfo, submitResearchDetails, submitBudgetDetails, submitBankDetails,
       submitPIDetails, submitAcknowledgement, getuser, approvedProjects, fetchInstituteProjects,
-      userInstiAcceptedProposals, createInstitute, fetchInstituteUsers, loginInstitute, getProject, fetchSanctionedProjects,
-      fetchInstituteGetProject, getSchemes, deleteProposal, adminLogin, adminVerifyOtp, getAdmin
+      userInstiAcceptedProposals, createInstitute, fetchInstituteUsers, loginInstitute, getProject,
+      fetchSanctionedProjects, fetchInstituteGetProject, getSchemes, deleteProposal, adminLogin,
+      adminVerifyOtp, getAdmin, deleteExpense, editExpense
     }}>
       {props.children}
     </AuthContext.Provider>

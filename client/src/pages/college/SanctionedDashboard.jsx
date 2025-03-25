@@ -27,12 +27,12 @@ const ProjectDashboard = () => {
             setLoading(false);
             return;
         }
-    
+
         const fetchProjectDetails = async () => {
             try {
-              console.log(id);
+                console.log(id);
                 const data = await fetchInstituteGetProject(id);
-                console.log(data);
+                // console.log(data);
                 setProject(data.data.project);
                 setGeneral(data.data.generalInfo);
                 setResearch(data.data.researchDetails);
@@ -46,7 +46,7 @@ const ProjectDashboard = () => {
                 setLoading(false);
             }
         };
-    
+
         fetchProjectDetails();
     }, [id, fetchInstituteGetProject]);
 
@@ -138,13 +138,13 @@ const ProjectDashboard = () => {
                                         <div>
                                             <div className="border-b border-gray-300 my-4"></div>
                                             <div className="flex justify-between items-center px-5 mb-2">
-    <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide ">
-        Time Left
-    </h3>
-    <p className="text-sm text-gray-600 ">
-        {timeData[0].value.toFixed(1)}% Time Left, {timeData[1].value.toFixed(1)}% Passed
-    </p>
-</div>
+                                                <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide ">
+                                                    Time Left
+                                                </h3>
+                                                <p className="text-sm text-gray-600 ">
+                                                    {timeData[0].value.toFixed(1)}% Time Left, {timeData[1].value.toFixed(1)}% Passed
+                                                </p>
+                                            </div>
 
                                             <div className="relative w-full h-6 bg-gray-200 rounded-full overflow-hidden">
                                                 <div
@@ -153,7 +153,7 @@ const ProjectDashboard = () => {
                                                 ></div>
                                             </div>
 
-                                            
+
                                         </div>
                                     </div>
 

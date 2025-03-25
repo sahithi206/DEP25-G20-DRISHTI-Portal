@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
 import { PlusCircle, AlertCircle, Check, Calendar, DollarSign, Users, Tag, FileText, Clock } from "lucide-react";
+import { FaRupeeSign } from "react-icons/fa";
 const URL = import.meta.env.VITE_REACT_APP_URL;
 
 const SchemeManagement = ({ userRole }) => {
@@ -232,11 +233,11 @@ const SchemeManagement = ({ userRole }) => {
                                 {/* Budget */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Budget (USD)*
+                                        Budget (₹)*
                                     </label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <DollarSign className="h-4 w-4 text-gray-500" />
+                                            <FaRupeeSign className="h-4 w-4 text-gray-500" />
                                         </div>
                                         <input
                                             type="text"

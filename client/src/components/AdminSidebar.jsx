@@ -40,14 +40,13 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
         { label: "Requests", icon: FileText, id: "requests", path: "/requests" }
     ];
 
-    // If the admin has the role "Head Coordinator", add the "Scheme Management" menu item
     if (admin.role === "Head Coordinator") {
         menuItems.splice(1, 0, { label: "Scheme Management", icon: ClipboardList, id: "schemes", path: "/schemes" });
     }
 
-    // Only show "Proposal Approvals" if the admin is a "Coordinator"
     if (admin.role === "Coordinator") {
-        menuItems.splice(1, 0, { label: "Proposal Approvals", icon: Users, id: "approvals", path: "/review-proposals" });
+       menuItems.splice(1,0, { label: "Approve Proposals", icon: Home, id: "approvals", path: "/review-proposals" });
+        menuItems.splice(2,0, { label: "Sanction Projects", icon: Home, id: "sanction", path: "/admin/sanction-projects"});
     }
 
     return (

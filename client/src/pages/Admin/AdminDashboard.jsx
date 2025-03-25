@@ -7,14 +7,10 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
       <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
 
-      {/* Main Content */}
       <div className="flex-1 p-6">
-        {/* Header */}
         <AdminNavbar />
-        {/* Section Content */}
         <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
           {activeSection === "dashboard" && <h2 className="text-xl font-semibold">Welcome to Admin Dashboard</h2>}
 
