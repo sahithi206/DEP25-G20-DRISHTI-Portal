@@ -47,6 +47,7 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
     if (admin.role === "Coordinator") {
        menuItems.splice(1,0, { label: "Approve Proposals", icon: Home, id: "approvals", path: "/review-proposals" });
         menuItems.splice(2,0, { label: "Sanction Projects", icon: Home, id: "sanction", path: "/admin/sanction-projects"});
+        menuItems.splice(3,0, { label: "Ongoing Projects", icon: Home, id: "ongoing", path: "/admin/ongoing-projects"});
     }
 
     return (

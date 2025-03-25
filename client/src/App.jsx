@@ -52,6 +52,7 @@ import AddExpenses from "./pages/college/AddExpenses.jsx";
 import ViewExpenses from "./pages/college/ViewExpenses.jsx";
 import SanctionProjects from "./pages/Admin/SanctionProjects"
 import BudgetAllocationForm from "./pages/Admin/BudgetAllocationForm.jsx";
+import OngoingProjects from "./pages/Admin/OngoingProjects";
 
 function App() {
   const getData = async () => {
@@ -124,6 +125,7 @@ function MainLayout() {
           <Route path="/admin/allocate-budget/:id" element={<BudgetAllocationForm/>} />
           <Route path="/fund-cycle" element={<FundCycleApproval />} />
           <Route path="/requests" element={<RequestsPage />} />
+          <Route path="/admin/ongoing-projects" element={<OngoingProjects />} />
 
           <Route path="/schemes" element={<SchemeManagement />} />
           <Route path="/running-projects" element={<RunningProjects />} />

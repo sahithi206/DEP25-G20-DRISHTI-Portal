@@ -83,7 +83,7 @@ const AdminProposalReview = () => {
                             </thead>
                             <tbody>
                                 {proposals.map(proposal => (
-                                    <tr key={proposal.proposal._id} className="border-b">
+                                    <tr key={proposal._id} className="border-b">
                                         <td className="p-2">{proposal.proposal._id}</td>
                                         <td className="p-2">{proposal.generalInfo?.instituteName}</td>
                                         <td className="p-2">{proposal.researchDetails?.Title}</td>

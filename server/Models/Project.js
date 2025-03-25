@@ -17,7 +17,6 @@ const projectSchema = new Schema({
         overhead:{type:Number,required:true},
         nonRecurring:{type:Number,required:true},
         recurring:{
-            overhead:{type:Number,required:true},
             human_resources:{type:Number,required:true},
             travel:{type:Number,required:true},
             consumables:{type:Number,required:true},

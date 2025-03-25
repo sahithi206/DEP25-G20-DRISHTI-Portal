@@ -5,9 +5,11 @@ const YearlySchema = new Schema({
     projectId: { type: Schema.Types.ObjectId, ref: "Project", required: true },
     budgetUnspent:{type:Number,default:0},
     budgetSanctioned:{
+        overhead:{type:Number,required:true},
         nonRecurring:{type:Number,required:true},
         recurring:{
             human_resources:{type:Number,required:true},
+            travel:{type:Number,required:true},
             consumables:{type:Number,required:true},
             others:{type:Number,required:true},
             total:{type:Number,required:true}
@@ -15,9 +17,11 @@ const YearlySchema = new Schema({
         yearTotal:{type:Number,required:true},
     },
     budgetUsed:{
+        overhead:{type:Number,default:0},
         nonRecurring:{type:Number,default:0},
         recurring:{
             human_resources:{type:Number,default:0},
+            travel:{type:Number,default:0},
             consumables:{type:Number,default:0},
             others:{type:Number,default:0},
             total:{type:Number,default:0}
