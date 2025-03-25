@@ -199,7 +199,59 @@ router.get("/get-ucNonRecurring-insti", fetchInstitute, async (req, res) => {
   }
 });
 
-// Upload expenses from CSV
+
+
+async function updateBudgetFields(projectId, amount, type, operation) {
+  try {
+    const project = await Project.findById(projectId).populate("YearlyDataId");
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    const currentYearData = project.YearlyDataId[project.currentYear - 1];
+    if (!currentYearData) {
+      throw new Error("Yearly data not found for the current year");
+    }
+
+    const amountFloat = parseFloat(amount);
+
+    if (operation === "add") {
+      currentYearData.budgetUsed.recurring[type] += amountFloat;
+      currentYearData.budgetUsed.recurring.total += amountFloat;
+      currentYearData.budgetUsed.yearTotal += amountFloat;
+      currentYearData.budgetUnspent -= amountFloat;
+
+      project.budgetTotal.recurring[type] += amountFloat;
+      project.budgetTotal.recurring.total += amountFloat;
+      project.budgetTotal.total += amountFloat;
+      project.CarryForward.recurring[type] -= amountFloat;
+      project.CarryForward.recurring.total -= amountFloat;
+      project.CarryForward.yearTotal -= amountFloat;
+      project.TotalUsed += amountFloat;
+    } else if (operation === "subtract") {
+      currentYearData.budgetUsed.recurring[type] -= amountFloat;
+      currentYearData.budgetUsed.recurring.total -= amountFloat;
+      currentYearData.budgetUsed.yearTotal -= amountFloat;
+      currentYearData.budgetUnspent += amountFloat;
+
+      project.budgetTotal.recurring[type] -= amountFloat;
+      project.budgetTotal.recurring.total -= amountFloat;
+      project.budgetTotal.total -= amountFloat;
+      project.CarryForward.recurring[type] += amountFloat;
+      project.CarryForward.recurring.total += amountFloat;
+      project.CarryForward.yearTotal += amountFloat;
+      project.TotalUsed -= amountFloat;
+    }
+
+    await currentYearData.save();
+    await project.save();
+  } catch (error) {
+    console.error("Error updating budget fields:", error);
+    throw error;
+  }
+}
+
+
 router.post("/upload-expenses", async (req, res) => {
   try {
     const { projectId, csvData } = req.body;
@@ -258,6 +310,11 @@ router.post("/upload-expenses", async (req, res) => {
 
         console.log("Final expenses to insert:", expenses);
         await Expense.insertMany(expenses);
+
+        for (let i = 0; i < expenses.length; i++) {
+          await updateBudgetFields(projectId, expenses[i].amount, expenses[i].type, "add");
+        }
+        
         res.status(200).json({ success: true, message: "Expenses uploaded successfully!", added: expenses.length });
       });
   } catch (error) {
@@ -300,6 +357,8 @@ router.delete("/delete-expense/:id", async (req, res) => {
       return res.status(404).json({ success: false, msg: "Expense not found" });
     }
 
+    await updateBudgetFields(deletedExpense.projectId, deletedExpense.amount, deletedExpense.type, "subtract");
+
     res.json({ success: true, msg: "Expense deleted successfully" });
   } catch (error) {
     console.error("Error deleting expense:", error);
@@ -317,6 +376,14 @@ router.put("/edit-expense/:expenseId", async (req, res) => {
       return res.status(400).json({ message: "Expense ID is required" });
     }
 
+    const existingExpense = await Expense.findById(expenseId);
+    if (!existingExpense) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+
+    const oldAmount = existingExpense.amount;
+    const oldType = existingExpense.type;
+
     const updatedExpense = await Expense.findByIdAndUpdate(
       expenseId,
       { $set: { description, amount, committedDate, type } },
@@ -326,6 +393,9 @@ router.put("/edit-expense/:expenseId", async (req, res) => {
     if (!updatedExpense) {
       return res.status(404).json({ message: "Expense not found" });
     }
+
+    await updateBudgetFields(updatedExpense.projectId, oldAmount, oldType, "subtract");
+    await updateBudgetFields(updatedExpense.projectId, amount, type, "add");
 
     res.status(200).json({ message: "Expense updated successfully", updatedExpense });
   } catch (error) {
@@ -360,6 +430,9 @@ router.post("/add-expense", async (req, res) => {
     });
 
     await newExpense.save();
+
+    await updateBudgetFields(projectId, amount, type, "add");
+
     res.status(201).json({ success: true, message: "Expense added successfully!", newExpense });
   } catch (error) {
     console.error("Error adding expense:", error);
