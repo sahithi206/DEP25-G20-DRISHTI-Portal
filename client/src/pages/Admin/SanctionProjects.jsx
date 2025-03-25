@@ -54,7 +54,6 @@ const AdminProposalReview = () => {
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
                 <AdminNavbar activeSection={activeSection} />
-                {/* Success/Error messages */}
                 {successMessage && (
                     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4">
                         {successMessage}
@@ -69,9 +68,9 @@ const AdminProposalReview = () => {
 
                 <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
                     {loading ? (
-                        <p>Loading proposals...</p>
+                        <p>Loading Projects...</p>
                     ) : proposals.length === 0 ? (
-                        <p>No pending proposals.</p>
+                        <p>No Sanctioned Projects</p>
                     ) : (
                         <table className="w-full border">
                             <thead>
