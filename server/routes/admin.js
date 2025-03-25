@@ -98,7 +98,6 @@ router.put("/allocate-budget/:id", fetchAdmin, async (req, res) => {
       const generalInfo = await GeneralInfo.findOne({ proposalId:id }).select("email");
       const users=await User.findOne({email:generalInfo.email}).select("_id");
       const projectCheck= await Project.findOne({userId:users._id});
-      console.log(projectCheck,generalInfo);
       let budgetId;
       if(budgetCheck&&projectCheck){
         return res.status(400).json({ success: false, msg: "Budget Already Allocated!!" });
