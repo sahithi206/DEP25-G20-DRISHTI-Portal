@@ -97,7 +97,6 @@ const ProjectExpenses = () => {
     };
 
     const applyFilters = () => {
-        // Fetch expenses with filters
         setLoading(true);
 
         const queryParams = new URLSearchParams();
@@ -106,12 +105,15 @@ const ProjectExpenses = () => {
         if (filter.endDate) queryParams.append("endDate", filter.endDate);
         if (filter.startCommittedDate) queryParams.append("startCommittedDate", filter.startCommittedDate);
         if (filter.endCommittedDate) queryParams.append("endCommittedDate", filter.endCommittedDate);
-        if (filter.minAmount) queryParams.append("minAmount", filter.minAmount);
-        if (filter.maxAmount) queryParams.append("maxAmount", filter.maxAmount);
+        if (filter.minAmount) queryParams.append("minAmount", Number(filter.minAmount));
+        if (filter.maxAmount) queryParams.append("maxAmount", Number(filter.maxAmount));
+
+        console.log("Applying Filters:", queryParams.toString()); // Debugging step
 
         fetch(`${url}institute/expenses/${projectId}?${queryParams.toString()}`)
             .then(response => response.json())
             .then(data => {
+                console.log("Filtered Data:", data); // Debugging step
                 setExpenses(data || []);
                 calculateSummary(data || []);
                 setLoading(false);
@@ -122,6 +124,7 @@ const ProjectExpenses = () => {
                 setLoading(false);
             });
     };
+
 
     const resetFilters = () => {
         setFilter({
@@ -162,7 +165,7 @@ const ProjectExpenses = () => {
     // Function to get type color for visual distinction
     const getTypeColor = (type) => {
         if (!type) return "bg-gray-100 text-gray-800"; // Default color for undefined types
-    
+
         const colors = {
             materials: "bg-blue-100 text-blue-800",
             equipment: "bg-green-100 text-green-800",
@@ -170,10 +173,10 @@ const ProjectExpenses = () => {
             travel: "bg-yellow-100 text-yellow-800",
             other: "bg-gray-100 text-gray-800"
         };
-    
+
         return colors[type.toLowerCase()] || "bg-gray-100 text-gray-800";
     };
-    
+
 
     const handleDeleteExpense = async (expenseId) => {
         if (!confirm("Are you sure you want to delete this expense?")) {
@@ -227,8 +230,8 @@ const ProjectExpenses = () => {
             description: editExpenseData.description,
             amount: editExpenseData.amount,
             type: editExpenseData.type,
-            date: editExpenseData.date,
-            committedDate: editExpenseData.committedDate
+            // date: editExpenseData.date,
+            // committedDate: editExpenseData.committedDate
         };
 
         try {
@@ -257,7 +260,7 @@ const ProjectExpenses = () => {
                 <InstituteSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
                 <main className="flex-grow container mx-auto p-6">
                     <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Project Expenses</h1>
-    
+
                     {loading ? (
                         <div className="flex justify-center items-center h-64">
                             <div className="bg-white p-6 rounded-lg shadow-md text-center">
@@ -278,7 +281,7 @@ const ProjectExpenses = () => {
                                     <p className="font-medium">Project not found.</p>
                                 </div>
                             )}
-    
+
                             {/* Action Buttons */}
                             <div className="flex flex-wrap justify-between gap-4 mb-6">
                                 <Link
@@ -300,7 +303,7 @@ const ProjectExpenses = () => {
                                     Print Expenses
                                 </button>
                             </div>
-    
+
                             {/* Summary Cards */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                                 <div className="bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border-t-4 border-blue-500">
@@ -318,7 +321,7 @@ const ProjectExpenses = () => {
                                     </div>
                                 </div>
                             </div>
-    
+
                             {/* Filters */}
                             <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                                 <h3 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Filter Expenses</h3>
@@ -359,7 +362,7 @@ const ProjectExpenses = () => {
                                         />
                                     </div>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Date Range (Expense Date)</label>
@@ -412,7 +415,7 @@ const ProjectExpenses = () => {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="mt-5 flex gap-4 justify-end">
                                     <button
                                         onClick={resetFilters}
@@ -428,7 +431,7 @@ const ProjectExpenses = () => {
                                     </button>
                                 </div>
                             </div>
-    
+
                             {/* Expense List */}
                             <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
                                 <h3 className="text-xl font-semibold p-5 border-b bg-gray-50">Expense List</h3>
@@ -501,106 +504,107 @@ const ProjectExpenses = () => {
                                     </div>
                                 )}
                             </div>
-                            
-                            {/* Edit Expense Modal */}
-                            {isEditModalOpen && (
-                                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                                    <div className="bg-white rounded-lg shadow-xl w-full max-w-xl p-6 relative">
-                                        <button 
-                                            onClick={() => setIsEditModalOpen(false)}
-                                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                        <h3 className="text-xl font-semibold mb-4">Edit Expense</h3>
-                                        <form onSubmit={handleUpdateExpense}>
-                                            {/* Form fields for editing expense */}
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                                <input
-                                                    type="text"
-                                                    name="description"
-                                                    value={editExpense.description}
-                                                    onChange={handleEditChange}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                                    required
-                                                />
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                                                    <input
-                                                        type="number"
-                                                        name="amount"
-                                                        value={editExpense.amount}
-                                                        onChange={handleEditChange}
-                                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                                        step="0.01"
-                                                        min="0"
-                                                        required
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                                                    <input
-                                                        type="text"
-                                                        name="type"
-                                                        value={editExpense.type}
-                                                        onChange={handleEditChange}
-                                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Expense Date</label>
-                                                    <input
-                                                        type="date"
-                                                        name="date"
-                                                        value={formatDateForInput(editExpense.date)}
-                                                        onChange={handleEditChange}
-                                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                                        required
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Committed Date</label>
-                                                    <input
-                                                        type="date"
-                                                        name="committedDate"
-                                                        value={formatDateForInput(editExpense.committedDate)}
-                                                        onChange={handleEditChange}
-                                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-end gap-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsEditModalOpen(false)}
-                                                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-200 text-gray-700"
-                                                >
-                                                    Cancel
-                                                </button>
-                                                <button
-                                                    type="submit"
-                                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 shadow-sm"
-                                                >
-                                                    Update Expense
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            )}
                         </>
                     )}
                 </main>
             </div>
+
+            {/* Edit Expense Modal */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-xl p-6 relative">
+                        <button
+                            onClick={() => setIsEditModalOpen(false)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <h3 className="text-xl font-semibold mb-4">Edit Expense</h3>
+                        <form onSubmit={handleEditExpense}>
+                            {/* Form fields for editing expense */}
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <input
+                                    type="text"
+                                    name="description"
+                                    value={editExpenseData.description}
+                                    onChange={handleChange}
+                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                    required
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                                    <input
+                                        type="number"
+                                        name="amount"
+                                        value={editExpenseData.amount}
+                                        onChange={handleChange}
+                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                        step="0.01"
+                                        min="0"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                    <input
+                                        type="text"
+                                        name="type"
+                                        value={editExpenseData.type}
+                                        onChange={handleChange}
+                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Expense Date</label>
+                                    <input
+                                        type="date"
+                                        name="date"
+                                        value={formatDate(editExpenseData.date)}
+                                        onChange={handleChange}
+                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Committed Date</label>
+                                    <input
+                                        type="date"
+                                        name="committedDate"
+                                        value={formatDate(editExpenseData.committedDate)}
+                                        onChange={handleChange}
+                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                        required
+                                    />
+                                </div>
+                            </div> */}
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-200 text-gray-700"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 shadow-sm"
+                                >
+                                    Update Expense
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }
