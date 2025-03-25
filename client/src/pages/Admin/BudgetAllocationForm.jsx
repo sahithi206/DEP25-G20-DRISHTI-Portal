@@ -1,16 +1,15 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Bell, Settings, LogOut } from "lucide-react";
 import { AuthContext } from "../Context/Authcontext";
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
-const BudgetAllocationForm = ({ }) => {
+const BudgetAllocationForm = () => {
+  let navigate=useNavigate();
   const [activeSection, setActiveSection] = useState("sanction");
-  const { logout } = useContext(AuthContext);
-  const [comment, setComment] = useState("");
   const { id } = useParams();
   const [selectedProposal, setProposals] = useState({});
   useEffect(() => {
@@ -224,7 +223,7 @@ const BudgetAllocationForm = ({ }) => {
         throw new Error("All budget details must be provided!");
       }
 
-      const finalComment = comment?.trim() ? comment : "Proposal approved with budget allocation.";
+      const finalComment = "Proposal approved with budget allocation.";
 
       const approvalResponse = await fetch(`${url}admin/allocate-budget/${id}`, {
         method: "PUT",
@@ -243,9 +242,13 @@ const BudgetAllocationForm = ({ }) => {
 
       const approvalResult = await approvalResponse.json();
       toast.success(approvalResult.msg);
+      if(approvalResult.msg){
+        navigate("/admin/sanction-projects");
+      }
       console.log("Approval Response:", approvalResult);
 
       if (!approvalResponse.ok) {
+        toast.error(approvalResult.msg || "Failed to approve proposal");
         throw new Error(approvalResult.msg || "Failed to approve proposal");
       }
     } catch (err) {
