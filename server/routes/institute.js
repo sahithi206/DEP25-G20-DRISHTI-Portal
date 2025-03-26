@@ -216,29 +216,52 @@ async function updateBudgetFields(projectId, amount, type, operation) {
     const amountFloat = parseFloat(amount);
 
     if (operation === "add") {
+      if(["human_resources", "travel", "consumables", "others"].includes(type)) {
       currentYearData.budgetUsed.recurring[type] += amountFloat;
       currentYearData.budgetUsed.recurring.total += amountFloat;
+      project.budgetTotal.recurring[type] += amountFloat;
+      project.budgetTotal.recurring.total += amountFloat;
+      project.CarryForward.recurring[type] -= amountFloat;
+      project.CarryForward.recurring.total -= amountFloat;
+
+      } else if (["equipment", "material", "contingency"].includes(type)) {
+        currentYearData.budgetUsed.nonRecurring += amountFloat;
+        project.budgetTotal.nonRecurring += amountFloat;
+        project.CarryForward.nonRecurring -= amountFloat;
+      } else if(type === "overhead") {
+        currentYearData.budgetUsed.overhead += amountFloat; 
+        project.budgetTotal.overhead += amountFloat;
+        project.CarryForward.overhead -= amountFloat;
+      }
+
       currentYearData.budgetUsed.yearTotal += amountFloat;
       currentYearData.budgetUnspent -= amountFloat;
 
-      project.budgetTotal.recurring[type] += amountFloat;
-      project.budgetTotal.recurring.total += amountFloat;
       project.budgetTotal.total += amountFloat;
-      project.CarryForward.recurring[type] -= amountFloat;
-      project.CarryForward.recurring.total -= amountFloat;
       project.CarryForward.yearTotal -= amountFloat;
       project.TotalUsed += amountFloat;
     } else if (operation === "subtract") {
-      currentYearData.budgetUsed.recurring[type] -= amountFloat;
+      if(["human_resources", "travel", "consumables", "others"].includes(type)) {
+      currentYearData.budgetUsed.recurring[type] -= amountFloat;  
       currentYearData.budgetUsed.recurring.total -= amountFloat;
-      currentYearData.budgetUsed.yearTotal -= amountFloat;
-      currentYearData.budgetUnspent += amountFloat;
-
       project.budgetTotal.recurring[type] -= amountFloat;
       project.budgetTotal.recurring.total -= amountFloat;
-      project.budgetTotal.total -= amountFloat;
       project.CarryForward.recurring[type] += amountFloat;
       project.CarryForward.recurring.total += amountFloat;
+      }
+      else if (["equipment", "material", "contingency"].includes(type)) {
+        currentYearData.budgetUsed.nonRecurring -= amountFloat;
+        project.budgetTotal.nonRecurring -= amountFloat;
+        project.CarryForward.nonRecurring += amountFloat;
+      } else if(type === "overhead") {
+        currentYearData.budgetUsed.overhead -= amountFloat; 
+        project.budgetTotal.overhead -= amountFloat;
+        project.CarryForward.overhead += amountFloat;
+      }
+
+      currentYearData.budgetUsed.yearTotal -= amountFloat;
+      currentYearData.budgetUnspent += amountFloat;
+      project.budgetTotal.total -= amountFloat;
       project.CarryForward.yearTotal += amountFloat;
       project.TotalUsed -= amountFloat;
     }
