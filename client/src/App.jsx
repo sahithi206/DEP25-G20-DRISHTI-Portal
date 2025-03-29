@@ -53,6 +53,12 @@ import ViewExpenses from "./pages/college/ViewExpenses.jsx";
 import SanctionProjects from "./pages/Admin/SanctionProjects"
 import BudgetAllocationForm from "./pages/Admin/BudgetAllocationForm.jsx";
 import OngoingProjects from "./pages/Admin/OngoingProjects";
+import PDashboard from "./pages/Admin/ProjectDashboard.jsx";
+import ViewDocs from "./pages/Admin/ViewDocs.jsx";
+import ViewCertificates from "./pages/Admin/certificates.jsx";
+import ViewSE from "./pages/Admin/SE.jsx";
+
+
 
 function App() {
   const getData = async () => {
@@ -126,6 +132,11 @@ function MainLayout() {
           <Route path="/fund-cycle" element={<FundCycleApproval />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/admin/ongoing-projects" element={<OngoingProjects />} />
+          <Route path="/admin/project/:id" element={<PDashboard />} />
+          <Route path="/admin/view-uc/se/:id" element={<ViewDocs />} />
+          <Route path="/admin/certificate-details/:type/:id" element={<ViewCertificates />} />
+          <Route path="/admin/certificate-details/se/:id" element={<ViewSE/>} />
+
 
           <Route path="/schemes" element={<SchemeManagement />} />
           <Route path="/running-projects" element={<RunningProjects />} />

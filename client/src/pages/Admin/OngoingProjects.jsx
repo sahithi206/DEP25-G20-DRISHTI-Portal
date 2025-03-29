@@ -6,7 +6,7 @@ import BudgetAllocationForm from './BudgetAllocationForm';
 
 const AdminProposalReview = () => {
     let navigate=useNavigate();
-    const [activeSection, setActiveSection] = useState("sanction");
+    const [activeSection, setActiveSection] = useState("ongoing");
     const [proposals, setProposals] = useState([]);
     const [selectedProposal, setSelectedProposal] = useState(null);
     const [comment, setComment] = useState("");
@@ -33,7 +33,7 @@ const AdminProposalReview = () => {
                 return;
             }
             try {
-                const response = await fetch(`${URL}admin/approvedProposals`, {
+                const response = await fetch(`${URL}admin/get-projects`, {
                     method: "GET",
                     headers: { "accessToken": token },
                 });
@@ -75,9 +75,10 @@ const AdminProposalReview = () => {
                         <table className="w-full border">
                             <thead>
                                 <tr className="bg-gray-200">
-                                    <th className="p-2 text-left">Proposal ID</th>
+                                    <th className="p-2 text-left">Project ID</th>
                                     <th className="p-2 text-left">Institute</th>
                                     <th className="p-2 text-left">Title</th>
+                                    <th className="p-2 text-left">Time left</th>
                                     <th className="p-2 text-left">Actions</th>
                                 </tr>
                             </thead>
@@ -88,10 +89,22 @@ const AdminProposalReview = () => {
                                         <td className="p-2">{proposal.generalInfo?.instituteName}</td>
                                         <td className="p-2">{proposal.researchDetails?.Title}</td>
                                         <td className="p-2">
+                                            {(() => {
+                                                const endDate = new Date(proposal.endDate);
+                                                const timeLeft = endDate - new Date();
+                                                if (timeLeft > 0) {
+                                                    const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
+                                                    return `${daysLeft} days left`;
+                                                } else {
+                                                    return "Time expired";
+                                                }
+                                            })()}
+                                        </td>
+                                        <td className="p-2">
                                             <button
                                                 onClick={() => {
                                                     setSelectedProposal(proposal)
-                                                   navigate(`/admin/allocate-budget/${proposal.proposal._id}`)
+                                                   navigate(`/admin/project/${proposal.proposal._id}`)
 
                                                 }
                                                 }

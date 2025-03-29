@@ -22,7 +22,7 @@ const UtilizationCertificates = () => {
             }
             try {
                 
-                const response = await fetch(`${url}projects/ucforms/${id}`, {
+                const response = await fetch(`${url}view-uc/se/${id}`, {
                     method: "GET",
                     headers: {
                          "Content-Type": "application/json",
