@@ -180,7 +180,10 @@ const AddExpense = () => {
     { value: "travel", label: "Travel" },
     { value: "consumables", label: "Consumables" },
     { value: "overhead", label: "Overhead" },
-    { value: "others", label: "Others" }
+    { value: "others", label: "Others" },
+    { value: "equipment", label: "Equipment" },
+    { value: "material", label: "Material" },
+    { value: "contingency", label: "Contingency" }
   ];
 
   return (
