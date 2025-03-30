@@ -126,7 +126,7 @@ router.post("/uc/nonRecurring/:id", fetchUser, async (req, res) => {
             return res.status(400).json({ success:false,msg: "Already Submitted for Current Financial Year" });
         }
         const newGrant = new NonRecurringUC({
-            projectId: data.projectId,
+            projectId: req.params.id,
             title: data.title,
             scheme: data.scheme,
             currentYear: data.currentYear,
@@ -136,7 +136,7 @@ router.post("/uc/nonRecurring/:id", fetchUser, async (req, res) => {
             CarryForward: data.CarryForward,
             yearTotal: data.yearTotal,
             total: data.total,
-                nonRecurringExp:data.nonRecurring,
+            nonRecurringExp:data.nonRecurringExp,
         });
 
         await newGrant.save();
