@@ -252,11 +252,16 @@ router.get("/se/:id",fetchUser,async(req,res)=>{
     const { data } = req.body; 
 
     try {
+        const check = await Report.findOne({projectId:id,currentYear:data.currentYear});
+        console.log(check);
+        if(check){
+            return res.status(400).json({success:false, msg:"A yearly Report for Current Financial Year was already submitted"});
+        }
         const formattedData = {
             ...data,
             approvedObjectives: Array.isArray(data.approvedObjectives)
-                ? data.approvedObjectives.join("\n")
-                : data.approvedObjectives,
+            ? data.approvedObjectives
+            : (typeof data.approvedObjectives === "string" ? data.approvedObjectives.split(",") : []),
             majorEquipment: Array.isArray(data.majorEquipment)
                 ? data.majorEquipment
                 : [data.majorEquipment] 

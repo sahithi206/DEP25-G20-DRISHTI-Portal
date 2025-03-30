@@ -4,6 +4,7 @@ const progressReportSchema = new mongoose.Schema({
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
     type:{type:String, default:"Yearly"},
     projectTitle: String,
+    currentYear: Number,
     principalInvestigator: [String],
     coPrincipalInvestigator: [String],
     researchArea: String,
@@ -28,7 +29,12 @@ const progressReportSchema = new mongoose.Schema({
         papersInConferences: [String],
         patentsFiled: [String]
     },
-    majorEquipment: [String] 
+    majorEquipment: [
+        { equipment:String,
+         cost:Number, 
+         working:String, 
+         rate: String }
+    ] 
 });
 
 const ProgressReport = mongoose.model("ProgressReport", progressReportSchema);

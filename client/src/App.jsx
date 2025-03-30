@@ -96,6 +96,7 @@ function MainLayout() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/adminLogin" element={<AdminLogin />} />
         <Route path="/adminSignup" element={<AdminSignup />} />
+        <Route path="/institute-login" element={<InstituteLogin />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/menupage" element={<MenuPage />} />
           <Route path="/formsubmission" element={<ProposalScheme />} />
@@ -141,7 +142,6 @@ function MainLayout() {
           <Route path="/schemes" element={<SchemeManagement />} />
           <Route path="/running-projects" element={<RunningProjects />} />
           <Route path="/institute-users" element={<InstituteUsers />} />
-          <Route path="/institute-login" element={<InstituteLogin />} />
           <Route path="/register-institute" element={<RegisterInstitute />} />
           <Route path="/institute-dashboard" element={<InstituteDashboard />} />
           <Route path="/running-projects" element={<RunningProjects />} />
