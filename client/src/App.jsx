@@ -120,7 +120,7 @@ function MainLayout() {
           <Route path="/uc/:id" element={<UC />} />
           <Route path="/se/:id" element={<SE />} />
           <Route path="/project-approval/:id" element={<SelectDate />} />
-          <Route path="/sanctionedproposals" element={<SanctionedProposals />} />
+          <Route path="/ongoingproposals" element={<SanctionedProposals />} />
           <Route path="/certificates/:id" element={<DisplayUC />} />
           <Route path="/certificate-details/:type/:id" element={<Certificates />} />
           <Route path="/certificate-details/se/:id" element={<SEForm />} />

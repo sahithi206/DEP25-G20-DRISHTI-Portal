@@ -285,8 +285,8 @@ const ProjectDashboard = () => {
                                                         <tbody>
                                                             {pilist.map((pi, index) => (
                                                                 <tr key={index} className="border">
-                                                                    <td className="border p-2">{pi.Name}</td>
-                                                                    <td className="border p-2">{pi.Institute}</td>
+                                                                    <td className="border p-2 text-center">{pi.Name}</td>
+                                                                    <td className="border p-2 text-center">{pi.Institute}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
