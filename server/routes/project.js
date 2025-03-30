@@ -286,4 +286,77 @@ router.get("/progress-report/:id", fetchUser, async (req, res) => {
         res.status(500).json({ success: false, msg: "Server error" });
     }
 });
+
+
+router.get("/generate-uc/recurring/:id", fetchUser, async (req, res) => {
+    console.log(" recurring uc generate ", req.params.id);
+    try {
+      const { id: projectId } = req.params;
+  
+      const project = await Project.findById(projectId).populate("YearlyDataId");
+      if (!project) {
+        return res.status(404).json({ success: false, message: "Project not found" });
+      }
+  
+      const currentYearData = project.YearlyDataId[project.currentYear - 1];
+      if (!currentYearData) {
+        return res.status(404).json({ success: false, message: "Yearly data not found for the current year" });
+      }
+  
+      const recurringUCData = {
+        projectId: project._id,
+        title: project.Title,
+        scheme: project.Scheme,
+        currentYear: project.currentYear,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        CarryForward: currentYearData.budgetUnspent,
+        yearTotal: currentYearData.budgetSanctioned.yearTotal,
+        total: currentYearData.budgetUnspent + currentYearData.budgetSanctioned.yearTotal,
+        recurringExp: currentYearData.budgetUsed.recurring.total,
+        human_resources: currentYearData.budgetUsed.recurring.human_resources,
+        consumables: currentYearData.budgetUsed.recurring.consumables,
+        others: currentYearData.budgetUsed.recurring.others,
+      };
+  
+      res.status(200).json({ success: true, data: recurringUCData });
+    } catch (error) {
+      console.error("Error generating recurring UC:", error.message);
+      res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+  });
+
+  router.get("/generate-uc/nonRecurring/:id", fetchUser, async (req, res) => {
+    try {
+      const { id: projectId } = req.params;
+  
+      const project = await Project.findById(projectId).populate("YearlyDataId");
+      if (!project) {
+        return res.status(404).json({ success: false, message: "Project not found" });
+      }
+  
+      const currentYearData = project.YearlyDataId[project.currentYear - 1];
+      if (!currentYearData) {
+        return res.status(404).json({ success: false, message: "Yearly data not found for the current year" });
+      }
+  
+      const nonRecurringUCData = {
+        projectId: project._id,
+        title: project.Title,
+        scheme: project.Scheme,
+        currentYear: project.currentYear,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        CarryForward: currentYearData.budgetUnspent,
+        yearTotal: currentYearData.budgetSanctioned.yearTotal,
+        total: currentYearData.budgetUnspent + currentYearData.budgetSanctioned.yearTotal,
+        nonRecurringExp: currentYearData.budgetUsed.nonRecurring,
+      };
+  
+      res.status(200).json({ success: true, data: nonRecurringUCData });
+    } catch (error) {
+      console.error("Error generating non-recurring UC:", error.message);
+      res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+  });
 module.exports = router;
