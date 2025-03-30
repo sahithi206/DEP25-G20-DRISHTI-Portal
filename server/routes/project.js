@@ -249,14 +249,19 @@ router.get("/se/:id",fetchUser,async(req,res)=>{
 
    router.post("/progress-report/:id", fetchUser, async (req, res) => {
     const { id } = req.params; 
-    const { data } = req.body; 
+    const { data,type } = req.body; 
 
     try {
+        const check = await Report.findOne({projectId:id,currentYear:data.currentYear});
+        console.log(check);
+        if(check&&type!=="Final"){
+            return res.status(400).json({success:false, msg:"A yearly Report for Current Financial Year was already submitted"});
+        }
         const formattedData = {
             ...data,
             approvedObjectives: Array.isArray(data.approvedObjectives)
-                ? data.approvedObjectives.join("\n")
-                : data.approvedObjectives,
+            ? data.approvedObjectives
+            : (typeof data.approvedObjectives === "string" ? data.approvedObjectives.split(",") : []),
             majorEquipment: Array.isArray(data.majorEquipment)
                 ? data.majorEquipment
                 : [data.majorEquipment] 
@@ -264,6 +269,7 @@ router.get("/se/:id",fetchUser,async(req,res)=>{
 
         const progressReport = new Report({
             projectId: id,
+            type,
             ...formattedData
         });
 
