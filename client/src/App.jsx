@@ -57,6 +57,7 @@ import PDashboard from "./pages/Admin/ProjectDashboard.jsx";
 import ViewDocs from "./pages/Admin/ViewDocs.jsx";
 import ViewCertificates from "./pages/Admin/certificates.jsx";
 import ViewSE from "./pages/Admin/SE.jsx";
+import CommentsPage from "./pages/uc/CommentsPage.jsx";
 
 
 
@@ -150,6 +151,7 @@ function MainLayout() {
           <Route path="/sanctioned-project-dashboard/:id" element={<SanctionedDashboard />} />
           <Route path="/add-expenses/:projectId" element={<AddExpenses />} />
           <Route path="/view-expenses/:projectId" element={<ViewExpenses />} />
+          <Route path="/comments/:projectId/:ucType" element={<CommentsPage />} />
         </Route>
       </Routes>
     </div>
