@@ -100,7 +100,7 @@ router.post("/uc/recurring/:id", fetchUser, async (req, res) => {
             yearTotal: data.yearTotal,
             total: data.total,
             type:"recurring",
-            recurringExp:data.recurring,
+            recurringExp:data.recurringExp,
             humanResource: data.human_resources,
             consumables:data.consumables,
             others:data.others
@@ -126,7 +126,7 @@ router.post("/uc/nonRecurring/:id", fetchUser, async (req, res) => {
             return res.status(400).json({ success:false,msg: "Already Submitted for Current Financial Year" });
         }
         const newGrant = new NonRecurringUC({
-            projectId: req.params.id,
+            projectId: data.projectId,
             title: data.title,
             scheme: data.scheme,
             currentYear: data.currentYear,

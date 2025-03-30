@@ -53,6 +53,37 @@ const UCForm = () => {
     fetchUCData(type);
   };
 
+  const handleSubmitUC = async () => {
+    try {
+      console.log("UC Data:", ucData);
+      const endpoint =
+        selectedType === "recurring"
+          ? `${url}projects/uc/recurring/${projectId}`
+          : `${url}projects/uc/nonRecurring/${projectId}`;
+  
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accessToken: localStorage.getItem("token"),
+        },
+        body: JSON.stringify({ data: ucData }),
+      });
+  
+      const result = await response.json();
+      if (!result.success) {
+        alert(result.msg || "Failed to submit UC");
+        return;
+      }
+  
+      alert("UC submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting UC:", error.message);
+      alert("An error occurred while submitting the UC.");
+    }
+  };
+
+
   return (
     <div className="flex bg-gray-100 min-h-screen">
       <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
@@ -148,10 +179,19 @@ const UCForm = () => {
 
               <div className="mt-6 text-center">
                 <button
+                  onClick={() => handleSubmitUC()}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                  Submit UC
+                </button>
+              </div>
+
+              <div className="mt-6 text-center">
+                <button
                   onClick={() => navigate(`/comments/${projectId}/${selectedType}`)}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  View Comments
+                  Comments
                 </button>
               </div>
             </div>
