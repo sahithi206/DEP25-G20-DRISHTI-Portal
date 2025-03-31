@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import  Toast from "./utils/toast";
+import Toast from "./utils/toast";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -60,6 +60,7 @@ import ViewSE from "./pages/Admin/SE.jsx";
 import CommentsPage from "./pages/uc/CommentsPage.jsx";
 import Quotations from "./pages/Qutations/Quotations.jsx"
 
+import ProjectExpenses from "./pages/ProjectExpenses.jsx";
 
 function App() {
   const getData = async () => {
@@ -89,7 +90,7 @@ function MainLayout() {
 
   return (
     <div className="flex flex-col min-h-screen">
- <Toast style={{width: "900px"}} theme={"light"}/>
+      <Toast style={{ width: "900px" }} theme={"light"} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -128,18 +129,19 @@ function MainLayout() {
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
           <Route path="/quotations/:id" element={<Quotations/>} />
 
+          <Route path="/project-expenses/:projectId" element={<ProjectExpenses />} />
 
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/review-proposals" element={<AdminReviewProposals />} />
           <Route path="/admin/sanction-projects" element={<SanctionProjects />} />
-          <Route path="/admin/allocate-budget/:id" element={<BudgetAllocationForm/>} />
+          <Route path="/admin/allocate-budget/:id" element={<BudgetAllocationForm />} />
           <Route path="/fund-cycle" element={<FundCycleApproval />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/admin/ongoing-projects" element={<OngoingProjects />} />
           <Route path="/admin/project/:id" element={<PDashboard />} />
           <Route path="/admin/view-uc/se/:id" element={<ViewDocs />} />
           <Route path="/admin/certificate-details/:type/:id" element={<ViewCertificates />} />
-          <Route path="/admin/certificate-details/se/:id" element={<ViewSE/>} />
+          <Route path="/admin/certificate-details/se/:id" element={<ViewSE />} />
 
 
           <Route path="/schemes" element={<SchemeManagement />} />

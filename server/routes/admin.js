@@ -1,6 +1,6 @@
 const express = require("express");
-const { fetchUser } = require("../Middlewares/fetchUser");
-const { fetchAdmin } = require("../MiddleWares/fetchAdmin");
+const { fetchUser } = require("../Middlewares/fetchUser.js");
+const { fetchAdmin } = require("../Middlewares/fetchAdmin.js");
 const GeneralInfo = require("../Models/General_Info");
 const ResearchDetails = require("../Models/researchDetails");
 const Budget = require("../Models/Budget");
@@ -384,8 +384,8 @@ router.post("/add-comment/:id", fetchAdmin, async (req, res) => {
     const Check = await Comment.findOne({ certificateId: new Object(req.params.id) });
     if (Check) {
       const id = new ObjectId(Check._id);
-      const comm = await Comment.findByIdAndUpdate({ _id:id }, { comment }, { new: true })
-      return res.status(200).json({ success: true,comm,msg: "Comment Saved!!" })
+      const comm = await Comment.findByIdAndUpdate({ _id: id }, { comment }, { new: true })
+      return res.status(200).json({ success: true, comm, msg: "Comment Saved!!" })
     }
     const com = new Comment({
       certificateId: req.params.id,
