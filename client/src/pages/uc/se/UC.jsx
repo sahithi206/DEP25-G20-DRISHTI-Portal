@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
@@ -83,6 +85,54 @@ const UCForm = () => {
     }
   };
 
+  const handleSaveAsPDF = () => {
+    const pdf = new jsPDF("p", "mm", "a4"); 
+  
+    pdf.setFontSize(16);
+    pdf.text("Utilization Certificate", 105, 20, { align: "center" });
+  
+    pdf.setFontSize(12);
+    pdf.text(`Title of the Project: ${ucData.title}`, 10, 40);
+    pdf.text(`Name of the Scheme: ${ucData.scheme}`, 10, 50);
+    pdf.text(`Present Year of Project: ${ucData.currentYear}`, 10, 60);
+    pdf.text(`Start Date of Year: ${ucData.startDate}`, 10, 70);
+    pdf.text(`End Date of Year: ${ucData.endDate}`, 10, 80);
+  
+    const tableData = [
+      [
+        "Carry Forward",
+        "Grant Received",
+        "Total",
+        ...(selectedType === "recurring"
+          ? ["Recurring Expenditure", "Human Resources", "Consumables", "Others"]
+          : ["Non-Recurring Expenditure"]),
+      ],
+      [
+        `Rs ${ucData.CarryForward}`,
+        `Rs ${ucData.yearTotal}`,
+        `Rs ${ucData.total}`,
+        ...(selectedType === "recurring"
+          ? [
+              `Rs ${ucData.recurringExp}`,
+              `Rs ${ucData.human_resources}`,
+              `Rs ${ucData.consumables}`,
+              `Rs ${ucData.others}`,
+            ]
+          : [`Rs ${ucData.nonRecurringExp}`]),
+      ],
+    ];
+  
+    pdf.autoTable({
+      head: [tableData[0]], 
+      body: [tableData[1]], 
+      startY: 90, 
+      theme: "grid",
+      headStyles: { fillColor: [41, 128, 185] },
+      styles: { fontSize: 10 },
+    });
+  
+    pdf.save(`UC_${ucData.title}_${selectedType}.pdf`);
+  };
 
   return (
     <div className="flex bg-gray-100 min-h-screen">
@@ -118,7 +168,7 @@ const UCForm = () => {
           {error && <p className="text-center text-red-500 mt-6">{error}</p>}
 
           {ucData && (
-            <div className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
+            <div id = "uc-details" className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
               <h3 className="text-lg font-semibold text-blue-700 mb-4">
                 {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
               </h3>
@@ -158,24 +208,33 @@ const UCForm = () => {
                   </thead>
                   <tbody>
                     <tr className="text-center">
-                      <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
-                      <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
-                      <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
+                      <td className="border border-gray-400 px-4 py-2">Rs {ucData.CarryForward}</td>
+                      <td className="border border-gray-400 px-4 py-2">Rs {ucData.yearTotal}</td>
+                      <td className="border border-gray-400 px-4 py-2">Rs {ucData.total}</td>
                       {selectedType === "recurring" && (
                         <>
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.human_resources}</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.consumables}</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.others}</td>
+                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.recurringExp}</td>
+                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.human_resources}</td>
+                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.consumables}</td>
+                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.others}</td>
                         </>
                       )}
                       {selectedType === "nonRecurring" && (
-                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.nonRecurringExp}</td>
+                        <td className="border border-gray-400 px-4 py-2">Rs {ucData.nonRecurringExp}</td>
                       )}
                     </tr>
                   </tbody>
                 </table>
               </div>
+
+              <div className="mt-6 text-center">
+              <button
+                onClick={handleSaveAsPDF}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Save as PDF
+              </button>
+            </div>
 
               <div className="mt-6 text-center">
                 <button
