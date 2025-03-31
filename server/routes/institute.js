@@ -202,6 +202,7 @@ router.get("/get-ucNonRecurring-insti", fetchInstitute, async (req, res) => {
 
 
 async function updateBudgetFields(projectId, amount, type, operation) {
+  console.log("updateBudgetFields", projectId, amount, type, operation);
   try {
     const project = await Project.findById(projectId).populate("YearlyDataId");
     if (!project) {
