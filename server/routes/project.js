@@ -1,27 +1,29 @@
 const express = require("express");
 const { fetchUser } = require("../Middlewares/fetchUser");
-const Proposal = require("../Models/Proposal");
 const GeneralInfo = require("../Models/General_Info");
 const ResearchDetails = require("../Models/researchDetails");
-const Budget = require("../Models/Budget");
-const Recurring = require("../Models/Recurring");
-const NonRecurring = require("../Models/NonRecurring");
-const Bank = require("../Models/bankDetails.js");
-const Acknowledgement = require("../Models/acknowledgement");
-const Auth = require("./auth.js");
 const User = require("../Models/user");
 const router = express.Router();
-const nodemailer = require("nodemailer");
 const Project = require("../Models/Project.js");
 const PI = require("../Models/PI");
-const bankDetails = require("../Models/bankDetails.js");
-const budgetSanctioned = require("../Models/budgetSanctioned.js");
 const YearlyData = require("../Models/YearlyData.js");
 const {ObjectId}=require("mongodb");
 const  RecurringUC = require("../Models/UcRecurring.js");
 const NonRecurringUC  = require("../Models/UcNonrecurring.js");
 const SE =require("../Models/se/SE.js");
 const Report = require("../Models/progressReport.js");
+
+const Proposal = require("../Models/Proposal");
+const bankDetails = require("../Models/bankDetails.js");
+const budgetSanctioned = require("../Models/budgetSanctioned.js");
+const Budget = require("../Models/Budget");
+const Recurring = require("../Models/Recurring");
+const NonRecurring = require("../Models/NonRecurring");
+const Bank = require("../Models/bankDetails.js");
+const Acknowledgement = require("../Models/acknowledgement");
+const Auth = require("./auth.js");
+const nodemailer = require("nodemailer");
+
 router.get("/get-projects", fetchUser, async (req, res) => {
     try {
         const projects = await Project.find({userId:req.user._id});
@@ -40,45 +42,62 @@ router.get("/get-projects", fetchUser, async (req, res) => {
 
 router.get("/get-project/:projectid", fetchUser, async (req, res) => {
     try {
-        let {projectid} = req.params;
+        let { projectid } = req.params;
+        console.log(projectid);
         let id = new ObjectId(projectid);
+        console.log(id);
         const project = await Project.findById(id);
-        const ids= await Project.findById(id)
-        .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
+        
+        if (!project) {
+            return res.status(404).json({ success: false, msg: "Cannot Find Project" });
+        }
         console.log(project);
+
+        const ids = await Project.findById(id)
+            .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
+
         const user = await User.findById(req.user._id).populate("proposals");
         const userProjects = user.proposals.filter(prop => prop && prop._id).map(prop => prop._id);
-        if (!project) {
-            return res.status(400).json({ success: false, msg: "Cannot Find Project" })
-        }
         const generalInfo = await GeneralInfo.findById(ids.generalInfoId);
         const researchDetails = await ResearchDetails.findById(ids.researchDetailsId);
         const PIDetails = await PI.findById(ids.PIDetailsId);
+        
         const yearlyExp = await Promise.all(
             ids.YearlyDataId.map(async (Id) => {
                 const budget = await YearlyData.findById(Id);
                 return budget ? budget.budgetUsed : null;
             })
         );
+
         const yearlySanct = await Promise.all(
             ids.YearlyDataId.map(async (Id) => {
                 const budget = await YearlyData.findById(Id);
                 return budget ? budget.budgetSanctioned.yearTotal : null;
             })
         );
+
         const budget = ids.YearlyDataId?.[project.currentYear - 1]?.budgetSanctioned || null;
         const budgetused = ids.YearlyDataId?.[project.currentYear - 1]?.budgetUsed || null;
-        const budgetUnspent=ids.YearlyDataId?.[project.currentYear - 1]?.budgetUnspent || null;
+        const budgetUnspent = ids.YearlyDataId?.[project.currentYear - 1]?.budgetUnspent || null;
         return res.status(200).json({
-            success: true, msg: "Fetched Project's Details Successfully",
-            project, generalInfo, researchDetails, PIDetails, budget,budgetused,budgetUnspent,yearlyExp,yearlySanct,
-        })
+            success: true,
+            msg: "Fetched Project's Details Successfully",
+            project,
+            generalInfo,
+            researchDetails,
+            PIDetails,
+            budget,
+            budgetused,
+            budgetUnspent,
+            yearlyExp,
+            yearlySanct,
+        });
+
     } catch (e) {
-        console.log("ProjectError",e);
+        console.log("ProjectError", e);
         return res.status(500).json({ success: false, msg: "Failed to Fetch Project Details", error: "Internal Server Error" });
     }
-})
-
+});
 router.post("/uc/recurring/:id", fetchUser, async (req, res) => {
     try {
         const { data } = req.body;

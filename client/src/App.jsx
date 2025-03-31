@@ -58,7 +58,7 @@ import ViewDocs from "./pages/Admin/ViewDocs.jsx";
 import ViewCertificates from "./pages/Admin/certificates.jsx";
 import ViewSE from "./pages/Admin/SE.jsx";
 import CommentsPage from "./pages/uc/CommentsPage.jsx";
-
+import Quotations from "./pages/Qutations/Quotations.jsx"
 
 
 function App() {
@@ -126,6 +126,8 @@ function MainLayout() {
           <Route path="/certificate-details/se/:id" element={<SEForm />} />
           <Route path="/error" element={<Error />} />
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
+          <Route path="/quotations/:id" element={<Quotations/>} />
+
 
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/review-proposals" element={<AdminReviewProposals />} />

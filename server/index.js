@@ -12,6 +12,9 @@ const institute = require("./routes/institute");
 const PORT=process.env.PORT||5000
 const Project=require("./routes/project.js");
 const Admin = require("./routes/admin.js");
+const Upload = require("./routes/upload.js");
+
+const Quotations = require("./routes/quotations.js");
 const UCComment = require("./routes/ucComments.js");
 app.use(cors( ))
 app.use(express.json());
@@ -23,12 +26,15 @@ app.get("/", (req, res) => {
 app.use("/auth",Auth);
 app.use("/form",Form);
 app.use("/admin",Admin);
+app.use("/upload",Upload);
 app.use("/projects", Project);
-app.use("/schemes", schemeRoutes);
-app.use("/fundCycles", fundCycleRoutes);
-app.use("/requests", requestRoutes);
 app.use("/institute", institute);   
+app.use("/schemes", schemeRoutes);
+app.use("/quotations", Quotations);
 app.use("/uc-comments", UCComment);
+app.use("/requests", requestRoutes);
+app.use("/fundCycles", fundCycleRoutes);
+
 
 
 

@@ -893,7 +893,8 @@ const AuthProvider = (props) => {
       return { success: false, message: error.message };
     }
   };
-
+ 
+   
 
   return (
     <AuthContext.Provider value={{

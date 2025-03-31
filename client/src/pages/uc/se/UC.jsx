@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
