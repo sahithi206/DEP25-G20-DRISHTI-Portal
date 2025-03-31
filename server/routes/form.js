@@ -1,6 +1,6 @@
 const express = require("express");
-const { fetchUser } = require("../Middlewares/fetchUser");
-const { fetchAdmin } = require("../MiddleWares/fetchAdmin");
+const { fetchUser } = require("../Middlewares/fetchUser.js");
+const { fetchAdmin } = require("../Middlewares/fetchAdmin.js");
 const GeneralInfo = require("../Models/General_Info");
 const ResearchDetails = require("../Models/researchDetails");
 const Budget = require("../Models/Budget");
@@ -160,15 +160,15 @@ router.put("/update-proposals/:id", fetchAdmin, async (req, res) => {
 });
 
 router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
-  const { recurring_items, non_recurring_items,overhead } = req.body;
+  const { recurring_items, non_recurring_items, overhead } = req.body;
   console.log("Received budget data:", recurring_items, non_recurring_items);
   const { proposalId } = req.params;
 
   try {
     let totalRecurring = 0, totalNonRecurring = 0;
     let items = [], consumables = [], employees = [], others = [];
-    if(!overhead){
-      return res.status(400).json({success:false,msg:"Fill all the Required Fields"});
+    if (!overhead) {
+      return res.status(400).json({ success: false, msg: "Fill all the Required Fields" });
     }
     if (recurring_items?.human_resources?.length > 0) {
       employees = recurring_items.human_resources.map(emp => {
@@ -235,7 +235,7 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
       {
         human_resources: employees,
         consumables: consumables,
-        travel:parseFloat(recurring_items?.travel)||0,
+        travel: parseFloat(recurring_items?.travel) || 0,
         others: others
       },
       { new: true, upsert: true }
@@ -243,18 +243,19 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
 
     const nonRecurringUpdate = await NonRecurring.findOneAndUpdate(
       { proposalId },
-      { 
-        items },
+      {
+        items
+      },
       { new: true, upsert: true }
     );
 
     const budgetUpdate = await Budget.findOneAndUpdate(
       { proposalId },
       {
-        overhead:overhead,
-        recurring_total: totalRecurring+parseFloat(recurring_items?.travel),
+        overhead: overhead,
+        recurring_total: totalRecurring + parseFloat(recurring_items?.travel),
         non_recurring_total: totalNonRecurring,
-        total: totalRecurring + totalNonRecurring+parseFloat(overhead)
+        total: totalRecurring + totalNonRecurring + parseFloat(overhead)
       },
       { new: true, upsert: true }
     );
@@ -535,7 +536,7 @@ router.get("/incompleteProposals", fetchUser, async (req, res) => {
     });
 
     const updatedProposals = proposals.map((proposal) => ({
-      ...proposal._doc, 
+      ...proposal._doc,
       schemeName: schemeMap[proposal.Scheme.toString()] || "Unknown Scheme",
     }));
 
@@ -657,8 +658,8 @@ router.post("/proposals/:id/comment", async (req, res) => {
 
 router.get("/pendingProposals", fetchAdmin, async (req, res) => {
   try {
-    const adminId = req.admin.id; 
-    const adminRole = req.admin.role; 
+    const adminId = req.admin.id;
+    const adminRole = req.admin.role;
 
     console.log("Logged-in Admin ID:", adminId);
     console.log("Logged-in Admin Role:", adminRole);
