@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const UCComment = require("../Models/UCComment");
-const {fetchUser} = require("../Middlewares/fetchUser");
-const {fetchInstitute} = require("../MiddleWares/fetchInstitute");
+const { fetchUser } = require("../Middlewares/fetchUser");
+const { fetchInstitute } = require("../Middlewares/fetchInstitute");
 
 router.post("/add", async (req, res, next) => {
   try {
@@ -11,11 +11,11 @@ router.post("/add", async (req, res, next) => {
 
     if (req.header("accessToken")) {
       try {
-        await fetchUser(req, res, () => {});
+        await fetchUser(req, res, () => { });
         userId = req.user._id;
-        role = "PI"; 
+        role = "PI";
       } catch (userError) {
-        await fetchInstitute(req, res, () => {});
+        await fetchInstitute(req, res, () => { });
         userId = req.institute.college;
         role = "Institute";
       }
@@ -29,8 +29,8 @@ router.post("/add", async (req, res, next) => {
     const newComment = new UCComment({
       projectId,
       ucType,
-      userId, 
-      role, 
+      userId,
+      role,
       comment,
     });
 

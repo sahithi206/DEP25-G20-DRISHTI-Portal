@@ -18,7 +18,7 @@ const bankDetails = require("../Models/bankDetails.js");
 const budgetSanctioned = require("../Models/budgetSanctioned.js");
 const YearlyData = require("../Models/YearlyData.js");
 const csv = require("csv-parser");
-const { fetchInstitute } = require("../MiddleWares/fetchInstitute");
+const { fetchInstitute } = require("../Middlewares/fetchInstitute.js");
 const { ObjectId } = require("mongodb");
 const mongoose = require("mongoose");
 const moment = require("moment");
@@ -216,20 +216,20 @@ async function updateBudgetFields(projectId, amount, type, operation) {
     const amountFloat = parseFloat(amount);
 
     if (operation === "add") {
-      if(["human_resources", "travel", "consumables", "others"].includes(type)) {
-      currentYearData.budgetUsed.recurring[type] += amountFloat;
-      currentYearData.budgetUsed.recurring.total += amountFloat;
-      project.budgetTotal.recurring[type] += amountFloat;
-      project.budgetTotal.recurring.total += amountFloat;
-      project.CarryForward.recurring[type] -= amountFloat;
-      project.CarryForward.recurring.total -= amountFloat;
+      if (["human_resources", "travel", "consumables", "others"].includes(type)) {
+        currentYearData.budgetUsed.recurring[type] += amountFloat;
+        currentYearData.budgetUsed.recurring.total += amountFloat;
+        project.budgetTotal.recurring[type] += amountFloat;
+        project.budgetTotal.recurring.total += amountFloat;
+        project.CarryForward.recurring[type] -= amountFloat;
+        project.CarryForward.recurring.total -= amountFloat;
 
       } else if (["equipment", "material", "contingency"].includes(type)) {
         currentYearData.budgetUsed.nonRecurring += amountFloat;
         project.budgetTotal.nonRecurring += amountFloat;
         project.CarryForward.nonRecurring -= amountFloat;
-      } else if(type === "overhead") {
-        currentYearData.budgetUsed.overhead += amountFloat; 
+      } else if (type === "overhead") {
+        currentYearData.budgetUsed.overhead += amountFloat;
         project.budgetTotal.overhead += amountFloat;
         project.CarryForward.overhead -= amountFloat;
       }
@@ -241,20 +241,20 @@ async function updateBudgetFields(projectId, amount, type, operation) {
       project.CarryForward.yearTotal -= amountFloat;
       project.TotalUsed += amountFloat;
     } else if (operation === "subtract") {
-      if(["human_resources", "travel", "consumables", "others"].includes(type)) {
-      currentYearData.budgetUsed.recurring[type] -= amountFloat;  
-      currentYearData.budgetUsed.recurring.total -= amountFloat;
-      project.budgetTotal.recurring[type] -= amountFloat;
-      project.budgetTotal.recurring.total -= amountFloat;
-      project.CarryForward.recurring[type] += amountFloat;
-      project.CarryForward.recurring.total += amountFloat;
+      if (["human_resources", "travel", "consumables", "others"].includes(type)) {
+        currentYearData.budgetUsed.recurring[type] -= amountFloat;
+        currentYearData.budgetUsed.recurring.total -= amountFloat;
+        project.budgetTotal.recurring[type] -= amountFloat;
+        project.budgetTotal.recurring.total -= amountFloat;
+        project.CarryForward.recurring[type] += amountFloat;
+        project.CarryForward.recurring.total += amountFloat;
       }
       else if (["equipment", "material", "contingency"].includes(type)) {
         currentYearData.budgetUsed.nonRecurring -= amountFloat;
         project.budgetTotal.nonRecurring -= amountFloat;
         project.CarryForward.nonRecurring += amountFloat;
-      } else if(type === "overhead") {
-        currentYearData.budgetUsed.overhead -= amountFloat; 
+      } else if (type === "overhead") {
+        currentYearData.budgetUsed.overhead -= amountFloat;
         project.budgetTotal.overhead -= amountFloat;
         project.CarryForward.overhead += amountFloat;
       }
@@ -337,7 +337,7 @@ router.post("/upload-expenses", async (req, res) => {
         for (let i = 0; i < expenses.length; i++) {
           await updateBudgetFields(projectId, expenses[i].amount, expenses[i].type, "add");
         }
-        
+
         res.status(200).json({ success: true, message: "Expenses uploaded successfully!", added: expenses.length });
       });
   } catch (error) {

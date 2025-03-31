@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const ExpenseComment = require("../Models/ExpenseComment");
+const Expense = require("../Models/Expense");
+const User = require("../Models/User");
+const institute = require("../Models/instituteID");
 const { fetchUser } = require("../Middlewares/fetchUser");
 const { fetchInstitute } = require("../Middlewares/fetchInstitute");
 
@@ -13,12 +16,12 @@ router.post("/add", async (req, res) => {
         if (req.header("accessToken")) {
             try {
                 await fetchUser(req, res, () => { });
-                userId = req.user?._id;
+                userId = req.user._id;
                 role = "PI";
             } catch (userError) {
                 try {
                     await fetchInstitute(req, res, () => { });
-                    userId = req.institute?.college;
+                    userId = req.institute._id;
                     role = "Institute";
                 } catch (instituteError) {
                     console.error("Error fetching user or institute:", instituteError);
@@ -26,7 +29,7 @@ router.post("/add", async (req, res) => {
             }
         }
 
-        console.log("Parsed userId:", userId, "Role:", role);
+        console.log("role:", role, "Role:", userId);
 
         console.log("req:", req.body)
 
@@ -56,13 +59,21 @@ router.get("/:expenseId", async (req, res) => {
     try {
         const { expenseId } = req.params;
 
-        const comments = await ExpenseComment.find({ expenseId }).populate("userId", "Name email");
+        // Fetch comments related to the expense
+        const comments = await ExpenseComment.find({ expenseId });
+
+        // Dynamically populate based on role
+        for (let comment of comments) {
+            const refModel = comment.role === "PI" ? "users" : "Institute";
+            await comment.populate({ path: "userId", model: refModel });
+        }
         res.status(200).json({ success: true, data: comments });
     } catch (error) {
         console.error("Error fetching comments:", error.message);
         res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
 });
+
 
 // ✅ Get Comments by User ID
 router.get("/user/:userId", fetchUser, async (req, res) => {
