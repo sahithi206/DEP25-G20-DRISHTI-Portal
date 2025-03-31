@@ -5,7 +5,6 @@ const path = require('path');
 const Equipment = require('../Models/Quotations/Equipment');
 const { fetchUser } = require("../Middlewares/fetchUser");
 
-// Configure multer storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/equipment/');
@@ -30,48 +29,10 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }, 
   fileFilter: fileFilter
 });
 
-// Add equipment to project
-router.post('/projects/:projectId/equipment', fetchUser, async (req, res) => {
-  try {
-    const equipment = new Equipment({
-      projectId: req.params.projectId,
-      ...req.body
-    });
-    await equipment.save();
-    res.status(201).json(equipment);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// Get all equipment for project
-router.get('/projects/:projectId/equipment', fetchUser, async (req, res) => {
-  try {
-    const equipment = await Equipment.find({ projectId: req.params.projectId });
-    res.json(equipment);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Delete equipment
-router.delete('/equipment/:id', fetchUser, async (req, res) => {
-  try {
-    const equipment = await Equipment.findByIdAndDelete(req.params.id);
-    if (!equipment) {
-      return res.status(404).json({ message: 'Equipment not found' });
-    }
-    res.json({ message: 'Equipment deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Upload equipment file
 router.post(
   '/equipment/:id/upload',
   fetchUser,
