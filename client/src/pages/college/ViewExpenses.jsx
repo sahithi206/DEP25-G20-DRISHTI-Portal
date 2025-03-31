@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from "react";
 import { useParams, Link } from "react-router-dom";
 import { AuthContext } from "../Context/Authcontext";
 import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
 import InstituteSidebar from "../../components/InstituteSidebar";
 const url = import.meta.env.VITE_REACT_APP_URL;
 
@@ -210,8 +209,6 @@ const ProjectExpenses = () => {
         if (filter.endCommittedDate) queryParams.append("endCommittedDate", filter.endCommittedDate);
         if (filter.minAmount) queryParams.append("minAmount", Number(filter.minAmount));
         if (filter.maxAmount) queryParams.append("maxAmount", Number(filter.maxAmount));
-
-        console.log("Applying Filters:", queryParams.toString()); // Debugging step
 
         fetch(`${url}institute/expenses/${projectId}?${queryParams.toString()}`)
             .then(response => response.json())
@@ -652,9 +649,7 @@ const ProjectExpenses = () => {
                                                     <p className="text-gray-700">{comment.comment}</p>
                                                     <p className="text-sm text-gray-500 mt-2">
                                                         By:{" "}
-                                                        {comment.role === "PI"
-                                                            ? comment.userId?.Name || "Unknown"
-                                                            : comment.userId?.college || "Unknown"}{" "}
+                                                        {comment.userName || "Unknown"}
                                                         ({comment.role || "User"}) |{" "}
                                                         {new Date(comment.createdAt).toLocaleString()}
                                                     </p>

@@ -1,8 +1,9 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const ExpenseComment = require("../Models/ExpenseComment");
-const Expense = require("../Models/Expense");
-const User = require("../Models/User");
+const Expense = require("../Models/expense");
+const User = require("../Models/user");
 const institute = require("../Models/instituteID");
 const { fetchUser } = require("../Middlewares/fetchUser");
 const { fetchInstitute } = require("../Middlewares/fetchInstitute");
@@ -59,20 +60,34 @@ router.get("/:expenseId", async (req, res) => {
     try {
         const { expenseId } = req.params;
 
-        // Fetch comments related to the expense
-        const comments = await ExpenseComment.find({ expenseId });
+        // Fetch comments and populate userId based on role
+        const comments = await ExpenseComment.find({ expenseId }).lean(); // Use .lean() to return plain JS objects
 
-        // Dynamically populate based on role
-        for (let comment of comments) {
-            const refModel = comment.role === "PI" ? "users" : "Institute";
-            await comment.populate({ path: "userId", model: refModel });
-        }
+        console.log("COMMENTS Before::", comments);
+
+        // Populate user details dynamically based on role
+        await Promise.all(
+            comments.map(async (comment) => {
+                if (comment.role === "PI") {
+                    const userDetails = await mongoose.model("users").findById(comment.userId).lean();
+                    comment.userName = userDetails ? userDetails.Name : "Unknown";
+                } else if (comment.role === "Institute") {
+                    const instituteDetails = await mongoose.model("Institute").findById(comment.userId).lean();
+                    comment.userName = instituteDetails ? instituteDetails.college : "Unknown College";
+                }
+            })
+        );
+
+        console.log("COMMENTS After::", comments);
+
         res.status(200).json({ success: true, data: comments });
     } catch (error) {
         console.error("Error fetching comments:", error.message);
         res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
 });
+
+
 
 
 // ✅ Get Comments by User ID
