@@ -13,12 +13,12 @@ const UCCommentSchema = new mongoose.Schema({
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "users", 
+    ref: "users",
     required: true,
   },
   role: {
     type: String,
-    enum: ["PI", "Institute"], 
+    enum: ["PI", "Institute"],
     required: true,
   },
   comment: {
