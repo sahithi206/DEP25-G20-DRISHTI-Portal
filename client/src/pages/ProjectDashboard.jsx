@@ -125,7 +125,7 @@ const ProjectDashboard = () => {
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View RTGS", onClick: () => navigate("/") }, { label: "Upload Quotation", onClick: () => navigate("/") }]} className="bg-blue-500 text-white" />
-                            <HoverDropdownButton label="Upload SE/UC" options={[{ label: "Upload SE", onClick: () => navigate(`/se/${id}`) }, { label: "Generate UC", onClick: () => navigate(`/uc/${id}`) },{ label: "View Certificates", onClick: () => navigate(`/certificates/${id}`) }]} className="bg-green-500 text-white" />
+                            <HoverDropdownButton label="Upload SE/UC" options={[{ label: "Upload SE", onClick: () => navigate(`/se/${id}`) }, { label: "Generate UC", onClick: () => navigate(`/uc/${id}`) }, { label: "View Certificates", onClick: () => navigate(`/certificates/${id}`) }]} className="bg-green-500 text-white" />
                             <HoverDropdownButton label="Upload Progress Report" options={[{ label: "Yearly Report", onClick: () => navigate(`/progress-report/${id}`) }, { label: "Final Report", onClick: () => navigate(`/final-report/${id}`) }]} className="bg-red-500 text-white" />
                         </div>
                         {loading ? (
@@ -155,13 +155,13 @@ const ProjectDashboard = () => {
                                         <div>
                                             <div className="border-b border-gray-300 my-4"></div>
                                             <div className="flex justify-between items-center px-5 mb-2">
-    <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide ">
-        Time Left
-    </h3>
-    <p className="text-sm text-gray-600 ">
-        {timeData[0].value.toFixed(1)}% Time Left, {timeData[1].value.toFixed(1)}% Passed
-    </p>
-</div>
+                                                <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide ">
+                                                    Time Left
+                                                </h3>
+                                                <p className="text-sm text-gray-600 ">
+                                                    {timeData[0].value.toFixed(1)}% Time Left, {timeData[1].value.toFixed(1)}% Passed
+                                                </p>
+                                            </div>
 
                                             <div className="relative w-full h-6 bg-gray-200 rounded-full overflow-hidden">
                                                 <div
@@ -170,7 +170,7 @@ const ProjectDashboard = () => {
                                                 ></div>
                                             </div>
 
-                                            
+
                                         </div>
                                     </div>
 

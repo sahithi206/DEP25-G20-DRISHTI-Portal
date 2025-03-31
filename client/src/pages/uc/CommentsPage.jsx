@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Sidebar from "../../utils/Sidebar";
+import HomeNavbar from "../../utils/HomeNavbar";
 
 const CommentsPage = () => {
   const { projectId, ucType } = useParams();
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -15,7 +18,7 @@ const CommentsPage = () => {
 
   useEffect(() => {
     const fetchComments = async () => {
-        console.log(" comments display")
+      console.log("comments display");
       try {
         const response = await fetch(`${url}uc-comments/${projectId}/${ucType}`, {
           method: "GET",
@@ -71,8 +74,7 @@ const CommentsPage = () => {
       }
 
       setComments((prevComments) => [...prevComments, result.data]);
-    //   setComments(result.data);
-console.log("Fetched Comments:", result.data); 
+      console.log("Fetched Comments:", result.data);
       setNewComment("");
     } catch (err) {
       console.error("Error adding comment:", err.message);
@@ -83,59 +85,80 @@ console.log("Fetched Comments:", result.data);
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
-        <h1 className="text-2xl font-bold text-blue-700 mb-4">Comments for UC</h1>
-        <p className="text-gray-600 mb-6">
-          Project ID: <span className="font-semibold">{projectId}</span> | UC Type:{" "}
-          <span className="font-semibold capitalize">{ucType}</span>
-        </p>
+    <div className="flex bg-gray-100 min-h-screen">
+      <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+      <div
+        className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? "ml-64 w-[calc(100%-16rem)]" : "ml-16 w-[calc(100%-4rem)]"
+          }`}
+      >
+        <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/project-dashboard/${projectId}`} />
+        <div className="p-6 space-y-6 mt-16">
+          <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
+            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+            <p className="mt-3 text-2xl font-bold text-blue-800">
+              Comments for Utilization Certificate
+            </p>
+            <p className="text-gray-600 mt-2">
+              Project ID: <span className="font-semibold">{projectId}</span> | UC Type:{" "}
+              <span className="font-semibold capitalize">{ucType}</span>
+            </p>
+          </div>
 
-        <form onSubmit={handleAddComment} className="mb-6">
-          <textarea
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows="4"
-            placeholder="Add your comment here..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            required
-          ></textarea>
-          {error && <p className="text-red-500 mt-2">{error}</p>}
-          <button
-            type="submit"
-            className={`mt-4 px-6 py-2 rounded-lg text-white font-medium ${
-              loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-            }`}
-            disabled={loading}
-          >
-            {loading ? "Submitting..." : "Add Comment"}
-          </button>
-        </form>
+          <div className="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-800">
+            <h2 className="text-lg font-semibold text-blue-700 mb-4">Add Comment</h2>
+            <form onSubmit={handleAddComment}>
+              <textarea
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="4"
+                placeholder="Add your comment here..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                required
+              ></textarea>
+              {error && <p className="text-red-500 mt-2">{error}</p>}
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="submit"
+                  className={`px-6 py-2 rounded-lg text-white font-medium ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                  disabled={loading}
+                >
+                  {loading ? "Submitting..." : "Add Comment"}
+                </button>
+              </div>
+            </form>
+          </div>
 
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">All Comments</h2>
-        {fetchError ? (
-          <p className="text-red-500">{fetchError}</p>
-        ) : comments.length === 0 ? (
-          <p className="text-gray-500">No comments yet.</p>
-        ) : (
-          <ul className="space-y-4">
-            {comments.map((comment) => (
-              <li key={comment._id} className="p-4 border rounded-lg bg-gray-50">
-                <p className="text-gray-700">{comment.comment}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  By: {comment.userId?.Name || "Unknown"} ({comment.role}) |{" "}
-                  {new Date(comment.createdAt).toLocaleString()}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-    <button
-      onClick={() => navigate(-1)} 
-      className="mt-6 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg"
-    >
-      Back
-    </button>
+          <div className="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-800">
+            <h2 className="text-lg font-semibold text-blue-700 mb-4">All Comments</h2>
+            {fetchError ? (
+              <p className="text-red-500">{fetchError}</p>
+            ) : comments.length === 0 ? (
+              <p className="text-gray-500">No comments yet.</p>
+            ) : (
+              <ul className="space-y-4">
+                {comments.map((comment) => (
+                  <li key={comment._id} className="p-4 border rounded-lg bg-gray-50">
+                    <p className="text-gray-700">{comment.comment}</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      By: {comment.userId?.Name || "Unknown"} ({comment.role}) |{" "}
+                      {new Date(comment.createdAt).toLocaleString()}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={() => navigate(`/uc/${projectId}`)}
+              className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg"
+            >
+              Back to UC Form
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

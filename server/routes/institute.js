@@ -285,7 +285,7 @@ router.post("/upload-expenses", async (req, res) => {
     const stream = require("stream");
     const rows = [];
     const readable = new stream.Readable();
-    readable._read = () => {};
+    readable._read = () => { };
     readable.push(csvData);
     readable.push(null);
 
@@ -362,7 +362,20 @@ function parseCSV(csvData) {
 router.get("/expenses/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const expenses = await Expense.find({ projectId: id });
+    let filters = { projectId: id };
+
+    // Apply filters if query parameters are provided
+    if (req.query.type) filters.type = req.query.type;
+    if (req.query.startDate) filters.date = { $gte: new Date(req.query.startDate) };
+    if (req.query.endDate) filters.date = { ...filters.date, $lte: new Date(req.query.endDate) };
+    if (req.query.startCommittedDate) filters.committedDate = { $gte: new Date(req.query.startCommittedDate) };
+    if (req.query.endCommittedDate) filters.committedDate = { ...filters.committedDate, $lte: new Date(req.query.endCommittedDate) };
+    if (req.query.minAmount) filters.amount = { $gte: Number(req.query.minAmount) };
+    if (req.query.maxAmount) filters.amount = { ...filters.amount, $lte: Number(req.query.maxAmount) };
+
+    console.log("Applying Filters:", filters); // Debugging step
+
+    const expenses = await Expense.find(filters);
     res.status(200).json(expenses);
   } catch (error) {
     console.error("Error fetching expenses:", error);
