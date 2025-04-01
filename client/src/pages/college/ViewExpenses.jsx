@@ -19,6 +19,9 @@ const ProjectExpenses = () => {
     const [commentsLoading, setCommentsLoading] = useState({});
     const [commentsError, setCommentsError] = useState({});
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+    const [currentExpenseId, setCurrentExpenseId] = useState(null);
+    const [currentExpenseDescription, setCurrentExpenseDescription] = useState("");
     const [editExpenseData, setEditExpenseData] = useState({
         id: "",
         description: "",
@@ -129,8 +132,6 @@ const ProjectExpenses = () => {
                 },
             });
 
-
-
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -161,14 +162,17 @@ const ProjectExpenses = () => {
         }
     };
 
-    const handleViewComments = (expenseId) => {
+    const handleViewComments = (expense) => {
+        setCurrentExpenseId(expense._id);
+        setCurrentExpenseDescription(expense.description);
+
         // Fetch comments for this expense if not already loaded
-        if (!expenseComments[expenseId]) {
-            fetchCommentsForExpense(expenseId);
+        if (!expenseComments[expense._id]) {
+            fetchCommentsForExpense(expense._id);
         }
 
-        // Toggle the visibility of the comments section
-        document.getElementById(`view-comments-${expenseId}`).classList.toggle("hidden");
+        // Open the comments modal
+        setIsCommentsModalOpen(true);
     };
 
     const calculateSummary = (expenseData) => {
@@ -198,6 +202,13 @@ const ProjectExpenses = () => {
         });
     };
 
+    const handleTypeFilterChange = (e) => {
+        setFilter({
+            ...filter,
+            type: e.target.value
+        });
+    };
+
     const applyFilters = () => {
         setLoading(true);
 
@@ -224,7 +235,6 @@ const ProjectExpenses = () => {
                 setLoading(false);
             });
     };
-
 
     const resetFilters = () => {
         setFilter({
@@ -276,7 +286,6 @@ const ProjectExpenses = () => {
 
         return colors[type.toLowerCase()] || "bg-gray-100 text-gray-800";
     };
-
 
     const handleDeleteExpense = async (expenseId) => {
         if (!confirm("Are you sure you want to delete this expense?")) {
@@ -357,7 +366,6 @@ const ProjectExpenses = () => {
         ? expenses
         : expenses.filter(expense => expense.type.toLowerCase() === activeTab);
 
-
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
             <Navbar />
@@ -427,116 +435,6 @@ const ProjectExpenses = () => {
                                 </div>
                             </div>
 
-                            {/* Filters */}
-                            <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-                                <h3 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Filter Expenses</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                                        <input
-                                            type="text"
-                                            name="type"
-                                            value={filter.type}
-                                            onChange={handleFilterChange}
-                                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                            placeholder="Enter type"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Min Amount</label>
-                                        <input
-                                            type="number"
-                                            name="minAmount"
-                                            value={filter.minAmount}
-                                            onChange={handleFilterChange}
-                                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                            min="0"
-                                            step="0.01"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Max Amount</label>
-                                        <input
-                                            type="number"
-                                            name="maxAmount"
-                                            value={filter.maxAmount}
-                                            onChange={handleFilterChange}
-                                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                            min="0"
-                                            step="0.01"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Date Range (Expense Date)</label>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div>
-                                                <label className="block text-xs text-gray-500">From</label>
-                                                <input
-                                                    type="date"
-                                                    name="startDate"
-                                                    value={filter.startDate}
-                                                    onChange={handleFilterChange}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs text-gray-500">To</label>
-                                                <input
-                                                    type="date"
-                                                    name="endDate"
-                                                    value={filter.endDate}
-                                                    onChange={handleFilterChange}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Date Range (Committed Date)</label>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div>
-                                                <label className="block text-xs text-gray-500">From</label>
-                                                <input
-                                                    type="date"
-                                                    name="startCommittedDate"
-                                                    value={filter.startCommittedDate}
-                                                    onChange={handleFilterChange}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs text-gray-500">To</label>
-                                                <input
-                                                    type="date"
-                                                    name="endCommittedDate"
-                                                    value={filter.endCommittedDate}
-                                                    onChange={handleFilterChange}
-                                                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mt-5 flex gap-4 justify-end">
-                                    <button
-                                        onClick={resetFilters}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-200 text-gray-700"
-                                    >
-                                        Reset
-                                    </button>
-                                    <button
-                                        onClick={applyFilters}
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 shadow-sm"
-                                    >
-                                        Apply Filters
-                                    </button>
-                                </div>
-                            </div>
-
                             {/* Expense List */}
                             <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
                                 <h3 className="text-xl font-semibold p-5 border-b bg-gray-50">Expense List</h3>
@@ -561,7 +459,30 @@ const ProjectExpenses = () => {
                                                     <th className="p-4 border-b font-medium text-gray-700">Date</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Committed Date</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Description</th>
-                                                    <th className="p-4 border-b font-medium text-gray-700">Type</th>
+                                                    <th className="p-4 border-b font-medium text-gray-700">
+                                                        <div className="flex items-center space-x-2">
+                                                            <span>Type</span>
+                                                            <div className="relative inline-block">
+                                                                <input
+                                                                    type="text"
+                                                                    name="type"
+                                                                    value={filter.type}
+                                                                    onChange={handleTypeFilterChange}
+                                                                    onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+                                                                    placeholder="Filter type..."
+                                                                    className="w-32 p-1 text-sm border border-gray-300 rounded-md"
+                                                                />
+                                                                <button
+                                                                    onClick={applyFilters}
+                                                                    className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Amount</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Created At</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Actions</th>
@@ -603,7 +524,7 @@ const ProjectExpenses = () => {
                                                                 <button
                                                                     type="button"
                                                                     className="text-green-600 hover:text-green-900"
-                                                                    onClick={() => handleViewComments(expense._id)}
+                                                                    onClick={() => handleViewComments(expense)}
                                                                 >
                                                                     View/Add Comments
                                                                 </button>
@@ -616,72 +537,6 @@ const ProjectExpenses = () => {
                                     </div>
                                 )}
                             </div>
-
-                            {/* View Comments sections */}
-                            {filteredExpenses.map((expense) => (
-                                <div key={`view-comments-${expense._id}`} id={`view-comments-${expense._id}`} className="mt-2 bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-700 hidden">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold text-blue-700">Comments for: {expense.description}</h3>
-                                        <button
-                                            onClick={() => {
-                                                document.getElementById(`view-comments-${expense._id}`).classList.add("hidden");
-                                            }}
-                                            className="p-1 rounded-full hover:bg-slate-100"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </div>
-
-                                    {commentsLoading[expense._id] ? (
-                                        <div className="flex justify-center items-center h-24">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
-                                        </div>
-                                    ) : commentsError[expense._id] ? (
-                                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                                            <p>{commentsError[expense._id]}</p>
-                                        </div>
-                                    ) : expenseComments[expense._id]?.length > 0 ? (
-                                        <ul className="space-y-4 max-h-96 overflow-y-auto">
-                                            {expenseComments[expense._id].map((comment) => (
-                                                <li key={comment._id} className="p-4 border rounded-lg bg-gray-50">
-                                                    <p className="text-gray-700">{comment.comment}</p>
-                                                    <p className="text-sm text-gray-500 mt-2">
-                                                        By:{" "}
-                                                        {comment.userName || "Unknown"}
-                                                        ({comment.role || "User"}) |{" "}
-                                                        {new Date(comment.createdAt).toLocaleString()}
-                                                    </p>
-                                                </li>
-                                            ))}
-                                        </ul>
-
-                                    ) : (
-                                        <p className="text-gray-500 text-center py-6">No comments yet.</p>
-                                    )}
-
-                                    <div className="mt-6 pt-4 border-t border-gray-200">
-                                        <h4 className="text-md font-semibold text-blue-700 mb-3">Add New Comment</h4>
-                                        <textarea
-                                            rows="3"
-                                            placeholder="Add your comment here..."
-                                            value={comments[expense._id] || ""}
-                                            onChange={(e) => handleCommentChange(expense._id, e.target.value)}
-                                            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
-                                        ></textarea>
-                                        <div className="mt-4 flex justify-end">
-                                            <button
-                                                onClick={() => handleAddComment(expense._id)}
-                                                className="px-6 py-2 bg-blue-700 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                                disabled={loading}
-                                            >
-                                                {loading ? "Submitting..." : "Add Comment"}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
                         </>
                     )}
                 </main>
@@ -700,7 +555,7 @@ const ProjectExpenses = () => {
                             </svg>
                         </button>
                         <h3 className="text-xl font-semibold mb-4">Edit Expense</h3>
-                        <form onSubmit={handleEditExpense}>
+                        <form onSubmit={(e) => { e.preventDefault(); handleEditExpense(); }}>
                             {/* Form fields for editing expense */}
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -739,30 +594,6 @@ const ProjectExpenses = () => {
                                     />
                                 </div>
                             </div>
-                            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Expense Date</label>
-                                    <input
-                                        type="date"
-                                        name="date"
-                                        value={formatDate(editExpenseData.date)}
-                                        onChange={handleChange}
-                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Committed Date</label>
-                                    <input
-                                        type="date"
-                                        name="committedDate"
-                                        value={formatDate(editExpenseData.committedDate)}
-                                        onChange={handleChange}
-                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                        required
-                                    />
-                                </div>
-                            </div> */}
                             <div className="flex justify-end gap-3">
                                 <button
                                     type="button"
@@ -779,6 +610,86 @@ const ProjectExpenses = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Comments Modal */}
+            {isCommentsModalOpen && currentExpenseId && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl p-6 relative max-h-[90vh] overflow-y-auto">
+                        <button
+                            onClick={() => setIsCommentsModalOpen(false)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <h3 className="text-xl font-semibold mb-2 text-blue-700">Comments for: {currentExpenseDescription}</h3>
+                        <p className="text-sm text-gray-500 mb-6">Expense ID: {currentExpenseId}</p>
+
+                        {/* Existing comments section */}
+                        <div className="mb-6">
+                            <h4 className="text-lg font-medium mb-3 text-gray-700">Existing Comments</h4>
+
+                            {commentsLoading[currentExpenseId] ? (
+                                <div className="text-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                                    <p className="mt-2 text-gray-600">Loading comments...</p>
+                                </div>
+                            ) : commentsError[currentExpenseId] ? (
+                                <div className="text-center py-4 text-red-600">
+                                    <p>{commentsError[currentExpenseId]}</p>
+                                </div>
+                            ) : expenseComments[currentExpenseId]?.length === 0 ? (
+                                <div className="text-center py-4 text-gray-500">
+                                    <p>No comments yet.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {expenseComments[currentExpenseId]?.map((comment) => (
+                                        <div key={comment._id} className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-400">
+                                            <div className="flex justify-between items-start">
+                                                <div className="font-medium text-gray-800">{comment.comment}</div>
+                                                <div className="text-sm text-gray-500">{formatDate(comment.createdAt)}</div>
+                                            </div>
+                                            <p className="text-sm mt-2 text-gray-500">{comment.userName || "Unknown User"} ({comment.role})</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Add new comment section */}
+                        <div>
+                            <h4 className="text-lg font-medium mb-3 text-gray-700">Add Comment</h4>
+                            <div className="flex flex-col space-y-3">
+                                <textarea
+                                    value={comments[currentExpenseId] || ""}
+                                    onChange={(e) => handleCommentChange(currentExpenseId, e.target.value)}
+                                    placeholder="Write your comment here..."
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none h-32"
+                                ></textarea>
+                                <button
+                                    onClick={() => handleAddComment(currentExpenseId)}
+                                    disabled={loading}
+                                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition duration-200 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? (
+                                        <span className="flex items-center justify-center">
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Submitting...
+                                        </span>
+                                    ) : (
+                                        "Add Comment"
+                                    )}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
