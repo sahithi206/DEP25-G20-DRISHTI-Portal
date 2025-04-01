@@ -1,4 +1,6 @@
 const express = require("express");
+const mongoose = require("mongoose");
+const { ObjectId } = mongoose.Types;
 const router = express.Router();
 const UCComment = require("../Models/UCComment");
 const { fetchUser } = require("../Middlewares/fetchUser");
@@ -42,11 +44,26 @@ router.post("/add", async (req, res, next) => {
   }
 });
 
-router.get("/:projectId/:ucType", fetchUser, async (req, res) => {
+router.get("/:projectId/:ucType", async (req, res) => {
   try {
     const { projectId, ucType } = req.params;
+    console.log("Fetching comments for projectId:", projectId, "ucType:", ucType);
 
     const comments = await UCComment.find({ projectId, ucType }).populate("userId", "Name email");
+    // if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    //   console.error("Invalid projectId:", projectId);
+    //   return res.status(400).json({ success: false, message: "Invalid projectId" });
+    // }
+
+    // const comments = await UCComment.find({
+    //   projectId: mongoose.Types.ObjectId(projectId),
+    //   ucType,
+    // }).populate("userId", "Name email");
+    
+
+    console.log("Query result:", comments);
+
+
     res.status(200).json({ success: true, data: comments });
   } catch (error) {
     console.error("Error fetching UC comments:", error.message);

@@ -123,7 +123,7 @@ const ProjectDashboard = () => {
                         <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700">
                             <h1 className="text-3xl font-black text-gray-900 mb-2">Project Dashboard</h1>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View RTGS", onClick: () => navigate("/") }, { label: "Upload Quotation", onClick: () => navigate(`/quotations/${id}`) }]} className="bg-blue-500 text-white" />
                             <HoverDropdownButton label="Upload SE/UC" options={[{ label: "Upload SE", onClick: () => navigate(`/se/${id}`) }, { label: "Generate UC", onClick: () => navigate(`/uc/${id}`) }, { label: "View Certificates", onClick: () => navigate(`/certificates/${id}`) }]} className="bg-green-500 text-white" />
                             <HoverDropdownButton label="Upload Progress Report" options={[{ label: "Yearly Report", onClick: () => navigate(`/progress-report/${id}`) }, { label: "Final Report", onClick: () => navigate(`/final-report/${id}`) }]} className="bg-red-500 text-white" />
