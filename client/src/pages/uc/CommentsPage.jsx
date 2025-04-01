@@ -24,7 +24,7 @@ const CommentsPage = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            accessToken: localStorage.getItem("token"),
+            // accessToken: localStorage.getItem("token"),
           },
         });
 

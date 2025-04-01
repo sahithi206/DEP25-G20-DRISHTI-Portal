@@ -67,13 +67,19 @@ const SanctionedProjects = () => {
                                                     return "Time expired";
                                                 }
                                             })()}
-                                        </td>                         <td className="border p-2">
+                                        </td><td className="border p-2">
                       <Link
                         // to={`/add-expenses/${project._id}`}
                         to={`/view-expenses/${project._id}`}
                         className="bg-blue-500 text-white px-3 py-1 rounded"
                       >
                         Add Expenses
+                      </Link>
+                      <Link
+                        to={`/ucInsti/${project._id}`}
+                        className="bg-green-500 text-white px-3 py-1 rounded ml-2"
+                      >
+                        View UC
                       </Link>
                     </td>
                   </tr>

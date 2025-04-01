@@ -61,6 +61,7 @@ import CommentsPage from "./pages/uc/CommentsPage.jsx";
 import Quotations from "./pages/Qutations/Quotations.jsx"
 
 import ProjectExpenses from "./pages/ProjectExpenses.jsx";
+import UCPage from "./pages/college/UCpage.jsx";
 
 function App() {
   const getData = async () => {
@@ -156,6 +157,7 @@ function MainLayout() {
           <Route path="/add-expenses/:projectId" element={<AddExpenses />} />
           <Route path="/view-expenses/:projectId" element={<ViewExpenses />} />
           <Route path="/comments/:projectId/:ucType" element={<CommentsPage />} />
+          <Route path="/ucInsti/:projectId" element={<UCPage />} />
         </Route>
       </Routes>
     </div>
