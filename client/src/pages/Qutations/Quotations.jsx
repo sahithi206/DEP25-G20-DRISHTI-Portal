@@ -3,10 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../Context/Authcontext";
 import { toast } from "react-toastify";
 import { useContext } from "react";
+import Sidebar from "../../utils/Sidebar"
+import HomeNavbar from "../../utils/HomeNavbar";
 const url = import.meta.env.VITE_REACT_APP_URL;
 import axios from "axios";
 
 const UploadDocuments = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { id } = useParams();
   const navigate= useNavigate();
   const [equipments, setEquipments] = useState([]);
@@ -299,6 +302,14 @@ const UploadDocuments = () => {
   };
   
   return (
+     <div className="flex bg-gray-100 min-h-screen">
+                <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+    
+                <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
+                    <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/project-dashboard/${id}`} />
+    
+                    <div className="p-6 space-y-6 mt-16">
+                        <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow"></div>
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-semibold mb-4">Quotations/RTGS</h2>
@@ -693,6 +704,9 @@ const UploadDocuments = () => {
             {isSubmitting ? 'Submitting...' : 'Send for Approval'}
           </button>
         </div>
+      </div>
+    </div>
+    </div>
       </div>
     </div>
   );

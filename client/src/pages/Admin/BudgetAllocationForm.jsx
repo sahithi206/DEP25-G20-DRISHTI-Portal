@@ -15,6 +15,7 @@ const BudgetAllocationForm = () => {
   useEffect(() => {
     const fetchPendingProposals = async () => {
       const token = localStorage.getItem("token");
+      console.log(token);
       if (!token) {
         return;
       }
@@ -226,7 +227,7 @@ const BudgetAllocationForm = () => {
       const finalComment = "Proposal approved with budget allocation.";
 
       const approvalResponse = await fetch(`${url}admin/allocate-budget/${id}`, {
-        method: "PUT",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "accessToken": token,

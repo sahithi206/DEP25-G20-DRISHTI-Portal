@@ -63,14 +63,15 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
       return res.status(404).json({ success: false, msg: "User not found" });
     }
 
-    const proposals = user.proposals;
-    console.log(proposals);
-    if (proposals.length > 0) {
-      const acceptedProposal = proposals.find(prop => prop.Scheme === Scheme && prop.status === "Approved");
+
+    const acceptedProposal = await Proposal.findOne({Scheme:Scheme, userId:_id, status : "Approved"});
       if (acceptedProposal) {
         return res.status(400).json({ success: false, msg: "Your proposal for this scheme has already been accepted. You cannot apply again." });
       }
-    }
+      const sanctionedProposal = await Proposal.findOne({Scheme:Scheme, userId:_id, status : "Sanctioned"});
+      if (sanctionedProposal) {
+        return res.status(400).json({ success: false, msg: "Your proposal for this scheme has already been Sanctioned. You cannot apply again." });
+      }
     const pendingProposal = await Proposal.findOne({ Scheme: Scheme, userId: _id, status: "Pending" });
     if (pendingProposal) {
       return res.status(400).json({ success: false, msg: "You have already submitted a proposal for this scheme." });
@@ -79,7 +80,10 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
     if (unsavedProposal) {
       return res.status(400).json({ success: false, msg: "You have an unsaved proposal for this scheme. Please complete it." });
     }
-
+    const proposals=await Proposal.findOne({ Scheme: Scheme, userId: _id});
+    if (proposals) {
+      return res.status(400).json({ success: false, msg: "You have Already Submitted a Proposal." });
+    }
 
     const newProposal = new Proposal({
       userId: _id,

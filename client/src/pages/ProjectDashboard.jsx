@@ -116,7 +116,7 @@ const ProjectDashboard = () => {
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
             <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                <HomeNavbar isSidebarOpen={isSidebarOpen} path={"/sanctionedproposals"} />
+                <HomeNavbar isSidebarOpen={isSidebarOpen} path={"/ongoingproposals"} />
 
                 <div className="p-6 space-y-6 mt-16">
                     <div className="p-6 space-y-6">

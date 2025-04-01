@@ -87,71 +87,82 @@ router.get("/approvedProposal/:id", fetchAdmin, async (req, res) => {
     res.json({ success: true, msg: "Projects Fetched", budget, researchDetails });
 
   } catch (error) {
-    console.error("Error fetching proposals:", error);
+    console.error("Error fetching proposals:", error.message);
     res.status(500).json({ success: false, msg: "Failed to Fetch Projects", error: "Internal Server Error" });
   }
 });
 
-router.put("/allocate-budget/:id", fetchAdmin, async (req, res) => {
+router.post("/allocate-budget/:id", fetchAdmin, async (req, res) => {
   const { id } = req.params;
   try {
-    const budgetCheck = await budgetSanctioned.findOne({ proposalId: id });
-    const generalInfo = await GeneralInfo.findOne({ proposalId: id }).select("email");
-    const users = await User.findOne({ email: generalInfo.email }).select("_id");
-    const projectCheck = await Project.findOne({ userId: users._id });
-    let budgetId;
-    if (budgetCheck && projectCheck) {
-      return res.status(400).json({ success: false, msg: "Budget Already Allocated!!" });
-    }
-    if (!budgetCheck) {
-      const proposal = await Proposal.findByIdAndUpdate({ _id: id }, { status: req.body.status }, { new: true });
-      console.log("Fetched Proposals:", proposal);
-      if (!proposal) {
-        return res.status(400).json({ success: false, msg: "No proposals found" });
-      }
-      const budgetsanctioned = new budgetSanctioned({
-        proposalId: id,
-        budgetSanctioned: req.body.budgetsanctioned,
-        budgetTotal: req.body.budgettotal,
-        TotalCost: req.body.TotalCost,
-      })
-      await budgetsanctioned.save();
-      console.log(budgetsanctioned);
-      budgetId = new ObjectId(budgetsanctioned._id);
-      console.log("Final Data:", budgetsanctioned);
-    }
-    if (!projectCheck) {
-      const project = await fetch(`${process.env.local}admin/createProject/${id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      const changed_project = await project.json();
-      console.log("Project Created", changed_project);
-      if (!changed_project.success) {
-        const budget = await budgetSanctioned.findByIdAndDelete(budgetId);
-        const proposals = await Proposal.findByIdAndUpdate({ _id: id }, { status: "Approved" }, { new: true });
-        const project = await Project.findByIdAndDelete(changed_project?._id);
-      }
-      res.json({ success: true, msg: "Project budget Allocated!!", project });
+    const [budgetCheck, generalInfo] = await Promise.all([
+      budgetSanctioned.findOne({ proposalId: id }),
+      GeneralInfo.findOne({ proposalId: id }).select("email")
+    ]);
+   console.log(1);
+    if (!generalInfo) {
+      return res.status(400).json({ success: false, msg: "General Info not found" });
     }
 
+    const user = await User.findOne({ email: generalInfo.email }).select("_id");
+    if (!user) {
+      return res.status(400).json({ success: false, msg: "User not found" });
+    }
+
+    if (budgetCheck) {
+      return res.status(400).json({ success: false, msg: "Budget Already Allocated!" });
+    }
+    console.log(2);
+
+    const proposal = await Proposal.findByIdAndUpdate(id, { status: req.body.status }, { new: true });
+    if (!proposal) {
+      return res.status(400).json({ success: false, msg: "No proposals found" });
+    }
+    console.log(3);
+    const newBudget = new budgetSanctioned({
+      proposalId: id,
+      TotalCost: req.body.TotalCost,
+      budgetTotal: req.body.budgettotal, 
+      budgetSanctioned: req.body.budgetsanctioned 
+    });
+    console.log(4);
+    await newBudget.save();
+
+    console.log("Budget:",newBudget);
+    const response = await fetch(`${process.env.local}admin/createProject/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    console.log(5);
+    const projectData = await response.json();
+    console.log("Project:",projectData);
+    if (!projectData.success) {
+      await Promise.all([
+        budgetSanctioned.findByIdAndDelete(newBudget._id),
+        Proposal.findByIdAndUpdate(id, { status: "Approved" }),
+        Project.findByIdAndDelete(projectData?._id)
+      ]);
+      return res.status(500).json({ success: false, msg: "Project creation failed, budget rollback executed" });
+    }
+    console.log(6);
+    res.json({ success: true, msg: "Project budget allocated!", project: projectData });
   } catch (error) {
-    console.error("Error fetching proposal:", error);
-    res.status(500).json({ success: false, msg: "Failed to Fetch Project", error: "Internal Server Error" });
+    console.error("Error allocating budget:", error.message);
+    res.status(500).json({ success: false, msg: "Internal Server Error" });
   }
 });
 
 router.post("/createProject/:proposalId", async (req, res) => {
   const { proposalId } = req.params;
   try {
-
+    console.log("Proposal ",proposalId);
     const proposal = await Proposal.findById(proposalId);
     console.log("Fetched Proposals:", proposal);
-
+    console.log(7);
     if (!proposal || proposal.status !== 'Sanctioned') {
-      return res.status(400).json({ success: false, msg: "No Approved proposal found" });
+      return res.status(400).json({ success: false, msg: "No Sanctioned proposal found" });
     }
-
+    console.log(6);
     const Principal = await PI.findOne({ proposalId: proposal._id });
     if (!Principal) {
       return res.status(404).json({ success: false, msg: "No Principal Investigatoe details found" });
