@@ -1,58 +1,20 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const SalaryComponentSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    enum: ['Monthly Emol.', 'HRA (Monthly)', 'Medical Allowances (Yearly)']
-  },
-  value: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  months: {
-    type: Number,
-    required: true,
-    min: 1,
-    max: 12
-  }
+const SalarySchema = new mongoose.Schema({
+  projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
+  QuotationId:{ type: mongoose.Schema.Types.ObjectId, ref: "Quotation"},
+  salary: [{
+    designation: { type: String, required: true },
+    YearTotal: [{ type: Number, required: true }],
+    breakup: [{
+      noOfPersons: { type: Number, required: true },
+      name: { type: String, required: true },
+      value: { type: Number, default: 0 },
+      months: { type: Number, default: null },
+    }], 
+  }],
 });
 
-const YearlyBreakupSchema = new mongoose.Schema({
-  year: {
-    type: String,
-    required: true,
-    match: /^Year \d+$/
-  },
-  components: [SalaryComponentSchema],
-  total: {
-    type: Number,
-    required: true,
-    min: 0
-  }
-});
+const SalaryBreakUp = mongoose.model("SalaryBreakUp", SalarySchema);
 
-const SalaryBreakupSchema = new mongoose.Schema({
-  projectId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project',
-    required: true
-  },
-  designation: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  yearlyBreakups: [YearlyBreakupSchema],
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
-});
-
-module.exports = mongoose.model('SalaryBreakup', SalaryBreakupSchema);
+module.exports = SalaryBreakUp;

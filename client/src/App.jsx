@@ -128,7 +128,6 @@ function MainLayout() {
           <Route path="/error" element={<Error />} />
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
           <Route path="/quotations/:id" element={<Quotations/>} />
-
           <Route path="/project-expenses/:projectId" element={<ProjectExpenses />} />
 
           <Route path="/admin" element={<AdminDashboard />} />

@@ -4,57 +4,29 @@ const QuotationSchema = new mongoose.Schema({
   projectId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Project',
-    required: true
-  },  
-  salaryBreakUpId: {
+    required: true,
+  },
+  bank: {
+    name: { type: String, required: true },
+    number: { type: String, required: true },
+    Ifsc: { type: String, required: true },
+    address: { type: String, required: true },
+    bankName: { type: String, required: true }
+  },
+  equipmentsId:{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'SalaryBreakup'
-  },
- equipmentId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Equipment',
-      required: true
-  },
-  status: {
-    type: String,
-    enum: ['Pending', 'submitted', 'approved', 'rejected', 'ordered'],
-    default: 'Pending'
-  },
-  bank:{ name: {
-    type: String,
+    ref: 'Equipment',
     required: true,
-    trim: true
   },
-  number: {
-    type: String,
+  salaryBreakUpId:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SalaryBreakUp',
     required: true,
-    trim: true
   },
-  bankName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  address: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  Ifsc: {
-    type: String,
-    required: true,
-    trim: true,
-    uppercase: true
-  },}
- 
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  }
 });
-
-QuotationSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
-
-QuotationSchema.index({ projectId: 1 });
-QuotationSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Quotation', QuotationSchema);
