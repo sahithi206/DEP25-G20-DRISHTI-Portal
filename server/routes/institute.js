@@ -22,6 +22,7 @@ const { fetchInstitute } = require("../Middlewares/fetchInstitute.js");
 const { ObjectId } = require("mongodb");
 const mongoose = require("mongoose");
 const moment = require("moment");
+const ExcelJS = require('exceljs');
 
 
 router.get("/institute-projects", fetchInstitute, async (req, res) => {
@@ -200,7 +201,6 @@ router.get("/get-ucNonRecurring-insti", fetchInstitute, async (req, res) => {
 });
 
 
-
 async function updateBudgetFields(projectId, amount, type, operation) {
   console.log("updateBudgetFields", projectId, amount, type, operation);
   try {
@@ -275,7 +275,6 @@ async function updateBudgetFields(projectId, amount, type, operation) {
   }
 }
 
-
 router.post("/upload-expenses", async (req, res) => {
   try {
     const { projectId, csvData } = req.body;
@@ -346,6 +345,77 @@ router.post("/upload-expenses", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error while uploading expenses.", errorDetails: error.message });
   }
 });
+
+// router.post("/upload-expenses", async (req, res) => {
+//   try {
+//     const { projectId, csvData } = req.body;
+
+//     if (!projectId || !csvData) {
+//       return res.status(400).json({ success: false, message: "Missing project ID or CSV data." });
+//     }
+//     const stream = require("stream");
+//     const rows = [];
+//     const readable = new stream.Readable();
+//     readable._read = () => { };
+//     readable.push(csvData);
+//     readable.push(null);
+
+//     readable
+//       .pipe(csv())
+//       .on("data", (row) => {
+//         rows.push(row);
+//       })
+//       .on("end", async () => {
+//         if (rows.length === 0) {
+//           return res.status(400).json({ success: false, message: "CSV file is empty or missing data." });
+//         }
+
+//         const expenses = [];
+
+//         for (let i = 0; i < rows.length; i++) {
+//           const { Date, CommittedDate, Description, Amount, Type } = rows[i];
+
+//           if (!Date || !CommittedDate || !Description || !Amount || !Type) {
+//             console.error(`Skipping row ${i + 1} due to missing fields.`);
+//             continue;
+//           }
+
+//           const parsedDate = moment(Date, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
+//           const parsedCommittedDate = moment(CommittedDate, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
+
+//           if (!parsedDate.isValid() || !parsedCommittedDate.isValid()) {
+//             console.error(`Invalid date format in row ${i + 1}: ${Date} or ${CommittedDate}`);
+//             continue;
+//           }
+
+//           expenses.push({
+//             projectId,
+//             description: Description.trim(),
+//             amount: parseFloat(Amount.trim()),
+//             date: parsedDate.toDate(),
+//             committedDate: parsedCommittedDate.toDate(),
+//             type: Type.trim(),
+//           });
+//         }
+
+//         if (expenses.length === 0) {
+//           return res.status(400).json({ success: false, message: "No valid expenses to upload." });
+//         }
+
+//         console.log("Final expenses to insert:", expenses);
+//         await Expense.insertMany(expenses);
+
+//         for (let i = 0; i < expenses.length; i++) {
+//           await updateBudgetFields(projectId, expenses[i].amount, expenses[i].type, "add");
+//         }
+
+//         res.status(200).json({ success: true, message: "Expenses uploaded successfully!", added: expenses.length });
+//       });
+//   } catch (error) {
+//     console.error("Error uploading expenses:", error.message, error.stack);
+//     res.status(500).json({ success: false, message: "Server error while uploading expenses.", errorDetails: error.message });
+//   }
+// });
 
 // Helper function to parse CSV
 function parseCSV(csvData) {
@@ -474,6 +544,94 @@ router.post("/add-expense", async (req, res) => {
   } catch (error) {
     console.error("Error adding expense:", error);
     res.status(500).json({ success: false, message: "Server error while adding expense." });
+  }
+});
+
+router.get('/generate-excel-template', async (req, res) => {
+  try {
+    const { projectId } = req.query;
+    if (!projectId) {
+      return res.status(400).json({ message: 'Project ID is required' });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Expenses');
+    
+    worksheet.addRow(['Date', 'CommittedDate', 'Description', 'Amount', 'Type']);
+    
+    worksheet.addRow(['2025-04-01', '2025-03-25', 'Example Expense', '1000', 'human_resources']);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=Expense_Template_Project_${projectId}.xlsx`);
+    
+    const buffer = await workbook.xlsx.writeBuffer();
+    res.send(buffer);
+  } catch (error) {
+    console.error('Excel generation error:', error);
+    res.status(500).json({ 
+      message: 'Failed to generate Excel template', 
+      error: error.message 
+    });
+  }
+});
+
+router.post('/upload-expenses', async (req, res) => {
+  try {
+    const { projectId, csvData } = req.body;
+    
+    if (!csvData || csvData.trim() === '') {
+      return res.status(400).json({ message: 'CSV data is empty or invalid' });
+    }
+    
+    // Parse CSV rows
+    const rows = csvData.split('\n');
+    const headers = rows[0].split(',');
+    
+    // Check for required headers (adjusted for new column order)
+    const requiredHeaders = ['Date', 'CommittedDate', 'Description', 'Amount', 'Type'];
+    const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
+    
+    if (missingHeaders.length > 0) {
+      return res.status(400).json({ 
+        message: `Missing required headers: ${missingHeaders.join(', ')}` 
+      });
+    }
+    
+    // Process each row and map to the database column names
+    const expenses = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i].split(',');
+      if (row.length >= 5 && row[0].trim() !== '') {
+        // Map CSV columns to database fields
+        const dateIndex = headers.indexOf('Date');
+        const committedDateIndex = headers.indexOf('CommittedDate');
+        const descriptionIndex = headers.indexOf('Description');
+        const amountIndex = headers.indexOf('Amount');
+        const typeIndex = headers.indexOf('Type');
+        
+        expenses.push({
+          projectId,
+          date: row[dateIndex].trim(),
+          committedDate: row[committedDateIndex].trim(),
+          description: row[descriptionIndex].trim(),
+          amount: parseFloat(row[amountIndex].trim()),
+          type: row[typeIndex].trim()
+        });
+      }
+    }
+    
+    // Save expenses to database
+    // This depends on your database setup, example shown for MongoDB
+    await YourExpenseModel.insertMany(expenses);
+    
+    res.status(200).json({ 
+      message: `Successfully uploaded ${expenses.length} expenses`,
+      count: expenses.length
+    });
+    
+  } catch (error) {
+    console.error('Error uploading expenses:', error);
+    res.status(500).json({ message: 'Failed to upload expenses', error: error.message });
   }
 });
 
