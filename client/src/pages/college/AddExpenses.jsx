@@ -76,16 +76,6 @@ const AddExpense = () => {
     setIsUploading(true);
 
     try {
-      if (!csvData || csvData.trim() === '') {
-        throw new Error("CSV data is empty or invalid");
-      }
-
-      console.log('Upload Payload:', {
-        projectId,
-        csvDataLength: csvData.length,
-        csvDataPreview: csvData.substring(0, 500)
-      });
-
       const response = await fetch(`${url}institute/upload-expenses`, {
         method: "POST",
         headers: {
@@ -97,20 +87,16 @@ const AddExpense = () => {
         }),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Detailed Server Error:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorBody: errorText
-        });
-        throw new Error(`Upload failed with status ${response.status}: ${errorText}`);
+        console.error("Upload error response:", result);
+        throw new Error(result.message || "Failed to upload expenses");
       }
 
-      const result = await response.json();
-      setUploadSuccess(true);
-      alert(result.message);
+      alert(`${result.message} (${result.added} added, ${result.skipped} skipped:Transaction date must be on or after the committed date)`);
       setCsvData("");
+      setUploadSuccess(true);
     } catch (error) {
       console.error("Comprehensive Upload Error:", {
         message: error.message,
@@ -145,20 +131,12 @@ const AddExpense = () => {
           ...manualExpense
         }),
       });
-      console.log('Response status:', response.status);
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
 
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('JSON Parsing Error:', parseError);
-        throw new Error(`Server returned non-JSON response: ${responseText}`);
-      }
+      const result = await response.json(); // <- Properly parse as JSON here
 
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to add expense');
+        alert(result.message || "Failed to add expense");
+        return;
       }
 
       alert("Expense added successfully!");
@@ -186,44 +164,44 @@ const AddExpense = () => {
     { value: "contingency", label: "Contingency" }
   ];
 
-  const generateAndDownloadExcelTemplate = () => {
-    try {
-      // Use the existing CSV generation logic but enhance it
-      const headers = "Date,CommittedDate,Description,Amount,Type\n";
-      
-      // Add multiple example rows to better demonstrate the expected format
-      const exampleRows = [
-        '2025-04-01,2025-03-25,Travel Expense,1500,travel\n',
-        '2025-04-03,2025-03-28,Equipment Purchase,5000,equipment\n',
-        '2025-04-05,2025-04-01,Consumables,750.50,consumables\n'
-      ];
-      
-      // Create a Blob containing the CSV data
-      const blob = new Blob([headers, ...exampleRows], { type: 'text/csv;charset=utf-8;' });
-      
-      // Create a download link and trigger the download
-      const link = document.createElement('a');
-      const fileUrl = URL.createObjectURL(blob);
-      link.setAttribute('href', fileUrl);
-      link.setAttribute('download', `Expense_Template_Project_${projectId}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up the URL object
-      setTimeout(() => {
-        URL.revokeObjectURL(fileUrl);
-      }, 100);
-      
-      // Show success message
-      alert("Template downloaded successfully. Please fill in your expense data and then convert using the tool below.");
-    } catch (error) {
-      console.error('Error generating template:', error);
-      alert(`Failed to generate template: ${error.message}`);
-    }
-  };
-  
+  // const generateAndDownloadExcelTemplate = () => {
+  //   try {
+  //     // Use the existing CSV generation logic but enhance it
+  //     const headers = "Date,CommittedDate,Description,Amount,Type\n";
+
+  //     // Add multiple example rows to better demonstrate the expected format
+  //     const exampleRows = [
+  //       '2025-04-01,2025-03-25,Travel Expense,1500,travel\n',
+  //       ',,Equipment Purchase,5000,equipment\n', // Example with empty date fields
+  //       '2025-04-05,2025-04-01,Consumables,750.50,consumables\n'
+  //     ];
+
+  //     // Create a Blob containing the CSV data
+  //     const blob = new Blob([headers, ...exampleRows], { type: 'text/csv;charset=utf-8;' });
+
+  //     // Create a download link and trigger the download
+  //     const link = document.createElement('a');
+  //     const fileUrl = URL.createObjectURL(blob);
+  //     link.setAttribute('href', fileUrl);
+  //     link.setAttribute('download', `Expense_Template_Project_${projectId}.csv`);
+  //     link.style.visibility = 'hidden';
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+
+  //     // Clean up the URL object
+  //     setTimeout(() => {
+  //       URL.revokeObjectURL(fileUrl);
+  //     }, 100);
+
+  //     // Show success message
+  //     alert("Template downloaded successfully. Please fill in your expense data and then convert using the tool below.");
+  //   } catch (error) {
+  //     console.error('Error generating template:', error);
+  //     alert(`Failed to generate template: ${error.message}`);
+  //   }
+  // };
+
   const openExcelWithTemplate = async () => {
     try {
       const response = await fetch(`${url}institute/generate-excel-template?projectId=${projectId}`, {
@@ -232,7 +210,7 @@ const AddExpense = () => {
           'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         },
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Server error response:', {
@@ -242,12 +220,12 @@ const AddExpense = () => {
         });
         throw new Error(`Server returned ${response.status}: ${errorText || response.statusText}`);
       }
-      
+
       const blob = await response.blob();
       const fileUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = fileUrl;
-      a.download = `Expense_Template_Project_${projectId}.xlsx`;
+      a.download = `Expense_Template_for_${project.Title}.xlsx`;
       document.body.appendChild(a);
       a.click();
       setTimeout(() => {
@@ -266,18 +244,18 @@ const AddExpense = () => {
 
   const downloadExcelTemplate = () => {
     const headers = "Date,CommittedDate,Description,Amount,Type\n";
-    
+
     const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
-    
+
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `Expense_Template_Project_${projectId}.csv`);
+    link.setAttribute('download', `Expense_Template_for_${project.Title}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 100);
@@ -309,20 +287,20 @@ const AddExpense = () => {
                 {/* Bulk Upload Section */}
                 <section className="bg-white p-4 rounded border">
                   <h2 className="text-xl font-bold mb-4">Bulk Upload Expenses</h2>
-                  
+
                   {/* Excel Format Instructions */}
                   <div className="mb-4">
-                    <button 
+                    <button
                       onClick={() => setShowInstructions(!showInstructions)}
                       className="text-blue-600 underline flex items-center gap-1"
                     >
                       {showInstructions ? 'Hide' : 'Show'} Excel Upload Instructions
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
                       </svg>
                     </button>
-                    
+
                     {showInstructions && (
                       <div className="mt-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
                         <h3 className="font-semibold mb-2">Excel Sheet Format Instructions:</h3>
@@ -330,7 +308,7 @@ const AddExpense = () => {
                         <ul className="list-disc ml-5 mb-4">
                           <li><strong>description</strong> - Description of the expense</li>
                           <li><strong>amount</strong> - Numeric amount (e.g., 1500.00)</li>
-                          <li><strong>date</strong> - Transaction date in YYYY-MM-DD format</li>
+                          <li><strong>date</strong> - Transaction date in YYYY-MM-DD format (can be left empty)</li>
                           <li><strong>committedDate</strong> - Committed date in YYYY-MM-DD format</li>
                           <li><strong>type</strong> - One of the following expense types:</li>
                         </ul>
@@ -342,16 +320,16 @@ const AddExpense = () => {
                             </div>
                           ))}
                         </div>
-                        <p className="text-sm text-gray-600">Note: The first row of your Excel file should contain these column headers exactly as shown above.</p>
-                        
+                        <p className="text-sm text-gray-600">Note: The first row of your Excel file should contain these column headers exactly as shown above. Date fields can be left empty if needed.</p>
+
                         <div className="mt-4">
                           <button
                             onClick={downloadExcelTemplate}
                             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium flex items-center gap-2"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                              <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+                              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                              <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z" />
                             </svg>
                             Download Excel Template
                           </button>
@@ -359,7 +337,7 @@ const AddExpense = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Excel Edit Button */}
                   <div className="mb-6">
                     <button
@@ -367,8 +345,8 @@ const AddExpense = () => {
                       className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-medium w-full flex items-center justify-center gap-2"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5v2z"/>
-                        <path d="M3 12v-2h2v2H3zm0 1h2v2H4a1 1 0 0 1-1-1v-1zm3 2v-2h7v1a1 1 0 0 1-1 1H6zm7-3H6v-2h7v2z"/>
+                        <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5v2z" />
+                        <path d="M3 12v-2h2v2H3zm0 1h2v2H4a1 1 0 0 1-1-1v-1zm3 2v-2h7v1a1 1 0 0 1-1 1H6zm7-3H6v-2h7v2z" />
                       </svg>
                       Open Excel Template for Editing
                     </button>
@@ -453,7 +431,7 @@ const AddExpense = () => {
 
                     <div className="mb-4">
                       <label className="block text-gray-700 mb-1" htmlFor="date">
-                        Transaction Date
+                        Transaction Date <span className="text-gray-500 text-sm">(Optional)</span>
                       </label>
                       <input
                         type="date"
@@ -462,7 +440,6 @@ const AddExpense = () => {
                         value={manualExpense.date}
                         onChange={handleManualInputChange}
                         className="w-full p-2 border rounded"
-                        required
                       />
                     </div>
 

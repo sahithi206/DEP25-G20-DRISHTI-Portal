@@ -24,91 +24,95 @@ const ExcelToCSV = ({ onConvert }) => {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        
-        // Get the first worksheet
+
         const worksheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[worksheetName];
-        
-        // Convert to JSON
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
-        
-        // Expected column headers in correct order
-        const expectedHeaders = ['Date', 'CommittedDate', 'Description', 'Amount', 'Type'];
-        
-        // Check if all required headers exist (case-insensitive)
+
+        // Required headers except for optional 'Date'
+        const requiredHeaders = ['CommittedDate', 'Description', 'Amount', 'Type'];
+        const optionalHeader = 'Date';
+        const allExpectedHeaders = [...requiredHeaders, optionalHeader];
+
         const headers = Object.keys(jsonData[0] || {});
-        const missingHeaders = expectedHeaders.filter(header => 
+        const missingHeaders = requiredHeaders.filter(header =>
           !headers.some(h => h.toLowerCase() === header.toLowerCase())
         );
-        
+
         if (missingHeaders.length > 0) {
-          setError(`Missing required columns: ${missingHeaders.join(', ')}. Please ensure your Excel file has these columns.`);
+          setError(`Missing required columns: ${missingHeaders.join(', ')}.`);
           setLoading(false);
           return;
         }
-        
-        // Map to our expected format
-        const formattedData = jsonData.map(row => {
-          // Find the actual header names in the file (case-insensitive)
-          const dateHeader = headers.find(h => h.toLowerCase() === 'date');
-          const committedDateHeader = headers.find(h => h.toLowerCase() === 'committeddate');
-          const descriptionHeader = headers.find(h => h.toLowerCase() === 'description');
-          const amountHeader = headers.find(h => h.toLowerCase() === 'amount');
-          const typeHeader = headers.find(h => h.toLowerCase() === 'type');
-          
-          // Extract and format the data
-          const date = row[dateHeader];
-          const committedDate = row[committedDateHeader];
-          const description = row[descriptionHeader];
-          const amount = row[amountHeader];
-          const type = row[typeHeader];
-          
-          // Format dates properly
-          const formatDate = (dateValue) => {
-            if (!dateValue) return '';
-            // Handle Excel serial dates
-            if (typeof dateValue === 'number') {
-              const excelDate = new Date(Math.round((dateValue - 25569) * 86400 * 1000));
-              return excelDate.toISOString().split('T')[0];
+
+        // Utility to get matching header from Excel
+        const getHeader = (target) =>
+          headers.find(h => h.toLowerCase() === target.toLowerCase());
+
+        const hDate = getHeader('Date');
+        const hCommittedDate = getHeader('CommittedDate');
+        const hDescription = getHeader('Description');
+        const hAmount = getHeader('Amount');
+        const hType = getHeader('Type');
+
+        const formatDate = (dateValue) => {
+          if (!dateValue) return '';
+          if (typeof dateValue === 'number') {
+            const excelDate = new Date(Math.round((dateValue - 25569) * 86400 * 1000));
+            return excelDate.toISOString().split('T')[0];
+          }
+          if (typeof dateValue === 'string') {
+            const dateObj = new Date(dateValue);
+            if (!isNaN(dateObj.getTime())) {
+              return dateObj.toISOString().split('T')[0];
             }
-            // Handle string dates
-            if (typeof dateValue === 'string') {
-              const parts = dateValue.split(/[-\/]/);
-              if (parts.length === 3) {
-                // Try to parse as YYYY-MM-DD or MM/DD/YYYY
-                const dateObj = new Date(dateValue);
-                if (!isNaN(dateObj.getTime())) {
-                  return dateObj.toISOString().split('T')[0];
-                }
-              }
-            }
-            return dateValue.toString();
-          };
-          
-          // Build the CSV row with proper ordered columns
-          return {
-            date: formatDate(date),
-            committedDate: formatDate(committedDate),
-            description: description?.toString() || '',
-            amount: amount?.toString() || '0',
-            type: type?.toString().toLowerCase() || ''
-          };
+          }
+          return '';
+        };
+
+        const formattedData = [];
+        const rowErrors = [];
+
+        jsonData.forEach((row, index) => {
+          const committedDate = formatDate(row[hCommittedDate]);
+          const description = row[hDescription]?.toString().trim();
+          const amount = parseFloat(row[hAmount]);
+          const type = row[hType]?.toString().toLowerCase().trim();
+          const date = formatDate(row[hDate]);
+
+          if (!committedDate || !description || isNaN(amount) || !type) {
+            rowErrors.push(`Row ${index + 2} is missing required fields.`);
+            return;
+          }
+
+          formattedData.push({
+            date,
+            committedDate,
+            description,
+            amount: amount.toFixed(2),
+            type,
+          });
         });
-        
-        // Create CSV string with headers
-        const csvHeaders = expectedHeaders.join(',');
-        const csvRows = formattedData.map(row => {
-          return [
+
+        if (rowErrors.length > 0) {
+          setError(`Errors found:\n${rowErrors.join('\n')}`);
+          setLoading(false);
+          return;
+        }
+
+        const csvHeaders = ['Date', 'CommittedDate', 'Description', 'Amount', 'Type'].join(',');
+        const csvRows = formattedData.map(row =>
+          [
             row.date,
             row.committedDate,
-            `"${row.description.replace(/"/g, '""')}"`, // Escape quotes in description
+            `"${row.description.replace(/"/g, '""')}"`,
             row.amount,
             row.type
-          ].join(',');
-        });
-        
+          ].join(',')
+        );
+
         const csvString = [csvHeaders, ...csvRows].join('\n');
-        
+
         onConvert(csvString);
         setSelectedFile(null);
         setError(null);
@@ -143,20 +147,21 @@ const ExcelToCSV = ({ onConvert }) => {
             hover:file:bg-blue-100"
         />
       </div>
-      
+
       <button
         onClick={convertToCSV}
         disabled={!selectedFile || loading}
-        className={`px-4 py-2 rounded font-medium text-white w-full ${
-          !selectedFile || loading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-700"
-        }`}
+        className={`px-4 py-2 rounded font-medium text-white w-full ${!selectedFile || loading
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-blue-600 hover:bg-blue-700"
+          }`}
       >
         {loading ? "Converting..." : "Convert Excel to CSV"}
       </button>
-      
-      {error && <p className="text-red-500 mt-2">{error}</p>}
+
+      {error && (
+        <pre className="text-red-500 mt-2 whitespace-pre-wrap text-sm">{error}</pre>
+      )}
     </div>
   );
 };

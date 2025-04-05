@@ -200,7 +200,6 @@ router.get("/get-ucNonRecurring-insti", fetchInstitute, async (req, res) => {
   }
 });
 
-
 async function updateBudgetFields(projectId, amount, type, operation) {
   console.log("updateBudgetFields", projectId, amount, type, operation);
   try {
@@ -282,12 +281,15 @@ router.post("/upload-expenses", async (req, res) => {
     if (!projectId || !csvData) {
       return res.status(400).json({ success: false, message: "Missing project ID or CSV data." });
     }
+
     const stream = require("stream");
     const rows = [];
     const readable = new stream.Readable();
     readable._read = () => { };
     readable.push(csvData);
     readable.push(null);
+
+    const csv = require("csv-parser"); // ensure this is imported
 
     readable
       .pipe(csv())
@@ -300,134 +302,81 @@ router.post("/upload-expenses", async (req, res) => {
         }
 
         const expenses = [];
+        let skipped = 0;
 
         for (let i = 0; i < rows.length; i++) {
           const { Date, CommittedDate, Description, Amount, Type } = rows[i];
 
-          if (!Date || !CommittedDate || !Description || !Amount || !Type) {
-            console.error(`Skipping row ${i + 1} due to missing fields.`);
+          if (!CommittedDate || !Description || !Amount || !Type) {
+            console.error(`Skipping row ${i + 1} due to missing required fields (CommittedDate, Description, Amount, or Type).`);
+            skipped++;
             continue;
           }
 
-          const parsedDate = moment(Date, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
           const parsedCommittedDate = moment(CommittedDate, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
-
-          if (!parsedDate.isValid() || !parsedCommittedDate.isValid()) {
-            console.error(`Invalid date format in row ${i + 1}: ${Date} or ${CommittedDate}`);
+          if (!parsedCommittedDate.isValid()) {
+            console.error(`Invalid committedDate format in row ${i + 1}: ${CommittedDate}`);
+            skipped++;
             continue;
           }
 
-          expenses.push({
+          let parsedDate = null;
+          if (Date && Date.trim()) {
+            const tryParseDate = moment(Date, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
+            if (tryParseDate.isValid()) {
+              parsedDate = tryParseDate.toDate();
+            } else {
+              console.warn(`Invalid optional Date field in row ${i + 1}: ${Date}. Setting it as null.`);
+              skipped++;
+              continue;
+            }
+          }
+
+          const expense = new Expense({
             projectId,
             description: Description.trim(),
-            amount: parseFloat(Amount.trim()),
-            date: parsedDate.toDate(),
+            amount: parseFloat(Amount),
+            date: parsedDate,
             committedDate: parsedCommittedDate.toDate(),
-            type: Type.trim(),
+            type: Type.trim()
           });
+
+          try {
+            await expense.validate(); // Validate before pushing
+            expenses.push(expense);
+          } catch (validationErr) {
+            console.warn(`Skipping row ${i + 1} — validation failed: ${validationErr.message}`);
+            skipped++;
+          }
+
         }
 
         if (expenses.length === 0) {
-          return res.status(400).json({ success: false, message: "No valid expenses to upload." });
+          return res.status(400).json({ success: false, message: "No valid expenses to upload. Transaction date must be on or after the committed date" });
         }
 
-        console.log("Final expenses to insert:", expenses);
         await Expense.insertMany(expenses);
 
         for (let i = 0; i < expenses.length; i++) {
           await updateBudgetFields(projectId, expenses[i].amount, expenses[i].type, "add");
         }
 
-        res.status(200).json({ success: true, message: "Expenses uploaded successfully!", added: expenses.length });
+        res.status(200).json({
+          success: true,
+          message: "Expenses uploaded successfully!",
+          added: expenses.length,
+          skipped
+        });
       });
   } catch (error) {
     console.error("Error uploading expenses:", error.message, error.stack);
-    res.status(500).json({ success: false, message: "Server error while uploading expenses.", errorDetails: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Server error while uploading expenses.",
+      errorDetails: error.message
+    });
   }
 });
-
-// router.post("/upload-expenses", async (req, res) => {
-//   try {
-//     const { projectId, csvData } = req.body;
-
-//     if (!projectId || !csvData) {
-//       return res.status(400).json({ success: false, message: "Missing project ID or CSV data." });
-//     }
-//     const stream = require("stream");
-//     const rows = [];
-//     const readable = new stream.Readable();
-//     readable._read = () => { };
-//     readable.push(csvData);
-//     readable.push(null);
-
-//     readable
-//       .pipe(csv())
-//       .on("data", (row) => {
-//         rows.push(row);
-//       })
-//       .on("end", async () => {
-//         if (rows.length === 0) {
-//           return res.status(400).json({ success: false, message: "CSV file is empty or missing data." });
-//         }
-
-//         const expenses = [];
-
-//         for (let i = 0; i < rows.length; i++) {
-//           const { Date, CommittedDate, Description, Amount, Type } = rows[i];
-
-//           if (!Date || !CommittedDate || !Description || !Amount || !Type) {
-//             console.error(`Skipping row ${i + 1} due to missing fields.`);
-//             continue;
-//           }
-
-//           const parsedDate = moment(Date, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
-//           const parsedCommittedDate = moment(CommittedDate, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
-
-//           if (!parsedDate.isValid() || !parsedCommittedDate.isValid()) {
-//             console.error(`Invalid date format in row ${i + 1}: ${Date} or ${CommittedDate}`);
-//             continue;
-//           }
-
-//           expenses.push({
-//             projectId,
-//             description: Description.trim(),
-//             amount: parseFloat(Amount.trim()),
-//             date: parsedDate.toDate(),
-//             committedDate: parsedCommittedDate.toDate(),
-//             type: Type.trim(),
-//           });
-//         }
-
-//         if (expenses.length === 0) {
-//           return res.status(400).json({ success: false, message: "No valid expenses to upload." });
-//         }
-
-//         console.log("Final expenses to insert:", expenses);
-//         await Expense.insertMany(expenses);
-
-//         for (let i = 0; i < expenses.length; i++) {
-//           await updateBudgetFields(projectId, expenses[i].amount, expenses[i].type, "add");
-//         }
-
-//         res.status(200).json({ success: true, message: "Expenses uploaded successfully!", added: expenses.length });
-//       });
-//   } catch (error) {
-//     console.error("Error uploading expenses:", error.message, error.stack);
-//     res.status(500).json({ success: false, message: "Server error while uploading expenses.", errorDetails: error.message });
-//   }
-// });
-
-// Helper function to parse CSV
-function parseCSV(csvData) {
-  try {
-    // Implement CSV parsing logic
-    // Could use libraries like csv-parse
-    return csvParser.parse(csvData, { columns: true });
-  } catch (error) {
-    console.error('CSV Parsing Error:', error);
-    throw new Error('Failed to parse CSV data');
-  }
-}
 
 // Get expenses by project ID
 router.get("/expenses/:id", async (req, res) => {
@@ -443,10 +392,13 @@ router.get("/expenses/:id", async (req, res) => {
     if (req.query.endCommittedDate) filters.committedDate = { ...filters.committedDate, $lte: new Date(req.query.endCommittedDate) };
     if (req.query.minAmount) filters.amount = { $gte: Number(req.query.minAmount) };
     if (req.query.maxAmount) filters.amount = { ...filters.amount, $lte: Number(req.query.maxAmount) };
+    if (req.query.pendingOnly === "true") {
+      filters.date = null;
+    }
 
     console.log("Applying Filters:", filters); // Debugging step
 
-    const expenses = await Expense.find(filters);
+    const expenses = await Expense.find(filters).sort({ createdAt: -1 });
     res.status(200).json(expenses);
   } catch (error) {
     console.error("Error fetching expenses:", error);
@@ -476,7 +428,7 @@ router.delete("/delete-expense/:id", async (req, res) => {
 // Update an expense by ID
 router.put("/edit-expense/:expenseId", async (req, res) => {
   try {
-    const { description, amount, committedDate, type } = req.body;
+    const { description, amount, committedDate, type, date } = req.body;
     const { expenseId } = req.params;
 
     if (!expenseId) {
@@ -491,23 +443,32 @@ router.put("/edit-expense/:expenseId", async (req, res) => {
     const oldAmount = existingExpense.amount;
     const oldType = existingExpense.type;
 
-    const updatedExpense = await Expense.findByIdAndUpdate(
-      expenseId,
-      { $set: { description, amount, committedDate, type } },
-      { new: true, runValidators: true }
-    );
+    // Update fields manually for full validation to trigger
+    existingExpense.description = description;
+    existingExpense.amount = amount;
+    existingExpense.committedDate = committedDate;
+    existingExpense.type = type;
+    existingExpense.date = date;
 
-    if (!updatedExpense) {
-      return res.status(404).json({ message: "Expense not found" });
+    // This triggers all validations including custom ones
+    await existingExpense.save()
+
+    await updateBudgetFields(existingExpense.projectId, oldAmount, oldType, "subtract");
+    await updateBudgetFields(existingExpense.projectId, amount, type, "add");
+
+    res.status(200).json({ message: "Expense updated successfully", updatedExpense: existingExpense, });
+  } catch (err) {
+    console.error("Error updating expense:", err);
+
+    let message = "Failed to update expense";
+
+    // Extract validation errors from Mongoose
+    if (err.name === "ValidationError") {
+      const errors = Object.values(err.errors).map(e => e.message);
+      message = errors.join(", ");
     }
 
-    await updateBudgetFields(updatedExpense.projectId, oldAmount, oldType, "subtract");
-    await updateBudgetFields(updatedExpense.projectId, amount, type, "add");
-
-    res.status(200).json({ message: "Expense updated successfully", updatedExpense });
-  } catch (error) {
-    console.error("Error updating expense:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(400).json({ success: false, message });
   }
 });
 
@@ -516,22 +477,30 @@ router.post("/add-expense", async (req, res) => {
   try {
     const { projectId, description, amount, date, committedDate, type } = req.body;
 
-    if (!projectId || !description || !amount || !date || !committedDate || !type) {
+    if (!projectId || !description || !amount || !committedDate || !type) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
-
-    const parsedDate = moment(date, "YYYY-MM-DD", true);
     const parsedCommittedDate = moment(committedDate, "YYYY-MM-DD", true);
 
-    if (!parsedDate.isValid() || !parsedCommittedDate.isValid()) {
+    if (!parsedCommittedDate.isValid()) {
       return res.status(400).json({ success: false, message: "Invalid date format" });
+    }
+
+    let parsedDate = null;
+    if (date && date.trim()) {
+      const tryParseDate = moment(date, ["YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY"], true);
+      if (tryParseDate.isValid()) {
+        parsedDate = tryParseDate.toDate();
+      } else {
+        console.warn(`Invalid optional Date field in row ${i + 1}: ${Date}. Setting it as null.`);
+      }
     }
 
     const newExpense = new Expense({
       projectId,
       description,
       amount: parseFloat(amount),
-      date: parsedDate.toDate(),
+      date: parsedDate,
       committedDate: parsedCommittedDate.toDate(),
       type
     });
@@ -541,9 +510,18 @@ router.post("/add-expense", async (req, res) => {
     await updateBudgetFields(projectId, amount, type, "add");
 
     res.status(201).json({ success: true, message: "Expense added successfully!", newExpense });
-  } catch (error) {
-    console.error("Error adding expense:", error);
-    res.status(500).json({ success: false, message: "Server error while adding expense." });
+  } catch (err) {
+    console.error("Error updating expense:", err);
+
+    let message = "Failed to update expense";
+
+    // Handle Mongoose validation errors
+    if (err.name === "ValidationError") {
+      const errors = Object.values(err.errors).map(e => e.message);
+      message = errors.join(", ");
+    }
+
+    res.status(400).json({ success: false, message });
   }
 });
 
@@ -556,21 +534,19 @@ router.get('/generate-excel-template', async (req, res) => {
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Expenses');
-    
+
     worksheet.addRow(['Date', 'CommittedDate', 'Description', 'Amount', 'Type']);
-    
-    worksheet.addRow(['2025-04-01', '2025-03-25', 'Example Expense', '1000', 'human_resources']);
-    
+
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=Expense_Template_Project_${projectId}.xlsx`);
-    
+    res.setHeader('Content-Disposition', `attachment; filename=Expense_Template_Excel.xlsx`);
+
     const buffer = await workbook.xlsx.writeBuffer();
     res.send(buffer);
   } catch (error) {
     console.error('Excel generation error:', error);
-    res.status(500).json({ 
-      message: 'Failed to generate Excel template', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Failed to generate Excel template',
+      error: error.message
     });
   }
 });
@@ -578,25 +554,25 @@ router.get('/generate-excel-template', async (req, res) => {
 router.post('/upload-expenses', async (req, res) => {
   try {
     const { projectId, csvData } = req.body;
-    
+
     if (!csvData || csvData.trim() === '') {
       return res.status(400).json({ message: 'CSV data is empty or invalid' });
     }
-    
+
     // Parse CSV rows
     const rows = csvData.split('\n');
     const headers = rows[0].split(',');
-    
+
     // Check for required headers (adjusted for new column order)
     const requiredHeaders = ['Date', 'CommittedDate', 'Description', 'Amount', 'Type'];
     const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
-    
+
     if (missingHeaders.length > 0) {
-      return res.status(400).json({ 
-        message: `Missing required headers: ${missingHeaders.join(', ')}` 
+      return res.status(400).json({
+        message: `Missing required headers: ${missingHeaders.join(', ')}`
       });
     }
-    
+
     // Process each row and map to the database column names
     const expenses = [];
     for (let i = 1; i < rows.length; i++) {
@@ -608,7 +584,7 @@ router.post('/upload-expenses', async (req, res) => {
         const descriptionIndex = headers.indexOf('Description');
         const amountIndex = headers.indexOf('Amount');
         const typeIndex = headers.indexOf('Type');
-        
+
         expenses.push({
           projectId,
           date: row[dateIndex].trim(),
@@ -619,16 +595,16 @@ router.post('/upload-expenses', async (req, res) => {
         });
       }
     }
-    
+
     // Save expenses to database
     // This depends on your database setup, example shown for MongoDB
     await YourExpenseModel.insertMany(expenses);
-    
-    res.status(200).json({ 
+
+    res.status(200).json({
       message: `Successfully uploaded ${expenses.length} expenses`,
       count: expenses.length
     });
-    
+
   } catch (error) {
     console.error('Error uploading expenses:', error);
     res.status(500).json({ message: 'Failed to upload expenses', error: error.message });
