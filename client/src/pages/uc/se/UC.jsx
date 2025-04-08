@@ -4,7 +4,7 @@ import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import SignatureCanvas from 'react-signature-canvas'; // Add this import
+import SignatureCanvas from 'react-signature-canvas';
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
@@ -12,6 +12,7 @@ const UCForm = () => {
   const { id: projectId } = useParams();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isDrawing, setIsDrawing] = useState(false);
   const [selectedType, setSelectedType] = useState("");
   const [ucData, setUCData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -24,8 +25,10 @@ const UCForm = () => {
   const [sentForApproval, setSentForApproval] = useState(false);
   const [instituteApproved, setInstituteApproved] = useState(false);
   const [instituteStamp, setInstituteStamp] = useState(null);
+  const [showUploadOption, setShowUploadOption] = useState(false);
 
   const sigCanvas = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Check if this UC has been sent for approval or already approved
   useEffect(() => {
@@ -34,24 +37,24 @@ const UCForm = () => {
       const storedPendingRequests = localStorage.getItem('pendingUCRequests');
       if (storedPendingRequests) {
         const pendingRequests = JSON.parse(storedPendingRequests);
-        const pendingRequest = pendingRequests.find(req => 
+        const pendingRequest = pendingRequests.find(req =>
           req.projectId === projectId && req.type === selectedType
         );
-        
+
         if (pendingRequest) {
           setSentForApproval(true);
           setPiSignature(pendingRequest.piSignature);
         }
       }
-      
+
       // Check approved requests
       const storedApprovedRequests = localStorage.getItem('approvedUCRequests');
       if (storedApprovedRequests) {
         const approvedRequests = JSON.parse(storedApprovedRequests);
-        const approvedRequest = approvedRequests.find(req => 
+        const approvedRequest = approvedRequests.find(req =>
           req.projectId === projectId && req.type === selectedType
         );
-        
+
         if (approvedRequest) {
           setSentForApproval(true);
           setInstituteApproved(true);
@@ -62,73 +65,69 @@ const UCForm = () => {
     }
   }, [projectId, selectedType]);
 
-  // Update the useEffect hook that checks for approvals to use the localStorage structure
-// Replace the existing useEffect that checks for approvals with this one:
+  useEffect(() => {
+    if (sentForApproval && !instituteApproved) {
+      const checkApprovalInterval = setInterval(() => {
+        const storedApprovedRequests = localStorage.getItem('approvedUCRequests');
+        if (storedApprovedRequests) {
+          const approvedRequests = JSON.parse(storedApprovedRequests);
+          const approvedRequest = approvedRequests.find(req =>
+            req.projectId === projectId && req.type === selectedType
+          );
 
-useEffect(() => {
-  if (sentForApproval && !instituteApproved) {
-    const checkApprovalInterval = setInterval(() => {
-      const storedApprovedRequests = localStorage.getItem('approvedUCRequests');
-      if (storedApprovedRequests) {
-        const approvedRequests = JSON.parse(storedApprovedRequests);
-        const approvedRequest = approvedRequests.find(req => 
-          req.projectId === projectId && req.type === selectedType
-        );
-        
-        if (approvedRequest) {
-          setInstituteApproved(true);
-          setInstituteStamp(approvedRequest.instituteStamp);
-          clearInterval(checkApprovalInterval);
+          if (approvedRequest) {
+            setInstituteApproved(true);
+            setInstituteStamp(approvedRequest.instituteStamp);
+            clearInterval(checkApprovalInterval);
+          }
         }
-      }
-    }, 5000); // Check every 5 seconds
-    
-    return () => clearInterval(checkApprovalInterval);
-  }
-}, [sentForApproval, instituteApproved, projectId, selectedType]);
+      }, 5000); // Check every 5 seconds
 
-// Update the handleSendForApproval function
-const handleSendForApproval = async () => {
-  try {
-    if (!piSignature) {
-      setError("PI signature is required before sending for approval");
-      return;
+      return () => clearInterval(checkApprovalInterval);
     }
-    
-    // Create a new request object
-    const newRequest = {
-      id: `uc-${Date.now()}`,
-      projectId: projectId,
-      type: selectedType,
-      ucData: ucData,
-      piSignature: piSignature,
-      submissionDate: new Date().toISOString(),
-      status: "pending"
-    };
-    
-    // Get existing pending requests from local storage
-    const storedRequests = localStorage.getItem('pendingUCRequests');
-    const pendingRequests = storedRequests ? JSON.parse(storedRequests) : [];
-    
-    // Add the new request
-    pendingRequests.push(newRequest);
-    
-    // Save back to local storage
-    localStorage.setItem('pendingUCRequests', JSON.stringify(pendingRequests));
-    
-    // Show success popup
-    setShowSuccessPopup(true);
-    setSentForApproval(true);
-    
-    // Hide popup after 3 seconds
-    setTimeout(() => {
-      setShowSuccessPopup(false);
-    }, 3000);
-  } catch (err) {
-    console.error("Error sending for approval:", err.message);
-    setError("Failed to send for approval");
-  }
-};
+  }, [sentForApproval, instituteApproved, projectId, selectedType]);
+
+  const handleSendForApproval = async () => {
+    try {
+      if (!piSignature) {
+        setError("PI signature is required before sending for approval");
+        return;
+      }
+
+      // Create a new request object
+      const newRequest = {
+        id: `uc-${Date.now()}`,
+        projectId: projectId,
+        type: selectedType,
+        ucData: ucData,
+        piSignature: piSignature,
+        submissionDate: new Date().toISOString(),
+        status: "pending"
+      };
+
+      // Get existing pending requests from local storage
+      const storedRequests = localStorage.getItem('pendingUCRequests');
+      const pendingRequests = storedRequests ? JSON.parse(storedRequests) : [];
+
+      // Add the new request
+      pendingRequests.push(newRequest);
+
+      // Save back to local storage
+      localStorage.setItem('pendingUCRequests', JSON.stringify(pendingRequests));
+
+      // Show success popup
+      setShowSuccessPopup(true);
+      setSentForApproval(true);
+
+      // Hide popup after 3 seconds
+      setTimeout(() => {
+        setShowSuccessPopup(false);
+      }, 3000);
+    } catch (err) {
+      console.error("Error sending for approval:", err.message);
+      setError("Failed to send for approval");
+    }
+  };
 
   const fetchUCData = async (type) => {
     setLoading(true);
@@ -170,10 +169,9 @@ const handleSendForApproval = async () => {
     fetchUCData(type);
   };
 
-
   // Handle PI signature
   const handleSignatureEnd = () => {
-    if (sigCanvas.current) {
+    if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       const signatureDataUrl = sigCanvas.current.toDataURL();
       setPiSignature(signatureDataUrl);
     }
@@ -194,6 +192,33 @@ const handleSendForApproval = async () => {
     } else {
       setError("Please provide a signature before saving");
     }
+  };
+
+  // Handle file upload for signature
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check if file is an image
+      if (!file.type.startsWith('image/')) {
+        setError("Please upload only image files (PNG, JPG, JPEG)");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setPiSignature(event.target.result);
+        setShowSignatureModal(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const toggleUploadOption = () => {
+    setShowUploadOption(!showUploadOption);
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
   };
 
   const ApprovalStatusBanner = () => {
@@ -222,7 +247,6 @@ const handleSendForApproval = async () => {
     );
   };
 
-
   // For demo purposes - simulate institute approval
   const simulateInstituteApproval = () => {
     // This would normally be an API call to check if the institute has approved
@@ -249,12 +273,12 @@ const handleSendForApproval = async () => {
   const handleSaveAsPDF = () => {
     const pdf = new jsPDF("p", "mm", "a4");
     const currentDate = new Date().toLocaleDateString("en-IN");
-  
+
     // Set page margins
     const pageWidth = 210;
     const margin = 20;
     const contentWidth = pageWidth - 2 * margin;
-  
+
     // Title Section
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(14);
@@ -455,50 +479,38 @@ const handleSendForApproval = async () => {
     yPos += 15;
 
     // Signature section with actual signatures
-  pdf.text("Signatures:", margin, yPos);
-  yPos += 10;
+    pdf.text("Signatures:", margin, yPos);
+    yPos += 10;
 
     // Add PI signature if available
-  if (piSignature) {
-    pdf.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
-    pdf.text("Signature of PI", margin, yPos + 25);
-  } else {
-    pdf.text("Signature of PI: ________________", margin, yPos + 10);
-  }
+    if (piSignature) {
+      pdf.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
+      pdf.text("Signature of PI", margin, yPos + 25);
+    } else {
+      pdf.text("Signature of PI: ________________", margin, yPos + 10);
+    }
 
     // Add institute stamp if approved
-  if (instituteApproved && instituteStamp) {
-    pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
-    pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
-  }
+    if (instituteApproved && instituteStamp) {
+      pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
+      pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
+    }
 
     yPos += 35;
 
     // Signature information
     const signatureData = [
-      [
-        {
-          content: piSignature ? "" : "Signature of PI: ........................\n\n(Strike out inapplicable terms)",
-          rowSpan: 3
-        },
-        {
-          content: "Signature with Seal\nName: Puneet Goyal\nChief Finance Officer\n(Head of Finance)"
-        }
-      ],
-      [
-        "",
-        {
-          content: "Signature with seal\nName: Prof. Harpreet Singh\nHead of Organization"
-        }
-      ]
+      {
+        content: piSignature ? "" : "Signature of PI: ........................\n\n(Strike out inapplicable terms)",
+      }
     ];
 
-    pdf.autoTable({
-      body: signatureData,
-      startY: yPos,
-      theme: 'grid',
-      styles: { fontSize: 10, cellPadding: 5, lineWidth: 0.1, lineColor: [0, 0, 0] }
-    });
+    // pdf.autoTable({
+    //   body: signatureData,
+    //   startY: yPos,
+    //   theme: 'grid',
+    //   styles: { fontSize: 10, cellPadding: 5, lineWidth: 0.1, lineColor: [0, 0, 0] }
+    // });
 
     pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
   };
@@ -512,24 +524,65 @@ const handleSendForApproval = async () => {
         <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowSignatureModal(false)}></div>
         <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
           <h3 className="text-xl font-bold text-center text-gray-800 mb-4">Sign here</h3>
-          <div className="border border-gray-300 rounded-md mb-4">
-            <SignatureCanvas
-              ref={sigCanvas}
-              penColor="black"
-              canvasProps={{
-                width: 500,
-                height: 200,
-                className: "signature-canvas w-full"
-              }}
-              onEnd={handleSignatureEnd}
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={toggleUploadOption}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mx-2"
+            >
+              {showUploadOption ? "Draw Signature" : "Upload Signature"}
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/png, image/jpeg, image/jpg"
+              onChange={handleFileUpload}
             />
           </div>
+
+          {showUploadOption ? (
+            <div className="flex flex-col items-center">
+              <button
+                onClick={triggerFileInput}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 mb-4"
+              >
+                Select Image File (PNG, JPG)
+              </button>
+              {piSignature && (
+                <div className="mt-2 border border-gray-300 p-2 rounded">
+                  <img src={piSignature} alt="Uploaded signature" className="h-24 object-contain" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="border border-gray-300 rounded-md mb-4">
+              <SignatureCanvas
+                ref={sigCanvas}
+                penColor="black"
+                canvasProps={{
+                  width: 500,
+                  height: 200,
+                  className: "signature-canvas w-full"
+                }}
+
+              />
+            </div>
+          )}
+
           <div className="flex justify-between">
+            {!showUploadOption && (
+              <button
+                onClick={clearSignature}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Clear
+              </button>
+            )}
             <button
-              onClick={clearSignature}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              onClick={() => setShowSignatureModal(false)}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
             >
-              Clear
+              Cancel
             </button>
             <button
               onClick={saveSignature}
@@ -574,7 +627,6 @@ const handleSendForApproval = async () => {
     );
   };
 
-
   return (
     <div className="flex bg-gray-100 min-h-screen">
       <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
@@ -594,407 +646,342 @@ const handleSendForApproval = async () => {
             <select
               value={selectedType}
               onChange={(e) => handleSelection(e.target.value)}
-              className="px-4 py-2 rounded font-medium text-gray-700 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="" disabled>
-                Select UC Type
-              </option>
-              <option value="recurring">Generate Recurring UC</option>
-              <option value="nonRecurring">Generate Non-Recurring UC</option>
+              <option value="">Select UC Type</option>
+              <option value="recurring">Recurring</option>
+              <option value="nonRecurring">Non-Recurring</option>
             </select>
           </div>
 
-          {loading && <p className="text-center mt-6">Loading...</p>}
-          {error && <p className="text-center text-red-500 mt-6">{error}</p>}
-
-          {/* Display approval status banner if sent for approval */}
-          {sentForApproval && (
-            <div className={`rounded-lg p-4 mb-6 ${instituteApproved ? 'bg-green-100' : 'bg-yellow-100'}`}>
-              <div className="flex items-center">
-                {instituteApproved ? (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="font-medium text-green-800">Approved by Institute on {new Date().toLocaleDateString()}</span>
-                  </>
-                ) : (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="font-medium text-yellow-800">Pending Institute Approval</span>
-                  </>
-                )}
-              </div>
+          {error && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+              <p>{error}</p>
             </div>
           )}
 
-          {ucData && (
-            <div id="uc-details" className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
+          {selectedType && (
+            <div className="bg-white shadow-md rounded-xl p-6 mb-6">
+              <ApprovalStatusBanner />
 
-              <div className="text-center mb-6">
-                <h3 className="text-lg font-bold">GFR 12-A</h3>
-                <p className="text-sm font-medium">[See Rule 238 (1)]</p>
-                <h2 className="text-xl font-bold mt-2">
-                  FINAL UTILIZATION CERTIFICATE FOR THE YEAR {ucData.currentYear} in respect of
-                </h2>
-                <p className="text-lg font-semibold">
-                  {selectedType === "recurring" ? "Recurring" : "Non-Recurring"}
-                </p>
-                <p className="text-sm font-medium mt-1">
-                  as on {new Date().toLocaleDateString()} to be submitted to SERB
-                </p>
-                <p className="text-sm font-medium">Is the UC Provisional (Provisional/Audited)</p>
-              </div>
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700"></div>
+                </div>
+              ) : ucData ? (
+                <div id="uc-details" className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
 
-              <h3 className="text-lg font-semibold text-blue-700 mb-4">
-                {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="flex">
-                  <span className="w-6">1</span>
-                  <span className="font-semibold text-gray-700">Name of the grant receiving Organization:</span>
-                  <span className="ml-2">{ucData.instituteName}</span>
-                </div>
-                <div className="flex">
-                  <span className="w-6">2</span>
-                  <span className="font-semibold text-gray-700">Name of Principal Investigator (PI):</span>
-                  <span className="ml-2">{ucData.principalInvestigator}</span>
-                </div>
-                <div className="flex">
-                  <span className="w-6">3</span>
-                  <span className="font-semibold text-gray-700">SERB Sanction order no. & date:</span>
-                  <span className="ml-2">ECR20XXXXXXXX Dated DD-MM-YYYY</span>
-                </div>
-                <div className="flex">
-                  <span className="w-6">4</span>
-                  <span className="font-semibold text-gray-700">Title of the Project:</span>
-                  <span className="ml-2">{ucData.title}</span>
-                </div>
-                <div className="flex">
-                  <span className="w-6">5</span>
-                  <span className="font-semibold text-gray-700">Name of the SERB Scheme:</span>
-                  <span className="ml-2">{ucData.scheme}</span>
-                </div>
-                <div className="flex">
-                  <span className="w-6">6</span>
-                  <span className="font-semibold text-gray-700">Whether recurring or non-recurring grants:</span>
-                  <span className="ml-2">{selectedType === "recurring" ? "Recurring" : "Non Recurring"}</span>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex">
-                  <span className="w-6">7</span>
-                  <span className="font-semibold text-gray-700">Grants position of the beginning of the Financial year</span>
-                </div>
-                <div className="pl-8 mt-2">
-                  <div className="flex justify-between">
-                    <span>Carry forward from previous financial year</span>
-                    <span>₹ {ucData.CarryForward}</span>
+                  <div className="text-center mb-6">
+                    <h3 className="text-lg font-bold">GFR 12-A</h3>
+                    <p className="text-sm font-medium">[See Rule 238 (1)]</p>
+                    <h2 className="text-xl font-bold mt-2">
+                      FINAL UTILIZATION CERTIFICATE FOR THE YEAR {ucData.currentYear} in respect of
+                    </h2>
+                    <p className="text-lg font-semibold">
+                      {selectedType === "recurring" ? "Recurring" : "Non-Recurring"}
+                    </p>
+                    <p className="text-sm font-medium mt-1">
+                      as on {new Date().toLocaleDateString()} to be submitted to SERB
+                    </p>
+                    <p className="text-sm font-medium">Is the UC Provisional (Provisional/Audited)</p>
                   </div>
-                  <div className="flex justify-between mt-1">
-                    <span>Others, If any</span>
-                    <span>₹ 0</span>
-                  </div>
-                  <div className="flex justify-between mt-1 font-semibold">
-                    <span>Total</span>
-                    <span>₹ {ucData.CarryForward}</span>
-                  </div>
-                </div>
-              </div>
 
-              <div className="mb-6">
-                <div className="flex mb-2">
-                  <span className="w-6">8</span>
-                  <span className="font-semibold text-gray-700">Details of grants received, expenditure incurred and closing balances: (Actual)</span>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full border border-gray-300 text-sm">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th rowSpan="2" className="border border-gray-300 p-1">Unspent Balance of Grants received years (figure as at Sl. No. 7 (iii))</th>
-                        <th rowSpan="2" className="border border-gray-300 p-1">Interest Earned thereon</th>
-                        <th rowSpan="2" className="border border-gray-300 p-1">Interest deposited back to the SERB</th>
-                        <th colSpan="3" className="border border-gray-300 p-1">Grant received during the year</th>
-                        <th rowSpan="2" className="border border-gray-300 p-1">Total (1+2 - 3+4)</th>
-                        <th rowSpan="2" className="border border-gray-300 p-1">Expenditure incurred</th>
-                        <th rowSpan="2" className="border border-gray-300 p-1">Closing Balances (5 - 6)</th>
-                      </tr>
-                      <tr className="bg-gray-50">
-                        <th className="border border-gray-300 p-1">Sanction No.</th>
-                        <th className="border border-gray-300 p-1">Date</th>
-                        <th className="border border-gray-300 p-1">Amount</th>
-                      </tr>
-                      <tr className="bg-gray-50">
-                        <th className="border border-gray-300 p-1">1</th>
-                        <th className="border border-gray-300 p-1">2</th>
-                        <th className="border border-gray-300 p-1">3</th>
-                        <th colSpan="3" className="border border-gray-300 p-1">4</th>
-                        <th className="border border-gray-300 p-1">5</th>
-                        <th className="border border-gray-300 p-1">6</th>
-                        <th className="border border-gray-300 p-1">7</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="text-center">
-                        <td className="border border-gray-300 p-1">₹ {ucData.CarryForward}</td>
-                        <td className="border border-gray-300 p-1">₹ {Math.round(ucData.CarryForward * 0.025)}</td>
-                        <td className="border border-gray-300 p-1">₹ 0</td>
-                        <td className="border border-gray-300 p-1">ECR20XXXXXXXX</td>
-                        <td className="border border-gray-300 p-1">{new Date().getDate()}-{new Date().toLocaleString('default', { month: 'short' })}-{new Date().getFullYear()}</td>
-                        <td className="border border-gray-300 p-1">₹ 0</td>
-                        <td className="border border-gray-300 p-1">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025)}</td>
-                        <td className="border border-gray-300 p-1">₹ {ucData.recurringExp}</td>
-                        <td className="border border-gray-300 p-1">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025) - ucData.recurringExp}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                  <h3 className="text-lg font-semibold text-blue-700 mb-4">
+                    {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
+                  </h3>
 
-              {selectedType === "recurring" ? (
-                <div className="mb-6">
-                  <div className="font-semibold text-gray-700 mb-2">Component wise utilization of grants:</div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border border-gray-300">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="border border-gray-300 p-2">Component</th>
-                          <th className="border border-gray-300 p-2">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="text-center">
-                          <td className="border border-gray-300 p-2">Human Resources</td>
-                          <td className="border border-gray-300 p-2">₹ {ucData.human_resources}</td>
-                        </tr>
-                        <tr className="text-center">
-                          <td className="border border-gray-300 p-2">Consumables</td>
-                          <td className="border border-gray-300 p-2">₹ {ucData.consumables}</td>
-                        </tr>
-                        <tr className="text-center">
-                          <td className="border border-gray-300 p-2">Others</td>
-                          <td className="border border-gray-300 p-2">₹ {ucData.others}</td>
-                        </tr>
-                        <tr className="text-center font-semibold">
-                          <td className="border border-gray-300 p-2">Total</td>
-                          <td className="border border-gray-300 p-2">₹ {ucData.recurringExp}</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="flex">
+                      <span className="w-6">1</span>
+                      <span className="font-semibold text-gray-700">Name of the grant receiving Organization:</span>
+                      <span className="ml-2">{ucData.instituteName}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="w-6">2</span>
+                      <span className="font-semibold text-gray-700">Name of Principal Investigator (PI):</span>
+                      <span className="ml-2">{ucData.principalInvestigator}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="w-6">3</span>
+                      <span className="font-semibold text-gray-700">SERB Sanction order no. & date:</span>
+                      <span className="ml-2">ECR20XXXXXXXX Dated DD-MM-YYYY</span>
+                    </div>
+                    <div className="flex">
+                      <span className="w-6">4</span>
+                      <span className="font-semibold text-gray-700">Title of the Project:</span>
+                      <span className="ml-2">{ucData.title}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="w-6">5</span>
+                      <span className="font-semibold text-gray-700">Name of the SERB Scheme:</span>
+                      <span className="ml-2">{ucData.scheme}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="w-6">6</span>
+                      <span className="font-semibold text-gray-700">Whether recurring or non-recurring grants:</span>
+                      <span className="ml-2">{selectedType === "recurring" ? "Recurring" : "Non Recurring"}</span>
+                    </div>
+                  </div>
+                  <div className="mb-6">
+                    <div className="flex">
+                      <span className="w-6">7</span>
+                      <span className="font-semibold text-gray-700">Grants position of the beginning of the Financial year</span>
+                    </div>
+                    <div className="pl-8 mt-2">
+                      <div className="flex justify-between">
+                        <span>Carry forward from previous financial year</span>
+                        <span>₹ {ucData.CarryForward}</span>
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span>Others, If any</span>
+                        <span>₹ 0</span>
+                      </div>
+                      <div className="flex justify-between mt-1 font-semibold">
+                        <span>Total</span>
+                        <span>₹ {ucData.CarryForward}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <div className="flex mb-2">
+                      <span className="w-6">8</span>
+                      <span className="font-semibold text-gray-700">Details of grants received, expenditure incurred and closing balances: (Actual)</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border border-gray-300 text-sm">
+                        <thead>
+                          <tr className="bg-gray-50">
+                            <th rowSpan="2" className="border border-gray-300 p-1">Unspent Balance of Grants received years (figure as at Sl. No. 7 (iii))</th>
+                            <th rowSpan="2" className="border border-gray-300 p-1">Interest Earned thereon</th>
+                            <th rowSpan="2" className="border border-gray-300 p-1">Interest deposited back to the SERB</th>
+                            <th colSpan="3" className="border border-gray-300 p-1">Grant received during the year</th>
+                            <th rowSpan="2" className="border border-gray-300 p-1">Total (1+2 - 3+4)</th>
+                            <th rowSpan="2" className="border border-gray-300 p-1">Expenditure incurred</th>
+                            <th rowSpan="2" className="border border-gray-300 p-1">Closing Balances (5 - 6)</th>
+                          </tr>
+                          <tr className="bg-gray-50">
+                            <th className="border border-gray-300 p-1">Sanction No.</th>
+                            <th className="border border-gray-300 p-1">Date</th>
+                            <th className="border border-gray-300 p-1">Amount</th>
+                          </tr>
+                          <tr className="bg-gray-50">
+                            <th className="border border-gray-300 p-1">1</th>
+                            <th className="border border-gray-300 p-1">2</th>
+                            <th className="border border-gray-300 p-1">3</th>
+                            <th colSpan="3" className="border border-gray-300 p-1">4</th>
+                            <th className="border border-gray-300 p-1">5</th>
+                            <th className="border border-gray-300 p-1">6</th>
+                            <th className="border border-gray-300 p-1">7</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="text-center">
+                            <td className="border border-gray-300 p-1">₹ {ucData.CarryForward}</td>
+                            <td className="border border-gray-300 p-1">₹ {Math.round(ucData.CarryForward * 0.025)}</td>
+                            <td className="border border-gray-300 p-1">₹ 0</td>
+                            <td className="border border-gray-300 p-1">ECR20XXXXXXXX</td>
+                            <td className="border border-gray-300 p-1">{new Date().getDate()}-{new Date().toLocaleString('default', { month: 'short' })}-{new Date().getFullYear()}</td>
+                            <td className="border border-gray-300 p-1">₹ 0</td>
+                            <td className="border border-gray-300 p-1">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025)}</td>
+                            <td className="border border-gray-300 p-1">₹ {ucData.recurringExp}</td>
+                            <td className="border border-gray-300 p-1">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025) - ucData.recurringExp}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {selectedType === "recurring" ? (
+                    <div className="mb-6">
+                      <div className="font-semibold text-gray-700 mb-2">Component wise utilization of grants:</div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full border border-gray-300">
+                          <thead>
+                            <tr className="bg-gray-50">
+                              <th className="border border-gray-300 p-2">Component</th>
+                              <th className="border border-gray-300 p-2">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="text-center">
+                              <td className="border border-gray-300 p-2">Human Resources</td>
+                              <td className="border border-gray-300 p-2">₹ {ucData.human_resources}</td>
+                            </tr>
+                            <tr className="text-center">
+                              <td className="border border-gray-300 p-2">Consumables</td>
+                              <td className="border border-gray-300 p-2">₹ {ucData.consumables}</td>
+                            </tr>
+                            <tr className="text-center">
+                              <td className="border border-gray-300 p-2">Others</td>
+                              <td className="border border-gray-300 p-2">₹ {ucData.others}</td>
+                            </tr>
+                            <tr className="text-center font-semibold">
+                              <td className="border border-gray-300 p-2">Total</td>
+                              <td className="border border-gray-300 p-2">₹ {ucData.recurringExp}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-6">
+                      <div className="font-semibold text-gray-700 mb-2">Component wise utilization of grants:</div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full border border-gray-300">
+                          <thead>
+                            <tr className="bg-gray-50">
+                              <th className="border border-gray-300 p-2">Grant-in-aid-creation of capital assets</th>
+                              <th className="border border-gray-300 p-2">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="text-center">
+                              <td className="border border-gray-300 p-2">₹ {ucData.recurringExp}</td>
+                              <td className="border border-gray-300 p-2">₹ {ucData.recurringExp}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+
+                  <div className="mb-6">
+                    <div className="font-semibold text-gray-700 mb-2">Details of grants position at the end of the year</div>
+                    <div className="pl-4">
+                      <div className="flex gap-2 mb-1">
+                        <span>(i)</span>
+                        <span>Balance available at end of financial year</span>
+                        <span className="flex-grow text-right">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025) - ucData.recurringExp}</span>
+                      </div>
+                      <div className="flex gap-2 mb-1">
+                        <span>(ii)</span>
+                        <span>Unspent balance refunded to SERB (if any)</span>
+                        <span className="flex-grow text-right">₹ 0</span>
+                      </div>
+                      <div className="flex gap-2 mb-1">
+                        <span>(iii)</span>
+                        <span>Balance (Carry forward to next financial year)</span>
+                        <span className="flex-grow text-right">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025) - ucData.recurringExp}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <div className="font-semibold text-gray-700 mb-2">Certification</div>
+                    <p className="text-sm mb-2">
+                      Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly fulfilled/are being fulfilled and that I
+                      have exercised following checks to see that the money has been actually utilized for the purpose which it was sanctioned:
+                    </p>
+                    <ol className="list-roman pl-6 text-sm space-y-2">
+                      <li>The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.</li>
+                      <li>There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.</li>
+                      <li>To the best of our knowledge and belief, no transactions have been entered that are in violation of relevant Act/Rules/standing instructions and scheme guidelines.</li>
+                      <li>The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms an</li>
+                      <li>The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.</li>
+                      <li>The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.</li>
+                      <li>The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.</li>
+                      <li>It has been ensured that the physical and financial performance under ECRA has been according to the requirements, as prescribed in the guidelines issued by Govt. of India and the performance/targets achieved statement for the year to which the utilization of the fund resulted in outcomes given at Annexure-I duly enclosed.</li>
+                      <li>The utilization of the fund resulted in outcomes given at Annexure-II duly enclosed (to be formulated by the Ministry/Department concerned as per their requirements/specifications)</li>
+                      <li>Details of various schemes executed by the agency through grants-in-aid received from the same Ministry or from other Ministries is enclosed at Annexure-II (to be formulated by the Ministry/Department concerned as per their requirements/specifications)</li>
+                    </ol>
+                  </div>
+
+                  <div className="mb-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div>
+                        <p className="text-sm">Date: {new Date().toLocaleDateString()}</p>
+                        <p className="text-sm">Place: </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Signature Section */}
+                  <div className="border-t border-gray-200 pt-4 mb-6">
+                    <h3 className="text-xl font-semibold mb-4">Signatures</h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="border p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Principal Investigator</h4>
+                        {piSignature ? (
+                          <div className="border p-2 rounded mb-2">
+                            <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
+                          </div>
+                        ) : (
+                          <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
+                            <p className="text-gray-500">No signature added</p>
+                          </div>
+                        )}
+
+                        {!sentForApproval && (
+                          <button
+                            onClick={() => setShowSignatureModal(true)}
+                            className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={instituteApproved}
+                          >
+                            {piSignature ? "Change Signature" : "Add Signature"}
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="border p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Institute Approval</h4>
+                        {instituteApproved && instituteStamp ? (
+                          <div className="border p-2 rounded mb-2">
+                            <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
+                          </div>
+                        ) : (
+                          <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
+                            <p className="text-gray-500">
+                              {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-4">
+                    <button
+                      onClick={handleSaveAsPDF}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Save as PDF
+                    </button>
+
+                    {!sentForApproval && (
+                      <button
+                        onClick={handleSendForApproval}
+                        disabled={!piSignature}
+                        className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${piSignature
+                          ? "bg-green-600 text-white hover:bg-green-700"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          }`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Send for Approval
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
-                <div className="mb-6">
-                  <div className="font-semibold text-gray-700 mb-2">Component wise utilization of grants:</div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border border-gray-300">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="border border-gray-300 p-2">Grant-in-aid-creation of capital assets</th>
-                          <th className="border border-gray-300 p-2">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="text-center">
-                          <td className="border border-gray-300 p-2">₹ {ucData.recurringExp}</td>
-                          <td className="border border-gray-300 p-2">₹ {ucData.recurringExp}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                <div className="text-center py-10">
+                  <p className="text-gray-500">Select a UC type to generate the certificate</p>
                 </div>
               )}
-
-
-              <div className="mb-6">
-                <div className="font-semibold text-gray-700 mb-2">Details of grants position at the end of the year</div>
-                <div className="pl-4">
-                  <div className="flex gap-2 mb-1">
-                    <span>(i)</span>
-                    <span>Balance available at end of financial year</span>
-                    <span className="flex-grow text-right">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025) - ucData.recurringExp}</span>
-                  </div>
-                  <div className="flex gap-2 mb-1">
-                    <span>(ii)</span>
-                    <span>Unspent balance refunded to SERB (if any)</span>
-                    <span className="flex-grow text-right">₹ 0</span>
-                  </div>
-                  <div className="flex gap-2 mb-1">
-                    <span>(iii)</span>
-                    <span>Balance (Carry forward to next financial year)</span>
-                    <span className="flex-grow text-right">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025) - ucData.recurringExp}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="font-semibold text-gray-700 mb-2">Certification</div>
-                <p className="text-sm mb-2">
-                  Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly fulfilled/are being fulfilled and that I
-                  have exercised following checks to see that the money has been actually utilized for the purpose which it was sanctioned:
-                </p>
-                <ol className="list-roman pl-6 text-sm space-y-2">
-                  <li>The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.</li>
-                  <li>There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.</li>
-                  <li>To the best of our knowledge and belief, no transactions have been entered that are in violation of relevant Act/Rules/standing instructions and scheme guidelines.</li>
-                  <li>The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms an</li>
-                  <li>The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.</li>
-                  <li>The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.</li>
-                  <li>The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.</li>
-                  <li>It has been ensured that the physical and financial performance under ECRA has been according to the requirements, as prescribed in the guidelines issued by Govt. of India and the performance/targets achieved statement for the year to which the utilization of the fund resulted in outcomes given at Annexure-I duly enclosed.</li>
-                  <li>The utilization of the fund resulted in outcomes given at Annexure-II duly enclosed (to be formulated by the Ministry/Department concerned as per their requirements/specifications)</li>
-                  <li>Details of various schemes executed by the agency through grants-in-aid received from the same Ministry or from other Ministries is enclosed at Annexure-II (to be formulated by the Ministry/Department concerned as per their requirements/specifications)</li>
-                </ol>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div>
-                    <p className="text-sm">Date: {new Date().toLocaleDateString()}</p>
-                    <p className="text-sm">Place: </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300">
-                  <div className="p-4 border-r border-gray-300">
-                    <p className="text-center mb-8">Signature of PI: ........................</p>
-                    <p className="text-center text-sm">(Strike out inapplicable terms)</p>
-                  </div>
-                  <div className="p-4">
-                    <div className="mb-6">
-                      <p className="text-center mb-2">Signature with Seal</p>
-                      <p className="text-center">Name: Puneet Goyal</p>
-                      <p className="text-center">Chief Finance Officer</p>
-                      <p className="text-center">(Head of Finance)</p>
-                    </div>
-                    <div>
-                      <p className="text-center mb-2">Signature with seal</p>
-                      <p className="text-center">Name: Prof. Harpreet Singh</p>
-                      <p className="text-center">Head of Organization</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-center mt-6 gap-4">
-                <button
-                  onClick={handleSaveAsPDF}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
-                  </svg>
-                  Download as PDF
-                </button>
-
-                <button
-                  onClick={() => setShowSignatureModal(true)}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center gap-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                  </svg>
-                  Add Signature
-                </button>
-
-                <button
-                  onClick={handleSendForApproval}
-                  className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center gap-2"
-                  disabled={!piSignature}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Send for Institute approval
-                </button>
-              </div>
-            </div>
-          )}
-
-
-          {!selectedType && !loading && !error && (
-            <div className="text-center mt-6 p-8 bg-white rounded-lg shadow-md">
-              <svg className="h-16 w-16 text-blue-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Generate Utilization Certificate</h3>
-              <p className="text-gray-600 mb-4">
-                Select certificate type from the dropdown above to generate a utilization certificate
-              </p>
             </div>
           )}
         </div>
       </div>
 
-
-      {/* Signature Modal */}
-      {showSignatureModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowSignatureModal(false)}></div>
-          <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold text-center text-gray-800 mb-4">Sign here</h3>
-            <div className="border border-gray-300 rounded-md mb-4">
-              <SignatureCanvas
-                ref={sigCanvas}
-                penColor="black"
-                canvasProps={{
-                  width: 500,
-                  height: 200,
-                  className: "signature-canvas w-full"
-                }}
-                onEnd={handleSignatureEnd}
-              />
-            </div>
-            <div className="flex justify-between">
-              <button
-                onClick={clearSignature}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              >
-                Clear
-              </button>
-              <button
-                onClick={saveSignature}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Save Signature
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Success Popup */}
-      {showSuccessPopup && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowSuccessPopup(false)}></div>
-          <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-green-100 p-2 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </div>
-            <h3 className="text-xl font-bold text-center text-gray-800 mb-2">Success!</h3>
-            <p className="text-center text-gray-600">
-              Your Utilization Certificate has been sent for Institute approval.
-            </p>
-            <div className="mt-6 flex justify-center">
-              <button
-                onClick={() => setShowSuccessPopup(false)}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SignatureModal />
+      <SuccessPopup />
     </div>
   );
 };

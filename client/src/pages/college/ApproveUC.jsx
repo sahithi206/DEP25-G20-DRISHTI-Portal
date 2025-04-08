@@ -106,18 +106,18 @@ const ApproveUC = () => {
 
   const handleDownloadPDF = () => {
     if (!selectedRequest) return;
-
+  
     const ucData = selectedRequest.ucData;
     const certificateType = selectedRequest.type;
     
     const pdf = new jsPDF("p", "mm", "a4");
     const currentDate = new Date().toLocaleDateString("en-IN");
-
+  
     // Set page margins
     const pageWidth = 210;
     const margin = 20;
     const contentWidth = pageWidth - 2 * margin;
-
+  
     // Title Section
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(14);
@@ -128,11 +128,12 @@ const ApproveUC = () => {
     pdf.text(`FINAL UTILIZATION CERTIFICATE FOR THE YEAR ${ucData.currentYear} in respect of`, pageWidth / 2, 32, { align: "center" });
     pdf.text(`${certificateType === "recurring" ? "Recurring" : "Non - Recurring"}`, pageWidth / 2, 38, { align: "center" });
     pdf.text(`as on ${currentDate} to be submitted to SERB`, pageWidth / 2, 44, { align: "center" });
-
+    pdf.text("Is the UC Provisional (Provisional/Audited)", pageWidth / 2, 50, { align: "center" });
+  
     // Main Information Section
     pdf.setFontSize(11);
     pdf.setFont("helvetica", "normal");
-
+  
     const items = [
       { label: "Name of the grant receiving Organization", value: ucData.instituteName },
       { label: "Name of Principal Investigator (PI)", value: ucData.principalInvestigator },
@@ -141,10 +142,10 @@ const ApproveUC = () => {
       { label: "Name of the SERB Scheme", value: ucData.scheme },
       { label: "Whether recurring or non-recurring grants", value: certificateType === "recurring" ? "Recurring" : "Non Recurring" }
     ];
-
+  
     let yPos = 60;
     let itemNum = 1;
-
+  
     items.forEach(item => {
       pdf.setFont("helvetica", "normal");
       pdf.text(`${itemNum}`, margin, yPos);
@@ -153,22 +154,224 @@ const ApproveUC = () => {
       yPos += 7;
       itemNum++;
     });
-
-    // Add signatures if available
-    yPos = 150;
-    
+  
+    // Grants position at beginning of financial year
+    yPos += 3;
+    pdf.text(`${itemNum}`, margin, yPos);
+    pdf.text("Grants position of the beginning of the Financial year", margin + 5, yPos);
+    yPos += 7;
+  
+    // Financial details
+    pdf.text("Carry forward from previous financial year", margin + 20, yPos);
+    pdf.text(`₹ ${ucData.CarryForward}`, margin + 120, yPos);
+    yPos += 7;
+  
+    pdf.text("Others, If any", margin + 20, yPos);
+    pdf.text("₹ 0", margin + 120, yPos);
+    yPos += 7;
+  
+    pdf.text("Total", margin + 20, yPos);
+    pdf.text(`₹ ${ucData.CarryForward}`, margin + 120, yPos);
+    yPos += 10;
+  
+    // Details of grants received section
+    pdf.text(`${itemNum + 1}`, margin, yPos);
+    pdf.text("Details of grants received, expenditure incurred and closing balances: (Actual)", margin + 5, yPos);
+    yPos += 10;
+  
+    // Complex table for grant details
+    const headers = [
+      [{ content: "Unspent Balance of\nGrants received years\n(figure as at Sl. No. 7\n(iii))", colSpan: 1, rowSpan: 2 },
+      { content: "Interest Earned\nthereon", colSpan: 1, rowSpan: 2 },
+      { content: "Interest\ndeposited\nback to the\nSERB", colSpan: 1, rowSpan: 2 },
+      { content: "Grant received during the year", colSpan: 3, rowSpan: 1 },
+      { content: "Total\n(1+2 - 3+4)", colSpan: 1, rowSpan: 2 },
+      { content: "Expenditure\nincurred", colSpan: 1, rowSpan: 2 },
+      { content: "Closing\nBalances (5 - 6)", colSpan: 1, rowSpan: 2 }]
+    ];
+  
+    const subHeaders = [
+      ["", "", "", "Sanction No.", "Date", "Amount", "", "", ""]
+    ];
+  
+    const interestAmount = Math.round(ucData.CarryForward * 0.025); // Example interest calculation (2.5%)
+  
+    const data = [
+      [`₹ ${ucData.CarryForward}`, `₹ ${interestAmount}`, "₹ 0", "ECR20XXXXXXXX",
+      `${new Date().getDate()}-${new Date().toLocaleString('default', { month: 'short' })}-${new Date().getFullYear()}`,
+        "₹ 0", `₹ ${parseFloat(ucData.CarryForward) + interestAmount}`, `₹ ${ucData.recurringExp}`,
+      `₹ ${parseFloat(ucData.CarryForward) + interestAmount - parseFloat(ucData.recurringExp)}`]
+    ];
+  
+    pdf.autoTable({
+      head: [...headers, ...subHeaders],
+      body: data,
+      startY: yPos,
+      theme: 'grid',
+      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
+      styles: { fontSize: 8, cellPadding: 1, overflow: 'linebreak', lineWidth: 0.1, lineColor: [0, 0, 0] },
+      columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 20 }, 2: { cellWidth: 20 } }
+    });
+  
+    yPos = pdf.lastAutoTable.finalY + 10;
+  
+    // Component-wise utilization section
+    if (certificateType === "recurring") {
+      pdf.text("Component wise utilization of grants:", margin, yPos);
+      yPos += 5;
+  
+      // Initialize with default values if not present
+      const humanResources = ucData.human_resources || "0";
+      const consumables = ucData.consumables || "0";
+      const others = ucData.others || "0";
+  
+      const componentHeaders = [["Component", "Total"]];
+      const componentData = [
+        ["Human Resources", `₹ ${humanResources}`],
+        ["Consumables", `₹ ${consumables}`],
+        ["Others", `₹ ${others}`],
+        ["Total", `₹ ${ucData.recurringExp}`]
+      ];
+  
+      pdf.autoTable({
+        head: componentHeaders,
+        body: componentData,
+        startY: yPos,
+        theme: 'grid',
+        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
+        styles: { fontSize: 10, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] }
+      });
+  
+      yPos = pdf.lastAutoTable.finalY + 10;
+    } else {
+      pdf.text("Component wise utilization of grants:", margin, yPos);
+      yPos += 5;
+  
+      const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
+      const componentData = [[`₹ ${ucData.recurringExp}`, `₹ ${ucData.recurringExp}`]];
+  
+      pdf.autoTable({
+        head: componentHeaders,
+        body: componentData,
+        startY: yPos,
+        theme: 'grid',
+        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
+        styles: { fontSize: 10, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] }
+      });
+  
+      yPos = pdf.lastAutoTable.finalY + 10;
+    }
+  
+    // Details of grants position at end of year
+    pdf.text("Details of grants position at the end of the year", margin, yPos);
+    yPos += 7;
+  
+    const closingBalance = parseFloat(ucData.CarryForward) + interestAmount - parseFloat(ucData.recurringExp);
+  
+    pdf.text("(i)", margin, yPos);
+    pdf.text("Balance available at end of financial year", margin + 10, yPos);
+    pdf.text(`₹ ${closingBalance}`, margin + 100, yPos);
+    yPos += 7;
+  
+    pdf.text("(ii)", margin, yPos);
+    pdf.text("Unspent balance refunded to SERB (if any)", margin + 10, yPos);
+    pdf.text("₹ 0", margin + 100, yPos);
+    yPos += 7;
+  
+    pdf.text("(iii)", margin, yPos);
+    pdf.text("Balance (Carry forward to next financial year)", margin + 10, yPos);
+    pdf.text(`₹ ${closingBalance}`, margin + 100, yPos);
+    yPos += 15;
+  
+    // Add new page for certification
+    pdf.addPage();
+    yPos = 20;
+  
+    // Certification text
+    pdf.setFontSize(10);
+    pdf.text("Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly fulfilled/are being fulfilled and that I", margin, yPos);
+    pdf.text("have exercised following checks to see that the money has been actually utilized for the purpose which it was sanctioned:", margin, yPos + 5);
+    yPos += 15;
+  
+    // Certification items
+    const certItems = [
+      "The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.",
+      "There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.",
+      "To the best of our knowledge and belief, no transactions have been entered that are in violation of relevant Act/Rules/standing instructions and scheme guidelines.",
+      "The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.",
+      "The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.",
+      "The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.",
+      "It has been ensured that the physical and financial performance under ECRA has been according to the requirements, as prescribed in the guidelines issued by Govt. of India and the performance/targets achieved statement for the year to which the utilization of the fund resulted in outcomes given at Annexure-I duly enclosed.",
+      "The utilization of the fund resulted in outcomes given at Annexure-II duly enclosed (to be formulated by the Ministry/Department concerned as per their requirements/specifications)",
+      "Details of various schemes executed by the agency through grants-in-aid received from the same Ministry or from other Ministries is enclosed at Annexure-II (to be formulated by the Ministry/Department concerned as per their requirements/specifications)"
+    ];
+  
+    certItems.forEach((item, index) => {
+      const numeral = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"][index];
+      const splitText = pdf.splitTextToSize(item, contentWidth - 15);
+  
+      pdf.text(`(${numeral})`, margin, yPos);
+      pdf.text(splitText, margin + 10, yPos);
+  
+      yPos += (splitText.length * 5) + 5;
+    });
+  
+    yPos += 10;
+    pdf.text("Date: " + currentDate, margin, yPos);
+    yPos += 5;
+    pdf.text("Place: " + (ucData.place || ucData.instituteName), margin, yPos);
+    yPos += 15;
+  
+    // Signature section with actual signatures
+    pdf.text("Signatures:", margin, yPos);
+    yPos += 10;
+  
+    // Add PI signature if available
     if (selectedRequest.piSignature) {
-      pdf.text("PI Signature:", margin, yPos);
-      pdf.addImage(selectedRequest.piSignature, 'PNG', margin, yPos + 5, 50, 20);
-      yPos += 30;
+      pdf.addImage(selectedRequest.piSignature, 'PNG', margin, yPos, 50, 20);
+      pdf.text("Signature of PI", margin, yPos + 25);
+    } else {
+      pdf.text("Signature of PI: ________________", margin, yPos + 10);
     }
-    
+  
+    // Add institute stamp if available
     if (instituteStamp) {
-      pdf.text("Institute Stamp & Signature:", margin, yPos);
-      pdf.addImage(instituteStamp, 'PNG', margin, yPos + 5, 50, 20);
+      pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
+      pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
     }
-
-    pdf.save(`UC_${ucData.title}_${certificateType}_Approved.pdf`);
+  
+    yPos += 35;
+  
+    // Signature information
+    const signatureData = [
+      [
+        {
+          content: selectedRequest.piSignature ? "" : "Signature of PI: ........................\n\n(Strike out inapplicable terms)",
+          rowSpan: 3
+        },
+      ],
+      [
+        "",
+      ]
+    ];
+  
+    pdf.autoTable({
+      body: signatureData,
+      startY: yPos,
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 5, lineWidth: 0.1, lineColor: [0, 0, 0] }
+    });
+  
+    // Add watermark for preview
+    pdf.setTextColor(200, 200, 200);
+    pdf.setFontSize(40);
+    pdf.text("PREVIEW", pageWidth / 2, 150, {
+      align: "center",
+      angle: 45
+    });
+    pdf.setTextColor(0, 0, 0);
+  
+    pdf.save(`UC_${ucData.title}_${certificateType}_Preview.pdf`);
   };
 
   return (
