@@ -117,23 +117,18 @@ const ProjectDashboard = () => {
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
             <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
                 <HomeNavbar isSidebarOpen={isSidebarOpen} path={"/ongoingproposals"} />
-               
+
                 <div className="p-6 space-y-6 mt-16">
-                   
+
                     <div className="p-6 space-y-6">
-                        
+
                         <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700">
                             <h1 className="text-3xl font-black text-gray-900 mb-2">Project Dashboard</h1>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-<<<<<<< HEAD
-                            <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View Quotations", onClick: () => navigate(`/view/Quotations/${id}`) }, { label: "Upload Quotation", onClick: () => navigate(`/quotations/${id}`) }]} className="bg-blue-500 text-white" />
-                            <HoverDropdownButton label="Upload SE/UC" options={[{ label: "Upload SE", onClick: () => navigate(`/se/${id}`) }, { label: "Generate UC", onClick: () => navigate(`/uc/${id}`) }, { label: "View Certificates", onClick: () => navigate(`/certificates/${id}`) }]} className="bg-green-500 text-white" />
-=======
                             <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View RTGS", onClick: () => navigate("/") }, { label: "Upload Quotation", onClick: () => navigate(`/quotations/${id}`) }]} className="bg-blue-500 text-white" />
                             <HoverDropdownButton label="Upload SE/UC" options={[{ label: "Generate SE", onClick: () => navigate(`/se/${id}`) }, { label: "Generate UC", onClick: () => navigate(`/uc/${id}`) }, { label: "View Certificates", onClick: () => navigate(`/certificates/${id}`) }]} className="bg-green-500 text-white" />
->>>>>>> 858b35d5a20adb2d7504f66975b2f7360b047ed0
                             <HoverDropdownButton label="Upload Progress Report" options={[{ label: "Yearly Report", onClick: () => navigate(`/progress-report/${id}`) }, { label: "Final Report", onClick: () => navigate(`/final-report/${id}`) }]} className="bg-red-500 text-white" />
                             <HoverDropdownButton label="Expenses" options={[{ label: "Expense", onClick: () => navigate(`/project-expenses/${id}`) }]} className="bg-purple-500 text-white" />
                         </div>
@@ -156,7 +151,7 @@ const ProjectDashboard = () => {
                                         <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Scheme</span> : {project.Scheme}</label>
                                         <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Start Date</span> : {new Date(project.startDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</label>
                                         <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">End Date</span> : {new Date(project.endDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</label>
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Duration of Project</span> : {project.years.toFixed(1)>1?` ${project.years.toFixed(1)} years`: `${project.years.toFixed(1)} year`} </label>
+                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Duration of Project</span> : {project.years.toFixed(1) > 1 ? ` ${project.years.toFixed(1)} years` : `${project.years.toFixed(1)} year`} </label>
                                         <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Present Year of Project</span> : {project.currentYear}</label>
                                     </div>
                                     <div className="grid grid-cols-1 gap-4">

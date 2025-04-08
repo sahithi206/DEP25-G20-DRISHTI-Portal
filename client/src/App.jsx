@@ -62,6 +62,7 @@ import Quotations from "./pages/Qutations/Quotations.jsx"
 
 import ProjectExpenses from "./pages/ProjectExpenses.jsx";
 import UCPage from "./pages/college/UCpage.jsx";
+import ApproveUC from "./pages/college/ApproveUC.jsx";
 
 import Report from "./pages/Admin/Yearly/Progress.jsx";
 import RTGS from "./pages/Admin/Yearly/Quotations.jsx";
@@ -134,7 +135,7 @@ function MainLayout() {
           <Route path="/certificate-details/se/:id" element={<SEForm />} />
           <Route path="/error" element={<Error />} />
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
-          <Route path="/quotations/:id" element={<Quotations/>} />
+          <Route path="/quotations/:id" element={<Quotations />} />
           <Route path="/project-expenses/:projectId" element={<ProjectExpenses />} />
           <Route path="/view/Quotations/:id" element={<View />} />
           <Route path="/viewQuotations/:id" element={<Viewquotations />} />
@@ -170,6 +171,7 @@ function MainLayout() {
           <Route path="/view-expenses/:projectId" element={<ViewExpenses />} />
           <Route path="/comments/:projectId/:ucType" element={<CommentsPage />} />
           <Route path="/ucInsti/:projectId" element={<UCPage />} />
+          <Route path="/institute/uc-sc" element={<ApproveUC />} />
         </Route>
       </Routes>
     </div>

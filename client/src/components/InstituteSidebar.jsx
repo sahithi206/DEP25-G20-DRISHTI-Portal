@@ -8,10 +8,11 @@ const InstituteSidebar = ({ activeSection, setActiveSection }) => {
     { label: "Accepted Projects", icon: ClipboardList, id: "projects", path: "/running-projects" },
     { label: "Institute Users", icon: Users, id: "users", path: "/institute-users" },
     { label: "Sanctioned Projects", icon: ClipboardList, id: "sanctioned-projects", path: "/sanctioned-projects" },
+    { label: "UC-SE", icon: ClipboardList, id: "uc-se", path: "/institute/uc-se" },
     // { label: "Proposals", icon: FileText, id: "proposals", path: "/user-proposals" },
     // { label: "Payments", icon: DollarSign, id: "payments", path: "/payments" },
     // { label: "Completed Projects", icon: CheckCircle, id: "completed-projects", path: "/completed-projects" },
-];
+  ];
 
   return (
     <div className="w-72 bg-gray-900 text-white flex flex-col p-5 min-h-95% screen">
