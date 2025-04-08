@@ -21,7 +21,7 @@ const Navbar = ({isSidebarOpen, path}) => {
       <div className="flex items-center space-x-4">
         <FaChevronLeft className="text-2xl" onClick={()=>{navigate(path)}}  />
         <FaUserCircle className="text-2xl" />
-        {user && <span>Welcome, {user.Name}</span>}
+        {user && <span>Welcome, PI</span>}
         <FaPowerOff className="text-xl cursor-pointer text-red-500" onClick={logout}/>
       </div>
     </header>

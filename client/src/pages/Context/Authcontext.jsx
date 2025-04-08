@@ -473,7 +473,7 @@ const AuthProvider = (props) => {
       return json.proposals;
     } catch (error) {
       console.error("Edit user error:", error);
-      alert(error.message || "Failed to fetch Proposals");
+      console.log(error.message || "Failed to fetch Proposals");
     }
   };
   const approvedProjects = async () => {

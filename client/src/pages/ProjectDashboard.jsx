@@ -142,8 +142,8 @@ const ProjectDashboard = () => {
                                     </h3>
                                     <div className="border-b border-gray-300 my-4"></div>
                                     <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Reserch Institute</span> : {generalInfo.instituteName}</label>
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of Principal Investigator</span> : {generalInfo.name}</label>
+                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Reserch Institute</span> : {generalInfo?.instituteName}</label>
+                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of Principal Investigator</span> : {generalInfo?.name}</label>
                                         <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Title of the Project</span> : {project.Title}</label>
                                         <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Scheme</span> : {project.Scheme}</label>
                                         <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Start Date</span> : {project.startDate}</label>
