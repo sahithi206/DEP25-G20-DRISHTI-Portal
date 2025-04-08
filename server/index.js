@@ -17,8 +17,19 @@ const Upload = require("./routes/upload.js");
 const Quotations = require("./routes/quotations.js");
 const UCComment = require("./routes/ucComments.js");
 const ExpenseComment = require("./routes/expenseComments.js");
+  
+  
 app.use(cors())
 app.use(express.json());
+
+// Add this to your Express server setup
+app.use((req, res, next) => {
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+    );
+    next();
+  });
 
 app.get("/", (req, res) => {
     res.send("Backend Connected!!!");

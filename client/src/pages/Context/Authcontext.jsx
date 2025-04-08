@@ -56,6 +56,7 @@ const AuthProvider = (props) => {
       alert(e.msg || "Cannot fetch User Details");
     }
   }
+
   const edituser = async (data) => {
     const token = localStorage.getItem("token");
     try {
@@ -93,6 +94,7 @@ const AuthProvider = (props) => {
       alert(e.msg || "Cannot Edit User Details");
     }
   }
+
   const getpi = async (email) => {
     try {
       const response = await fetch(`${url}auth/get-pi`, {
@@ -108,6 +110,7 @@ const AuthProvider = (props) => {
       console.log(e);
     }
   }
+
   const sendOtp = async (email) => {
     try {
       console.log(email);
@@ -204,7 +207,6 @@ const AuthProvider = (props) => {
     }
   };
 
-
   const submitGeneralInfo = async (generalInfoData) => {
     try {
       const token = localStorage.getItem("token");
@@ -235,6 +237,7 @@ const AuthProvider = (props) => {
       throw e;
     }
   };
+
   const uploadFile = async (file, type, userId) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -255,8 +258,6 @@ const AuthProvider = (props) => {
       return { success: false, message: error.message || "Upload failed" };
     }
   };
-
-
 
   const submitResearchDetails = async (researchDetailsData) => {
     try {
@@ -287,7 +288,6 @@ const AuthProvider = (props) => {
       alert(e.message);
     }
   };
-
 
   const submitBudgetDetails = async (budgetDetailsData) => {
     try {
@@ -351,7 +351,6 @@ const AuthProvider = (props) => {
     }
   };
 
-
   const submitPIDetails = async ({ piList, coPiList }) => {
     try {
       const token = localStorage.getItem("token");
@@ -413,6 +412,7 @@ const AuthProvider = (props) => {
       throw e;
     }
   };
+
   const unsavedProposal = async () => {
     const token = localStorage.getItem("token");
     const proposalId = localStorage.getItem("ProposalID");
@@ -450,6 +450,7 @@ const AuthProvider = (props) => {
       throw e;
     }
   }
+
   const incompleteProposals = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -476,6 +477,7 @@ const AuthProvider = (props) => {
       console.log(error.message || "Failed to fetch Proposals");
     }
   };
+
   const approvedProjects = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -561,9 +563,89 @@ const AuthProvider = (props) => {
       return [];
     }
   };
+
+  // Admin Side
+  const adminVerifyOtp = async (data) => {
+    try {
+      console.log("Verifying OTP with data:", JSON.stringify(data));
+
+      const response = await fetch(`${url}auth/admin-verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log("Signup Successful!", result);
+        console.log("Your token: " + result.accessToken);
+
+        localStorage.setItem("token", result.accessToken);
+        navigate("/adminLogin");
+      } else {
+        console.error("Error:", result.msg);
+        alert("Error: " + result.msg);
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      alert("Something went wrong while verifying OTP.");
+    }
+  };
+
+  const getAdmin = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("Token not found. Please log in.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${url}auth/get-admin`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": token,
+        },
+      });
+
+      const json = await response.json();
+      if (!json.success) {
+        console.error(json.msg);
+        return;
+      }
+
+      // console.log("Logged-in Admin:", json.admin);
+      return json.admin;
+    } catch (error) {
+      console.error("Error fetching admin:", error);
+    }
+  };
+
+  const adminLogin = async (email, password, navigate) => {
+    try {
+      const response = await fetch(`${url}auth/admin-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.msg || "Invalid credentials");
+
+      console.log("Admin logged in successfully:", json);
+
+      if (json.success) {
+        localStorage.setItem("token", json.accessToken);
+        navigate("/admin");
+      }
+    } catch (e) {
+      console.error("Cannot Login:", e.message);
+      alert(e.message || "Invalid Credentials");
+    }
+  };
+
   // institute side 
-
-
   // to be used when institute verification done 
   //  alright its done
 
@@ -675,7 +757,7 @@ const AuthProvider = (props) => {
       return;
     }
     try {
-       console.log(token); 
+      console.log(token);
       const response = await fetch(`${url}institute/${userId}/accepted-proposals`, {
         method: "GET",
         headers: {
@@ -766,87 +848,6 @@ const AuthProvider = (props) => {
       console.error("Error deleting proposal:", error);
     }
   };
-  const adminVerifyOtp = async (data) => {
-    try {
-      console.log("Verifying OTP with data:", JSON.stringify(data));
-
-      const response = await fetch(`${url}auth/admin-verify-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        console.log("Signup Successful!", result);
-        console.log("Your token: " + result.accessToken);
-
-        localStorage.setItem("token", result.accessToken);
-        navigate("/adminLogin");
-      } else {
-        console.error("Error:", result.msg);
-        alert("Error: " + result.msg);
-      }
-    } catch (error) {
-      console.error("Error verifying OTP:", error);
-      alert("Something went wrong while verifying OTP.");
-    }
-  };
-
-  const getAdmin = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.log("Token not found. Please log in.");
-      return;
-    }
-
-    try {
-      const response = await fetch(`${url}auth/get-admin`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "accessToken": token,
-        },
-      });
-
-      const json = await response.json();
-      if (!json.success) {
-        console.error(json.msg);
-        return;
-      }
-
-      // console.log("Logged-in Admin:", json.admin);
-      return json.admin;
-    } catch (error) {
-      console.error("Error fetching admin:", error);
-    }
-  };
-
-
-  const adminLogin = async (email, password, navigate) => {
-    try {
-      const response = await fetch(`${url}auth/admin-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const json = await response.json();
-      if (!response.ok) throw new Error(json.msg || "Invalid credentials");
-
-      console.log("Admin logged in successfully:", json);
-
-      if (json.success) {
-        localStorage.setItem("token", json.accessToken);
-        navigate("/admin");
-      }
-    } catch (e) {
-      console.error("Cannot Login:", e.message);
-      alert(e.message || "Invalid Credentials");
-    }
-  };
-
 
   const deleteExpense = async (expenseId) => {
     try {
@@ -877,24 +878,39 @@ const AuthProvider = (props) => {
           description: updatedExpense.description,
           amount: updatedExpense.amount,
           type: updatedExpense.type,
-          // date: updatedExpense.date,
-          // committedDate: updatedExpense, committedDate
+          date: updatedExpense.date,
+          committedDate: updatedExpense.committedDate,
         }),
       });
 
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        throw new Error(errorMessage || "Failed to update expense");
+      const data = await response.json();
+
+      if (!response.success) {
+        return {
+          success: false,
+          message: data?.message || "Failed to update expense",
+        };
       }
 
-      return await response.json(); // Return the parsed JSON response
-    } catch (error) {
-      console.error("Error updating expense:", error);
-      return { success: false, message: error.message };
+      return {
+        success: true,
+        updatedExpense: data.updatedExpense,
+      };
+    } catch (err) {
+      console.error("Error updating expense:", err);
+
+      let message = "Failed to update expense";
+
+      // Extract validation errors from Mongoose
+      if (err.name === "ValidationError") {
+        const errors = Object.values(err.errors).map(e => e.message);
+        message = errors.join(", ");
+      }
+
+      res.status(400).json({ success: false, message });
     }
   };
- 
-   
+
 
   return (
     <AuthContext.Provider value={{

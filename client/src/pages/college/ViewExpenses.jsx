@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { AuthContext } from "../Context/Authcontext";
 import Navbar from "../../components/Navbar";
 import InstituteSidebar from "../../components/InstituteSidebar";
+import toast from 'react-hot-toast';
 const url = import.meta.env.VITE_REACT_APP_URL;
 
 const ProjectExpenses = () => {
@@ -38,7 +39,8 @@ const ProjectExpenses = () => {
         startCommittedDate: "",
         endCommittedDate: "",
         minAmount: "",
-        maxAmount: ""
+        maxAmount: "",
+        showPendingOnly: false,
     });
     const [summary, setSummary] = useState({
         total: 0,
@@ -194,14 +196,6 @@ const ProjectExpenses = () => {
         setSummary({ total, byType });
     };
 
-    const handleFilterChange = (e) => {
-        const { name, value } = e.target;
-        setFilter({
-            ...filter,
-            [name]: value
-        });
-    };
-
     const handleTypeFilterChange = (e) => {
         setFilter({
             ...filter,
@@ -212,6 +206,8 @@ const ProjectExpenses = () => {
     const applyFilters = () => {
         setLoading(true);
 
+        console.log("Applying filters with:", filter);
+
         const queryParams = new URLSearchParams();
         if (filter.type) queryParams.append("type", filter.type);
         if (filter.startDate) queryParams.append("startDate", filter.startDate);
@@ -220,6 +216,7 @@ const ProjectExpenses = () => {
         if (filter.endCommittedDate) queryParams.append("endCommittedDate", filter.endCommittedDate);
         if (filter.minAmount) queryParams.append("minAmount", Number(filter.minAmount));
         if (filter.maxAmount) queryParams.append("maxAmount", Number(filter.maxAmount));
+        if (filter.showPendingOnly) queryParams.append("pendingOnly", "true");
 
         fetch(`${url}institute/expenses/${projectId}?${queryParams.toString()}`)
             .then(response => response.json())
@@ -233,30 +230,6 @@ const ProjectExpenses = () => {
                 console.error("Error applying filters:", error);
                 alert("Failed to filter expenses");
                 setLoading(false);
-            });
-    };
-
-    const resetFilters = () => {
-        setFilter({
-            type: "",
-            startDate: "",
-            endDate: "",
-            startCommittedDate: "",
-            endCommittedDate: "",
-            minAmount: "",
-            maxAmount: ""
-        });
-
-        // Re-fetch all expenses
-        fetch(`${url}institute/expenses/${projectId}`)
-            .then(response => response.json())
-            .then(data => {
-                setExpenses(data || []);
-                calculateSummary(data || []);
-            })
-            .catch(error => {
-                console.error("Error resetting filters:", error);
-                alert("Failed to reset expenses");
             });
     };
 
@@ -319,16 +292,14 @@ const ProjectExpenses = () => {
         setIsEditModalOpen(true);
     };
 
-    // Update state on input change
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setEditExpenseData((prevData) => ({
-            ...prevData,
-            [name]: value
+        setEditExpenseData((prev) => ({
+            ...prev,
+            [name]: (name === "date" || name === "committedDate") && value === "" ? null : value,
         }));
     };
 
-    // Handle expense update
     const handleEditExpense = async () => {
         if (!editExpenseData.id) {
             alert("No expense selected for editing.");
@@ -339,32 +310,35 @@ const ProjectExpenses = () => {
             description: editExpenseData.description,
             amount: editExpenseData.amount,
             type: editExpenseData.type,
-            // date: editExpenseData.date,
-            // committedDate: editExpenseData.committedDate
+            date: editExpenseData.date,
+            committedDate: editExpenseData.committedDate
         };
 
         try {
-            console.log("Before Updated Expense:", updatedExpense);
             const response = await editExpense(editExpenseData.id, updatedExpense);
 
-            // Update the state with the new data
+            if (!response || !response.success) {
+                alert(response?.message || "Failed to update expense");
+                return;
+            }
+
+            setIsEditModalOpen(false);
+
             setExpenses((prevExpenses) =>
                 prevExpenses.map((expense) =>
-                    expense._id === editExpenseData.id ? { ...expense, ...updatedExpense } : expense
+                    expense._id === editExpenseData.id
+                        ? { ...expense, ...updatedExpense }
+                        : expense
                 )
             );
 
-            setIsEditModalOpen(false); // Close modal
             alert("Expense updated successfully!");
         } catch (error) {
             console.error("Error updating expense:", error);
-            alert("Failed to update expense");
+            alert("Failed to update expense due to server error");
         }
-    };
 
-    const filteredExpenses = activeTab === "all"
-        ? expenses
-        : expenses.filter(expense => expense.type.toLowerCase() === activeTab);
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
@@ -436,18 +410,53 @@ const ProjectExpenses = () => {
                             </div>
 
                             {/* Expense List */}
-                            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-                                <h3 className="text-xl font-semibold p-5 border-b bg-gray-50">Expense List</h3>
-                                {expenses.length === 0 ? (
-                                    <div className="p-12 text-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+                                <h3 className="text-xl font-semibold p-5 border-b bg-gray-50 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
+                                    Expense List
+                                </h3>
+
+                                <div className="flex items-center p-4 bg-gray-50 border-b">
+                                    <div className="flex-1">
+                                        <label className="flex items-center space-x-2 cursor-pointer group">
+                                            <input
+                                                type="checkbox"
+                                                checked={filter.showPendingOnly}
+                                                onChange={(e) => setFilter(prev => ({ ...prev, showPendingOnly: e.target.checked }))}
+                                                className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-700 group-hover:text-gray-900 transition">Show only pending expenses</span>
+                                        </label>
+                                    </div>
+
+                                    <button
+                                        onClick={applyFilters}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                                         </svg>
-                                        <p className="text-gray-500 text-lg">No expenses found for this project.</p>
+                                        Apply Filters
+                                    </button>
+                                </div>
+
+                                {expenses.length === 0 ? (
+                                    <div className="p-16 text-center">
+                                        <div className="bg-gray-50 inline-flex rounded-full p-4 mb-6">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        <p className="text-gray-500 text-lg mb-4">No expenses found for this project.</p>
                                         <Link
                                             to={`/add-expenses/${projectDetails?._id}`}
-                                            className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
+                                            className="mt-4 inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                                         >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
                                             Add Your First Expense
                                         </Link>
                                     </div>
@@ -456,7 +465,7 @@ const ProjectExpenses = () => {
                                         <table className="w-full">
                                             <thead className="bg-gray-50 text-left">
                                                 <tr>
-                                                    <th className="p-4 border-b font-medium text-gray-700">Date</th>
+                                                    <th className="p-4 border-b font-medium text-gray-700">Transaction Date</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Committed Date</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Description</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">
@@ -470,11 +479,11 @@ const ProjectExpenses = () => {
                                                                     onChange={handleTypeFilterChange}
                                                                     onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
                                                                     placeholder="Filter type..."
-                                                                    className="w-32 p-1 text-sm border border-gray-300 rounded-md"
+                                                                    className="w-32 p-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                                 />
                                                                 <button
                                                                     onClick={applyFilters}
-                                                                    className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 transition"
                                                                 >
                                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -490,10 +499,26 @@ const ProjectExpenses = () => {
                                             </thead>
                                             <tbody>
                                                 {expenses.map((expense) => (
-                                                    <tr key={expense._id} className="hover:bg-gray-50 transition-colors duration-150">
-                                                        <td className="p-4 border-b text-gray-600">{formatDate(expense.date)}</td>
+                                                    <tr
+                                                        key={expense._id}
+                                                        className={`hover:bg-gray-50 transition-colors duration-150 ${!expense.date
+                                                            ? "bg-yellow-50 hover:bg-yellow-100 border-l-4 border-yellow-400"
+                                                            : ""
+                                                            }`}
+                                                    >
+                                                        <td className="p-4 border-b text-gray-600">
+                                                            {expense.date ? formatDate(expense.date) : (
+                                                                <span className="flex items-center text-yellow-600">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
+                                                                    Pending Transaction
+                                                                </span>
+                                                            )}
+                                                        </td>
+
                                                         <td className="p-4 border-b text-gray-600">{formatDate(expense.committedDate)}</td>
-                                                        <td className="p-4 border-b text-gray-800">{expense.description}</td>
+                                                        <td className="p-4 border-b text-gray-800 font-medium">{expense.description}</td>
                                                         <td className="p-4 border-b">
                                                             <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(expense.type)}`}>
                                                                 {expense.type}
@@ -505,7 +530,7 @@ const ProjectExpenses = () => {
                                                             <div className="flex gap-3">
                                                                 <button
                                                                     onClick={() => openEditModal(expense)}
-                                                                    className="text-blue-600 hover:text-blue-800 transition duration-200 flex items-center"
+                                                                    className="text-blue-600 hover:text-blue-800 transition duration-200 flex items-center hover:underline"
                                                                 >
                                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -514,7 +539,7 @@ const ProjectExpenses = () => {
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteExpense(expense._id)}
-                                                                    className="text-red-600 hover:text-red-800 transition duration-200 flex items-center"
+                                                                    className="text-red-600 hover:text-red-800 transition duration-200 flex items-center hover:underline"
                                                                 >
                                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -523,9 +548,12 @@ const ProjectExpenses = () => {
                                                                 </button>
                                                                 <button
                                                                     type="button"
-                                                                    className="text-green-600 hover:text-green-900"
+                                                                    className="text-green-600 hover:text-green-800 transition duration-200 flex items-center hover:underline"
                                                                     onClick={() => handleViewComments(expense)}
                                                                 >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                                                    </svg>
                                                                     View/Add Comments
                                                                 </button>
                                                             </div>
@@ -594,6 +622,34 @@ const ProjectExpenses = () => {
                                     />
                                 </div>
                             </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Date (Transaction Date)</label>
+                                    <input
+                                        type="date"
+                                        name="date"
+                                        value={editExpenseData.date ? editExpenseData.date.substring(0, 10) : ""}
+                                        onChange={handleChange}
+                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1 italic">
+                                        Leave empty if the expense hasn't been spent yet.
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Committed Date</label>
+                                    <input
+                                        type="date"
+                                        name="committedDate"
+                                        value={editExpenseData.committedDate ? editExpenseData.committedDate.substring(0, 10) : ""}
+                                        onChange={handleChange}
+                                        className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                        required
+                                    />
+                                </div>
+
+                            </div>
+
                             <div className="flex justify-end gap-3">
                                 <button
                                     type="button"

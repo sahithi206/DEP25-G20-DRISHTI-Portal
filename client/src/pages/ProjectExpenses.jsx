@@ -243,7 +243,7 @@ const ProjectExpenses = () => {
                                     <div className="flex justify-between items-center">
                                         <h2 className="text-xl font-bold text-slate-800">Expense Summary</h2>
                                         <p className="text-xl font-bold text-blue-700">
-                                            Total: <span className="text-2xl">${calculateTotal(filteredExpenses)}</span>
+                                            Total: <span className="text-2xl">₹{calculateTotal(filteredExpenses)}</span>
                                         </p>
                                     </div>
                                 </div>
@@ -287,13 +287,19 @@ const ProjectExpenses = () => {
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                                                        {formatDate(expense.date)}
+                                                        {expense.date ? (
+                                                            formatDate(expense.date)
+                                                        ) : (
+                                                            <span className="px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">
+                                                                Pending Transaction
+                                                            </span>
+                                                        )}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                                                         {formatDate(expense.committedDate)}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className="text-sm font-semibold text-slate-900">${expense.amount.toFixed(2)}</span>
+                                                        <span className="text-sm font-semibold text-slate-900">₹{expense.amount.toFixed(2)}</span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                         <button
