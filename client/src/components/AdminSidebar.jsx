@@ -1,18 +1,17 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Home, ClipboardList, Users, DollarSign, CheckCircle, FileText } from "lucide-react";
+import { Home, ClipboardList, Users, Folder, DollarSign, CheckCircle, FileText, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../pages/Context/Authcontext";
 
 const AdminSidebar = ({ activeSection, setActiveSection }) => {
     const { getAdmin } = useContext(AuthContext);
     const [admin, setAdmin] = useState(null);
+    const [openDropdown, setOpenDropdown] = useState(null);
 
-    // Fetch admin data once when the component mounts
     useEffect(() => {
         const fetchAdminDetails = async () => {
             try {
                 const data = await getAdmin();
-                console.log("Resolved Admin Data:", data);
                 setAdmin(data);
             } catch (error) {
                 console.error("Error fetching admin:", error);
@@ -22,7 +21,6 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
         fetchAdminDetails();
     }, [getAdmin]);
 
-    // If admin data is not available yet, return a loading indicator
     if (!admin) {
         return (
             <div className="w-72 bg-gray-900 text-white flex flex-col p-5 min-h-screen">
@@ -32,38 +30,105 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
         );
     }
 
-    // Define the sidebar menu items
     const menuItems = [
         { label: "Dashboard", icon: Home, id: "dashboard", path: "/admin" },
-        { label: "Quotations/SE/UC Grants", icon: DollarSign, id: "grants", path: "/grants" },
-        { label: "Fund Cycle Approval", icon: CheckCircle, id: "fundCycle", path: "/fundCycle" },
-        { label: "Requests", icon: FileText, id: "requests", path: "/requests" }
     ];
 
     if (admin.role === "Head Coordinator") {
-        menuItems.splice(1, 0, { label: "Scheme Management", icon: ClipboardList, id: "schemes", path: "/schemes" });
+        menuItems.splice(1, 0, {
+            label: "Scheme Management",
+            icon: ClipboardList,
+            id: "schemes",
+            path: "/schemes"
+        });
     }
 
     if (admin.role === "Coordinator") {
-       menuItems.splice(1,0, { label: "Approve Proposals", icon: Home, id: "approvals", path: "/review-proposals" });
-        menuItems.splice(2,0, { label: "Sanction Projects", icon: Home, id: "sanction", path: "/admin/sanction-projects"});
-        menuItems.splice(3,0, { label: "Ongoing Projects", icon: Home, id: "ongoing", path: "/admin/ongoing-projects"});
+        const projectSubMenu = {
+            label: "Projects",
+            icon: Folder,
+            id: "projects",
+            children: [
+                { label: "Approve Proposals", id: "approvals", path: "/review-proposals" },
+                { label: "Sanction Projects", id: "sanction", path: "/admin/sanction-projects" },
+                { label: "Ongoing Projects", id: "ongoing", path: "/admin/ongoing-projects" }
+            ]
+        };
+
+        const quotations = {
+            label: "Yearly Reports",
+            icon: DollarSign,
+            id: "grants",
+            children: [
+                { label: "Quotations", id: "quotations", path: "/admin/quotations" },
+                { label: "UC", id: "uc", path: "/admin/uc" },
+                { label: "SE", id: "se", path: "/admin/se" },
+                { label: "Progress Report", id: "progress", path: "/admin/progress-report" }
+            ]
+        };
+        let requests = {
+            label: "Requests",
+            icon: FileText,
+            id: "requests",
+            children: [
+                { label: "Change of Institute", id: "changeInstitute", path: "/requests/change-institute" },
+                { label: "Miscellaneous Request", id: "miscRequest", path: "/requests/miscellaneous" }
+            ]
+        };
+        menuItems.splice(1, 0, projectSubMenu);
+        menuItems.splice(2, 0, quotations);
+        menuItems.splice(3, 0, requests);
+
     }
 
     return (
         <div className="w-72 bg-gray-900 text-white flex flex-col p-5 h-screen overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6">Admin Panel</h2>
             <ul className="space-y-2">
-                {menuItems.map(({ label, icon: Icon, id, path }) => (
-                    <li key={id} role="button">
-                        <Link
-                            to={path}
-                            className={`p-3 flex items-center cursor-pointer rounded-lg transition-all hover:bg-gray-700
-                            ${activeSection === id ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400" : ""}`}
-                            onClick={() => setActiveSection(id)}
-                        >
-                            <Icon className="w-5 h-5 mr-3" /> {label}
-                        </Link>
+                {menuItems.map(({ label, icon: Icon, id, path, children }) => (
+                    <li key={id}>
+                        {children ? (
+                            <>
+                                <div
+                                    className={`p-3 flex items-center justify-between cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${activeSection === id ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400" : ""
+                                        }`}
+                                    onClick={() => setOpenDropdown(openDropdown === id ? null : id)}
+                                >
+                                    <div className="flex items-center">
+                                        <Icon className="w-5 h-5 mr-3" />
+                                        {label}
+                                    </div>
+                                    <ChevronDown className={`w-4 h-4 transform transition-transform ${openDropdown === id ? "rotate-180" : ""}`} />
+                                </div>
+                                {openDropdown === id && (
+                                    <ul className="ml-6 mt-1 space-y-1">
+                                        {children.map(({ label, id: subId, path: subPath }) => (
+                                            <li key={subId}>
+                                                <Link
+                                                    to={subPath}
+                                                    className={`p-2 block rounded-md hover:bg-gray-700 ${activeSection === subId ? "bg-gray-700 text-blue-400" : ""
+                                                        }`}
+                                                    onClick={() => setActiveSection(subId)}
+                                                >
+                                                    {label}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+
+                            </>
+                        ) : (
+                            <Link
+                                to={path}
+                                className={`p-3 flex items-center cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${activeSection === id ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400" : ""
+                                    }`}
+                                onClick={() => setActiveSection(id)}
+                            >
+                                <Icon className="w-5 h-5 mr-3" />
+                                {label}
+                            </Link>
+                        )}
                     </li>
                 ))}
             </ul>

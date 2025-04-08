@@ -24,6 +24,114 @@ const Acknowledgement = require("../Models/acknowledgement");
 const Auth = require("./auth.js");
 const nodemailer = require("nodemailer");
 
+const handleSaveAsPDF = () => {
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  pdf.setFontSize(12);
+  pdf.setFont("helvetica", "bold");
+  pdf.text("GFR 12-A", 105, 20, { align: "center" });
+  pdf.setFontSize(10);
+  pdf.text("[See Rule 238 (1)]", 105, 25, { align: "center" });
+
+  pdf.setFontSize(14);
+  pdf.text(
+    `FINAL UTILIZATION CERTIFICATE FOR THE YEAR ${ucData.currentYear} in respect of`,
+    105,
+    35,
+    { align: "center" }
+  );
+
+  pdf.setFontSize(12);
+  pdf.text(
+    `${selectedType === "recurring" ? "Recurring" : "Non-Recurring"}`,
+    105,
+    42,
+    { align: "center" }
+  );
+
+  pdf.setFontSize(10);
+  pdf.text(
+    `as on ${new Date().toLocaleDateString()} to be submitted to Funding Agency`,
+    105,
+    48,
+    { align: "center" }
+  );
+
+  pdf.setFontSize(12);
+  pdf.setFont("helvetica", "normal");
+  pdf.text(`Title of the Project: ${ucData.title}`, 10, 60);
+  pdf.text(`Name of the Scheme: ${ucData.scheme}`, 10, 70);
+  pdf.text(`Name of the Grant Receiving Organisation: ${ucData.instituteName}`, 10, 80);
+  pdf.text(`Name of the Principal Investigator: ${ucData.principalInvestigator}`, 10, 90);
+  pdf.text(`Present Year of Project: ${ucData.currentYear}`, 10, 100);
+  pdf.text(`Start Date of Year: ${ucData.startDate}`, 10, 110);
+  pdf.text(`End Date of Year: ${ucData.endDate}`, 10, 120);
+
+  pdf.text("Financial Summary", 10, 130); 
+  const financialTableData = [
+    ["Carry Forward", "Grant Received", "Total", "Recurring Expenditure", "Closing Balance"],
+    [
+      `Rs ${ucData.CarryForward}`,
+      `Rs ${ucData.yearTotal}`,
+      `Rs ${ucData.total}`,
+      `Rs ${ucData.recurringExp}`,
+      `Rs ${ucData.total - ucData.recurringExp}`,
+    ],
+  ];
+
+  pdf.autoTable({
+    head: [financialTableData[0]],
+    body: [financialTableData[1]],
+    startY: 135,
+    theme: "grid",
+    headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255] },
+    styles: { fontSize: 10 },
+  });
+
+  if (selectedType === "recurring") {
+    pdf.text("Component-wise Utilization of Grants", 10, pdf.lastAutoTable.finalY + 10);
+
+    const componentTableData = [
+      ["Component", "Amount"],
+      ["Human Resources", `Rs ${ucData.human_resources}`],
+      ["Consumables", `Rs ${ucData.consumables}`],
+      ["Others", `Rs ${ucData.others}`],
+    ];
+
+    pdf.autoTable({
+      head: [componentTableData[0]],
+      body: componentTableData.slice(1),
+      startY: pdf.lastAutoTable.finalY + 15,
+      theme: "grid",
+      headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255] },
+      styles: { fontSize: 10 },
+    });
+  }
+
+  pdf.setFontSize(10);
+  pdf.setFont("helvetica", "normal"); 
+  pdf.text("Certified that I have satisfied myself that:", 10, pdf.lastAutoTable.finalY + 30);
+
+  const terms = [
+    "1. The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.",
+    "2. There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.",
+    "3. To the best of our knowledge and belief, no transactions have been entered that are in violation of relevant Act/Rules/standing instructions and scheme guidelines.",
+    "4. The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.",
+    "5. The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.",
+    "6. The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.",
+    "7. Details of various schemes executed by the agency through grants-in-aid received from the same Ministry or from other Ministries is enclosed at Annexure-II (to be formulated by the Ministry/Department concerned as per their requirements/specifications).",
+  ];
+
+  let y = pdf.lastAutoTable.finalY + 40;
+  terms.forEach((term) => {
+    const splitText = pdf.splitTextToSize(term, 190); 
+    pdf.text(splitText, 10, y);
+    y += splitText.length * 6; 
+  });
+
+  pdf.save(`UC_${ucData.title}_${selectedType}.pdf`);
+};
+
 router.get("/get-projects", fetchUser, async (req, res) => {
     try {
         const projects = await Project.find({userId:req.user._id});
@@ -319,7 +427,10 @@ router.get("/generate-uc/recurring/:id", fetchUser, async (req, res) => {
     try {
       const { id: projectId } = req.params;
   
-      const project = await Project.findById(projectId).populate("YearlyDataId");
+      const project = await Project.findById(projectId)
+      .populate("YearlyDataId")
+      .populate("generalInfoId","instituteName")
+      .populate("userId","Name")
       if (!project) {
         return res.status(404).json({ success: false, message: "Project not found" });
       }
@@ -335,7 +446,9 @@ router.get("/generate-uc/recurring/:id", fetchUser, async (req, res) => {
         scheme: project.Scheme,
         currentYear: project.currentYear,
         startDate: project.startDate,
-        endDate: project.endDate,
+        principalInvestigator: project.userId?.Name ,
+        
+               endDate: project.endDate,
         CarryForward: currentYearData.budgetUnspent,
         yearTotal: currentYearData.budgetSanctioned.yearTotal,
         total: currentYearData.budgetUnspent + currentYearData.budgetSanctioned.yearTotal,
@@ -343,7 +456,9 @@ router.get("/generate-uc/recurring/:id", fetchUser, async (req, res) => {
         human_resources: currentYearData.budgetUsed.recurring.human_resources,
         consumables: currentYearData.budgetUsed.recurring.consumables,
         others: currentYearData.budgetUsed.recurring.others,
+        instituteName: project.generalInfoId?.instituteName || "Unknown Institute", 
       };
+      console.log("recurringUCData",recurringUCData);
   
       res.status(200).json({ success: true, data: recurringUCData });
     } catch (error) {
@@ -356,7 +471,10 @@ router.get("/generate-uc/recurring/:id", fetchUser, async (req, res) => {
     try {
       const { id: projectId } = req.params;
   
-      const project = await Project.findById(projectId).populate("YearlyDataId");
+      const project = await Project.findById(projectId)
+      .populate("YearlyDataId")
+      .populate("generalInfoId", "instituteName");
+
       if (!project) {
         return res.status(404).json({ success: false, message: "Project not found" });
       }
@@ -377,6 +495,7 @@ router.get("/generate-uc/recurring/:id", fetchUser, async (req, res) => {
         yearTotal: currentYearData.budgetSanctioned.yearTotal,
         total: currentYearData.budgetUnspent + currentYearData.budgetSanctioned.yearTotal,
         nonRecurringExp: currentYearData.budgetUsed.nonRecurring,
+        instituteName: project.generalInfoId?.instituteName || "Unknown Institute", 
       };
   
       res.status(200).json({ success: true, data: nonRecurringUCData });

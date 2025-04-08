@@ -21,7 +21,9 @@ const Navbar = () => {
           <span className="hover:text-gray-300 cursor-pointer" onClick={() => navigate("/aboutus")}>About Us</span>
           <span className="hover:text-gray-300 cursor-pointer">Contact Us</span>
           <span className="hover:text-gray-300 cursor-pointer">Gallery</span>
-
+          
+           <FaUserCircle className="text-2xl" />
+                  {<span>Welcome, Institute</span>}
           <FaUserCircle className="text-2xl cursor-pointer hover:text-gray-300" onClick={() => navigate("/login")} />
         </div>
       </div>

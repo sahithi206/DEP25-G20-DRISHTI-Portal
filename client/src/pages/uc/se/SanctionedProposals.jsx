@@ -12,25 +12,25 @@ const SanctionedProposals = () => {
     useEffect(() => {
         const projects = async () => {
             const token = localStorage.getItem("token");
-        if (!token) throw new Error("User not authenticated");
+            if (!token) throw new Error("User not authenticated");
 
-        const response = await fetch(`${url}projects/get-projects`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "accessToken": `${token}`
-            },
-        });
-        if (!response.ok) {
-            throw new Error("Failed to update user details");
-        }
-        const json = await response.json();
+            const response = await fetch(`${url}projects/get-projects`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "accessToken": `${token}`
+                },
+            });
+            if (!response.ok) {
+                throw new Error("Failed to update user details");
+            }
+            const json = await response.json();
             const proj = json.projects;
-            const Projects = await proj&&proj.length>0&&proj.map((project) => {
+            const Projects = await proj && proj.length > 0 && proj.map((project) => {
                 let id = project._id;
                 let title = project.Title;
-                let endDate=project.endDate;
-                return { id, title };
+                let endDate = project.endDate;
+                return { id, title,endDate };
             })
             setProjects(Projects);
         }
@@ -68,17 +68,17 @@ const SanctionedProposals = () => {
                                                     <td className="p-4 text-center font-semibold text-xs">{project.id}</td>
                                                     <td className="p-4 text-center font-semibold text-xs">{project.title}</td>
                                                     <td className="p-4 text-center font-semibold text-xs">
-                                            {(() => {
-                                                const endDate = new Date(project.endDate);
-                                                const timeLeft = endDate-new Date();
-                                                if (timeLeft > 0) {
-                                                    const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
-                                                    return `${daysLeft} days left`;
-                                                } else {
-                                                    return "Time expired";
-                                                }
-                                            })()}
-                                        </td>                                                    <td className="p-4 text-center font-semibold text-xs">
+                                                        {(() => {
+                                                            const endDate = new Date(project.endDate);
+                                                            const timeLeft = endDate - new Date();
+                                                            if (timeLeft > 0) {
+                                                                const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
+                                                                return `${daysLeft} days left`;
+                                                            } else {
+                                                                return "Time expired";
+                                                            }
+                                                        })()}
+                                                    </td>                                                    <td className="p-4 text-center font-semibold text-xs">
                                                         <button
                                                             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                                                             onClick={() => {

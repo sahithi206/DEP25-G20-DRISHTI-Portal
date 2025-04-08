@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const projectSchema = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: "users", required: true },
-    Scheme:{type:String,required:true},
+  Scheme: { type: mongoose.Schema.Types.ObjectId, ref: "Scheme", required: true },
     Title:{type:String,required:true},
     PI:[{type:String,required:true}],
     CoPI:[{type:String,required:true}],

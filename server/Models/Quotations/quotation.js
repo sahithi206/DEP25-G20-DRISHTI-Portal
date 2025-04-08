@@ -23,7 +23,12 @@ const QuotationSchema = new mongoose.Schema({
     ref: 'SalaryBreakUp',
     required: true,
   },
-  createdAt: {
+  status: {
+    type: String,
+    enum: ["Viewed", "Pending", "Commented"],
+    required: true,
+    default:"Pending",
+},  createdAt: {
     type: Date,
     default: Date.now,
   }

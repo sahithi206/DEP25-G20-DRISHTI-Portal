@@ -63,6 +63,12 @@ import Quotations from "./pages/Qutations/Quotations.jsx"
 import ProjectExpenses from "./pages/ProjectExpenses.jsx";
 import UCPage from "./pages/college/UCpage.jsx";
 
+import Report from "./pages/Admin/Yearly/Progress.jsx";
+import RTGS from "./pages/Admin/Yearly/Quotations.jsx";
+import ViewQuotations from "./pages/Admin/Yearly/viewQuotation.jsx";
+import View from "./pages/Qutations/View.jsx";
+import Viewquotations from "./pages/Qutations/ViewQuotations.jsx";
+
 function App() {
   const getData = async () => {
     try {
@@ -130,6 +136,9 @@ function MainLayout() {
           <Route path="/project-dashboard/:id" element={<ProjectDashboard />} />
           <Route path="/quotations/:id" element={<Quotations/>} />
           <Route path="/project-expenses/:projectId" element={<ProjectExpenses />} />
+          <Route path="/view/Quotations/:id" element={<View />} />
+          <Route path="/viewQuotations/:id" element={<Viewquotations />} />
+
 
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/review-proposals" element={<AdminReviewProposals />} />
@@ -142,6 +151,10 @@ function MainLayout() {
           <Route path="/admin/view-uc/se/:id" element={<ViewDocs />} />
           <Route path="/admin/certificate-details/:type/:id" element={<ViewCertificates />} />
           <Route path="/admin/certificate-details/se/:id" element={<ViewSE />} />
+          <Route path="/admin/ongoing-projects" element={<OngoingProjects />} />
+          <Route path="/admin/quotations" element={<RTGS />} />
+          <Route path="/admin/progress-report" element={<Report />} />
+          <Route path="/admin/quotations/:id" element={<ViewQuotations />} />
 
 
           <Route path="/schemes" element={<SchemeManagement />} />
