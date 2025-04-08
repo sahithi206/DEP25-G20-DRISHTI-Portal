@@ -81,7 +81,8 @@ const UCForm = () => {
             clearInterval(checkApprovalInterval);
           }
         }
-      }); // Check every 5 seconds
+        // }, 60000); // Check every 1 min
+      });
 
       return () => clearInterval(checkApprovalInterval);
     }
