@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { AuthContext } from "../Context/Authcontext";
 import Navbar from "../../components/Navbar";
 import InstituteSidebar from "../../components/InstituteSidebar";
-import toast from 'react-hot-toast';
+import {toast} from "react-toastify";
 const url = import.meta.env.VITE_REACT_APP_URL;
 
 const ProjectExpenses = () => {
