@@ -57,7 +57,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
             .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
 
         const user = await User.findById(req.user._id).populate("proposals");
-        const userProjects = user.proposals.filter(prop => prop && prop._id).map(prop => prop._id);
+        // const userProjects = user.proposals.filter(prop => prop && prop._id).map(prop => prop._id);
         const generalInfo = await GeneralInfo.findById(ids.generalInfoId);
         const researchDetails = await ResearchDetails.findById(ids.researchDetailsId);
         const PIDetails = await PI.findById(ids.PIDetailsId);
@@ -232,6 +232,7 @@ router.post("/se",fetchUser,async(req,res)=>{
         TotalCost:data.TotalCost,
         status:"Pending for institute approval.",
         yearlyBudget:yearlyBudget,
+        yearlyExp: yearlyExp,
         budgetSanctioned:budgetSanctioned,
         human_resources:manpower,
         consumables:consumables,

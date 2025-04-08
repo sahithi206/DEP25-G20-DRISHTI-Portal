@@ -18,7 +18,7 @@ router.post("/add", async (req, res, next) => {
         role = "PI";
       } catch (userError) {
         await fetchInstitute(req, res, () => { });
-        userId = req.institute.college;
+        userId = req.institute._id;
         role = "Institute";
       }
     }
