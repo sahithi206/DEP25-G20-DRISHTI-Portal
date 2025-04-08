@@ -83,14 +83,14 @@ const AdminProposalReview = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {proposals.map(proposal => (
-                                    <tr key={proposal._id} className="border-b">
+                                {proposals.map((proposal) => (
+                                    <tr key={proposal.proposal._id} className="border-b">
                                         <td className="p-2">{proposal.proposal._id}</td>
-                                        <td className="p-2">{proposal.generalInfo?.instituteName}</td>
-                                        <td className="p-2">{proposal.researchDetails?.Title}</td>
+                                        <td className="p-2">{proposal.generalInfo?.instituteName || "N/A"}</td>
+                                        <td className="p-2">{proposal.researchDetails?.Title || "N/A"}</td>
                                         <td className="p-2">
                                             {(() => {
-                                                const endDate = new Date(proposal.endDate);
+                                                const endDate = new Date(proposal.proposal.endDate);
                                                 const timeLeft = endDate - new Date();
                                                 if (timeLeft > 0) {
                                                     const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
@@ -103,11 +103,9 @@ const AdminProposalReview = () => {
                                         <td className="p-2">
                                             <button
                                                 onClick={() => {
-                                                    setSelectedProposal(proposal)
-                                                   navigate(`/admin/project/${proposal.proposal._id}`)
-
-                                                }
-                                                }
+                                                    setSelectedProposal(proposal);
+                                                    navigate(`/admin/project/${proposal.proposal._id}`);
+                                                }}
                                                 className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2"
                                             >
                                                 View

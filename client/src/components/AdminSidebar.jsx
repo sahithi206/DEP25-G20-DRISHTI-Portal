@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Home, ClipboardList, Users, Folder,DollarSign, CheckCircle, FileText, ChevronDown } from "lucide-react";
+import { Home, ClipboardList, Users, Folder, DollarSign, CheckCircle, FileText, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../pages/Context/Authcontext";
 
@@ -60,10 +60,10 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
             icon: DollarSign,
             id: "grants",
             children: [
-                { label: "Quotations", id: "quotations", path: "/grants/quotations" },
-                { label: "UC", id: "uc", path: "/grants/uc" },
-                { label: "SE", id: "se", path: "/grants/se" },
-                { label: "Progress Report", id: "progress", path: "/grants/progress-report" }
+                { label: "Quotations", id: "quotations", path: "/admin/quotations" },
+                { label: "UC", id: "uc", path: "/admin/uc" },
+                { label: "SE", id: "se", path: "/admin/se" },
+                { label: "Progress Report", id: "progress", path: "/admin/progress-report" }
             ]
         };
         let requests = {

@@ -143,9 +143,9 @@ const ProjectDashboard = () => {
                                     <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of Principal Investigator</span> : {generalInfo.name}</label>
                                     <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Title of the Project</span> : {project.Title}</label>
                                     <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Scheme</span> : {project.Scheme}</label>
-                                    <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Start Date</span> : {project.startDate}</label>
-                                    <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">End Date</span> : {project.endDate}</label>
-                                    <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Duration of Project</span> : {project.years.toFixed(2)} years </label>
+                                    <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Start Date</span> : {new Date(project.startDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</label>
+                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">End Date</span> : {new Date(project.endDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</label>
+                                    <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Duration of Project</span> : {project.years.toFixed(1)>1?` ${project.years.toFixed(1)} years`: `${project.years.toFixed(1)} year`} </label>
                                     <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Present Year of Project</span> : {project.currentYear}</label>
                                 </div>
                                 <div className="grid grid-cols-1 gap-4">
