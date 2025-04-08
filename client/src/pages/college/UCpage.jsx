@@ -12,6 +12,7 @@ const UCPage = () => {
     const { projectId } = useParams();
     const [ucType, setUcType] = useState("recurring");
     const[comments, setComments] = useState([]);
+    const[newComment, setNewComment] = useState("");
     // const [loading, setLoading] = useState(true);
     const [activeSection, setActiveSection] = useState("uc-page");
       const [error, setError] = useState("");
@@ -55,6 +56,40 @@ const UCPage = () => {
     // if (loading) 
     //  <div>Loading...</div>;
     // if (!ucData) return <div>No UC data found.</div>;
+
+    const handleAddComment = async (e) => {
+      e.preventDefault();
+      // setLoading(true);
+      setError("");
+  
+      try {
+        const response = await fetch(`${url}uc-comments/add`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            accessToken: localStorage.getItem("token"),
+          },
+          body: JSON.stringify({ projectId, ucType, comment: newComment }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const result = await response.json();
+        if (!result.success) {
+          setError(result.message || "Failed to add comment");
+          return;
+        }
+  
+        setComments((prevComments) => [...prevComments, result.data]);
+        console.log("Fetched Comments:", result.data);
+        setNewComment("");
+      } catch (err) {
+        console.error("Error adding comment:", err.message);
+        setError("Failed to add comment");
+      } 
+    };
 
     const fetchUCData = async (type) => {
         // setLoading(true);
@@ -195,7 +230,9 @@ const UCPage = () => {
                   {comments.map((comment) => (
                     <li key={comment._id} className="p-4 border rounded-lg bg-gray-50">
                       <p className="text-gray-700">
-                        <strong>Added By:</strong> {comment.role} ({comment.userId?.Name || "Unknown User"})
+                        <strong>Added By:</strong> {comment.role} {comment.userId?.Name }
+                       {/* || "Unknown User": comment.userId?.college || "Unknown Institute" */}
+                        
                       </p>
                       <p className="text-gray-700">
                         <strong>Comment:</strong> {comment.comment}
@@ -209,6 +246,21 @@ const UCPage = () => {
               ) : (
                 <p className="text-center text-gray-500">No comments available for this UC type.</p>
               )}
+              <div className="mt-6">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="w-full border p-2 rounded mb-4"
+                />
+                <button
+                  onClick={handleAddComment}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                >
+                  Add Comment
+                </button>
+              </div>
+
             </div>
           </div>
     
