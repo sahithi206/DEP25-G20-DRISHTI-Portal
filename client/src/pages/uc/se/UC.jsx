@@ -498,20 +498,6 @@ const UCForm = () => {
 
     yPos += 35;
 
-    // Signature information
-    const signatureData = [
-      {
-        content: piSignature ? "" : "Signature of PI: ........................\n\n(Strike out inapplicable terms)",
-      }
-    ];
-
-    // pdf.autoTable({
-    //   body: signatureData,
-    //   startY: yPos,
-    //   theme: 'grid',
-    //   styles: { fontSize: 10, cellPadding: 5, lineWidth: 0.1, lineColor: [0, 0, 0] }
-    // });
-
     pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
   };
 
