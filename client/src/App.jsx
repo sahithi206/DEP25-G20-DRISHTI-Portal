@@ -171,7 +171,7 @@ function MainLayout() {
           <Route path="/view-expenses/:projectId" element={<ViewExpenses />} />
           <Route path="/comments/:projectId/:ucType" element={<CommentsPage />} />
           <Route path="/ucInsti/:projectId" element={<UCPage />} />
-          <Route path="/institute/uc-sc" element={<ApproveUC />} />
+          <Route path="/institute/uc-se" element={<ApproveUC />} />
         </Route>
       </Routes>
     </div>

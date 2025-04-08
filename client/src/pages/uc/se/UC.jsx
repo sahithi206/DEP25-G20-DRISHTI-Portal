@@ -21,58 +21,114 @@ const UCForm = () => {
   // Signature and approval states
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const [piSignature, setPiSignature] = useState(null);
+  const [sentForApproval, setSentForApproval] = useState(false);
   const [instituteApproved, setInstituteApproved] = useState(false);
   const [instituteStamp, setInstituteStamp] = useState(null);
 
-  // For simulation purposes - normally this would come from the backend
-  const [sentForApproval, setSentForApproval] = useState(false);
-
   const sigCanvas = useRef(null);
 
-
-  const handleSendForApproval = async () => {
-    try {
-      if (!piSignature) {
-        setError("PI signature is required before sending for approval");
-        return;
+  // Check if this UC has been sent for approval or already approved
+  useEffect(() => {
+    if (projectId && selectedType) {
+      // Check pending requests
+      const storedPendingRequests = localStorage.getItem('pendingUCRequests');
+      if (storedPendingRequests) {
+        const pendingRequests = JSON.parse(storedPendingRequests);
+        const pendingRequest = pendingRequests.find(req => 
+          req.projectId === projectId && req.type === selectedType
+        );
+        
+        if (pendingRequest) {
+          setSentForApproval(true);
+          setPiSignature(pendingRequest.piSignature);
+        }
       }
-
-      // You can replace this with actual API call
-      // Example:
-      // const response = await fetch(`${url}projects/send-uc-for-approval/${projectId}`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     accessToken: localStorage.getItem("token"),
-      //   },
-      //   body: JSON.stringify({ 
-      //     type: selectedType,
-      //     ucData: ucData,
-      //     piSignature: piSignature
-      //   }),
-      // });
-      // const result = await response.json();
-      // if (!result.success) {
-      //   throw new Error(result.message);
-      // }
-
-      // For now, we'll simulate a successful response
-      console.log("Sending for approval:", { type: selectedType, data: ucData, signature: piSignature });
-
-      // Show success popup
-      setShowSuccessPopup(true);
-      setSentForApproval(true);
-
-      // Hide popup after 3 seconds
-      setTimeout(() => {
-        setShowSuccessPopup(false);
-      }, 3000);
-    } catch (err) {
-      console.error("Error sending for approval:", err.message);
-      setError("Failed to send for approval");
+      
+      // Check approved requests
+      const storedApprovedRequests = localStorage.getItem('approvedUCRequests');
+      if (storedApprovedRequests) {
+        const approvedRequests = JSON.parse(storedApprovedRequests);
+        const approvedRequest = approvedRequests.find(req => 
+          req.projectId === projectId && req.type === selectedType
+        );
+        
+        if (approvedRequest) {
+          setSentForApproval(true);
+          setInstituteApproved(true);
+          setPiSignature(approvedRequest.piSignature);
+          setInstituteStamp(approvedRequest.instituteStamp);
+        }
+      }
     }
-  };
+  }, [projectId, selectedType]);
 
+  // Update the useEffect hook that checks for approvals to use the localStorage structure
+// Replace the existing useEffect that checks for approvals with this one:
+
+useEffect(() => {
+  if (sentForApproval && !instituteApproved) {
+    const checkApprovalInterval = setInterval(() => {
+      const storedApprovedRequests = localStorage.getItem('approvedUCRequests');
+      if (storedApprovedRequests) {
+        const approvedRequests = JSON.parse(storedApprovedRequests);
+        const approvedRequest = approvedRequests.find(req => 
+          req.projectId === projectId && req.type === selectedType
+        );
+        
+        if (approvedRequest) {
+          setInstituteApproved(true);
+          setInstituteStamp(approvedRequest.instituteStamp);
+          clearInterval(checkApprovalInterval);
+        }
+      }
+    }, 5000); // Check every 5 seconds
+    
+    return () => clearInterval(checkApprovalInterval);
+  }
+}, [sentForApproval, instituteApproved, projectId, selectedType]);
+
+// Update the handleSendForApproval function
+const handleSendForApproval = async () => {
+  try {
+    if (!piSignature) {
+      setError("PI signature is required before sending for approval");
+      return;
+    }
+    
+    // Create a new request object
+    const newRequest = {
+      id: `uc-${Date.now()}`,
+      projectId: projectId,
+      type: selectedType,
+      ucData: ucData,
+      piSignature: piSignature,
+      submissionDate: new Date().toISOString(),
+      status: "pending"
+    };
+    
+    // Get existing pending requests from local storage
+    const storedRequests = localStorage.getItem('pendingUCRequests');
+    const pendingRequests = storedRequests ? JSON.parse(storedRequests) : [];
+    
+    // Add the new request
+    pendingRequests.push(newRequest);
+    
+    // Save back to local storage
+    localStorage.setItem('pendingUCRequests', JSON.stringify(pendingRequests));
+    
+    // Show success popup
+    setShowSuccessPopup(true);
+    setSentForApproval(true);
+    
+    // Hide popup after 3 seconds
+    setTimeout(() => {
+      setShowSuccessPopup(false);
+    }, 3000);
+  } catch (err) {
+    console.error("Error sending for approval:", err.message);
+    setError("Failed to send for approval");
+  }
+};
 
   const fetchUCData = async (type) => {
     setLoading(true);
@@ -193,12 +249,12 @@ const UCForm = () => {
   const handleSaveAsPDF = () => {
     const pdf = new jsPDF("p", "mm", "a4");
     const currentDate = new Date().toLocaleDateString("en-IN");
-
+  
     // Set page margins
     const pageWidth = 210;
     const margin = 20;
     const contentWidth = pageWidth - 2 * margin;
-
+  
     // Title Section
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(14);
@@ -399,22 +455,22 @@ const UCForm = () => {
     yPos += 15;
 
     // Signature section with actual signatures
-    pdf.text("Signatures:", margin, yPos);
-    yPos += 10;
+  pdf.text("Signatures:", margin, yPos);
+  yPos += 10;
 
     // Add PI signature if available
-    if (piSignature) {
-      pdf.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
-      pdf.text("Signature of PI", margin, yPos + 25);
-    } else {
-      pdf.text("Signature of PI: ________________", margin, yPos + 10);
-    }
+  if (piSignature) {
+    pdf.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
+    pdf.text("Signature of PI", margin, yPos + 25);
+  } else {
+    pdf.text("Signature of PI: ________________", margin, yPos + 10);
+  }
 
     // Add institute stamp if approved
-    if (instituteApproved && instituteStamp) {
-      pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
-      pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
-    }
+  if (instituteApproved && instituteStamp) {
+    pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
+    pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
+  }
 
     yPos += 35;
 
@@ -444,7 +500,7 @@ const UCForm = () => {
       styles: { fontSize: 10, cellPadding: 5, lineWidth: 0.1, lineColor: [0, 0, 0] }
     });
 
-    pdf.save(`UC_${ucData.title}_${selectedType}.pdf`);
+    pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
   };
 
   // UI component for signature canvas modal
