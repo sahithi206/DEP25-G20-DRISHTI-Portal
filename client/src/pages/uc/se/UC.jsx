@@ -689,7 +689,7 @@ const UCForm = () => {
                     <table className="w-full border border-gray-300 rounded-lg">
                       <thead>
                         <tr className="bg-blue-100 text-gray-700">
-                          <th className="border border-gray-400 px-4 py-2">Carry Forward</th>
+                          <th className="border border-gray-400 px-4 py-2">UnSpent Balances from Previous Years</th>
                           <th className="border border-gray-400 px-4 py-2">Grant Received</th>
                           <th className="border border-gray-400 px-4 py-2">Total</th>
                           <th className="border border-gray-400 px-4 py-2">Recurring Expenditure</th>
@@ -768,8 +768,8 @@ const UCForm = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="border p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Principal Investigator</h4>
-                        {piSignature ? (
+                      <h4 className="font-medium  mb-1">Principal Investigator Signature</h4>
+                      <p className="text-medium mb-2 text-gray-500">{ucData.principalInvestigator}</p>                        {piSignature ? (
                           <div className="border p-2 rounded mb-2">
                             <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
                           </div>
@@ -791,7 +791,10 @@ const UCForm = () => {
                       </div>
 
                       <div className="border p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Institute Approval</h4>
+
+                        <h4 className="font-medium  mb-1">Institute Approval</h4>
+                        <p className="text-medium mb-2 text-gray-500">{ucData.instituteName}</p>
+
                         {instituteApproved && instituteStamp ? (
                           <div className="border p-2 rounded mb-2">
                             <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />

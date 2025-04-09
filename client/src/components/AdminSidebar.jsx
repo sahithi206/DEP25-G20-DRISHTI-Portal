@@ -61,9 +61,9 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
             id: "grants",
             children: [
                 { label: "Quotations", id: "quotations", path: "/admin/quotations" },
-                { label: "UC", id: "uc", path: "/admin/uc" },
-                { label: "SE", id: "se", path: "/admin/se" },
+                { label: "UC/SE", id: "uc", path: "/admin/uc_se" },
                 { label: "Progress Report", id: "progress", path: "/admin/progress-report" }
+             
             ]
         };
         let requests = {
