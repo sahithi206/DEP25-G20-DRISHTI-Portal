@@ -63,6 +63,7 @@ import Quotations from "./pages/Qutations/Quotations.jsx"
 import ProjectExpenses from "./pages/ProjectExpenses.jsx";
 import UCPage from "./pages/college/UCpage.jsx";
 import ApproveUC from "./pages/college/ApproveUC.jsx";
+import ApproveSE from "./pages/college/ApproveSE";
 
 import Report from "./pages/Admin/Yearly/Progress.jsx";
 import RTGS from "./pages/Admin/Yearly/Quotations.jsx";
@@ -171,7 +172,8 @@ function MainLayout() {
           <Route path="/view-expenses/:projectId" element={<ViewExpenses />} />
           <Route path="/comments/:projectId/:ucType" element={<CommentsPage />} />
           <Route path="/ucInsti/:projectId" element={<UCPage />} />
-          <Route path="/institute/uc-se" element={<ApproveUC />} />
+          <Route path="/institute/uc" element={<ApproveUC />} />
+          <Route path="/institute/se" element={<ApproveSE />} />
         </Route>
       </Routes>
     </div>

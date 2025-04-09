@@ -9,7 +9,6 @@ const SESchema = new mongoose.Schema({
     startDate: { type: String, required: true },
     endDate: { type: String, required: true },
     TotalCost: { type: Number, required: true },
-    status: { type: String, required: true, default: "Pending for institute approval." },
     yearlyBudget: [{ type: Number, default: 0 }],
     budgetSanctioned: {
         human_resources: { type: Number, default: 0 },
@@ -37,7 +36,9 @@ const SESchema = new mongoose.Schema({
         nonRecurring: { type: Number, default: 0 },
         total: { type: Number, default: 0 },
     },
-    piSignature: { type: String }
+    piSignature: { type: String },
+    instituteStamp: { type: String, default: "null" },
+    status: { type: String, enum: ["pending", "approvedByInst", "approved"], default: "pending" },
 });
 
 

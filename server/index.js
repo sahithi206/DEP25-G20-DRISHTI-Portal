@@ -17,6 +17,7 @@ const Upload = require("./routes/upload.js");
 const Quotations = require("./routes/quotations.js");
 const UCComment = require("./routes/ucComments.js");
 const UCRoutes = require("./routes/UCRoutes.js");
+const SERoutes = require("./routes/SERoutes.js");
 const ExpenseComment = require("./routes/expenseComments.js");
 
 
@@ -37,6 +38,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/uc", UCRoutes);
+app.use("/se", SERoutes);
 app.use("/auth", Auth);
 app.use("/form", Form);
 app.use("/admin", Admin);

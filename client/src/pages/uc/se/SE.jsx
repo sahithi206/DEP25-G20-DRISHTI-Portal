@@ -203,7 +203,6 @@ const SEForm = () => {
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
-            // Check if file is an image
             if (!file.type.startsWith('image/')) {
                 setError("Please upload only image files (PNG, JPG, JPEG)");
                 return;
@@ -363,8 +362,6 @@ const SEForm = () => {
         );
     };
 
-    // console.log(budget);
-    // console.log("Manpower", manpower);
     const handleChange = (e) => {
         setData((prevData) => ({ ...prevData, [e.target.name]: e.target.value }));
     };
@@ -380,16 +377,17 @@ const SEForm = () => {
                 setError("PI signature is required before sending for approval");
                 return;
             }
+            
             console.log("Sending SE Payload:", {
                 data, yearlyBudget, budgetSanctioned, manpower, consumables,
                 others, equipment, total, totalExp, balance
             });
-
+    
             const response = await fetch(`${url}projects/se`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "accessToken": ` ${token}`,
+                    "accessToken": `${token}`, 
                 },
                 body: JSON.stringify({
                     data: data,
@@ -405,23 +403,33 @@ const SEForm = () => {
                     piSignature: piSignature
                 }),
             });
-
-            if (!response.ok) throw new Error("Submission failed");
-
-            const json = await response.json();
-            if (json.success) {
-                setShowSuccessPopup(true);
-                setSentForApproval(true);
-
-                setTimeout(() => {
-                    setShowSuccessPopup(false);
-                }, 3000);
+    
+            const responseText = await response.text();
+            
+            if (!response.ok) {
+                console.error("Server response:", responseText);
+                throw new Error(`Submission failed: ${response.status} ${response.statusText}`);
             }
-            else { alert("Error in Submitting form"); }
-            navigate(`/project-dashboard/${id}`)
+    
+            try {
+                const json = JSON.parse(responseText);
+                if (json.success) {
+                    setShowSuccessPopup(true);
+                    setSentForApproval(true);
+    
+                    setTimeout(() => {
+                        setShowSuccessPopup(false);
+                    }, 3000);
+                } else {
+                    alert(`Error in submitting form: ${json.message || 'Unknown error'}`);
+                }
+            } catch (e) {
+                console.error("Error parsing JSON:", e);
+                alert("Error in response format");
+            }
         } catch (error) {
             console.error("Error:", error);
-            alert("Error in submitting data!");
+            alert(`Error in submitting data: ${error.message}`);
         }
     };
 
@@ -503,7 +511,6 @@ const SEForm = () => {
 
         yPos += 30;
 
-        // Signature section
         if (piSignature) {
             doc.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
             doc.text("Signature of PI", margin, yPos + 25);
@@ -519,9 +526,6 @@ const SEForm = () => {
         const currentYear = data?.currentYear || "unknown_year";
         doc.save(`SE_${id}_${currentYear}.pdf`);
     };
-
-
-    // console.log("neirneri", yearlyExp);
 
     const today = new Date();
     const currentYear = today.getFullYear();
