@@ -248,29 +248,6 @@ const UCForm = () => {
     );
   };
 
-  // For demo purposes - simulate institute approval
-  const simulateInstituteApproval = () => {
-    // This would normally be an API call to check if the institute has approved
-    // For demo, we'll just set it to approved with a sample stamp
-    setInstituteApproved(true);
-    // Sample institute stamp - normally would come from backend
-    setInstituteStamp("/path/to/institute-stamp.png");
-    // For demo, using a placeholder image
-    setInstituteStamp("/api/placeholder/150/150");
-  };
-
-  useEffect(() => {
-    // For demonstration, we'll simulate the institute approving after 10 seconds
-    // In a real application, this would be handled by an API call or webhook
-    if (sentForApproval) {
-      const timer = setTimeout(() => {
-        simulateInstituteApproval();
-      }, 10000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [sentForApproval]);
-
   const handleSaveAsPDF = () => {
     const pdf = new jsPDF("p", "mm", "a4");
     const currentDate = new Date().toLocaleDateString("en-IN");
@@ -289,7 +266,7 @@ const UCForm = () => {
     pdf.setFontSize(12);
     pdf.text(`FINAL UTILIZATION CERTIFICATE FOR THE YEAR ${ucData.currentYear} in respect of`, pageWidth / 2, 32, { align: "center" });
     pdf.text(`${selectedType === "recurring" ? "Recurring" : "Non - Recurring"}`, pageWidth / 2, 38, { align: "center" });
-    pdf.text(`as on ${currentDate} to be submitted to SERB`, pageWidth / 2, 44, { align: "center" });
+    pdf.text(`as on ${currentDate} to be submitted to Funding Agency`, pageWidth / 2, 44, { align: "center" });
     pdf.text("Is the UC Provisional (Provisional/Audited)", pageWidth / 2, 50, { align: "center" });
 
     // Main Information Section
@@ -299,9 +276,9 @@ const UCForm = () => {
     const items = [
       { label: "Name of the grant receiving Organization", value: ucData.instituteName },
       { label: "Name of Principal Investigator (PI)", value: ucData.principalInvestigator },
-      { label: "SERB Sanction order no. & date", value: "ECR20XXXXXXXX Dated DD-MM-YYYY" },
+      // { label: "SERB Sanction order no. & date", value: "ECR20XXXXXXXX Dated DD-MM-YYYY" },
       { label: "Title of the Project", value: ucData.title },
-      { label: "Name of the SERB Scheme", value: ucData.scheme },
+      // { label: "Name of the Scheme", value: ucData.scheme },
       { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" }
     ];
 
@@ -325,15 +302,15 @@ const UCForm = () => {
 
     // Financial details
     pdf.text("Carry forward from previous financial year", margin + 20, yPos);
-    pdf.text(`₹ ${ucData.CarryForward}`, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
     yPos += 7;
 
     pdf.text("Others, If any", margin + 20, yPos);
-    pdf.text("₹ 0", margin + 120, yPos);
+    pdf.text("Rs 0", margin + 120, yPos);
     yPos += 7;
 
     pdf.text("Total", margin + 20, yPos);
-    pdf.text(`₹ ${ucData.CarryForward}`, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
     yPos += 10;
 
     // Details of grants received section
@@ -343,36 +320,51 @@ const UCForm = () => {
 
     // Complex table for grant details
     const headers = [
-      [{ content: "Unspent Balance of\nGrants received years\n(figure as at Sl. No. 7\n(iii))", colSpan: 1, rowSpan: 2 },
-      { content: "Interest Earned\nthereon", colSpan: 1, rowSpan: 2 },
-      { content: "Interest\ndeposited\nback to the\nSERB", colSpan: 1, rowSpan: 2 },
-      { content: "Grant received during the year", colSpan: 3, rowSpan: 1 },
-      { content: "Total\n(1+2 - 3+4)", colSpan: 1, rowSpan: 2 },
-      { content: "Expenditur\ne incurred", colSpan: 1, rowSpan: 2 },
-      { content: "Closing\nBalances (5 - 6)", colSpan: 1, rowSpan: 2 }]
+      [
+        { content: "Unspent Balance of Grants\nreceived years", colSpan: 1 },
+        { content: "Grant received\nduring the year", colSpan: 1 },
+        { content: "Total", colSpan: 1 },
+        { content: "Expenditure\nincurred", colSpan: 1 },
+        { content: "Closing\nBalance (5 - 6)", colSpan: 1 }
+      ]
     ];
-
-    const subHeaders = [
-      ["", "", "", "Sanction No.", "Date", "Amount", "", "", ""]
-    ];
-
-    const interestAmount = Math.round(ucData.CarryForward * 0.025); // Example interest calculation (2.5%)
 
     const data = [
-      [`₹ ${ucData.CarryForward}`, `₹ ${interestAmount}`, "₹ 0", "ECR20XXXXXXXX",
-      `${new Date().getDate()}-${new Date().toLocaleString('default', { month: 'short' })}-${new Date().getFullYear()}`,
-        "₹ 0", `₹ ${ucData.CarryForward + interestAmount}`, `₹ ${ucData.recurringExp}`,
-      `₹ ${ucData.CarryForward + interestAmount - ucData.recurringExp}`]
+      [
+        `Rs ${ucData.CarryForward}`,
+        `Rs ${ucData.yearTotal}`,
+        `Rs ${ucData.total}`,
+        `Rs ${ucData.recurringExp}`,
+        `Rs ${ucData.total - ucData.recurringExp}`
+      ]
     ];
 
     pdf.autoTable({
-      head: [...headers, ...subHeaders],
+      head: headers,
       body: data,
       startY: yPos,
       theme: 'grid',
-      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
-      styles: { fontSize: 8, cellPadding: 1, overflow: 'linebreak', lineWidth: 0.1, lineColor: [0, 0, 0] },
-      columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 20 }, 2: { cellWidth: 20 } }
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        halign: 'center',
+        valign: 'middle',
+        fontSize: 9
+      },
+      styles: {
+        fontSize: 8,
+        cellPadding: 1,
+        overflow: 'linebreak',
+        lineWidth: 0.1,
+        lineColor: [0, 0, 0]
+      },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 40 },
+        4: { cellWidth: 40 }
+      }
     });
 
     yPos = pdf.lastAutoTable.finalY + 10;
@@ -384,10 +376,10 @@ const UCForm = () => {
 
       const componentHeaders = [["Component", "Total"]];
       const componentData = [
-        ["Human Resources", `₹ ${ucData.human_resources}`],
-        ["Consumables", `₹ ${ucData.consumables}`],
-        ["Others", `₹ ${ucData.others}`],
-        ["Total", `₹ ${ucData.recurringExp}`]
+        ["Human Resources", `Rs ${ucData.human_resources}`],
+        ["Consumables", `Rs ${ucData.consumables}`],
+        ["Others", `Rs ${ucData.others}`],
+        ["Total", `Rs ${ucData.recurringExp}`]
       ];
 
       pdf.autoTable({
@@ -405,7 +397,7 @@ const UCForm = () => {
       yPos += 5;
 
       const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
-      const componentData = [[`₹ ${ucData.recurringExp}`, `₹ ${ucData.recurringExp}`]];
+      const componentData = [[`Rs ${ucData.recurringExp}`, `Rs ${ucData.recurringExp}`]];
 
       pdf.autoTable({
         head: componentHeaders,
@@ -423,21 +415,21 @@ const UCForm = () => {
     pdf.text("Details of grants position at the end of the year", margin, yPos);
     yPos += 7;
 
-    const closingBalance = ucData.CarryForward + interestAmount - ucData.recurringExp;
+    const closingBalance = ucData.total - ucData.recurringExp;
 
     pdf.text("(i)", margin, yPos);
     pdf.text("Balance available at end of financial year", margin + 10, yPos);
-    pdf.text(`₹ ${closingBalance}`, margin + 100, yPos);
+    pdf.text(`Rs ${closingBalance}`, margin + 100, yPos);
     yPos += 7;
 
     pdf.text("(ii)", margin, yPos);
-    pdf.text("Unspent balance refunded to SERB (if any)", margin + 10, yPos);
-    pdf.text("₹ 0", margin + 100, yPos);
+    pdf.text("Unspent balance refunded to Funding Agency(if any)", margin + 10, yPos);
+    pdf.text("Rs 0", margin + 100, yPos);
     yPos += 7;
 
     pdf.text("(iii)", margin, yPos);
     pdf.text("Balance (Carry forward to next financial year)", margin + 10, yPos);
-    pdf.text(`₹ ${closingBalance}`, margin + 100, yPos);
+    pdf.text(`Rs ${closingBalance}`, margin + 100, yPos);
     yPos += 15;
 
     // Add new page for certification
@@ -476,12 +468,12 @@ const UCForm = () => {
     yPos += 10;
     pdf.text("Date: " + new Date().toLocaleDateString("en-IN"), margin, yPos);
     yPos += 5;
-    pdf.text("Place: ", margin, yPos);
-    yPos += 15;
+    // pdf.text("Place: ", margin, yPos);
+    // yPos += 15;
 
-    // Signature section with actual signatures
-    pdf.text("Signatures:", margin, yPos);
-    yPos += 10;
+    // // Signature section with actual signatures
+    // pdf.text("Signatures:", margin, yPos);
+    // yPos += 10;
 
     // Add PI signature if available
     if (piSignature) {
@@ -635,11 +627,15 @@ const UCForm = () => {
               onChange={(e) => handleSelection(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Select UC Type</option>
+              <option value="" disabled>
+                Select UC Type
+              </option>
               <option value="recurring">Recurring</option>
               <option value="nonRecurring">Non-Recurring</option>
             </select>
           </div>
+
+          {loading && <p className="text-center mt-6">Loading...</p>}
 
           {error && (
             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
@@ -668,192 +664,93 @@ const UCForm = () => {
                       {selectedType === "recurring" ? "Recurring" : "Non-Recurring"}
                     </p>
                     <p className="text-sm font-medium mt-1">
-                      as on {new Date().toLocaleDateString()} to be submitted to SERB
+                      as on {new Date().toLocaleDateString()} to be submitted to Funding Agency
                     </p>
-                    <p className="text-sm font-medium">Is the UC Provisional (Provisional/Audited)</p>
+                    {/* <p className="text-sm font-medium">Is the UC Provisional (Provisional/Audited)</p> */}
                   </div>
 
                   <h3 className="text-lg font-semibold text-blue-700 mb-4">
                     {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
                   </h3>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <label className="font-semibold text-gray-700">Title of the Project:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.title}</span>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div className="flex">
-                      <span className="w-6">1</span>
-                      <span className="font-semibold text-gray-700">Name of the grant receiving Organization:</span>
-                      <span className="ml-2">{ucData.instituteName}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="w-6">2</span>
-                      <span className="font-semibold text-gray-700">Name of Principal Investigator (PI):</span>
-                      <span className="ml-2">{ucData.principalInvestigator}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="w-6">3</span>
-                      <span className="font-semibold text-gray-700">SERB Sanction order no. & date:</span>
-                      <span className="ml-2">ECR20XXXXXXXX Dated DD-MM-YYYY</span>
-                    </div>
-                    <div className="flex">
-                      <span className="w-6">4</span>
-                      <span className="font-semibold text-gray-700">Title of the Project:</span>
-                      <span className="ml-2">{ucData.title}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="w-6">5</span>
-                      <span className="font-semibold text-gray-700">Name of the SERB Scheme:</span>
-                      <span className="ml-2">{ucData.scheme}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="w-6">6</span>
-                      <span className="font-semibold text-gray-700">Whether recurring or non-recurring grants:</span>
-                      <span className="ml-2">{selectedType === "recurring" ? "Recurring" : "Non Recurring"}</span>
-                    </div>
+                    <label className="font-semibold text-gray-700">Name of the Scheme:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.scheme}</span>
+
+                    <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
+
+                    <label className="font-semibold text-gray-700">Name of the Principal Investigator:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.principalInvestigator}</span>
+
+                    <label className="font-semibold text-gray-700">Present Year of Project:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
+
+                    <label className="font-semibold text-gray-700">Start Date of Year:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.startDate}</span>
+
+                    <label className="font-semibold text-gray-700">End Date of Year:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
                   </div>
-                  <div className="mb-6">
-                    <div className="flex">
-                      <span className="w-6">7</span>
-                      <span className="font-semibold text-gray-700">Grants position of the beginning of the Financial year</span>
-                    </div>
-                    <div className="pl-8 mt-2">
-                      <div className="flex justify-between">
-                        <span>Carry forward from previous financial year</span>
-                        <span>₹ {ucData.CarryForward}</span>
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span>Others, If any</span>
-                        <span>₹ 0</span>
-                      </div>
-                      <div className="flex justify-between mt-1 font-semibold">
-                        <span>Total</span>
-                        <span>₹ {ucData.CarryForward}</span>
-                      </div>
-                    </div>
+                  <h3 className="text-lg font-semibold text-blue-700 mb-4">Financial Summary</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border border-gray-300 rounded-lg">
+                      <thead>
+                        <tr className="bg-blue-100 text-gray-700">
+                          <th className="border border-gray-400 px-4 py-2">Carry Forward</th>
+                          <th className="border border-gray-400 px-4 py-2">Grant Received</th>
+                          <th className="border border-gray-400 px-4 py-2">Total</th>
+                          <th className="border border-gray-400 px-4 py-2">Recurring Expenditure</th>
+                          <th className="border border-gray-400 px-4 py-2">Closing Balance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="text-center">
+                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.CarryForward}</td>
+                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.yearTotal}</td>
+                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.total}</td>
+                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.recurringExp}</td>
+                          <td className="border border-gray-400 px-4 py-2">
+                            Rs {ucData.total - ucData.recurringExp}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
 
-                  <div className="mb-6">
-                    <div className="flex mb-2">
-                      <span className="w-6">8</span>
-                      <span className="font-semibold text-gray-700">Details of grants received, expenditure incurred and closing balances: (Actual)</span>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full border border-gray-300 text-sm">
-                        <thead>
-                          <tr className="bg-gray-50">
-                            <th rowSpan="2" className="border border-gray-300 p-1">Unspent Balance of Grants received years (figure as at Sl. No. 7 (iii))</th>
-                            <th rowSpan="2" className="border border-gray-300 p-1">Interest Earned thereon</th>
-                            <th rowSpan="2" className="border border-gray-300 p-1">Interest deposited back to the SERB</th>
-                            <th colSpan="3" className="border border-gray-300 p-1">Grant received during the year</th>
-                            <th rowSpan="2" className="border border-gray-300 p-1">Total (1+2 - 3+4)</th>
-                            <th rowSpan="2" className="border border-gray-300 p-1">Expenditure incurred</th>
-                            <th rowSpan="2" className="border border-gray-300 p-1">Closing Balances (5 - 6)</th>
-                          </tr>
-                          <tr className="bg-gray-50">
-                            <th className="border border-gray-300 p-1">Sanction No.</th>
-                            <th className="border border-gray-300 p-1">Date</th>
-                            <th className="border border-gray-300 p-1">Amount</th>
-                          </tr>
-                          <tr className="bg-gray-50">
-                            <th className="border border-gray-300 p-1">1</th>
-                            <th className="border border-gray-300 p-1">2</th>
-                            <th className="border border-gray-300 p-1">3</th>
-                            <th colSpan="3" className="border border-gray-300 p-1">4</th>
-                            <th className="border border-gray-300 p-1">5</th>
-                            <th className="border border-gray-300 p-1">6</th>
-                            <th className="border border-gray-300 p-1">7</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr className="text-center">
-                            <td className="border border-gray-300 p-1">₹ {ucData.CarryForward}</td>
-                            <td className="border border-gray-300 p-1">₹ {Math.round(ucData.CarryForward * 0.025)}</td>
-                            <td className="border border-gray-300 p-1">₹ 0</td>
-                            <td className="border border-gray-300 p-1">ECR20XXXXXXXX</td>
-                            <td className="border border-gray-300 p-1">{new Date().getDate()}-{new Date().toLocaleString('default', { month: 'short' })}-{new Date().getFullYear()}</td>
-                            <td className="border border-gray-300 p-1">₹ 0</td>
-                            <td className="border border-gray-300 p-1">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025)}</td>
-                            <td className="border border-gray-300 p-1">₹ {ucData.recurringExp}</td>
-                            <td className="border border-gray-300 p-1">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025) - ucData.recurringExp}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  {selectedType === "recurring" ? (
-                    <div className="mb-6">
-                      <div className="font-semibold text-gray-700 mb-2">Component wise utilization of grants:</div>
+                  {selectedType === "recurring" && (
+                    <>
+                      <h3 className="text-lg font-semibold text-blue-700 mt-6 mb-4">
+                        Component-wise Utilization of Grants
+                      </h3>
                       <div className="overflow-x-auto">
-                        <table className="w-full border border-gray-300">
+                        <table className="w-full border border-gray-300 rounded-lg">
                           <thead>
-                            <tr className="bg-gray-50">
-                              <th className="border border-gray-300 p-2">Component</th>
-                              <th className="border border-gray-300 p-2">Total</th>
+                            <tr className="bg-blue-100 text-gray-700">
+                              <th className="border border-gray-400 px-4 py-2">Component</th>
+                              <th className="border border-gray-400 px-4 py-2">Amount</th>
                             </tr>
                           </thead>
                           <tbody>
                             <tr className="text-center">
-                              <td className="border border-gray-300 p-2">Human Resources</td>
-                              <td className="border border-gray-300 p-2">₹ {ucData.human_resources}</td>
+                              <td className="border border-gray-400 px-4 py-2">Human Resources</td>
+                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.human_resources}</td>
                             </tr>
                             <tr className="text-center">
-                              <td className="border border-gray-300 p-2">Consumables</td>
-                              <td className="border border-gray-300 p-2">₹ {ucData.consumables}</td>
+                              <td className="border border-gray-400 px-4 py-2">Consumables</td>
+                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.consumables}</td>
                             </tr>
                             <tr className="text-center">
-                              <td className="border border-gray-300 p-2">Others</td>
-                              <td className="border border-gray-300 p-2">₹ {ucData.others}</td>
-                            </tr>
-                            <tr className="text-center font-semibold">
-                              <td className="border border-gray-300 p-2">Total</td>
-                              <td className="border border-gray-300 p-2">₹ {ucData.recurringExp}</td>
+                              <td className="border border-gray-400 px-4 py-2">Others</td>
+                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.others}</td>
                             </tr>
                           </tbody>
                         </table>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="mb-6">
-                      <div className="font-semibold text-gray-700 mb-2">Component wise utilization of grants:</div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full border border-gray-300">
-                          <thead>
-                            <tr className="bg-gray-50">
-                              <th className="border border-gray-300 p-2">Grant-in-aid-creation of capital assets</th>
-                              <th className="border border-gray-300 p-2">Total</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="text-center">
-                              <td className="border border-gray-300 p-2">₹ {ucData.recurringExp}</td>
-                              <td className="border border-gray-300 p-2">₹ {ucData.recurringExp}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                    </>
                   )}
-
-
-                  <div className="mb-6">
-                    <div className="font-semibold text-gray-700 mb-2">Details of grants position at the end of the year</div>
-                    <div className="pl-4">
-                      <div className="flex gap-2 mb-1">
-                        <span>(i)</span>
-                        <span>Balance available at end of financial year</span>
-                        <span className="flex-grow text-right">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025) - ucData.recurringExp}</span>
-                      </div>
-                      <div className="flex gap-2 mb-1">
-                        <span>(ii)</span>
-                        <span>Unspent balance refunded to SERB (if any)</span>
-                        <span className="flex-grow text-right">₹ 0</span>
-                      </div>
-                      <div className="flex gap-2 mb-1">
-                        <span>(iii)</span>
-                        <span>Balance (Carry forward to next financial year)</span>
-                        <span className="flex-grow text-right">₹ {ucData.CarryForward + Math.round(ucData.CarryForward * 0.025) - ucData.recurringExp}</span>
-                      </div>
-                    </div>
-                  </div>
 
                   <div className="mb-6">
                     <div className="font-semibold text-gray-700 mb-2">Certification</div>
@@ -873,15 +770,6 @@ const UCForm = () => {
                       <li>The utilization of the fund resulted in outcomes given at Annexure-II duly enclosed (to be formulated by the Ministry/Department concerned as per their requirements/specifications)</li>
                       <li>Details of various schemes executed by the agency through grants-in-aid received from the same Ministry or from other Ministries is enclosed at Annexure-II (to be formulated by the Ministry/Department concerned as per their requirements/specifications)</li>
                     </ol>
-                  </div>
-
-                  <div className="mb-6">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                      <div>
-                        <p className="text-sm">Date: {new Date().toLocaleDateString()}</p>
-                        <p className="text-sm">Place: </p>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Signature Section */}
@@ -939,6 +827,15 @@ const UCForm = () => {
                       </svg>
                       Save as PDF
                     </button>
+
+
+                    <button
+                      onClick={() => navigate(`/comments/${projectId}/${selectedType}`)}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Comments
+                    </button>
+
 
                     {!sentForApproval && (
                       <button
