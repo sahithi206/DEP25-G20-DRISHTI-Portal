@@ -99,16 +99,6 @@ const UCForm = () => {
         status: "pending"
       };
 
-      // // Get existing pending requests from local storage
-      // const storedRequests = localStorage.getItem('pendingUCRequests');
-      // const pendingRequests = storedRequests ? JSON.parse(storedRequests) : [];
-
-      // // Add the new request
-      // pendingRequests.push(newRequest);
-
-      // // Save back to local storage
-      // localStorage.setItem('pendingUCRequests', JSON.stringify(pendingRequests));
-
       await fetch(`${url}uc/submit`, {
         method: "POST",
         headers: {
@@ -470,14 +460,7 @@ const UCForm = () => {
     yPos += 10;
     pdf.text("Date: " + new Date().toLocaleDateString("en-IN"), margin, yPos);
     yPos += 5;
-    // pdf.text("Place: ", margin, yPos);
-    // yPos += 15;
-
-    // // Signature section with actual signatures
-    // pdf.text("Signatures:", margin, yPos);
-    // yPos += 10;
-
-    // Add PI signature if available
+    
     if (piSignature) {
       pdf.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
       pdf.text("Signature of PI", margin, yPos + 25);
@@ -485,8 +468,13 @@ const UCForm = () => {
       pdf.text("Signature of PI: ________________", margin, yPos + 10);
     }
 
-    // Add institute stamp if approved
-    if (instituteApproved && instituteStamp) {
+    // Add institute stamp if approved (only for recurring type)
+    if (instituteApproved && instituteStamp && selectedType === "recurring") {
+      pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
+      pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
+    }
+
+    if (instituteApproved && instituteStamp && selectedType === "non-recurring") {
       pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
       pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
     }
