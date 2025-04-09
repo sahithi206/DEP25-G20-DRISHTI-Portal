@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../utils/Sidebar";
 import HomeNavbar from "../../utils/HomeNavbar";
-
-
+import { toast } from "react-toastify";
 
 const UploadDocuments = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -38,19 +37,13 @@ const UploadDocuments = () => {
                 setLoading(false);
                 return;
             }
-
             try {
                 const response = await fetch(`${URL}quotations/pi/get-quotations/${id}`, {
                     method: "GET",
                     headers: { accessToken: token },
                 });
-
-
                 const data = await response.json();
-
-
                 setQuotations(data.quotations || []);
-
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -81,7 +74,31 @@ const UploadDocuments = () => {
             console.error(err);
         }
     };
-
+    
+    const handleResolveComment = async (commentId) => {
+        try {
+          const token = localStorage.getItem("token");
+          const res = await fetch(`${URL}quotations/update-comment/${commentId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "accessToken": token,
+            },
+            body: JSON.stringify({ status: "Resolved" }),
+          });
+      
+          const data = await res.json();
+      
+          if (res.ok) {
+            toast.success("Comment marked as resolved!");
+          } else {
+            toast.error(data.msg || "Failed to update comment");
+          }
+        } catch (err) {
+          toast.error("An error occurred while updating the comment");
+        }
+      };
+      
 
 
     return (
@@ -170,33 +187,48 @@ const UploadDocuments = () => {
             </div>
 
             {showCommentsModal && selectedQuotation && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
-                        <h2 className="text-xl font-bold mb-4">Comments for {selectedQuotation.Title}</h2>
-                        <ul className="space-y-2">
-                            {comments.length === 0 ? (
-                                <li className="text-gray-500">No comments available.</li>
-                            ) : (
-                                comments.map((commentObj, idx) => (
-                                    <li key={commentObj._id} className="p-2 border-b border-gray-200">
-                                        {commentObj.comment}
-                                        <div className="text-xs text-gray-500 mt-1">
-                                            Posted on {new Date(commentObj.createdAt).toLocaleString()}
-                                        </div>
-                                    </li>
-                                ))
-                            )}
-                        </ul>
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 max-h-[90vh] overflow-y-auto">
+      <h2 className="text-xl font-bold mb-4">Comments for {selectedQuotation.Title}</h2>
 
-                        <button
-                            onClick={() => setShowCommentsModal(false)}
-                            className="mt-4 bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        >
-                            Close
-                        </button>
-                    </div>
-                </div>
-            )}
+      <ul className="space-y-2 mb-6">
+        {comments.length === 0 ? (
+          <li className="text-gray-500">No comments available.</li>
+        ) : (
+          comments.map((commentObj) => (
+            <li key={commentObj._id} className="p-4 border border-gray-200 rounded">
+              <div className="flex justify-between items-center">
+                <p className="text-gray-800">{commentObj.comment}</p>
+                {commentObj.status !== "Resolved" && (
+                  <button
+                    onClick={() => handleResolveComment(commentObj._id)}
+                    className="bg-green-600 text-white text-sm px-3 py-1 rounded hover:bg-green-700"
+                  >
+                    Resolve
+                  </button>
+                )}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Posted on {new Date(commentObj.createdAt).toLocaleString()} &nbsp;
+                {commentObj.status === "Resolved" && (
+                  <span className="text-green-700 font-semibold">(Resolved)</span>
+                )}
+              </div>
+            </li>
+          ))
+        )}
+      </ul>
+
+      <button
+        onClick={() => setShowCommentsModal(false)}
+        className="mt-4 bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
+
         </div>
     );
 };

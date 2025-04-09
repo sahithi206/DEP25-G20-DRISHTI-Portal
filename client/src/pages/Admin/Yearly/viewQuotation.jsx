@@ -14,8 +14,34 @@ const QuotationDetails = () => {
     const [salary, setSalary] = useState([]);
     const [loading, setLoading] = useState(true);
     const [comment, setComment] = useState("");
-    const URL = import.meta.env.VITE_REACT_APP_URL;
+    const [resolvedComments, setResolvedComments] = useState([]);
 
+    const URL = import.meta.env.VITE_REACT_APP_URL;
+    useEffect(() => {
+    
+        const fetchResolvedComments = async () => {
+            const token = localStorage.getItem("token");
+            try {
+                const res = await fetch(`${URL}quotations/admin/resolved-comments/${id}`, {
+                    method: "GET",
+                    headers: {
+                        accessToken: token,
+                    },
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    setResolvedComments(data.comments); 
+                } else {
+                    toast.error("Failed to fetch resolved comments.");
+                }
+            } catch (err) {
+                toast.error(err.message || "Error fetching resolved comments");
+            }
+        };
+    
+        fetchResolvedComments();
+    }, [id]);
+    
     useEffect(() => {
         const fetchQuotation = async () => {
             const token = localStorage.getItem("token");
@@ -73,7 +99,33 @@ const QuotationDetails = () => {
         }
       };
       
-
+      const handleResolveComment = async (commentId) => {
+        const token = localStorage.getItem("token");
+        try {
+            const res = await fetch(`${URL}quotations/admin/view-comment/${commentId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    accessToken: token,
+                },
+            });
+            const data = await res.json();
+    
+            if (res.ok) {
+                toast.success(data.msg || "Comment marked as viewed");
+                setResolvedComments(prev => 
+                    prev.map(c => 
+                        c._id === commentId ? { ...c, status: "Viewed" } : c
+                    )
+                );
+            } else {
+                toast.error(data.msg || "Failed to mark comment as viewed");
+            }
+        } catch (err) {
+            toast.error(err.message || "Failed to mark comment as viewed");
+        }
+    };
+    
     const handleAddComment = async () => {
         const token = localStorage.getItem("token");
         console.log(id);
@@ -205,6 +257,32 @@ const QuotationDetails = () => {
                             onChange={(e) => setComment(e.target.value)}
                             className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         />
+                        <div className="mt-6">
+    <h2 className="text-lg font-semibold mb-3">Resolved Comments</h2>
+    {resolvedComments.length === 0 ? (
+        <p className="text-gray-600">No comments available.</p>
+    ) : (
+        <ul className="space-y-4">
+            {resolvedComments.map((commentObj) => (
+                <li key={commentObj._id} className="bg-gray-100 p-4 rounded shadow-sm flex justify-between items-center">
+                    <div>
+                        <p className="text-gray-800">{commentObj.comment}</p>
+                        <p className="text-sm text-gray-500">Status: {commentObj.status}</p>
+                    </div>
+                    {commentObj.status !== "Viewed" && (
+                        <button
+                            onClick={() => handleResolveComment(commentObj._id)}
+                            className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition"
+                        >
+                            Mark as Viewed
+                        </button>
+                    )}
+                </li>
+            ))}
+        </ul>
+    )}
+</div>
+
                         <div className="flex gap-4">
                             <button
                                 onClick={handleMarkAsRead}

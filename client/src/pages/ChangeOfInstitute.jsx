@@ -12,7 +12,7 @@ const ChangeOfInstitute = () => {
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [institutions, setInstitutions] = useState([]);
-    
+
     const [formData, setFormData] = useState({
         fileNumber: "",
         piName: "",
@@ -46,23 +46,23 @@ const ChangeOfInstitute = () => {
                     "auth-token": localStorage.getItem("token")
                 }
             });
-            
+
             if (!response.ok) {
                 throw new Error("Failed to fetch user profile");
             }
-            
+
             const userData = await response.json();
-            
+
             if (userData && userData.proposals && userData.proposals.length > 0) {
                 // Fetch details for each project in the proposals array
-                const projectPromises = userData.proposals.map(projectId => 
+                const projectPromises = userData.proposals.map(projectId =>
                     fetch(`/api/projects/${projectId}`, {
                         headers: {
                             "auth-token": localStorage.getItem("token")
                         }
                     }).then(res => res.json())
                 );
-                
+
                 const projectsData = await Promise.all(projectPromises);
                 setFileNumbers(projectsData.map(project => ({
                     id: project._id, // Use _id as per MongoDB schema
@@ -80,11 +80,11 @@ const ChangeOfInstitute = () => {
     const fetchStates = async () => {
         try {
             const response = await fetch("/api/states");
-            
+
             if (!response.ok) {
                 throw new Error("Failed to fetch states");
             }
-            
+
             const data = await response.json();
             setStates(data);
         } catch (error) {
@@ -96,11 +96,11 @@ const ChangeOfInstitute = () => {
     const fetchDistricts = async (stateId) => {
         try {
             const response = await fetch(`/api/districts/${stateId}`);
-            
+
             if (!response.ok) {
                 throw new Error("Failed to fetch districts");
             }
-            
+
             const data = await response.json();
             setDistricts(data);
             setFormData(prev => ({ ...prev, district: "" }));
@@ -113,11 +113,11 @@ const ChangeOfInstitute = () => {
     const fetchInstitutions = async (districtId) => {
         try {
             const response = await fetch(`/api/institutions/${districtId}`);
-            
+
             if (!response.ok) {
                 throw new Error("Failed to fetch institutions");
             }
-            
+
             const data = await response.json();
             setInstitutions(data);
             setFormData(prev => ({ ...prev, newInstitute: "" }));
@@ -130,7 +130,7 @@ const ChangeOfInstitute = () => {
     const handleFileNumberChange = async (e) => {
         const fileNumber = e.target.value;
         setFormData(prev => ({ ...prev, fileNumber }));
-        
+
         if (fileNumber) {
             try {
                 const response = await fetch(`/api/projects/${fileNumber}`, {
@@ -138,11 +138,11 @@ const ChangeOfInstitute = () => {
                         "auth-token": localStorage.getItem("token")
                     }
                 });
-                
+
                 if (!response.ok) {
                     throw new Error("Failed to fetch project details");
                 }
-                
+
                 const data = await response.json();
                 setFormData(prev => ({
                     ...prev,
@@ -161,7 +161,7 @@ const ChangeOfInstitute = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        
+
         if (name === "state") {
             fetchDistricts(value);
         } else if (name === "district") {
@@ -172,7 +172,7 @@ const ChangeOfInstitute = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        
+
         try {
             // Create request payload using the Request schema structure
             const requestPayload = {
@@ -193,7 +193,7 @@ const ChangeOfInstitute = () => {
                     justification: formData.justification
                 })
             };
-            
+
             const response = await fetch("/api/requests/submit-request", {
                 method: "POST",
                 headers: {
@@ -202,9 +202,9 @@ const ChangeOfInstitute = () => {
                 },
                 body: JSON.stringify(requestPayload)
             });
-            
+
             const data = await response.json();
-            
+
             if (response.ok && data.success) {
                 toast.success("Change of institute request submitted successfully!");
                 navigate("/dashboard");
@@ -238,7 +238,7 @@ const ChangeOfInstitute = () => {
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         File Number <span className="text-red-500">*</span>
                                     </label>
-                                    <select 
+                                    <select
                                         className="border border-gray-400 rounded px-3 py-2 w-full"
                                         name="fileNumber"
                                         value={formData.fileNumber}
@@ -258,24 +258,24 @@ const ChangeOfInstitute = () => {
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Name of Principal Investigator:
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100" 
+                                    <input
+                                        type="text"
+                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100"
                                         name="piName"
                                         value={formData.piName}
-                                        disabled 
+                                        disabled
                                     />
                                 </div>
                                 <div>
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Project Title:
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100" 
+                                    <input
+                                        type="text"
+                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100"
                                         name="projectTitle"
                                         value={formData.projectTitle}
-                                        disabled 
+                                        disabled
                                     />
                                 </div>
                             </div>
@@ -285,24 +285,24 @@ const ChangeOfInstitute = () => {
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Current Institute:
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100" 
+                                    <input
+                                        type="text"
+                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100"
                                         name="currentInstitute"
                                         value={formData.currentInstitute}
-                                        disabled 
+                                        disabled
                                     />
                                 </div>
                                 <div>
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Current Institute Address:
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100" 
+                                    <input
+                                        type="text"
+                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100"
                                         name="currentInstituteAddress"
                                         value={formData.currentInstituteAddress}
-                                        disabled 
+                                        disabled
                                     />
                                 </div>
                             </div>
@@ -317,7 +317,7 @@ const ChangeOfInstitute = () => {
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         State <span className="text-red-500">*</span>
                                     </label>
-                                    <select 
+                                    <select
                                         className="border border-gray-400 rounded px-3 py-2 w-full"
                                         name="state"
                                         value={formData.state}
@@ -335,7 +335,7 @@ const ChangeOfInstitute = () => {
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         District <span className="text-red-500">*</span>
                                     </label>
-                                    <select 
+                                    <select
                                         className="border border-gray-400 rounded px-3 py-2 w-full"
                                         name="district"
                                         value={formData.district}
@@ -354,7 +354,7 @@ const ChangeOfInstitute = () => {
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Institute Name <span className="text-red-500">*</span>
                                     </label>
-                                    <select 
+                                    <select
                                         className="border border-gray-400 rounded px-3 py-2 w-full"
                                         name="newInstitute"
                                         value={formData.newInstitute}
@@ -375,9 +375,9 @@ const ChangeOfInstitute = () => {
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Department <span className="text-red-500">*</span>
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        className="border border-gray-400 rounded px-3 py-2 w-full" 
+                                    <input
+                                        type="text"
+                                        className="border border-gray-400 rounded px-3 py-2 w-full"
                                         name="department"
                                         value={formData.department}
                                         onChange={handleInputChange}
@@ -389,9 +389,9 @@ const ChangeOfInstitute = () => {
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Designation <span className="text-red-500">*</span>
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        className="border border-gray-400 rounded px-3 py-2 w-full" 
+                                    <input
+                                        type="text"
+                                        className="border border-gray-400 rounded px-3 py-2 w-full"
                                         name="designation"
                                         value={formData.designation}
                                         onChange={handleInputChange}
@@ -405,9 +405,9 @@ const ChangeOfInstitute = () => {
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Date of Resignation In Current Institution <span className="text-red-500">*</span>
                                     </label>
-                                    <input 
-                                        type="date" 
-                                        className="border border-gray-400 rounded px-3 py-2 w-full" 
+                                    <input
+                                        type="date"
+                                        className="border border-gray-400 rounded px-3 py-2 w-full"
                                         name="resignationDate"
                                         value={formData.resignationDate}
                                         onChange={handleInputChange}
@@ -419,9 +419,9 @@ const ChangeOfInstitute = () => {
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Effective Date of Transfer <span className="text-red-500">*</span>
                                     </label>
-                                    <input 
-                                        type="date" 
-                                        className="border border-gray-400 rounded px-3 py-2 w-full" 
+                                    <input
+                                        type="date"
+                                        className="border border-gray-400 rounded px-3 py-2 w-full"
                                         name="joiningDate"
                                         value={formData.joiningDate}
                                         onChange={handleInputChange}
@@ -434,8 +434,8 @@ const ChangeOfInstitute = () => {
                                 <label className="block font-semibold text-gray-700 mb-1">
                                     Detailed Justification of Transfer <span className="text-red-500">*</span>
                                 </label>
-                                <textarea 
-                                    className="border border-gray-400 rounded px-3 py-2 w-full h-32" 
+                                <textarea
+                                    className="border border-gray-400 rounded px-3 py-2 w-full h-32"
                                     name="justification"
                                     value={formData.justification}
                                     onChange={handleInputChange}
@@ -450,8 +450,8 @@ const ChangeOfInstitute = () => {
                             </div>
 
                             <div className="flex justify-center">
-                                <button 
-                                    type="submit" 
+                                <button
+                                    type="submit"
                                     className="bg-blue-700 text-white px-8 py-3 rounded-md shadow-md hover:bg-blue-800 transition font-medium disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
                                     disabled={loading}
                                 >

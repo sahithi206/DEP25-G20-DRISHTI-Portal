@@ -11,6 +11,7 @@ const Scheme = require("../Models/Scheme");
 const Comment = require('../Models/Quotations/comments.js');
 
 const { ObjectId } = require("mongodb");
+const quotation = require('../Models/Quotations/quotation');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -223,6 +224,9 @@ router.post('/admin/comment/:id', fetchAdmin, async (req, res) => {
     }
     const { id } = req.params;
     console.log(id);
+    if(!comment){
+      return res.status(400).json({ success: false, msg: "Enter Comment" });
+    }
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ success: false, msg: "Invalid Quotation ID" });
     }
@@ -266,7 +270,7 @@ router.get('/pi/get-quotation/:id', fetchUser, async (req, res) => {
 router.get('/pi/get-quotations/:id', fetchUser, async (req, res) => {
   try {
     
-    const all_quotations = await Quotation.find({status:"Pending"});
+    const all_quotations = await Quotation.find({});
     const quotations = (await Promise.all(
       all_quotations.map(async (quotation) => {
         const project = await Project.findById(quotation.projectId).select("Scheme Title");
@@ -292,8 +296,100 @@ router.get('/pi/get-quotations/:id', fetchUser, async (req, res) => {
 });
 router.get('/comments/:id', fetchUser, async (req, res) => {
   const { id } = req.params;
-  const comment = await Comment.find({quotationId:id});
+  const comment = await Comment.find({quotationId:id,status:"Pending"});
  
   res.json({ comment });
 });
+
+router.put('/pi/edit-quotation/:id', fetchUser, async (req, res) => {
+  const { quotation: quotationData, equipments: equipmentsData, salary: salaryData } = req.body;
+
+  try {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, msg: "Invalid Quotation ID" });
+    }
+
+    const existingQuotation = await Quotation.findById(id);
+    if (!existingQuotation) {
+      return res.status(404).json({ success: false, msg: "Quotation not found" });
+    }
+
+    const updatedEquipments = await Equipment.findByIdAndUpdate(
+      existingQuotation.equipmentsId,
+      equipmentsData,
+      { new: true }
+    );
+
+    const updatedSalary = await SalaryBreakUp.findByIdAndUpdate(
+      existingQuotation.salaryBreakUpId,
+      salaryData,
+      { new: true }
+    );
+
+    const updatedQuotation = await Quotation.findByIdAndUpdate(
+      id,
+      {bank: quotationData.bank},
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      msg: "Quotation updated successfully",
+      quotation: updatedQuotation,
+      equipments: updatedEquipments,
+      salary: updatedSalary,
+    });
+  } catch (e) {
+    console.error(e.message);
+    return res.status(500).json({ success: false, msg: "Server Error: " + e.message });
+  }
+});
+
+router.put('/update-comment/:id', fetchUser, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const { id } = req.params;
+
+    const comment = await Comment.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!comment) {
+      return res.status(404).json({ msg: "Comment not found" });
+    }
+
+    res.status(200).json({ success: true, comment, msg: "Comment updated successfully" });
+  } catch (err) {
+    res.status(500).json({ msg: "Server error while updating comment" });
+  }
+});
+
+router.get('/admin/resolved-comments/:quotationId', async (req, res) => {
+  try {
+      const comments = await Comment.find({ quotationId: req.params.quotationId,status:"Resolved" });
+      res.json({ comments });
+  } catch (error) {
+      res.status(500).json({ message: 'Error fetching comments' });
+  }
+});
+
+router.put('/admin/view-comment/:commentId', async (req, res) => {
+  try {
+      const updated = await Comment.findByIdAndUpdate(
+          req.params.commentId,
+          { status: 'Viewed' },
+          { new: true }
+      );
+      if (!updated) return res.status(404).json({ msg: "Comment not found" });
+
+      res.json({ msg: "Comment marked as viewed", comment: updated });
+  } catch (error) {
+      res.status(500).json({ msg: "Server error" });
+  }
+});
+
 module.exports = router;
