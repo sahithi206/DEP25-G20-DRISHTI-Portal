@@ -64,7 +64,6 @@ import ProjectExpenses from "./pages/ProjectExpenses.jsx";
 import UCPage from "./pages/college/UCpage.jsx";
 import ApproveUC from "./pages/college/ApproveUC.jsx";
 import ApproveSE from "./pages/college/ApproveSE";
-
 import Report from "./pages/Admin/Yearly/Progress.jsx";
 import RTGS from "./pages/Admin/Yearly/Quotations.jsx";
 import ViewQuotations from "./pages/Admin/Yearly/viewQuotation.jsx";

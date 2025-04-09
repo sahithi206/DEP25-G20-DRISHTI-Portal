@@ -17,9 +17,9 @@ router.post("/submit", async (req, res) => {
             submissionDate,
             status
         });
-        await newUc.save();
+        const ucSaved = await newUc.save();
         console.log("Saved successfully");
-        res.status(201).json({ success: true, data: newUc });
+        res.status(201).json({ success: true, data: newUc, ucId: ucSaved._id, });
     } catch (err) {
         console.error("Error saving UC:", err);
         res.status(500).json({ success: false, message: err.message });
@@ -123,5 +123,61 @@ router.get("/latest", async (req, res) => {
     }
 });
 
+router.put("/send-to-admin/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const ucRequest = await UCRequest.findById(id);
+  
+      if (!ucRequest) {
+        return res.status(404).json({ success: false, message: "UC request not found" });
+      }
+  
+      if (ucRequest.status !== "approvedByInst") {
+        return res.status(400).json({ success: false, message: "UC must be approved by the institute first" });
+      }
+  
+      ucRequest.status = "pendingAdminApproval";
+      await ucRequest.save();
+  
+      res.status(200).json({ success: true, message: "UC sent to admin for approval" });
+    } catch (error) {
+      console.error("Error sending UC to admin:", error.message);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  });
+
+  router.put("/admin-approval/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { action } = req.body; 
+  
+      const ucRequest = await UCRequest.findById(id);
+  
+      if (!ucRequest) {
+        return res.status(404).json({ success: false, message: "UC request not found" });
+      }
+  
+      if (ucRequest.status !== "pendingAdminApproval") {
+        return res.status(400).json({ success: false, message: "UC is not pending admin approval" });
+      }
+  
+      if (action === "approve") {
+        ucRequest.status = "approvedByAdmin";
+        ucRequest.approvalDate = new Date();
+      } else if (action === "reject") {
+        ucRequest.status = "rejectedByAdmin";
+      } else {
+        return res.status(400).json({ success: false, message: "Invalid action" });
+      }
+  
+      await ucRequest.save();
+  
+      res.status(200).json({ success: true, message: `UC ${action}d by admin` });
+    } catch (error) {
+      console.error("Error during admin approval:", error.message);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  });
 
 module.exports = router;

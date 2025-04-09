@@ -28,6 +28,7 @@ const RecurringUC = require("../Models/UcRecurring.js");
 const NonRecurringUC = require("../Models/UcNonrecurring.js");
 const SE = require("../Models/se/SE.js");
 const Comment = require("../Models/comment.js");
+const UCRequest = require("../Models/UCRequest.js");
 
 router.get("/approvedProposals", fetchAdmin, async (req, res) => {
   try {
@@ -324,18 +325,26 @@ router.get("/get-project/:projectid", fetchAdmin, async (req, res) => {
 })
 router.get("/ucforms/:id", fetchAdmin, async (req, res) => {
   try {
-    const recurringgrant = await RecurringUC.find({ projectId: req.params.id });
-    const grant = await NonRecurringUC.find({ projectId: req.params.id });
-    const se = await SE.find({ projectId: req.params.id });
-    const project = await Project.findById(req.params.id);
-    if (grant.length <= 0 && recurringgrant.length <= 0 && se.length <= 0) {
-      return res.status(404).json({ succes: false, msg: "Certificates not found" });
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Project ID is required" });
     }
 
-    res.status(200).json({ success: true, grant, se, user: project.userId, recurringgrant, msg: "Certificates Fetched" });
+    const pendingUCs = await UCRequest.find({ projectId: id, status: "pendingAdminApproval" });
+
+    if (!pendingUCs || pendingUCs.length === 0) {
+      return res.status(200).json({ success: true, msg: "No pending UCs found for admin approval", data: [] });
+    }
+
+    res.status(200).json({
+      success: true,
+      msg: "Pending UCs for admin approval fetched successfully",
+      data: pendingUCs,
+    });
   } catch (error) {
-    console.error("Error fetching Certificates:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error fetching pending UCs:", error); 
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
 
@@ -412,4 +421,29 @@ router.post("/add-comment/:id", fetchAdmin, async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 })
+
+router.get("/ucforms/view/:id", fetchAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Certificate ID is required" });
+    }
+
+    const certificate = await UCRequest.findById(id);
+
+    if (!certificate) {
+      return res.status(404).json({ success: false, msg: "Certificate not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      msg: "Certificate details fetched successfully",
+      data: certificate,
+    });
+  } catch (error) {
+    console.error("Error fetching certificate details:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
 module.exports = router;
