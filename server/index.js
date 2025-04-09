@@ -16,44 +16,46 @@ const Upload = require("./routes/upload.js");
 
 const Quotations = require("./routes/quotations.js");
 const UCComment = require("./routes/ucComments.js");
+const ucRoutes = require("./routes/UCRoutes.js");
 const ExpenseComment = require("./routes/expenseComments.js");
-  
-  
+
+
 app.use(cors())
 app.use(express.json());
 
 // Add this to your Express server setup
 app.use((req, res, next) => {
-    res.setHeader(
-      'Content-Security-Policy',
-      "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
-    );
-    next();
-  });
-
-app.get("/", (req, res) => {
-    res.send("Backend Connected!!!");
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+  );
+  next();
 });
 
-app.use("/auth",Auth);
-app.use("/form",Form);
-app.use("/admin",Admin);
-app.use("/upload",Upload);
+app.get("/", (req, res) => {
+  res.send("Backend Connected!!!");
+});
+
+app.use("/auth", Auth);
+app.use("/form", Form);
+app.use("/admin", Admin);
+app.use("/upload", Upload);
 app.use("/projects", Project);
-app.use("/institute", institute);   
+app.use("/institute", institute);
 app.use("/schemes", schemeRoutes);
 app.use("/quotations", Quotations);
 app.use("/uc-comments", UCComment);
 app.use("/requests", requestRoutes);
 app.use("/fundCycles", fundCycleRoutes);
 app.use("/expense-comments", ExpenseComment);
+app.use("/uc", ucRoutes);
 
 
 
 app.listen(PORT, () => {
-    console.log(`Server is running on PORT : ${PORT}`);
+  console.log(`Server is running on PORT : ${PORT}`);
 });
 
 mongoose.connect(process.env.URL)
-    .then(() => console.log("MongoDB Connected"))
-    .catch(err => console.log("MongoDB Connection Error:", err));
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log("MongoDB Connection Error:", err));

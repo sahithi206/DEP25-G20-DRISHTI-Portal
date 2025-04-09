@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import HomeNavbar from "../../utils/HomeNavbar";
-import Sidebar from "../../utils/Sidebar";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/InstituteSidebar";
 import SignatureCanvas from 'react-signature-canvas';
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -18,6 +18,7 @@ const ApproveUC = () => {
   const [ucData, setUcData] = useState(null);
   const [piSignature, setPiSignature] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState("us-se");
   const navigate = useNavigate();
 
   const stampCanvas = useRef(null);
@@ -368,19 +369,12 @@ const ApproveUC = () => {
   };
 
   return (
-    <div className="flex bg-gray-100 min-h-screen">
-      <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
-      <div
-        className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? "ml-64 w-[calc(100%-16rem)]" : "ml-16 w-[calc(100%-4rem)]"
-          }`}
-      >
-        <HomeNavbar isSidebarOpen={isSidebarOpen} path="/admin-dashboard" />
-
-        <div className="p-6 space-y-6 mt-16">
-          <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-            <p className="mt-3 text-2xl font-bold text-blue-800">Approve Utilization Certificates</p>
-          </div>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <div className="flex flex-grow">
+        <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+        <main className="flex-grow container mx-auto p-6">
+          <h1 className="text-2xl font-bold mb-4 text-center">Approve Utilization Certificates</h1>
 
           {/* Show either the list of pending requests or the details of a selected request */}
           {!selectedRequest ? (
@@ -399,7 +393,7 @@ const ApproveUC = () => {
                   {pendingRequests.map((request) => (
                     <div
                       key={request.id}
-                      className="border p-4 rounded-lg cursor-pointer transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
+                      className="border p-4 rounded-lg cursor-pointer transition-all duration-200 hover:border-grey-300 hover:bg-green-50"
                       onClick={() => handleViewDetails(request)}
                     >
                       <div className="flex justify-between items-center">
@@ -426,7 +420,7 @@ const ApproveUC = () => {
               <div className="flex justify-between items-center mb-6">
                 <button
                   onClick={handleBackToList}
-                  className="flex items-center text-blue-600 hover:text-blue-800"
+                  className="flex items-center text-teal-600 hover:text-teal-800"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -440,11 +434,11 @@ const ApproveUC = () => {
 
               {loading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700"></div>
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-grey-700"></div>
                 </div>
               ) : (
-                <div id="uc-details" className="bg-white rounded-lg p-6 border-t-4 border-blue-800">
-                  <h3 className="text-lg font-semibold text-blue-700 mb-4">
+                <div id="uc-details" className="bg-white rounded-lg p-6 border-t-4 border-grey-800">
+                  <h3 className="text-lg font-semibold text-teal-700 mb-4">
                     {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -469,11 +463,11 @@ const ApproveUC = () => {
                     <label className="font-semibold text-gray-700">End Date of Year:</label>
                     <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-blue-700 mb-4">Financial Summary</h3>
+                  <h3 className="text-lg font-semibold text-teal-900 mb-4">Financial Summary</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full border border-gray-300 rounded-lg">
                       <thead>
-                        <tr className="bg-blue-100 text-gray-700">
+                        <tr className="bg-gray-100 text-gray-700">
                           <th className="border border-gray-400 px-4 py-2">Carry Forward</th>
                           <th className="border border-gray-400 px-4 py-2">Grant Received</th>
                           <th className="border border-gray-400 px-4 py-2">Total</th>
@@ -497,13 +491,13 @@ const ApproveUC = () => {
 
                   {selectedType === "recurring" && (
                     <>
-                      <h3 className="text-lg font-semibold text-blue-700 mt-6 mb-4">
+                      <h3 className="text-lg font-semibold text-teal-700 mt-6 mb-4">
                         Component-wise Utilization of Grants
                       </h3>
                       <div className="overflow-x-auto">
                         <table className="w-full border border-gray-300 rounded-lg">
                           <thead>
-                            <tr className="bg-blue-100 text-gray-700">
+                            <tr className="bg-teal-100 text-gray-700">
                               <th className="border border-gray-400 px-4 py-2">Component</th>
                               <th className="border border-gray-400 px-4 py-2">Amount</th>
                             </tr>
@@ -561,7 +555,7 @@ const ApproveUC = () => {
                         {!instituteStamp && (
                           <button
                             onClick={handleAddStamp}
-                            className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="mt-2 w-full px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
                           >
                             Add Institute Stamp
                           </button>
@@ -573,7 +567,7 @@ const ApproveUC = () => {
                   <div className="flex justify-end space-x-4 mt-6">
                     <button
                       onClick={handleSaveAsPDF}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center"
+                      className="px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 flex items-center"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -612,7 +606,8 @@ const ApproveUC = () => {
               )}
             </div>
           )}
-        </div>
+
+        </main>
       </div>
 
       {/* Stamp Modal */}
@@ -642,7 +637,7 @@ const ApproveUC = () => {
               </button>
               <button
                 onClick={saveStamp}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 Save Stamp
               </button>
@@ -657,7 +652,7 @@ const ApproveUC = () => {
           <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowApproveModal(false)}></div>
           <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
             <div className="text-center mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-blue-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-teal-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <h3 className="text-xl font-bold text-gray-800 mt-2">Confirm Approval</h3>
@@ -700,7 +695,7 @@ const ApproveUC = () => {
           </div>
         </div>
       )}
-    </div>
+    </div >
   );
 };
 
