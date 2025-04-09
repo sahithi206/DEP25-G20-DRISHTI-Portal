@@ -37,7 +37,8 @@ const SEForm = () => {
     const [instituteApproved, setInstituteApproved] = useState(false);
     const [instituteStamp, setInstituteStamp] = useState(null);
     const [showUploadOption, setShowUploadOption] = useState(false);
-
+    const [sentToAdmin, setSentToAdmin] = useState(false);
+    const [seRequestId, setSeRequestId] = useState(null);
     const sigCanvas = useRef(null);
     const fileInputRef = useRef(null);
 
@@ -105,6 +106,46 @@ const SEForm = () => {
             return null;
         }
     };
+
+
+    useEffect(() => {
+        const fetchStatus = async () => {
+            if (id) {
+                try {
+                    const res = await fetch(`${url}se/latest?projectId=${id}`);
+                    if (!res.ok) {
+                        if (res.status === 404) {
+                            console.warn("No SE found for this project");
+                            setSentForApproval(false);
+                            return;
+                        }
+                        throw new Error(`Failed to fetch SE status: ${res.status} ${res.statusText}`);
+                    }
+        
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        const se = data.data;
+                        setSentForApproval(true);
+                        setPiSignature(se.piSignature || null);
+                        setInstituteStamp(se.instituteStamp || null);
+                        setSeRequestId(se._id);
+        
+                        if (se.status === "approvedByInst") {
+                            setInstituteApproved(true);
+                        } else {
+                            setInstituteApproved(false);
+                        }
+                    } else {
+                        setSentForApproval(false);
+                    }
+                } catch (err) {
+                    console.error("Error fetching SE approval status:", err);
+                    setError("Failed to fetch SE approval status. Please try again later.");
+                }
+            }
+        };
+        fetchStatus();
+    }, [id]);
 
     useEffect(() => {
         const fetchProjectDetails = async () => {
@@ -411,6 +452,31 @@ const SEForm = () => {
         );
     };
 
+    const sendSEToAdmin = async () => {
+        try {
+            const response = await fetch(`${url}se/send-to-admin/${seRequestId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    accessToken: localStorage.getItem("token"),
+                },
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                alert(result.message || "Failed to send SE to admin");
+                return;
+            }
+
+            alert("SE sent to admin for approval");
+            setSentToAdmin(true);
+        } catch (err) {
+            console.error("Error sending SE to admin:", err.message);
+            alert("Failed to send SE to admin");
+        }
+    };
+
     const handleChange = (e) => {
         setData((prevData) => ({ ...prevData, [e.target.name]: e.target.value }));
     };
@@ -452,6 +518,15 @@ const SEForm = () => {
                     piSignature: piSignature
                 }),
             });
+
+            const result = await response.json();
+            if (!result.success) {
+                setError(result.message || "Failed to send for approval");
+                return;
+              }
+        
+              setSeRequestId(result.id); 
+
 
             const responseText = await response.text();
 
@@ -781,7 +856,16 @@ const SEForm = () => {
                                     </svg>
                                     Send for Approval
                                 </button>
+
                             )}
+
+{instituteApproved && !sentToAdmin && seRequestId && (
+                        <button
+                            onClick={sendSEToAdmin}
+                            className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
+                        >
+                            Send to Admin
+                        </button>)}
                         </div>
 
                     </div>

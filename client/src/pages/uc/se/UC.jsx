@@ -78,7 +78,7 @@ const UCForm = () => {
         } catch (err) {
           console.error("Error checking for approval:", err);
         }
-      }, 60000); // Poll every 1 minute
+      }, 60000); 
     }
 
     return () => clearInterval(checkApprovalInterval);
@@ -116,14 +116,14 @@ const UCForm = () => {
       });
 
       const result = await response.json();
-      console.log("Response from /uc/submit:", result); // Debugging log
+      console.log("Response from /uc/submit:", result); 
 
       if (!result.success) {
         setError(result.message || "Failed to send for approval");
         return;
       }
 
-      setUcRequestId(result.ucId); // Set the ucId in the state
+      setUcRequestId(result.ucId); 
       console.log("UC Request ID:", result.ucId);
 
       setShowSuccessPopup(true);
@@ -602,7 +602,6 @@ const UCForm = () => {
     }
   };
 
-  // UI component for signature canvas modal
   const SignatureModal = () => {
     if (!showSignatureModal) return null;
 

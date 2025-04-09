@@ -2,6 +2,8 @@ const express = require("express");
 const SERequest = require("../Models/se/SE");
 const { fetchInstitute } = require("../Middlewares/fetchInstitute");
 const router = express.Router();
+const { fetchAdmin } = require("../Middlewares/fetchAdmin.js");
+
 
 // Submit SE (PI sends for approval)
 router.post("/submit", async (req, res) => {
@@ -45,7 +47,7 @@ router.post("/submit", async (req, res) => {
         res.status(201).json({ success: true, data: newSE });
     } catch (err) {
         console.error("Error saving SE:", err);
-        res.status(500).json({ success: false, message: err.message });
+        res.status(500).json({ success: false, message: err.message, id : newSe._id  });
     }
 });
 
@@ -135,20 +137,26 @@ router.get("/project/:name", async (req, res) => {
 });
 
 // Get latest SE for a project (either pending or approved)
-router.get("/latest/:name", async (req, res) => {
+router.get("/latest", async (req, res) => {
     try {
-        const { name } = req.params;
+        const { projectId } = req.query;
 
-        const latestSE = await SERequest.findOne({ name }).sort({ submissionDate: -1 });
+        // Validate projectId
+        if (!projectId) {
+            return res.status(400).json({ success: false, message: "Project ID is required" });
+        }
 
-        if (!latestSE) {
+        // Fetch the latest SE document for the given projectId
+        const se = await SERequest.findOne({ projectId }).sort({ createdAt: -1 });
+
+        if (!se) {
             return res.status(404).json({ success: false, message: "No SE found for this project" });
         }
 
-        res.json({ success: true, data: latestSE });
-    } catch (err) {
-        console.error("Error fetching latest SE:", err);
-        res.status(500).json({ success: false, message: "Server error" });
+        res.status(200).json({ success: true, data: se });
+    } catch (error) {
+        console.error("Error fetching latest SE:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 });
 
@@ -163,6 +171,30 @@ router.get("/institute/:institute", async (req, res) => {
     } catch (err) {
         console.error("Error fetching institute SEs:", err);
         res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+router.put("/send-to-admin/:id", fetchAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const seRequest = await SE.findById(id);
+
+        if (!seRequest) {
+            return res.status(404).json({ success: false, message: "SE request not found" });
+        }
+
+        if (seRequest.status !== "approvedByInst") {
+            return res.status(400).json({ success: false, message: "SE is not approved by the institute" });
+        }
+
+        seRequest.status = "pendingAdminApproval";
+        await seRequest.save();
+
+        res.status(200).json({ success: true, message: "SE sent to admin for approval" });
+    } catch (error) {
+        console.error("Error sending SE to admin:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 });
 
