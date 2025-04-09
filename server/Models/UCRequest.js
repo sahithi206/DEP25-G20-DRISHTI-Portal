@@ -1,15 +1,14 @@
-// models/UcRequest.js
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
-const UcRequestSchema = new mongoose.Schema({
+const UCRequestSchema = new mongoose.Schema({
     projectId: String,
     type: { type: String, enum: ["recurring", "nonRecurring"] },
     ucData: Object,
-    piSignature: String,
-    instituteStamp: String,
-    status: { type: String, enum: ["pending", "approved"], default: "pending" },
+    piSignature: { type: String, default: "null" },
+    instituteStamp: { type: String, default: "null" },
+    status: { type: String, enum: ["pending", "approvedByInst", "approved"], default: "pending" },
     submissionDate: { type: Date, default: Date.now },
-    approvalDate: Date
+    // approvalDate: Date
 });
 
-export default mongoose.model("UcRequest", UcRequestSchema);
+module.exports = mongoose.model("UCRequest", UCRequestSchema);

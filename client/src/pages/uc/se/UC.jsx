@@ -32,60 +32,54 @@ const UCForm = () => {
 
   // Check if this UC has been sent for approval or already approved
   useEffect(() => {
-    if (projectId && selectedType) {
-      // Check pending requests
-      const storedPendingRequests = localStorage.getItem('pendingUCRequests');
-      if (storedPendingRequests) {
-        const pendingRequests = JSON.parse(storedPendingRequests);
-        const pendingRequest = pendingRequests.find(req =>
-          req.projectId === projectId && req.type === selectedType
-        );
-
-        if (pendingRequest) {
-          setSentForApproval(true);
-          setPiSignature(pendingRequest.piSignature);
+    const fetchStatus = async () => {
+      if (projectId && selectedType) {
+        try {
+          const res = await fetch(`${url}uc/latest?projectId=${projectId}&type=${selectedType}`);
+          const data = await res.json();
+          if (data.success && data.data) {
+            const uc = data.data;
+            setSentForApproval(true);
+            setPiSignature(uc.piSignature);
+            setInstituteStamp(uc.instituteStamp);
+            if (uc.status === "approvedByInst") {
+              setInstituteApproved(true);
+            } else {
+              setInstituteApproved(false);
+            }
+          } else {
+            setSentForApproval(false);
+          }
+        } catch (err) {
+          console.error("Error fetching approval status:", err);
         }
       }
-
-      // Check approved requests
-      const storedApprovedRequests = localStorage.getItem('approvedUCRequests');
-      if (storedApprovedRequests) {
-        const approvedRequests = JSON.parse(storedApprovedRequests);
-        const approvedRequest = approvedRequests.find(req =>
-          req.projectId === projectId && req.type === selectedType
-        );
-
-        if (approvedRequest) {
-          setSentForApproval(true);
-          setInstituteApproved(true);
-          setPiSignature(approvedRequest.piSignature);
-          setInstituteStamp(approvedRequest.instituteStamp);
-        }
-      }
-    }
+    };
+    fetchStatus();
   }, [projectId, selectedType]);
 
-  useEffect(() => {
-    if (sentForApproval && !instituteApproved) {
-      const checkApprovalInterval = setInterval(() => {
-        const storedApprovedRequests = localStorage.getItem('approvedUCRequests');
-        if (storedApprovedRequests) {
-          const approvedRequests = JSON.parse(storedApprovedRequests);
-          const approvedRequest = approvedRequests.find(req =>
-            req.projectId === projectId && req.type === selectedType
-          );
 
-          if (approvedRequest) {
+  useEffect(() => {
+    let checkApprovalInterval;
+
+    if (sentForApproval && !instituteApproved) {
+      checkApprovalInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`${url}uc/approved?projectId=${projectId}&type=${selectedType}`);
+          const data = await res.json();
+
+          if (data.success && data.data) {
             setInstituteApproved(true);
-            setInstituteStamp(approvedRequest.instituteStamp);
+            setInstituteStamp(data.data.instituteStamp);
             clearInterval(checkApprovalInterval);
           }
+        } catch (err) {
+          console.error("Error checking for approval:", err);
         }
-        // }, 60000); // Check every 1 min
-      });
-
-      return () => clearInterval(checkApprovalInterval);
+      }, 60000); // Poll every 1 minute
     }
+
+    return () => clearInterval(checkApprovalInterval);
   }, [sentForApproval, instituteApproved, projectId, selectedType]);
 
   const handleSendForApproval = async () => {
@@ -97,7 +91,6 @@ const UCForm = () => {
 
       // Create a new request object
       const newRequest = {
-        id: `uc-${Date.now()}`,
         projectId: projectId,
         type: selectedType,
         ucData: ucData,
@@ -106,15 +99,24 @@ const UCForm = () => {
         status: "pending"
       };
 
-      // Get existing pending requests from local storage
-      const storedRequests = localStorage.getItem('pendingUCRequests');
-      const pendingRequests = storedRequests ? JSON.parse(storedRequests) : [];
+      // // Get existing pending requests from local storage
+      // const storedRequests = localStorage.getItem('pendingUCRequests');
+      // const pendingRequests = storedRequests ? JSON.parse(storedRequests) : [];
 
-      // Add the new request
-      pendingRequests.push(newRequest);
+      // // Add the new request
+      // pendingRequests.push(newRequest);
 
-      // Save back to local storage
-      localStorage.setItem('pendingUCRequests', JSON.stringify(pendingRequests));
+      // // Save back to local storage
+      // localStorage.setItem('pendingUCRequests', JSON.stringify(pendingRequests));
+
+      await fetch(`${url}uc/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accessToken: localStorage.getItem("token")
+        },
+        body: JSON.stringify(newRequest)
+      });
 
       // Show success popup
       setShowSuccessPopup(true);

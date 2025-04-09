@@ -6,6 +6,8 @@ import SignatureCanvas from 'react-signature-canvas';
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
+const url = import.meta.env.VITE_REACT_APP_URL;
+
 const ApproveUC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -25,12 +27,27 @@ const ApproveUC = () => {
 
   // Fetch pending requests from localStorage on component mount
   useEffect(() => {
-    const storedPendingRequests = localStorage.getItem('pendingUCRequests');
-    if (storedPendingRequests) {
-      const requests = JSON.parse(storedPendingRequests);
-      setPendingRequests(requests);
-    }
+    const fetchPending = async () => {
+      try {
+        const res = await fetch(`${url}uc/pending`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            accessToken: localStorage.getItem("token")
+          }
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          setPendingRequests(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching pending requests:", err);
+      }
+    };
+    fetchPending();
   }, []);
+
 
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
@@ -76,39 +93,83 @@ const ApproveUC = () => {
     }
   };
 
-  const handleApprove = () => {
+  // const handleApprove = () => {
+  //   if (!selectedRequest || !instituteStamp) return;
+  //   setLoading(true);
+
+  //   try {
+  //     // Create approved request object
+  //     const approvedRequest = {
+  //       ...selectedRequest,
+  //       instituteStamp: instituteStamp,
+  //       approvalDate: new Date().toISOString(),
+  //       status: "approved"
+  //     };
+
+  //     // Get existing approved requests from local storage
+  //     const storedApprovedRequests = localStorage.getItem('approvedUCRequests');
+  //     const approvedRequests = storedApprovedRequests ? JSON.parse(storedApprovedRequests) : [];
+
+  //     // Add the new approved request
+  //     approvedRequests.push(approvedRequest);
+
+  //     // Save back to local storage
+  //     localStorage.setItem('approvedUCRequests', JSON.stringify(approvedRequests));
+
+  //     // Remove from pending requests
+  //     const updatedPendingRequests = pendingRequests.filter(req => req.id !== selectedRequest.id);
+  //     setPendingRequests(updatedPendingRequests);
+  //     localStorage.setItem('pendingUCRequests', JSON.stringify(updatedPendingRequests));
+
+  //     // Show success message
+  //     setShowApproveModal(false);
+  //     setShowSuccessModal(true);
+
+  //     // Reset selected request after short delay
+  //     setTimeout(() => {
+  //       setSelectedRequest(null);
+  //       setInstituteStamp(null);
+  //       setShowSuccessModal(false);
+  //       setLoading(false);
+  //     }, 2000);
+  //   } catch (err) {
+  //     console.error("Error approving request:", err.message);
+  //     alert("Failed to approve request");
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleApprove = async () => {
     if (!selectedRequest || !instituteStamp) return;
     setLoading(true);
 
     try {
-      // Create approved request object
-      const approvedRequest = {
-        ...selectedRequest,
-        instituteStamp: instituteStamp,
-        approvalDate: new Date().toISOString(),
-        status: "approved"
-      };
+      // Send approval to backend
+      const res = await fetch(`${url}uc/approve/${selectedRequest._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          instituteStamp: instituteStamp
+        })
+      });
 
-      // Get existing approved requests from local storage
-      const storedApprovedRequests = localStorage.getItem('approvedUCRequests');
-      const approvedRequests = storedApprovedRequests ? JSON.parse(storedApprovedRequests) : [];
+      const data = await res.json();
 
-      // Add the new approved request
-      approvedRequests.push(approvedRequest);
+      if (!data.success) {
+        throw new Error(data.message || "Approval failed");
+      }
 
-      // Save back to local storage
-      localStorage.setItem('approvedUCRequests', JSON.stringify(approvedRequests));
-
-      // Remove from pending requests
-      const updatedPendingRequests = pendingRequests.filter(req => req.id !== selectedRequest.id);
+      // Remove approved request from pending list
+      const updatedPendingRequests = pendingRequests.filter(req => req._id !== selectedRequest._id);
       setPendingRequests(updatedPendingRequests);
-      localStorage.setItem('pendingUCRequests', JSON.stringify(updatedPendingRequests));
 
       // Show success message
       setShowApproveModal(false);
       setShowSuccessModal(true);
 
-      // Reset selected request after short delay
+      // Reset UI
       setTimeout(() => {
         setSelectedRequest(null);
         setInstituteStamp(null);
@@ -376,7 +437,6 @@ const ApproveUC = () => {
         <main className="flex-grow container mx-auto p-6">
           <h1 className="text-2xl font-bold mb-4 text-center">Approve Utilization Certificates</h1>
 
-          {/* Show either the list of pending requests or the details of a selected request */}
           {!selectedRequest ? (
             <div className="bg-white rounded-lg shadow-md p-6 mt-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Pending Requests</h2>
@@ -438,7 +498,7 @@ const ApproveUC = () => {
                 </div>
               ) : (
                 <div id="uc-details" className="bg-white rounded-lg p-6 border-t-4 border-grey-800">
-                  <h3 className="text-lg font-semibold text-teal-700 mb-4">
+                  <h3 className="text-lg font-semibold text-teal-600 mb-4">
                     {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -463,7 +523,7 @@ const ApproveUC = () => {
                     <label className="font-semibold text-gray-700">End Date of Year:</label>
                     <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-teal-900 mb-4">Financial Summary</h3>
+                  <h3 className="text-lg font-semibold text-teal-700 mb-4">Financial Summary</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full border border-gray-300 rounded-lg">
                       <thead>
@@ -497,7 +557,7 @@ const ApproveUC = () => {
                       <div className="overflow-x-auto">
                         <table className="w-full border border-gray-300 rounded-lg">
                           <thead>
-                            <tr className="bg-teal-100 text-gray-700">
+                            <tr className="bg-gray-100 text-gray-700">
                               <th className="border border-gray-400 px-4 py-2">Component</th>
                               <th className="border border-gray-400 px-4 py-2">Amount</th>
                             </tr>

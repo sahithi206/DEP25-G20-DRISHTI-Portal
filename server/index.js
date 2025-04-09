@@ -16,7 +16,7 @@ const Upload = require("./routes/upload.js");
 
 const Quotations = require("./routes/quotations.js");
 const UCComment = require("./routes/ucComments.js");
-const ucRoutes = require("./routes/UCRoutes.js");
+const UCRoutes = require("./routes/UCRoutes.js");
 const ExpenseComment = require("./routes/expenseComments.js");
 
 
@@ -36,6 +36,7 @@ app.get("/", (req, res) => {
   res.send("Backend Connected!!!");
 });
 
+app.use("/uc", UCRoutes);
 app.use("/auth", Auth);
 app.use("/form", Form);
 app.use("/admin", Admin);
@@ -48,8 +49,6 @@ app.use("/uc-comments", UCComment);
 app.use("/requests", requestRoutes);
 app.use("/fundCycles", fundCycleRoutes);
 app.use("/expense-comments", ExpenseComment);
-app.use("/uc", ucRoutes);
-
 
 
 app.listen(PORT, () => {
