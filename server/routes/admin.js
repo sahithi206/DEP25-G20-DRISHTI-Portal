@@ -30,6 +30,7 @@ const SE = require("../Models/se/SE.js");
 const Comment = require("../Models/comment.js");
 const UCRequest = require("../Models/UCRequest.js");
 
+
 router.get("/approvedProposals", fetchAdmin, async (req, res) => {
   try {
     const userId = req.admin.id;
@@ -348,6 +349,63 @@ router.get("/ucforms/:id", fetchAdmin, async (req, res) => {
   }
 });
 
+router.get("/seforms/:id", fetchAdmin, async (req, res) => {
+  try {
+      const { id } = req.params;
+
+      if (!id) {
+          return res.status(400).json({ success: false, msg: "Project ID is required" });
+      }
+
+      const pendingSEs = await SE.find({ projectId: id, status: "pendingAdminApproval" });
+
+      if (!pendingSEs || pendingSEs.length === 0) {
+          return res.status(200).json({ success: true, msg: "No pending SEs found for admin approval", data: [] });
+      }
+
+      res.status(200).json({
+          success: true,
+          msg: "Pending SEs for admin approval fetched successfully",
+          data: pendingSEs,
+      });
+  } catch (error) {
+      console.error("Error fetching pending SEs:", error);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+router.put("/se-admin-approval/:id", fetchAdmin, async (req, res) => {
+  try {
+      const { id } = req.params;
+      const { action } = req.body;
+
+      const seRequest = await SE.findById(id);
+
+      if (!seRequest) {
+          return res.status(404).json({ success: false, message: "SE request not found" });
+      }
+
+      if (seRequest.status !== "pendingAdminApproval") {
+          return res.status(400).json({ success: false, message: "SE is not pending admin approval" });
+      }
+
+      if (action === "approve") {
+          seRequest.status = "approvedByAdmin";
+      } else if (action === "reject") {
+          seRequest.status = "rejectedByAdmin";
+      } else {
+          return res.status(400).json({ success: false, message: "Invalid action" });
+      }
+
+      await seRequest.save();
+
+      res.status(200).json({ success: true, message: `SE ${action}d by admin` });
+  } catch (error) {
+      console.error("Error during admin approval:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
 router.get("/ucforms/recurring/:id", fetchAdmin, async (req, res) => {
   try {
     const grant = await RecurringUC.findById(req.params.id);
@@ -444,6 +502,23 @@ router.get("/ucforms/view/:id", fetchAdmin, async (req, res) => {
   } catch (error) {
     console.error("Error fetching certificate details:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+router.get("/view-by-se/:seId", fetchAdmin, async (req, res) => {
+  try {
+      const { seId } = req.params;
+
+      const seDetails = await SE.findOne({ _id: seId });
+
+      if (!seDetails) {
+          return res.status(404).json({ success: false, message: "SE not found" });
+      }
+
+      res.status(200).json({ success: true, data: seDetails });
+  } catch (error) {
+      console.error("Error fetching SE details by sc ID:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 module.exports = router;

@@ -38,8 +38,17 @@ const SESchema = new mongoose.Schema({
     },
     piSignature: { type: String },
     instituteStamp: { type: String, default: "null" },
-    status: { type: String, enum: ["pending", "approvedByInst", "approved"], default: "pending" },
-});
+    status: {
+        type: String,
+        enum: [
+            "pending",
+            "approvedByInst", 
+            "pendingAdminApproval", 
+            "approvedByAdmin", 
+            "rejectedByAdmin", 
+        ],
+        default: "pending",
+    },});
 
 
 module.exports = mongoose.model("SE", SESchema);
