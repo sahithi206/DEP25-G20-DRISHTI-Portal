@@ -67,7 +67,6 @@ const SEForm = () => {
                     projectId: info.project?._id || "",
                     name: info.generalInfo?.name || "NA",
                     institute: info.generalInfo?.instituteName || "NA",
-                    name: info.generalInfo?.name || "NA",
                     title: info.project?.Title || "NA",
                     scheme: info.project?.Scheme || "NA",
                     currentYear: info.project?.currentYear || "NA",

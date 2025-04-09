@@ -127,13 +127,8 @@ const ProjectDashboard = () => {
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-<<<<<<< HEAD
                             <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View Quotations", onClick: () => navigate(`/view/Quotations/${id}`) }, { label: "Upload Quotation", onClick: () => navigate(`/quotations/${id}`) }]} className="bg-blue-500 text-white" />
                             <HoverDropdownButton label="Upload SE/UC" options={[{ label: "Upload SE", onClick: () => navigate(`/se/${id}`) }, { label: "Generate UC", onClick: () => navigate(`/uc/${id}`) }, { label: "View Certificates", onClick: () => navigate(`/certificates/${id}`) }]} className="bg-green-500 text-white" />
-=======
-                            <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View RTGS", onClick: () => navigate("/") }, { label: "Upload Quotation", onClick: () => navigate(`/quotations/${id}`) }]} className="bg-blue-500 text-white" />
-                            <HoverDropdownButton label="Upload SE/UC" options={[{ label: "Generate SE", onClick: () => navigate(`/se/${id}`) }, { label: "Generate UC", onClick: () => navigate(`/uc/${id}`) }, { label: "View Certificates", onClick: () => navigate(`/certificates/${id}`) }]} className="bg-green-500 text-white" />
->>>>>>> 858b35d5a20adb2d7504f66975b2f7360b047ed0
                             <HoverDropdownButton label="Upload Progress Report" options={[{ label: "Yearly Report", onClick: () => navigate(`/progress-report/${id}`) }, { label: "Final Report", onClick: () => navigate(`/final-report/${id}`) }]} className="bg-red-500 text-white" />
                             <HoverDropdownButton label="Expenses" options={[{ label: "Expense", onClick: () => navigate(`/project-expenses/${id}`) }]} className="bg-purple-500 text-white" />
                         </div>
