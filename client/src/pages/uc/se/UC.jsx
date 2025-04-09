@@ -474,7 +474,7 @@ const UCForm = () => {
       pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
     }
 
-    if (instituteApproved && instituteStamp && selectedType === "non-recurring") {
+    if (instituteApproved && instituteStamp && selectedType === "nonRecurring") {
       pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
       pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
     }
