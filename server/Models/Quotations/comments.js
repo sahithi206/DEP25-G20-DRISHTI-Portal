@@ -10,6 +10,12 @@ const UCCommentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  status: {
+    type: String,
+    enum: ["Resolved", "Pending","Viewed"],
+    default:"Pending",
+    required: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
