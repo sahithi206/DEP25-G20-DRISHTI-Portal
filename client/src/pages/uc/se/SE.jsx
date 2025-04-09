@@ -58,6 +58,54 @@ const SEForm = () => {
     const [error, setError] = useState(null);
 
     const { getProject } = useContext(AuthContext);
+
+    const fetchExistingSEForm = async (projectId) => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                console.error("No authentication token found");
+                return;
+            }
+
+            const response = await fetch(`${url}se/${projectId}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "accessToken": `${token}`,
+                },
+            });
+
+            if (response.status === 404) {
+                console.log("No existing SE form found for this project");
+                return null;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch SE form: ${response.status} ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            const se = result.data;
+
+            if (se.status !== "approved") {
+                if (se.piSignature) {
+                    setPiSignature(se.piSignature);
+                }
+                setSentForApproval(true);
+            }
+
+            if (se.status === "approvedByInst") {
+                setInstituteApproved(true)
+                setInstituteStamp(se.instituteStamp);
+            }
+
+            return se;
+        } catch (error) {
+            console.error("Error fetching existing SE form:", error);
+            return null;
+        }
+    };
+
     useEffect(() => {
         const fetchProjectDetails = async () => {
             try {
@@ -111,6 +159,7 @@ const SEForm = () => {
         };
 
         fetchProjectDetails();
+        fetchExistingSEForm(id);
     }, [id]);
 
     useEffect(() => {
@@ -377,17 +426,17 @@ const SEForm = () => {
                 setError("PI signature is required before sending for approval");
                 return;
             }
-            
+
             console.log("Sending SE Payload:", {
                 data, yearlyBudget, budgetSanctioned, manpower, consumables,
                 others, equipment, total, totalExp, balance
             });
-    
+
             const response = await fetch(`${url}projects/se`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "accessToken": `${token}`, 
+                    "accessToken": `${token}`,
                 },
                 body: JSON.stringify({
                     data: data,
@@ -403,20 +452,20 @@ const SEForm = () => {
                     piSignature: piSignature
                 }),
             });
-    
+
             const responseText = await response.text();
-            
+
             if (!response.ok) {
                 console.error("Server response:", responseText);
                 throw new Error(`Submission failed: ${response.status} ${response.statusText}`);
             }
-    
+
             try {
                 const json = JSON.parse(responseText);
                 if (json.success) {
                     setShowSuccessPopup(true);
                     setSentForApproval(true);
-    
+
                     setTimeout(() => {
                         setShowSuccessPopup(false);
                     }, 3000);
@@ -707,23 +756,6 @@ const SEForm = () => {
                             </div>
                         </div>
 
-                        {/* <div className="text-center mt-4">
-                            <button
-                                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md"
-                                onClick={handleSaveAsPDF}
-                            >
-                                Save as PDF
-                            </button>
-                        </div>
-
-                        <div className="mb-4 text-center py-4">
-                            <button
-                                className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg w-full hover:bg-blue-700 transition-all duration-200 shadow-md"
-                                onClick={handleSubmit}
-                            >
-                                Submit
-                            </button>
-                        </div> */}
                         <div className="flex justify-end space-x-4">
                             <button
                                 onClick={handleSaveAsPDF}

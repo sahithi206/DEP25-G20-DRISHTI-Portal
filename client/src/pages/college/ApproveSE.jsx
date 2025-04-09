@@ -20,9 +20,11 @@ const ApproveSE = () => {
   const [piSignature, setPiSignature] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("se-approve");
+  const [showUploadOption, setShowUploadOption] = useState(false);
   const navigate = useNavigate();
 
   const stampCanvas = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Fetch pending requests on component mount
   useEffect(() => {
@@ -60,16 +62,36 @@ const ApproveSE = () => {
     setInstituteStamp(null);
   };
 
+  // Handle file upload for signature
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check if file is an image
+      if (!file.type.startsWith('image/')) {
+        setError("Please upload only image files (PNG, JPG, JPEG)");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setInstituteStamp(event.target.result);
+        setShowStampModal(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const toggleUploadOption = () => {
+    setShowUploadOption(!showUploadOption);
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
+  };
+
   const handleAddStamp = () => {
     if (!selectedRequest) return;
     setShowStampModal(true);
-  };
-
-  const handleStampEnd = () => {
-    if (stampCanvas.current) {
-      const stampDataUrl = stampCanvas.current.toDataURL();
-      setInstituteStamp(stampDataUrl);
-    }
   };
 
   const clearStamp = () => {
@@ -150,25 +172,25 @@ const ApproveSE = () => {
     pdf.text("STATEMENT OF EXPENDITURE", pageWidth / 2, 20, { align: "center" });
     pdf.setFontSize(12);
     pdf.text(`FOR THE PERIOD: ${seData.startDate} TO ${seData.endDate}`, pageWidth / 2, 28, { align: "center" });
-    
+
     // Project details
     pdf.setFontSize(11);
     pdf.setFont("helvetica", "normal");
 
     let yPos = 40;
-    
+
     pdf.text(`1. Project Title: ${seData.name}`, margin, yPos);
     yPos += 8;
-    
+
     pdf.text(`2. Name of the Institution: ${seData.institute}`, margin, yPos);
     yPos += 8;
-    
+
     pdf.text(`3. Funding Agency: ${seData.scheme}`, margin, yPos);
     yPos += 8;
-    
+
     pdf.text(`4. Project Year: ${seData.currentYear}`, margin, yPos);
     yPos += 8;
-    
+
     pdf.text(`5. Total Project Cost: Rs. ${seData.TotalCost}`, margin, yPos);
     yPos += 16;
 
@@ -254,7 +276,7 @@ const ApproveSE = () => {
     pdf.text("Certified that the grant of Rs. " + seData.budgetSanctioned.total + " received under the research project entitled", margin, yPos);
     pdf.text(`"${seData.name}" has been utilized for the purpose for which it was sanctioned in accordance with the`, margin, yPos + 6);
     pdf.text("terms and conditions laid down by the funding agency.", margin, yPos + 12);
-    
+
     yPos += 30;
     pdf.text("Date: " + currentDate, margin, yPos);
     yPos += 20;
@@ -277,6 +299,86 @@ const ApproveSE = () => {
     }
 
     pdf.save(`SE_${seData.name}_${seData.currentYear}.pdf`);
+  };
+
+  const SignatureModal = () => {
+    if (!showStampModal) return null;
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowStampModal(false)}></div>
+        <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
+          <h3 className="text-xl font-bold text-center text-gray-800 mb-4">Sign here</h3>
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={toggleUploadOption}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mx-2"
+            >
+              {showUploadOption ? "Draw Signature" : "Upload Signature"}
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/png, image/jpeg, image/jpg"
+              onChange={handleFileUpload}
+            />
+          </div>
+
+          {showUploadOption ? (
+            <div className="flex flex-col items-center">
+              <button
+                onClick={triggerFileInput}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 mb-4"
+              >
+                Select Image File (PNG, JPG)
+              </button>
+              {instituteStamp && (
+                <div className="mt-2 border border-gray-300 p-2 rounded">
+                  <img src={instituteStamp} alt="Uploaded signature" className="h-24 object-contain" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="border border-gray-300 rounded-md mb-4">
+              <SignatureCanvas
+                ref={stampCanvas}
+                penColor="black"
+                canvasProps={{
+                  width: 500,
+                  height: 200,
+                  className: "signature-canvas w-full"
+                }}
+
+              />
+            </div>
+          )}
+
+          <div className="flex justify-between">
+            {!showUploadOption && (
+              <button
+                onClick={clearStamp}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Clear
+              </button>
+            )}
+            <button
+              onClick={() => setShowStampModal(false)}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={saveStamp}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -370,7 +472,7 @@ const ApproveSE = () => {
                     <label className="font-semibold text-gray-700">Total Project Cost:</label>
                     <span className="px-3 py-1 w-full">: Rs. {seData.TotalCost}</span>
                   </div>
-                  
+
                   <h3 className="text-lg font-semibold text-blue-700 mb-4">Expenditure Summary</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full border border-gray-300 rounded-lg">
@@ -474,11 +576,10 @@ const ApproveSE = () => {
                     <button
                       onClick={() => setShowApproveModal(true)}
                       disabled={!instituteStamp}
-                      className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${
-                        instituteStamp
-                          ? "bg-green-600 text-white hover:bg-green-700"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}
+                      className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${instituteStamp
+                        ? "bg-green-600 text-white hover:bg-green-700"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -492,42 +593,6 @@ const ApproveSE = () => {
           )}
         </main>
       </div>
-
-      {/* Stamp Modal */}
-      {showStampModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowStampModal(false)}></div>
-          <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold text-center text-gray-800 mb-4">Add Institute Stamp</h3>
-            <div className="border border-gray-300 rounded-md mb-4">
-              <SignatureCanvas
-                ref={stampCanvas}
-                penColor="black"
-                canvasProps={{
-                  width: 500,
-                  height: 200,
-                  className: "signature-canvas w-full"
-                }}
-                onEnd={handleStampEnd}
-              />
-            </div>
-            <div className="flex justify-between">
-              <button
-                onClick={clearStamp}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              >
-                Clear
-              </button>
-              <button
-                onClick={saveStamp}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Save Stamp
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Approve Confirmation Modal */}
       {showApproveModal && (
@@ -578,6 +643,7 @@ const ApproveSE = () => {
           </div>
         </div>
       )}
+      <SignatureModal />
     </div>
   );
 };
