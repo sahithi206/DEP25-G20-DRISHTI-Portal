@@ -272,6 +272,32 @@ const UCForm = () => {
       );
     }
 
+    if (sentForApproval && !instituteApproved) {
+      return (
+        <div className="rounded-lg p-4 mb-6 bg-yellow-100">
+          <div className="flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-yellow-500 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span className="font-medium text-yellow-800">
+              Pending Institute Approval
+            </span>
+          </div>
+        </div>
+      );
+    }
+
     if (instituteApproved && sentToAdmin && !adminApproved && !adminRejected) {
       return (
         <div className="rounded-lg p-4 mb-6 bg-blue-100">
