@@ -27,6 +27,8 @@ const UCForm = () => {
   const [instituteStamp, setInstituteStamp] = useState(null);
   const [showUploadOption, setShowUploadOption] = useState(false);
   const [sentToAdmin, setSentToAdmin] = useState(false);
+  const [adminApproved, setAdminApproved] = useState(false);
+  const [adminRejected, setAdminRejected] = useState(false);
   const [ucRequestId, setUcRequestId] = useState(null);
 
   const sigCanvas = useRef(null);
@@ -46,11 +48,26 @@ const UCForm = () => {
             setUcRequestId(uc._id);
             if (uc.status === "approvedByInst") {
               setInstituteApproved(true);
-            } else {
+            }
+            else if (uc.status === "pendingAdminApproval") {
+              setInstituteApproved(true);
+              setSentToAdmin(true);
+            } else if (uc.status === "approvedByAdmin") {
+              setInstituteApproved(true);
+              setSentToAdmin(true);
+              setAdminApproved(true);
+            } else if (uc.status === "rejectedByAdmin") {
+              setInstituteApproved(true);
+              setSentToAdmin(true);
+              setAdminRejected(true);
+            }
+            else {
               setInstituteApproved(false);
             }
           } else {
             setSentForApproval(false);
+            setPiSignature(null);
+            setInstituteStamp(null);
           }
         } catch (err) {
           console.error("Error fetching approval status:", err);
@@ -78,7 +95,7 @@ const UCForm = () => {
         } catch (err) {
           console.error("Error checking for approval:", err);
         }
-      }, 60000); 
+      }, 60000);
     }
 
     return () => clearInterval(checkApprovalInterval);
@@ -116,14 +133,14 @@ const UCForm = () => {
       });
 
       const result = await response.json();
-      console.log("Response from /uc/submit:", result); 
+      console.log("Response from /uc/submit:", result);
 
       if (!result.success) {
         setError(result.message || "Failed to send for approval");
         return;
       }
 
-      setUcRequestId(result.ucId); 
+      setUcRequestId(result.ucId);
       console.log("UC Request ID:", result.ucId);
 
       setShowSuccessPopup(true);
@@ -228,32 +245,6 @@ const UCForm = () => {
     fileInputRef.current.click();
   };
 
-  // const ApprovalStatusBanner = () => {
-  //   if (!sentForApproval) return null;
-
-  //   return (
-  //     <div className={`rounded-lg p-4 mb-6 ${instituteApproved ? 'bg-green-100' : 'bg-yellow-100'}`}>
-  //       <div className="flex items-center">
-  //         {instituteApproved ? (
-  //           <>
-  //             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-  //               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-  //             </svg>
-  //             <span className="font-medium text-green-800">Approved by Institute on {new Date().toLocaleDateString()}</span>
-  //           </>
-  //         ) : (
-  //           <>
-  //             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-  //               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  //             </svg>
-  //             <span className="font-medium text-yellow-800">Pending Institute Approval</span>
-  //           </>
-  //         )}
-  //       </div>
-  //     </div>
-  //   );
-  // };
-
   const ApprovalStatusBanner = () => {
     if (!sentForApproval) {
       return (
@@ -280,8 +271,8 @@ const UCForm = () => {
         </div>
       );
     }
-  
-    if (instituteApproved && sentToAdmin) {
+
+    if (instituteApproved && sentToAdmin && !adminApproved && !adminRejected) {
       return (
         <div className="rounded-lg p-4 mb-6 bg-blue-100">
           <div className="flex items-center">
@@ -306,8 +297,8 @@ const UCForm = () => {
         </div>
       );
     }
-  
-    if (instituteApproved) {
+
+    if (instituteApproved && !sentToAdmin) {
       return (
         <div className="rounded-lg p-4 mb-6 bg-green-100">
           <div className="flex items-center">
@@ -327,6 +318,58 @@ const UCForm = () => {
             </svg>
             <span className="font-medium text-green-800">
               Approved by Institute on {new Date().toLocaleDateString()}.
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    if (adminRejected) {
+      return (
+        <div className="rounded-lg p-4 mb-6 bg-red-100">
+          <div className="flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-red-500 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span className="font-medium text-red-800">
+              Rejected by Admin on {new Date().toLocaleDateString()}.
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    if (adminApproved) {
+      return (
+        <div className="rounded-lg p-4 mb-6 bg-green-100">
+          <div className="flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-green-500 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span className="font-medium text-green-800">
+              Approved by Admin on {new Date().toLocaleDateString()}.
             </span>
           </div>
         </div>
@@ -586,14 +629,14 @@ const UCForm = () => {
           accessToken: localStorage.getItem("token"),
         },
       });
-  
+
       const result = await response.json();
-  
+
       if (!result.success) {
         setError(result.message || "Failed to send UC to admin");
         return;
       }
-  
+
       alert("UC sent to admin for approval");
       setSentToAdmin(true);
     } catch (err) {
@@ -885,8 +928,8 @@ const UCForm = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="border p-4 rounded-lg">
-                      <h4 className="font-medium  mb-1">Principal Investigator Signature</h4>
-                      <p className="text-medium mb-2 text-gray-500">{ucData.principalInvestigator}</p>                        {piSignature ? (
+                        <h4 className="font-medium  mb-1">Principal Investigator Signature</h4>
+                        <p className="text-medium mb-2 text-gray-500">{ucData.principalInvestigator}</p>                        {piSignature ? (
                           <div className="border p-2 rounded mb-2">
                             <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
                           </div>
@@ -938,7 +981,6 @@ const UCForm = () => {
                       Save as PDF
                     </button>
 
-
                     <button
                       onClick={() => navigate(`/comments/${projectId}/${selectedType}`)}
                       className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -963,10 +1005,12 @@ const UCForm = () => {
                       </button>
                     )}
 
-                    {instituteApproved && !sentToAdmin  && ucRequestId && (
+                    {instituteApproved && !adminApproved && !sentToAdmin && ucRequestId && (
                       <button
                         onClick={sendToAdmin}
-                        className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
+                        className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${piSignature
+                          ? "bg-green-600 text-white hover:bg-green-700"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
                       >
                         Send to Admin
                       </button>

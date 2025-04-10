@@ -1,5 +1,5 @@
 const express = require("express");
-const SERequest = require("../Models/se/SE");
+const SE = require("../Models/se/SE");
 const { fetchInstitute } = require("../Middlewares/fetchInstitute");
 const router = express.Router();
 const { fetchAdmin } = require("../Middlewares/fetchAdmin.js");
@@ -25,7 +25,7 @@ router.post("/submit", async (req, res) => {
 
         console.log("Incoming SE data:", req.body);
 
-        const newSE = new SERequest({
+        const newSE = new SE({
             projectId,
             name,
             scheme,
@@ -47,7 +47,7 @@ router.post("/submit", async (req, res) => {
         res.status(201).json({ success: true, data: newSE });
     } catch (err) {
         console.error("Error saving SE:", err);
-        res.status(500).json({ success: false, message: err.message, id : newSe._id  });
+        res.status(500).json({ success: false, message: err.message, id: newSe._id });
     }
 });
 
@@ -57,7 +57,7 @@ router.get("/pending", fetchInstitute, async (req, res) => {
         const instituteName = req.institute.college; // or req.institute.name if nested
         console.log("INSTITUTE:", instituteName);
 
-        const pendingSE = await SERequest.find({
+        const pendingSE = await SE.find({
             status: "pending",
             institute: instituteName
         });
@@ -79,7 +79,7 @@ router.put("/approve/:id", async (req, res) => {
             return res.status(400).json({ success: false, message: "Institute stamp is required" });
         }
 
-        const updatedSE = await SERequest.findByIdAndUpdate(
+        const updatedSE = await SE.findByIdAndUpdate(
             id,
             {
                 status: "approvedByInst", // Update status to approvedByInst
@@ -103,7 +103,7 @@ router.put("/approve/:id", async (req, res) => {
 // Get SE by projectId
 router.get("/:projectId", async (req, res) => {
     try {
-        const se = await SERequest.findOne({ projectId: req.params.projectId });
+        const se = await SE.findOne({ projectId: req.params.projectId });
 
         if (!se) {
             return res.status(404).json({ success: false, message: "No SE record found for this projectId" });
@@ -117,13 +117,12 @@ router.get("/:projectId", async (req, res) => {
     }
 });
 
-
 // Get all SEs for a project by name
 router.get("/project/:name", async (req, res) => {
     try {
         const { name } = req.params;
 
-        const projectSEs = await SERequest.find({ name }).sort({ submissionDate: -1 });
+        const projectSEs = await SE.find({ name }).sort({ submissionDate: -1 });
 
         if (!projectSEs.length) {
             return res.status(404).json({ success: false, message: "No SE found for this project" });
@@ -147,7 +146,7 @@ router.get("/latest", async (req, res) => {
         }
 
         // Fetch the latest SE document for the given projectId
-        const se = await SERequest.findOne({ projectId }).sort({ createdAt: -1 });
+        const se = await SE.findOne({ projectId }).sort({ createdAt: -1 });
 
         if (!se) {
             return res.status(404).json({ success: false, message: "No SE found for this project" });
@@ -165,7 +164,7 @@ router.get("/institute/:institute", async (req, res) => {
     try {
         const { institute } = req.params;
 
-        const instituteSEs = await SERequest.find({ institute }).sort({ submissionDate: -1 });
+        const instituteSEs = await SE.find({ institute }).sort({ submissionDate: -1 });
 
         res.json({ success: true, data: instituteSEs });
     } catch (err) {
@@ -174,7 +173,7 @@ router.get("/institute/:institute", async (req, res) => {
     }
 });
 
-router.put("/send-to-admin/:id", fetchAdmin, async (req, res) => {
+router.put("/send-to-admin/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -187,6 +186,8 @@ router.put("/send-to-admin/:id", fetchAdmin, async (req, res) => {
         if (seRequest.status !== "approvedByInst") {
             return res.status(400).json({ success: false, message: "SE is not approved by the institute" });
         }
+
+        console.log("SE REQUEST....:", seRequest);
 
         seRequest.status = "pendingAdminApproval";
         await seRequest.save();

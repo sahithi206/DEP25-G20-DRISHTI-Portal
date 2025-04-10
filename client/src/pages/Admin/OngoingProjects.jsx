@@ -5,7 +5,7 @@ import AdminNavbar from "../../components/AdminNavbar";
 import BudgetAllocationForm from './BudgetAllocationForm';
 
 const AdminProposalReview = () => {
-    let navigate=useNavigate();
+    let navigate = useNavigate();
     const [activeSection, setActiveSection] = useState("ongoing");
     const [proposals, setProposals] = useState([]);
     const [selectedProposal, setSelectedProposal] = useState(null);
@@ -87,7 +87,7 @@ const AdminProposalReview = () => {
                                     <tr key={proposal.proposal._id} className="border-b">
                                         <td className="p-2">{proposal.proposal._id}</td>
                                         <td className="p-2">{proposal.generalInfo?.instituteName || "N/A"}</td>
-                                        <td className="p-2">{proposal.researchDetails?.Title || "N/A"}</td>
+                                        <td className="p-2">{proposal.proposal.Title || "N/A"}</td>
                                         <td className="p-2">
                                             {(() => {
                                                 const endDate = new Date(proposal.proposal.endDate);

@@ -101,7 +101,7 @@ router.post("/allocate-budget/:id", fetchAdmin, async (req, res) => {
       budgetSanctioned.findOne({ proposalId: id }),
       GeneralInfo.findOne({ proposalId: id }).select("email")
     ]);
-   console.log(1);
+    console.log(1);
     if (!generalInfo) {
       return res.status(400).json({ success: false, msg: "General Info not found" });
     }
@@ -124,20 +124,20 @@ router.post("/allocate-budget/:id", fetchAdmin, async (req, res) => {
     const newBudget = new budgetSanctioned({
       proposalId: id,
       TotalCost: req.body.TotalCost,
-      budgetTotal: req.body.budgettotal, 
-      budgetSanctioned: req.body.budgetsanctioned 
+      budgetTotal: req.body.budgettotal,
+      budgetSanctioned: req.body.budgetsanctioned
     });
     console.log(4);
     await newBudget.save();
 
-    console.log("Budget:",newBudget);
+    console.log("Budget:", newBudget);
     const response = await fetch(`${process.env.local}admin/createProject/${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
     console.log(5);
     const projectData = await response.json();
-    console.log("Project:",projectData);
+    console.log("Project:", projectData);
     if (!projectData.success) {
       await Promise.all([
         budgetSanctioned.findByIdAndDelete(newBudget._id),
@@ -157,7 +157,7 @@ router.post("/allocate-budget/:id", fetchAdmin, async (req, res) => {
 router.post("/createProject/:proposalId", async (req, res) => {
   const { proposalId } = req.params;
   try {
-    console.log("Proposal ",proposalId);
+    console.log("Proposal ", proposalId);
     const proposal = await Proposal.findById(proposalId);
     console.log("Fetched Proposals:", proposal);
     console.log(7);
@@ -324,6 +324,7 @@ router.get("/get-project/:projectid", fetchAdmin, async (req, res) => {
     return res.status(500).json({ success: false, msg: "Failed to Fetch Project Details", error: "Internal Server Error" });
   }
 })
+
 router.get("/ucforms/:id", fetchAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -344,65 +345,65 @@ router.get("/ucforms/:id", fetchAdmin, async (req, res) => {
       data: pendingUCs,
     });
   } catch (error) {
-    console.error("Error fetching pending UCs:", error); 
+    console.error("Error fetching pending UCs:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
 
 router.get("/seforms/:id", fetchAdmin, async (req, res) => {
   try {
-      const { id } = req.params;
+    const { id } = req.params;
 
-      if (!id) {
-          return res.status(400).json({ success: false, msg: "Project ID is required" });
-      }
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Project ID is required" });
+    }
 
-      const pendingSEs = await SE.find({ projectId: id, status: "pendingAdminApproval" });
+    const pendingSEs = await SE.find({ projectId: id, status: "pendingAdminApproval" });
 
-      if (!pendingSEs || pendingSEs.length === 0) {
-          return res.status(200).json({ success: true, msg: "No pending SEs found for admin approval", data: [] });
-      }
+    if (!pendingSEs || pendingSEs.length === 0) {
+      return res.status(200).json({ success: true, msg: "No pending SEs found for admin approval", data: [] });
+    }
 
-      res.status(200).json({
-          success: true,
-          msg: "Pending SEs for admin approval fetched successfully",
-          data: pendingSEs,
-      });
+    res.status(200).json({
+      success: true,
+      msg: "Pending SEs for admin approval fetched successfully",
+      data: pendingSEs,
+    });
   } catch (error) {
-      console.error("Error fetching pending SEs:", error);
-      res.status(500).json({ success: false, error: "Internal Server Error" });
+    console.error("Error fetching pending SEs:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
 
 router.put("/se-admin-approval/:id", fetchAdmin, async (req, res) => {
   try {
-      const { id } = req.params;
-      const { action } = req.body;
+    const { id } = req.params;
+    const { action } = req.body;
 
-      const seRequest = await SE.findById(id);
+    const seRequest = await SE.findById(id);
 
-      if (!seRequest) {
-          return res.status(404).json({ success: false, message: "SE request not found" });
-      }
+    if (!seRequest) {
+      return res.status(404).json({ success: false, message: "SE request not found" });
+    }
 
-      if (seRequest.status !== "pendingAdminApproval") {
-          return res.status(400).json({ success: false, message: "SE is not pending admin approval" });
-      }
+    if (seRequest.status !== "pendingAdminApproval") {
+      return res.status(400).json({ success: false, message: "SE is not pending admin approval" });
+    }
 
-      if (action === "approve") {
-          seRequest.status = "approvedByAdmin";
-      } else if (action === "reject") {
-          seRequest.status = "rejectedByAdmin";
-      } else {
-          return res.status(400).json({ success: false, message: "Invalid action" });
-      }
+    if (action === "approve") {
+      seRequest.status = "approvedByAdmin";
+    } else if (action === "reject") {
+      seRequest.status = "rejectedByAdmin";
+    } else {
+      return res.status(400).json({ success: false, message: "Invalid action" });
+    }
 
-      await seRequest.save();
+    await seRequest.save();
 
-      res.status(200).json({ success: true, message: `SE ${action}d by admin` });
+    res.status(200).json({ success: true, message: `SE ${action}d by admin` });
   } catch (error) {
-      console.error("Error during admin approval:", error);
-      res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Error during admin approval:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
@@ -420,6 +421,7 @@ router.get("/ucforms/recurring/:id", fetchAdmin, async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 router.get("/ucforms/nonRecurring/:id", fetchAdmin, async (req, res) => {
   try {
     console.log(req.params.id);
@@ -438,6 +440,7 @@ router.get("/ucforms/nonRecurring/:id", fetchAdmin, async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 router.get("/se/:id", fetchAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -507,18 +510,19 @@ router.get("/ucforms/view/:id", fetchAdmin, async (req, res) => {
 
 router.get("/view-by-se/:seId", fetchAdmin, async (req, res) => {
   try {
-      const { seId } = req.params;
+    const { seId } = req.params;
 
-      const seDetails = await SE.findOne({ _id: seId });
+    const seDetails = await SE.findOne({ _id: seId });
 
-      if (!seDetails) {
-          return res.status(404).json({ success: false, message: "SE not found" });
-      }
+    if (!seDetails) {
+      return res.status(404).json({ success: false, message: "SE not found" });
+    }
 
-      res.status(200).json({ success: true, data: seDetails });
+    res.status(200).json({ success: true, data: seDetails });
   } catch (error) {
-      console.error("Error fetching SE details by sc ID:", error);
-      res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Error fetching SE details by sc ID:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
 module.exports = router;

@@ -15,6 +15,11 @@ const ViewDocs = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
     const [certificateData, setCertificateData] = useState(null);
+    const [isUCCertificateOpen, setIsUCCertificateOpen] = useState(false);
+    const [ucData, setUCData] = useState(null);
+    const [selectedType, setSelectedType] = useState("");
+    const [piSignature, setPiSignature] = useState(null);
+    const [instituteStamp, setInstituteStamp] = useState(null);
     const [reloadKey, setReloadKey] = useState(0);
     const [user, setUser] = useState();
     const [comment, setComment] = useState("");
@@ -25,7 +30,7 @@ const ViewDocs = () => {
     // let userId = null;
     // if(token){
     //     const decodedToken = jwtDecode(token);
-    // }
+    // } 
 
     const fetchPendingUCs = async () => {
         try {
@@ -102,13 +107,19 @@ const ViewDocs = () => {
 
             const data = await response.json();
 
+            console.log("datusysapoikldjh:", data);
+
             if (!data.success) {
                 alert("Failed to fetch certificate details.");
                 return;
             }
 
-            setCertificateData(data.data);
-            setIsCertificateOpen(true);
+            setIsUCCertificateOpen(true);
+            setPiSignature(data.data.piSignature)
+            setInstituteStamp(data.data.instituteStamp)
+            setSelectedType(data.data.type)
+            setUCData(data.data.ucData);
+
         } catch (error) {
             console.error("Error fetching certificate details:", error);
             alert("Error fetching certificate details.");
@@ -132,7 +143,7 @@ const ViewDocs = () => {
                 return;
             }
 
-            setCertificateData(data.data); 
+            setCertificateData(data.data);
             setIsCertificateOpen(true);
         } catch (error) {
             console.error("Error fetching SE details:", error);
@@ -169,7 +180,7 @@ const ViewDocs = () => {
                 },
                 body: JSON.stringify({
                     comment,
-                    user,  
+                    user,
                     certificate: selectedCertificate,
                 }),
             });
@@ -263,26 +274,45 @@ const ViewDocs = () => {
                                 </thead>
                                 <tbody>
                                     {pendingUCs.length > 0 ? (
-                                        pendingUCs.map((uc) => (
-                                            <tr key={uc._id} className="border-b hover:bg-blue-50">
-                                                <td className="p-4 w-1/4">{uc._id}</td>
-                                                <td className="p-4 w-1/4">
-                                                    {uc.type === "recurring" ? "UC Recurring" : "UC Non-Recurring"}
+                                        pendingUCs.map((certificate) => (
+                                            <tr key={certificate._id} className="border-b hover:bg-blue-50">
+                                                <td
+                                                    className="p-4 w-1/4 cursor-pointer text-gray-500 hover:underline"
+                                                    onClick={() => handleViewCertificate(certificate)}
+                                                >
+                                                    {certificate._id}
                                                 </td>
-                                                <td className="p-4 w-1/4">{new Date(uc.submissionDate).toLocaleDateString()}</td>
+                                                <td className="p-4 w-1/4">{certificate.type}</td>
+                                                <td className="p-4 w-1/4">
+                                                    {new Date(certificate.submissionDate).toLocaleDateString()}
+                                                </td>
                                                 <td className="p-4 w-1/4 text-center">
-                                                    <button
-                                                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2"
-                                                        onClick={() => openCommentModal(uc)}
-                                                    >
-                                                        Add Comment
-                                                    </button>
-                                                    <button
-                                                        className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2"
-                                                        onClick={() => handleViewCertificate(uc)}
-                                                    >
-                                                        View
-                                                    </button>
+                                                    <div className="flex justify-center gap-2">
+                                                        <button
+                                                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                                                            onClick={() => openCommentModal(certificate)}
+                                                        >
+                                                            Add Comments
+                                                        </button>
+                                                        <button
+                                                            className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                                                            onClick={() => handleViewCertificate(certificate)}
+                                                        >
+                                                            View Certificate
+                                                        </button>
+                                                        <button
+                                                            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                                                            onClick={() => handleUCAdminApproval(certificate._id, "approve")}
+                                                        >
+                                                            Accept
+                                                        </button>
+                                                        <button
+                                                            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                                                            onClick={() => handleUCAdminApproval(certificate._id, "reject")}
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -468,6 +498,149 @@ const ViewDocs = () => {
                             <button
                                 className="bg-gray-400 text-white px-4 py-2 rounded"
                                 onClick={() => setIsCertificateOpen(false)}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {isUCCertificateOpen && ucData && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg w-[90%] max-h-[90vh] overflow-y-auto p-6">
+                        <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
+                            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                            <p className="mt-3 text-2xl font-bold text-blue-800">Utilization Certificate</p>
+                        </div>
+
+                        <div id="uc-details" className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
+
+                            <div className="text-center mb-6">
+                                <h3 className="text-lg font-bold">GFR 12-A</h3>
+                                <p className="text-sm font-medium">[See Rule 238 (1)]</p>
+                                <h2 className="text-xl font-bold mt-2">
+                                    FINAL UTILIZATION CERTIFICATE FOR THE YEAR {ucData.currentYear} in respect of
+                                </h2>
+                                <p className="text-lg font-semibold">
+                                    {selectedType === "recurring" ? "Recurring" : "Non-Recurring"}
+                                </p>
+                                {/* <p className="text-sm font-medium">Is the UC Provisional (Provisional/Audited)</p> */}
+                            </div>
+
+                            <h3 className="text-lg font-semibold text-blue-700 mb-4">
+                                {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <label className="font-semibold text-gray-700">Title of the Project:</label>
+                                <span className="px-3 py-1 w-full">: {ucData.title}</span>
+
+                                <label className="font-semibold text-gray-700">Name of the Scheme:</label>
+                                <span className="px-3 py-1 w-full">: {ucData.scheme}</span>
+
+                                <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
+                                <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
+
+                                <label className="font-semibold text-gray-700">Name of the Principal Investigator:</label>
+                                <span className="px-3 py-1 w-full">: {ucData.principalInvestigator}</span>
+
+                                <label className="font-semibold text-gray-700">Present Year of Project:</label>
+                                <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
+
+                                <label className="font-semibold text-gray-700">Start Date of Year:</label>
+                                <span className="px-3 py-1 w-full">: {ucData.startDate}</span>
+
+                                <label className="font-semibold text-gray-700">End Date of Year:</label>
+                                <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
+                            </div>
+                            <h3 className="text-lg font-semibold text-blue-700 mb-4">Financial Summary</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full border border-gray-300 rounded-lg">
+                                    <thead>
+                                        <tr className="bg-blue-100 text-gray-700">
+                                            <th className="border border-gray-400 px-4 py-2">UnSpent Balances from Previous Years</th>
+                                            <th className="border border-gray-400 px-4 py-2">Grant Received</th>
+                                            <th className="border border-gray-400 px-4 py-2">Total</th>
+                                            <th className="border border-gray-400 px-4 py-2">Recurring Expenditure</th>
+                                            <th className="border border-gray-400 px-4 py-2">Closing Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr className="text-center">
+                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.CarryForward}</td>
+                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.yearTotal}</td>
+                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.total}</td>
+                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.recurringExp}</td>
+                                            <td className="border border-gray-400 px-4 py-2">
+                                                Rs {ucData.total - ucData.recurringExp}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {selectedType === "recurring" && (
+                                <>
+                                    <h3 className="text-lg font-semibold text-blue-700 mt-6 mb-4">
+                                        Component-wise Utilization of Grants
+                                    </h3>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full border border-gray-300 rounded-lg">
+                                            <thead>
+                                                <tr className="bg-blue-100 text-gray-700">
+                                                    <th className="border border-gray-400 px-4 py-2">Component</th>
+                                                    <th className="border border-gray-400 px-4 py-2">Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr className="text-center">
+                                                    <td className="border border-gray-400 px-4 py-2">Human Resources</td>
+                                                    <td className="border border-gray-400 px-4 py-2">Rs {ucData.human_resources}</td>
+                                                </tr>
+                                                <tr className="text-center">
+                                                    <td className="border border-gray-400 px-4 py-2">Consumables</td>
+                                                    <td className="border border-gray-400 px-4 py-2">Rs {ucData.consumables}</td>
+                                                </tr>
+                                                <tr className="text-center">
+                                                    <td className="border border-gray-400 px-4 py-2">Others</td>
+                                                    <td className="border border-gray-400 px-4 py-2">Rs {ucData.others}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="border-t border-gray-200 pt-4 mb-6">
+                            <h3 className="text-xl font-semibold mb-4">Signatures</h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="border p-4 rounded-lg">
+                                    <h4 className="font-medium  mb-1">Principal Investigator Signature</h4>
+                                    <p className="text-medium mb-2 text-gray-500">{ucData.principalInvestigator}</p>
+                                    <div className="border p-2 rounded mb-2">
+                                        <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
+                                    </div>
+
+                                </div>
+
+                                <div className="border p-4 rounded-lg">
+
+                                    <h4 className="font-medium  mb-1">Institute Approval</h4>
+                                    <p className="text-medium mb-2 text-gray-500">{ucData.instituteName}</p>
+
+                                    <div className="border p-2 rounded mb-2">
+                                        <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end mt-4">
+                            <button
+                                className="bg-gray-400 text-white px-4 py-2 rounded"
+                                onClick={() => setIsUCCertificateOpen(false)}
                             >
                                 Close
                             </button>

@@ -5,7 +5,7 @@ import AdminNavbar from "../../components/AdminNavbar";
 import BudgetAllocationForm from './BudgetAllocationForm';
 
 const AdminProposalReview = () => {
-    let navigate=useNavigate();
+    let navigate = useNavigate();
     const [activeSection, setActiveSection] = useState("sanction");
     const [proposals, setProposals] = useState([]);
     const [selectedProposal, setSelectedProposal] = useState(null);
@@ -91,7 +91,7 @@ const AdminProposalReview = () => {
                                             <button
                                                 onClick={() => {
                                                     setSelectedProposal(proposal)
-                                                   navigate(`/admin/allocate-budget/${proposal.proposal._id}`)
+                                                    navigate(`/admin/allocate-budget/${proposal.proposal._id}`)
 
                                                 }
                                                 }
