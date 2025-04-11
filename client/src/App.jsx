@@ -69,6 +69,7 @@ import RTGS from "./pages/Admin/Yearly/Quotations.jsx";
 import ViewQuotations from "./pages/Admin/Yearly/viewQuotation.jsx";
 import View from "./pages/Qutations/View.jsx";
 import Viewquotations from "./pages/Qutations/ViewQuotations.jsx";
+import AllSEUC from "./pages/Admin/Yearly/allSEUC.jsx";
 
 function App() {
   const getData = async () => {
@@ -156,6 +157,8 @@ function MainLayout() {
           <Route path="/admin/quotations" element={<RTGS />} />
           <Route path="/admin/progress-report" element={<Report />} />
           <Route path="/admin/quotations/:id" element={<ViewQuotations />} />
+          <Route path="/admin/uc_se" element={<AllSEUC />} />
+
 
 
           <Route path="/schemes" element={<SchemeManagement />} />

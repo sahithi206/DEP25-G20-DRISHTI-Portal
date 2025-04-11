@@ -349,6 +349,30 @@ router.get("/ucforms/:id", fetchAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
+router.get("/ucforms/approved/:id", fetchAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Project ID is required" });
+    }
+
+    const approvedUCs = await UCRequest.find({ projectId: id, status: "approvedByAdmin" });
+
+    if (!approvedUCs || approvedUCs.length === 0) {
+      return res.status(200).json({ success: true, msg: "No approved UCs found for admin approval", data: [] });
+    }
+
+    res.status(200).json({
+      success: true,
+      msg: "Approved UCs for admin approval fetched successfully",
+      data: approvedUCs,
+    });
+  } catch (error) {
+    console.error("Error fetching approved UCs:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
 
 router.get("/seforms/:id", fetchAdmin, async (req, res) => {
   try {
@@ -371,6 +395,31 @@ router.get("/seforms/:id", fetchAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching pending SEs:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+router.get("/seforms/approved/:id", fetchAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Project ID is required" });
+    }
+
+    const approvedSEs = await SE.find({ projectId: id, status: "approvedByAdmin" });
+
+    if (!approvedSEs || approvedSEs.length === 0) {
+      return res.status(200).json({ success: true, msg: "No approved SEs found for admin approval", data: [] });
+    }
+
+    res.status(200).json({
+      success: true,
+      msg: "Approved SEs for admin approval fetched successfully",
+      data: approvedSEs,
+    });
+  } catch (error) {
+    console.error("Error fetching approved SEs:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
@@ -525,4 +574,32 @@ router.get("/view-by-se/:seId", fetchAdmin, async (req, res) => {
   }
 });
 
+router.get("/all-ucforms/", fetchAdmin, async (req, res) => {
+  try {
+    const ucForms = await UCRequest.find({status : "pendingAdminApproval"}).sort({ createdAt: -1 });
+    console.log("UC Forms:", ucForms);
+    if (!ucForms || ucForms.length === 0) {
+      return res.status(404).json({ success: false, msg: "No UC forms found" });
+    }
+    res.status(200).json({ success: true, msg: "UC forms fetched successfully", data: ucForms });
+  } catch (error) {
+    console.error("Error fetching UC forms:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+
+router.get("/all-seforms", fetchAdmin, async (req, res) => {
+  try {
+    const seForms = await SE.find({status : "pendingAdminApproval"}).sort({ createdAt: -1 });
+    console.log("SE Forms:", seForms);
+    if (!seForms || seForms.length === 0) {
+      return res.status(404).json({ success: false, msg: "No SE forms found" });
+    }
+    res.status(200).json({ success: true, msg: "SE forms fetched successfully", data: seForms });
+  } catch (error) {
+    console.error("Error fetching SE forms:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
 module.exports = router;
