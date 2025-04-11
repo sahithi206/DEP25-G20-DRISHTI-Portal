@@ -2,13 +2,16 @@ const express = require("express");
 const Request = require("../Models/Request");
 const { fetchUser } = require("../Middlewares/fetchUser");
 const router = express.Router();
+const { fetchAdmin } = require("../Middlewares/fetchAdmin");
 
 // Fetch all requests
 router.get("/", async (req, res) => {
     try {
-        const requests = await Request.find();
-        res.json(requests);
+        const requests = await Request.find({ status: "Pending" }).populate("userId");
+        console.log(requests);
+        res.status(200).json({success:"true",requests});
     } catch (error) {
+        console.log(error.message);
         res.status(500).json({ message: "Server error", error });
     }
 });
@@ -45,7 +48,7 @@ router.get("/user-requests", fetchUser, async (req, res) => {
 });
 
 // Update request status (Approve/Reject)
-router.put("/:id", async (req, res) => {
+router.put("/:id", fetchAdmin, async (req, res) => {
     try {
         const { status, comments } = req.body;
         if (!["Pending", "Approved", "Rejected"].includes(status)) {
