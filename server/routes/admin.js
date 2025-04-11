@@ -29,6 +29,8 @@ const NonRecurringUC = require("../Models/UcNonrecurring.js");
 const SE = require("../Models/se/SE.js");
 const Comment = require("../Models/comment.js");
 const UCRequest = require("../Models/UCRequest.js");
+const ProgressReport = require("../models/ProgressReport");
+
 
 
 router.get("/approvedProposals", fetchAdmin, async (req, res) => {
@@ -602,4 +604,36 @@ router.get("/all-seforms", fetchAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
+
+router.get("/progress-reports", async (req, res) => {
+  try {
+      const reports = await ProgressReport.find({ read: false }).populate("projectId");
+      res.status(200).json({ success: true, data: reports });
+  } catch (error) {
+      res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
+router.put("/progress-reports/:id/mark-as-read", async (req, res) => {
+  try {
+      const { id } = req.params;
+      await ProgressReport.findByIdAndUpdate(id, { read: true });
+      res.status(200).json({ success: true, message: "Report marked as read" });
+  } catch (error) {
+      res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+router.get("progress-reports/:id", async (req, res) => {
+  try {
+      const { id } = req.params;
+      const report = await ProgressReport.findById(id).populate("projectId");
+      if (!report) {
+          return res.status(404).json({ success: false, message: "Report not found" });
+      }
+      res.status(200).json({ success: true, data: report });
+  } catch (error) {
+      res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+  
 module.exports = router;
