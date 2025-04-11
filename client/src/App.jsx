@@ -70,6 +70,8 @@ import ViewQuotations from "./pages/Admin/Yearly/viewQuotation.jsx";
 import View from "./pages/Qutations/View.jsx";
 import Viewquotations from "./pages/Qutations/ViewQuotations.jsx";
 import Miscellanous from "./pages/Admin/Requests/Miscellanous.jsx";
+import AllSEUC from "./pages/Admin/Yearly/allSEUC.jsx";
+
 function App() {
   const getData = async () => {
     try {
@@ -157,6 +159,9 @@ function MainLayout() {
           <Route path="/admin/progress-report" element={<Report />} />
           <Route path="/admin/quotations/:id" element={<ViewQuotations />} />
           <Route path="/requests/miscellaneous" element={<Miscellanous />} />
+          <Route path="/admin/uc_se" element={<AllSEUC />} />
+
+
 
           <Route path="/schemes" element={<SchemeManagement />} />
           <Route path="/running-projects" element={<RunningProjects />} />

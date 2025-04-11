@@ -1,6 +1,7 @@
 const express = require("express");
 const Request = require("../Models/Request");
 const { fetchUser } = require("../Middlewares/fetchUser");
+const ProjectDashboard = require("../Models/Project");
 const router = express.Router();
 const { fetchAdmin } = require("../Middlewares/fetchAdmin");
 
@@ -11,8 +12,8 @@ router.get("/", async (req, res) => {
         console.log(requests);
         res.status(200).json({success:"true",requests});
     } catch (error) {
-        console.log(error.message);
-        res.status(500).json({ message: "Server error", error });
+        console.log(error.msg);
+        res.status(500).json({ msg: "Server error", error });
     }
 });
 
@@ -51,24 +52,37 @@ router.get("/user-requests", fetchUser, async (req, res) => {
 router.put("/:id", fetchAdmin, async (req, res) => {
     try {
         const { status, comments } = req.body;
+         console.log(req.params.id);
         if (!["Pending", "Approved", "Rejected"].includes(status)) {
-            return res.status(400).json({ message: "Invalid status" });
+            return res.status(400).json({success:false, msg: "Invalid status" });
         }
-
         const updatedRequest = await Request.findByIdAndUpdate(req.params.id, { status , comments}, { new: true });
         if (!updatedRequest) {
-            return res.status(404).json({ message: "Request not found" });
+            return res.status(404).json({success:false, msg: "Request not found" });
         }
         if (!updatedRequest) {
-            return res.status(404).json({ message: "Request not found" });
+            return res.status(404).json({success:false, msg: "Request not found" });
         }
 
-        res.json(updatedRequest);
+        res.status(200).json({success:true,updatedRequest});
     } catch (error) {
         console.error("Server error:", error);
-        res.status(500).json({ message: "Server error", error });
+        res.status(500).json({success:false, msg: "Server error", error });
     }
 });
 
+router.get("/pi/getongoingprojects", fetchUser, async (req, res) => {
+    try {
+         const projects = (await ProjectDashboard.find({ userId: req.user._id }).lean()).filter(
+            project => new Date(project.endDate) > new Date()
+         );
+         console.log(projects);
+         return res.status(200).json({success:true,msg:"Projects fetched",projects});
 
+    }
+    catch(e){
+        console.log(e);
+       return res.status(500).json({success:false,msg:"internal Server Error"});
+    }
+});
 module.exports = router;

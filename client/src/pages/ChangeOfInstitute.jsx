@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useContext } from "react";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { AuthContext } from "./Context/Authcontext";
+const URL = import.meta.env.VITE_REACT_APP_URL;
 
 const ChangeOfInstitute = () => {
     const navigate = useNavigate();
@@ -12,7 +14,8 @@ const ChangeOfInstitute = () => {
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [institutions, setInstitutions] = useState([]);
-
+    const { getuser } = useContext(AuthContext);
+    const [projects,setProjects]=useState([]);
     const [formData, setFormData] = useState({
         fileNumber: "",
         piName: "",
@@ -30,20 +33,32 @@ const ChangeOfInstitute = () => {
     });
 
     useEffect(() => {
-        // Fetch file numbers
+        const fetchUser=async()=>{
+            try{
+                const res = await getuser();
+                console.log(res);
+                setFormData(prev => ({
+                    ...prev,
+                    piName: res.Name,
+                    currentInstitute: res.Institute
+                }));
+            }
+            catch(e){
+                console.error(e);
+            }
+        };
+        fetchUser();
         fetchUserProjects();
-        // Fetch states
-        fetchStates();
     }, []);
+   
 
-    // Modified to fetch user projects from the user's proposals array
     const fetchUserProjects = async () => {
         try {
-            const response = await fetch("/api/user/profile", {
+            const response = await fetch(`${URL}requests/pi/getongoingprojects`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    "auth-token": localStorage.getItem("token")
+                    "accessToken": localStorage.getItem("token")
                 }
             });
 
@@ -52,121 +67,29 @@ const ChangeOfInstitute = () => {
             }
 
             const userData = await response.json();
-
-            if (userData && userData.proposals && userData.proposals.length > 0) {
-                // Fetch details for each project in the proposals array
-                const projectPromises = userData.proposals.map(projectId =>
-                    fetch(`/api/projects/${projectId}`, {
-                        headers: {
-                            "auth-token": localStorage.getItem("token")
-                        }
-                    }).then(res => res.json())
-                );
-
-                const projectsData = await Promise.all(projectPromises);
-                setFileNumbers(projectsData.map(project => ({
-                    id: project._id, // Use _id as per MongoDB schema
-                    fileNumber: project.fileNumber || project._id // Use fileNumber or _id as fallback
-                })));
-            } else {
-                setFileNumbers([]);
-            }
+             console.log(userData);
+             setProjects(userData.projects);
         } catch (error) {
             console.error("Error fetching user projects:", error);
             toast.error("Failed to load your projects");
         }
     };
 
-    const fetchStates = async () => {
-        try {
-            const response = await fetch("/api/states");
+    const toggleProjectSelection = (id) => {
+        setProjects(prevProjects =>
+          prevProjects.map(project =>
+            project.id === id ? { ...project, selected: !project.selected } : project
+          )
+        );
+      };
+      
+      
 
-            if (!response.ok) {
-                throw new Error("Failed to fetch states");
-            }
-
-            const data = await response.json();
-            setStates(data);
-        } catch (error) {
-            console.error("Error fetching states:", error);
-            toast.error("Failed to load states");
-        }
-    };
-
-    const fetchDistricts = async (stateId) => {
-        try {
-            const response = await fetch(`/api/districts/${stateId}`);
-
-            if (!response.ok) {
-                throw new Error("Failed to fetch districts");
-            }
-
-            const data = await response.json();
-            setDistricts(data);
-            setFormData(prev => ({ ...prev, district: "" }));
-        } catch (error) {
-            console.error("Error fetching districts:", error);
-            toast.error("Failed to load districts");
-        }
-    };
-
-    const fetchInstitutions = async (districtId) => {
-        try {
-            const response = await fetch(`/api/institutions/${districtId}`);
-
-            if (!response.ok) {
-                throw new Error("Failed to fetch institutions");
-            }
-
-            const data = await response.json();
-            setInstitutions(data);
-            setFormData(prev => ({ ...prev, newInstitute: "" }));
-        } catch (error) {
-            console.error("Error fetching institutions:", error);
-            toast.error("Failed to load institutions");
-        }
-    };
-
-    const handleFileNumberChange = async (e) => {
-        const fileNumber = e.target.value;
-        setFormData(prev => ({ ...prev, fileNumber }));
-
-        if (fileNumber) {
-            try {
-                const response = await fetch(`/api/projects/${fileNumber}`, {
-                    headers: {
-                        "auth-token": localStorage.getItem("token")
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error("Failed to fetch project details");
-                }
-
-                const data = await response.json();
-                setFormData(prev => ({
-                    ...prev,
-                    piName: data.piName || data.Name || "",
-                    projectTitle: data.projectTitle || data.title || "",
-                    currentInstitute: data.institution || data.Institute || "",
-                    currentInstituteAddress: data.institutionAddress || data.address || ""
-                }));
-            } catch (error) {
-                console.error("Error fetching project details:", error);
-                toast.error("Failed to load project details");
-            }
-        }
-    };
+  
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-
-        if (name === "state") {
-            fetchDistricts(value);
-        } else if (name === "district") {
-            fetchInstitutions(value);
-        }
     };
 
     const handleSubmit = async (e) => {
@@ -233,67 +156,22 @@ const ChangeOfInstitute = () => {
                         </div>
 
                         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="block font-semibold text-gray-700 mb-1">
-                                        File Number <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        className="border border-gray-400 rounded px-3 py-2 w-full"
-                                        name="fileNumber"
-                                        value={formData.fileNumber}
-                                        onChange={handleFileNumberChange}
-                                        required
-                                    >
-                                        <option value="">Select File Number</option>
-                                        {fileNumbers.map(file => (
-                                            <option key={file.id} value={file.id}>{file.fileNumber}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
+                        
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div>
+                            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Name of Principal Investigator:
                                     </label>
-                                    <input
-                                        type="text"
-                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100"
-                                        name="piName"
-                                        value={formData.piName}
-                                        disabled
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block font-semibold text-gray-700 mb-1">
-                                        Project Title:
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100"
-                                        name="projectTitle"
-                                        value={formData.projectTitle}
-                                        disabled
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div>
+                                    <p className=" px-3 py-2 w-full">{formData.piName}</p>
+                            
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Current Institute:
                                     </label>
-                                    <input
-                                        type="text"
-                                        className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100"
-                                        name="currentInstitute"
-                                        value={formData.currentInstitute}
-                                        disabled
-                                    />
-                                </div>
-                                <div>
+                                    <p className=" px-3 py-2 w-full">{formData.currentInstitute}</p>                                
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
+                               
                                     <label className="block font-semibold text-gray-700 mb-1">
                                         Current Institute Address:
                                     </label>
@@ -302,15 +180,43 @@ const ChangeOfInstitute = () => {
                                         className="border border-gray-400 rounded px-3 py-2 w-full bg-gray-100"
                                         name="currentInstituteAddress"
                                         value={formData.currentInstituteAddress}
-                                        disabled
                                     />
-                                </div>
                             </div>
+                          
+                            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded mb-6">
+  <h3 className="text-lg font-semibold text-green-700 mb-2">Projects</h3>
+  <p className="text-sm text-gray-600 mb-4">Please select the projects you wish to be transferred</p>
+  
+  <table className="w-full text-sm border border-gray-300">
+    <thead className="bg-green-100">
+      <tr>
+        <th className="border p-2">Select</th>
+        <th className="border p-2">Project ID</th>
+        <th className="border p-2">Title</th>
+      </tr>
+    </thead>
+    <tbody>
+      {projects.map((project) => (
+        <tr key={project._id}>
+          <td className="border p-2 text-center">
+            <input
+              type="checkbox"
+              checked={project.selected}
+              onChange={() => toggleProjectSelection(project.id)}
+              className="h-4 w-4 text-green-600"
+            />
+          </td>
+          <td className="border p-2 text-center">{project._id}</td>
+          <td className="border p-2">{project.Title}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
 
                             <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded mb-6">
                                 <h3 className="text-lg font-semibold text-green-700 mb-2">New Institute Details</h3>
                                 <p className="text-sm text-gray-600">Please fill in the details of the institute you are transferring to.</p>
-                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
@@ -447,6 +353,7 @@ const ChangeOfInstitute = () => {
                             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-6">
                                 <h4 className="text-md font-semibold text-blue-700">Note:</h4>
                                 <p className="text-sm text-gray-600">Your request will require approval from both your current institution and the admin. You will be notified when the status changes.</p>
+                            </div>
                             </div>
 
                             <div className="flex justify-center">

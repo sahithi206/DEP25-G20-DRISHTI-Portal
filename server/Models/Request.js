@@ -25,7 +25,7 @@ const requestSchema = new mongoose.Schema({
         required: true,
     },
     comments: {
-        type: [String],
+        type: String,
         default: "",
     },
 });
