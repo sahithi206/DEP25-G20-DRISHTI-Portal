@@ -1,5 +1,4 @@
-![image](https://github.com/user-attachments/assets/2395cbfa-f476-4371-9fa5-d6fe6a71bd28)Sure babe, here’s a clean, professional version of the **README.md** without any emojis:
-
+![image](https://github.com/user-attachments/assets/2395cbfa-f476-4371-9fa5-d6fe6a71bd28)
 ---
 
 # ResearchX – Research Grant Management Portal
