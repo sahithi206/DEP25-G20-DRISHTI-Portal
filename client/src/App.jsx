@@ -71,7 +71,8 @@ import View from "./pages/Qutations/View.jsx";
 import Viewquotations from "./pages/Qutations/ViewQuotations.jsx";
 import Miscellanous from "./pages/Admin/Requests/Miscellanous.jsx";
 import AllSEUC from "./pages/Admin/Yearly/allSEUC.jsx";
-
+import ChangeInstitute from "./pages/Admin/Requests/ChangeOfInstitute"
+import ChangeInsti from "./pages/college/request.jsx";
 function App() {
   const getData = async () => {
     try {
@@ -160,7 +161,7 @@ function MainLayout() {
           <Route path="/admin/quotations/:id" element={<ViewQuotations />} />
           <Route path="/requests/miscellaneous" element={<Miscellanous />} />
           <Route path="/admin/uc_se" element={<AllSEUC />} />
-
+          <Route path="/requests/change-institute" element={<ChangeInstitute />} />
 
 
           <Route path="/schemes" element={<SchemeManagement />} />
@@ -178,7 +179,9 @@ function MainLayout() {
           <Route path="/ucInsti/:projectId" element={<UCPage />} />
           <Route path="/institute/uc" element={<ApproveUC />} />
           <Route path="/institute/se" element={<ApproveSE />} />
-        </Route>
+          <Route path="/institute/requests" element={<ChangeInsti />} />
+
+          </Route>
       </Routes>
     </div>
   );

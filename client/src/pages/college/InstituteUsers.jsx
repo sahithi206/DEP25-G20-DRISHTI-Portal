@@ -32,43 +32,49 @@ const InstituteUsers = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <div className="flex flex-grow">
-        <InstituteSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-        <main className="flex-grow container mx-auto p-6">
-          <h1 className="text-2xl font-bold mb-4 text-center">Users in Your Institute</h1>
+    <Navbar />
+    <div className="flex flex-grow">
+      <InstituteSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+      <main className="flex-grow container mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-4 text-center">Users in Your Institute</h1>
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {loading ? (
-            <p className="text-center">Loading...</p>
-          ) : users.length > 0 ? (
-            <table className="w-full border text-center">
-              <thead>
-                <tr className="bg-gray-200">
-                  <th className="border p-2">User Name</th>
-                  <th className="border p-2">Email</th>
-                  <th className="border p-2">Department</th>
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700"></div>
+            </div>
+          ) : users?.length > 0 ? (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs  text-gray-500 uppercase tracking-wider">User Name</th>
+                  <th className="px-6 py-3 text-left text-xs  text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs  text-gray-500 uppercase tracking-wider">Department</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {users.map((user) => (
-                  <tr key={user._id} className="border">
-                    <td className="border p-2">
-                      <Link to={`/institute/user-proposals/${user._id}`} className="text-blue-500 hover:underline">
+                  <tr key={user._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                      <Link to={`/institute/user-proposals/${user._id}`} className="hover:underline">
                         {user.Name}
                       </Link>
                     </td>
-                    <td className="border p-2">{user.email}</td>
-                    <td className="border p-2">{user.Dept}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.Dept}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : (
-            <p className="text-center">No users found in your institute.</p>
+            <div className="text-center py-8">
+              <p className="text-gray-500">No users found in your institute.</p>
+            </div>
           )}
-        </main>
-      </div>
-      <Footer />
+        </div>
+      </main>
     </div>
+  </div>
+  
   );
 };
 
