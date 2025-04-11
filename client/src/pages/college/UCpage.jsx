@@ -284,6 +284,21 @@ const UCPage = () => {
             <span className="px-3 py-1 w-full">: {ucData.startDate}</span>
             <label className="font-semibold text-gray-700">End Date of Year:</label>
             <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
+            <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                    Grants position at the beginning of the Financial year
+                </h3>
+                <div className="pl-11 grid grid-cols-2 gap-4">
+                    <label className="text-gray-700">Carry forward from previous financial year</label>
+                    <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+
+                    <label className="text-gray-700">Others, If any</label>
+                    <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
+
+                    <label className="text-gray-700">Total</label>
+                    <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+                </div>
+            </div>
           </div>
 
           <h3 className="text-lg font-semibold text-blue-700 mb-4">Financial Summary</h3>
