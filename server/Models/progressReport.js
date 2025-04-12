@@ -34,7 +34,11 @@ const progressReportSchema = new mongoose.Schema({
          cost:Number, 
          working:String, 
          rate: String }
-    ] 
+    ],
+    date:{
+        type:Date,
+        dafault:new Date()
+      }
 });
 
 const ProgressReport = mongoose.model("ProgressReport", progressReportSchema);

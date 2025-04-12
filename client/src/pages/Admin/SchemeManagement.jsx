@@ -433,25 +433,25 @@ const SchemeManagement = ({ userRole }) => {
                                     <tbody className="divide-y divide-gray-200">
                                         {schemes.map((scheme) => (
                                             <tr key={scheme._id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-6 py-4">
                                                     <div className="font-medium text-gray-900">{scheme.name}</div>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="text-sm text-gray-500 line-clamp-2 max-w-xs">{scheme.description}</div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">${Number(scheme.budget).toLocaleString()}</div>
+                                                <td className="px-6 py-4">
+                                                    <div className="text-sm text-gray-900">₹{Number(scheme.budget).toLocaleString()}</div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-6 py-4">
                                                     <div className="text-sm text-gray-900">{formatDate(scheme.startDate)} - {formatDate(scheme.endDate)}</div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-6 py-4">
                                                     <div className="text-sm text-gray-900">{getCoordinatorName(scheme.coordinator)}</div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-6 py-4 ">
                                                     <div className="text-sm text-gray-900">{scheme.category || "-"}</div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-6 py-4">
                                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${scheme.status === 'Active' ? 'bg-green-100 text-green-800' :
                                                         scheme.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                                                             scheme.status === 'Completed' ? 'bg-blue-100 text-blue-800' :

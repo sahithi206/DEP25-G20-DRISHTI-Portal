@@ -48,7 +48,12 @@ const SESchema = new mongoose.Schema({
             "rejectedByAdmin", 
         ],
         default: "pending",
-    },});
+    },
+    date:{
+        type:Date,
+        dafault:new Date()
+      }
+});
 
 
 module.exports = mongoose.model("SE", SESchema);

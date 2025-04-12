@@ -42,6 +42,10 @@ const projectSchema = new Schema({
     researchDetailsId:{ type: Schema.Types.ObjectId, ref: "ResearchDetails", required: true },
     PIDetailsId:{ type: Schema.Types.ObjectId, ref: "PI", required: true },
     YearlyDataId:[{ type: Schema.Types.ObjectId, ref: "YearlyData", required: true }],
-});
+    date:{
+      type:Date,
+      dafault:new Date()
+    }
+  });
 
 module.exports = mongoose.model("Project", projectSchema);

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../utils/Sidebar";
-import { FaUserCircle, FaPowerOff, FaFilter, FaSearch, FaComments, FaTimes } from "react-icons/fa";
+import { FaUserCircle, FaPowerOff, FaFilter, FaChevronDown, FaSearch, FaComments, FaTimes } from "react-icons/fa";
 import HomeNavbar from "../utils/HomeNavbar";
 
 const ProposalInbox = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("All");
+    const [sortOrder, setSortOrder] = useState("Newest");
     const [proposals, setProposals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -33,7 +34,6 @@ const ProposalInbox = () => {
                     throw new Error("Failed to fetch proposals. Please try again.");
                 }
                 const data = await response.json();
-                console.log(data);
                 setProposals(data.data || []);
             } catch (err) {
                 setError(err.message);
@@ -54,12 +54,18 @@ const ProposalInbox = () => {
         }
     };
 
-    const filteredProposals = proposals.filter(proposal =>
-        (proposal.generalInfo?.instituteName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            proposal.generalInfo?.areaOfSpecialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            proposal.researchDetails?.Title?.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (filter === "All" || proposal.proposal?.status === filter)
-    );
+    const filteredProposals = proposals
+        .filter(proposal =>
+            (proposal.generalInfo?.instituteName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                proposal.generalInfo?.areaOfSpecialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                proposal.researchDetails?.Title?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (filter === "All" || proposal.proposal?.status === filter)
+        )
+        .sort((a, b) => {
+            const dateA = new Date(a.proposal?.date || 0);
+            const dateB = new Date(b.proposal?.date || 0);
+            return sortOrder === "Newest" ? dateB - dateA : dateA - dateB;
+        });
 
     const viewComments = (proposal) => {
         setSelectedProposal(proposal);
@@ -74,40 +80,72 @@ const ProposalInbox = () => {
         <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
             <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                <HomeNavbar isSidebarOpen={isSidebarOpen}/>
+                <HomeNavbar isSidebarOpen={isSidebarOpen} />
                 <div className="p-6 space-y-6 mt-16">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700">
-                        <h1 className="text-3xl font-black text-gray-900 mb-2">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
+                        <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
                         <h2 className="text-xl font-semibold text-gray-700">Anusandhan National Research Foundation</h2>
                         <p className="mt-3 text-2xl font-bold text-blue-800">Proposal Inbox</p>
                     </div>
                     <div className="bg-white shadow-md rounded-xl overflow-hidden">
-                        <div className="p-4 bg-gray-100 flex flex-wrap items-center justify-between">
-                            <div className="flex items-center space-x-4 w-full max-w-md mb-2 sm:mb-0">
-                                <FaSearch className="text-gray-500" />
+                        <div className="flex flex-col sm:flex-row gap-4 items-start p-4 sm rounded-lg:items-center">
+                            <div className="flex items-center rounded-lg px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 focus-within:bg-white focus-within:ring-1 focus-within">
+                                <FaSearch className="text-gray-500 mr-2" />
                                 <input
                                     type="text"
                                     placeholder="Search by Institute, Specialization, or Title"
-                                    className="w-full bg-transparent outline-none text-gray-700 placeholder-gray-500 text-sm px-2"
+                                    className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-500 text-sm"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
+                                {searchTerm && (
+                                    <button
+                                        onClick={() => setSearchTerm('')}
+                                        className="ml-2 text-gray-400 hover:text-gray-600"
+                                        aria-label="Clear search"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                )}
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <FaFilter className="text-gray-500" />
-                                <select
-                                    className="bg-white border border-gray-300 rounded-md px-2 py-1 text-sm"
-                                    value={filter}
-                                    onChange={(e) => setFilter(e.target.value)}
-                                >
-                                    <option value="All">All Status</option>
-                                    <option value="Rejected">Rejected</option>
-                                    <option value="Approved">Approved</option>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Needs Revision">Needs Revision</option>
-                                </select>
+
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
+
+                                <div className="relative flex-1 sm:flex-none sm:w-40">
+                                    <select
+                                        className="appearance-none w-full bg-white  rounded-md pl-3 pr-8 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                        value={filter}
+                                        onChange={(e) => setFilter(e.target.value)}
+                                    >
+                                        <option value="All">All Status</option>
+                                        <option value="Rejected">Rejected</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Needs Revision">Needs Revision</option>
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                        <FaChevronDown className="text-xs" />
+                                    </div>
+                                </div>
+
+                                <div className="relative flex-1 sm:flex-none sm:w-40">
+                                    <select
+                                        className="appearance-none w-full bg-white rounded-md pl-3 pr-8 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                        value={sortOrder}
+                                        onChange={(e) => setSortOrder(e.target.value)}
+                                    >
+                                        <option value="Newest">Newest First</option>
+                                        <option value="Oldest">Oldest First</option>
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                        <FaChevronDown className="text-xs" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead className="bg-blue-700 text-white">
@@ -134,11 +172,11 @@ const ProposalInbox = () => {
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-center">
-                                                    <button 
+                                                    <button
                                                         onClick={() => viewComments(proposal)}
                                                         className="flex items-center justify-center mx-auto bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-1 text-xs transition-colors"
                                                     >
-                                                        <FaComments className="mr-1" /> 
+                                                        <FaComments className="mr-1" />
                                                         {proposal.proposal?.comments?.length > 0 ? `View Comments (${proposal.proposal.comments.length})` : "No Comments"}
                                                     </button>
                                                 </td>
@@ -162,28 +200,28 @@ const ProposalInbox = () => {
                                 <h2 className="text-xl font-bold text-gray-800">
                                     Proposal Comments
                                 </h2>
-                                <button 
+                                <button
                                     onClick={() => setSelectedProposal(null)}
                                     className="text-gray-500 hover:text-gray-700"
                                 >
                                     <FaTimes size={20} />
                                 </button>
                             </div>
-                            
+
                             <div className="mb-6">
                                 <h3 className="font-semibold text-lg text-blue-800 mb-2">Proposal Details</h3>
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                     <p><span className="font-medium">Title:</span> {selectedProposal.researchDetails?.Title}</p>
                                     <p><span className="font-medium">Institute:</span> {selectedProposal.generalInfo?.instituteName}</p>
                                     <p>
-                                        <span className="font-medium">Status:</span> 
+                                        <span className="font-medium">Status:</span>
                                         <span className={`ml-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusColor(selectedProposal.proposal?.status)}`}>
                                             {selectedProposal.proposal?.status || "Pending"}
                                         </span>
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <div className="mb-6">
                                 <h3 className="font-semibold text-lg text-blue-800 mb-2">Admin Comments</h3>
                                 {selectedProposal.proposal?.comments && selectedProposal.proposal.comments.length > 0 ? (
@@ -202,7 +240,7 @@ const ProposalInbox = () => {
                                     <p className="text-gray-500 italic">No comments available for this proposal.</p>
                                 )}
                             </div>
-                            
+
                             {selectedProposal.proposal?.status === "Needs Revision" && (
                                 <div className="border-t pt-4">
                                     <h3 className="font-semibold text-lg text-blue-800 mb-2">Action Required</h3>
@@ -210,7 +248,7 @@ const ProposalInbox = () => {
                                         This proposal requires revisions based on admin feedback. Please review the comments above and resubmit your proposal.
                                     </p>
                                     <div className="flex justify-end">
-                                        <button 
+                                        <button
                                             onClick={() => handleRevisionSubmit(selectedProposal.proposal?._id)}
                                             className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded transition-colors"
                                         >

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUserCircle, FaFacebook, FaTwitter } from "react-icons/fa";
 import { IoMdArrowDropdown } from "react-icons/io";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
 const Navbar = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
@@ -21,10 +22,15 @@ const Navbar = () => {
           <span className="hover:text-gray-300 cursor-pointer" onClick={() => navigate("/aboutus")}>About Us</span>
           <span className="hover:text-gray-300 cursor-pointer">Contact Us</span>
           <span className="hover:text-gray-300 cursor-pointer">Gallery</span>
-          
-           <FaUserCircle className="text-2xl" />
-                  {<span>Welcome, Institute</span>}
-          <FaUserCircle className="text-2xl cursor-pointer hover:text-gray-300" onClick={() => navigate("/login")} />
+
+          <FaUserCircle className="text-2xl" />
+          {<span>Welcome, Institute</span>}
+          <FontAwesomeIcon
+            icon={faPowerOff}
+            className="text-2xl cursor-pointer hover:text-gray-300"
+            onClick={() => navigate("/login")}
+          />
+
         </div>
       </div>
     </nav>

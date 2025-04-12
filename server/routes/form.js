@@ -197,9 +197,10 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
         const total = perUnitCost * quantity;
         totalRecurring += total;
         return {
-          item: item.material,
+          item: item.item,
           quantity,
           perUnitCost,
+          Duration:item.Duration,
           total
         };
       });
@@ -525,8 +526,9 @@ router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
 router.get("/incompleteProposals", fetchUser, async (req, res) => {
   try {
     const { _id } = req.user;
-    const proposals = await Proposal.find({ userId: _id, status: "Unsaved" });
-
+    console.log(req.user._id);
+    const proposals = await Proposal.find({ userId: req.user._id, status: "Unsaved" });
+    console.log(proposals);
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No proposals found" });
     }

@@ -3,75 +3,178 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";
 import { AuthContext } from "./Context/Authcontext";
 import HomeNavbar from "../utils/HomeNavbar";
+import { toast } from "react-toastify";
 const SavedProposals = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const navigate = useNavigate();
-    const {approvedProjects}=useContext(AuthContext);
-    const [acceptedProjects,setProjects]=useState();
-    useEffect(()=>{
-        const projects = async () =>{
-         const proj=await approvedProjects();
-         const Projects=await proj.map((project)=>{
-            let id = project.proposalId;
-            let title = project.researchDetails.Title;
-            let duration = project.researchDetails.Duration;
+    const { approvedProjects } = useContext(AuthContext);
+    const [acceptedProjects, setProjects] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filter, setFilter] = useState("All");
+    const [sortOrder, setSortOrder] = useState("Newest");
 
-            return {id, title,duration};
-         })
-         setProjects(Projects);
-        }
-        projects();
-    },[])
+    useEffect(() => {
+        let isMounted = true;
+        const fetchProjects = async () => {
+            try {
+                const projects = await approvedProjects();
+
+                if (!isMounted) return;
+                const formattedProjects = projects.map((project) => ({
+                    id: project.proposalId,
+                    title: project.researchDetails?.Title || 'Untitled Project',
+                    duration: String(project.researchDetails?.Duration || ''),
+                    status: project.status || 'Unknown',
+                    ...(project.researchDetails?.Institute && {
+                        institute: project.researchDetails.Institute
+                    }),
+                    ...(project.researchDetails?.Specialization && {
+                        specialization: project.researchDetails.Specialization
+                    })
+                }));
+
+                setProjects(formattedProjects);
+            } catch (error) {
+                console.error('Failed to fetch projects:', error);
+                if (isMounted) {
+                    toast.error('Failed to load projects');
+                }
+            }
+        };
+
+        fetchProjects();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [approvedProjects]);
+
+    const filteredProjects = acceptedProjects
+        .filter((project) =>
+            (project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                project.duration.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (filter === "All" || project.status === filter)
+        )
+        .sort((a, b) => {
+            const dateA = new Date(a.date || 0);
+            const dateB = new Date(b.date || 0);
+            return sortOrder === "Newest" ? dateB - dateA : dateA - dateB;
+        });
 
     return (
         <div className="flex min-h-screen">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-            <HomeNavbar isSidebarOpen={isSidebarOpen}/>
-            <div className="p-6 space-y-6 mt-16">                
-                 <div className="p-6 space-y-6">
+                <HomeNavbar isSidebarOpen={isSidebarOpen} />
+                <div className="p-6 space-y-6 mt-16">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                        <h1 className="text-3xl font-black text-gray-900 mb-2">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
+                        <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
                         <h2 className="text-xl font-semibold text-gray-700">Anusandhan National Research Foundation</h2>
-                        <p className="mt-3 text-2xl font-bold text-blue-800">Accepted Proposals </p>
+                        <p className="mt-3 text-2xl font-bold text-blue-800">Accepted Proposals</p>
                     </div>
                     <div className="bg-white shadow-md rounded-xl overflow-hidden">
+                        <div className="flex flex-col sm:flex-row gap-4 items-start p-4 sm:items-center justify-between">
+                            <div className="relative flex-1 min-w-0">
+                                <div className="relative flex items-center rounded-lg px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 focus-within:bg-white focus-within:ring-1 focus-within:ring-blue-200 w-full">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-4 w-4 text-gray-500 mr-2 flex-shrink-0"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                        />
+                                    </svg>
 
-                    <div className="overflow-x-auto">
+                                    <input
+                                        type="text"
+                                        placeholder="Search by Title or Duration"
+                                        className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-500 text-sm pr-8"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+
+                                    {searchTerm && (
+                                        <button
+                                            onClick={() => setSearchTerm('')}
+                                            className="absolute right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                                            aria-label="Clear search"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-4 w-4"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex-shrink-0 w-full sm:w-auto">
+                                <div className="relative w-full sm:w-40">
+                                    <select
+                                        className="appearance-none w-full bg-white rounded-md pl-3 pr-8 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                        value={sortOrder}
+                                        onChange={(e) => setSortOrder(e.target.value)}
+                                    >
+                                        <option value="Newest">Newest First</option>
+                                        <option value="Oldest">Oldest First</option>
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 9l6 6 6-6" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead className="bg-blue-700 text-white">
-                                <tr>
-                                    <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">File No.</th>
-                                    <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Project Title</th>
-                                    <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Project Duration</th>
-
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {acceptedProjects && acceptedProjects.length > 0 ? (
-                                    acceptedProjects.map((project) => (
-                                        <tr key={project.id} className="bg-white-100 shadow-sm ">
-                                            <td className="p-4 text-center font-semibold text-xs">{project.id}</td>
-                                            <td className="p-4 text-center font-semibold text-xs">{project.title}</td>
-                                            <td className="p-4 text-center font-semibold text-xs">{project.duration}</td>
-
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr className="bg-gray-100">
-                                        <td className="p-4 text-center font-semibold text-xs border-b border-blue-200" colSpan="4">
-                                            No Accepted Projects
-                                        </td>
+                                    <tr>
+                                        <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">File No.</th>
+                                        <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Project Title</th>
+                                        <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Project Duration</th>
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {filteredProjects && filteredProjects.length > 0 ? (
+                                        filteredProjects.map((project) => (
+                                            <tr key={project.id} className="bg-white-100 shadow-sm">
+                                                <td className="p-4 text-center font-semibold text-xs">{project.id}</td>
+                                                <td className="p-4 text-center font-semibold text-xs">{project.title}</td>
+                                                <td className="p-4 text-center font-semibold text-xs">{project.duration}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr className="bg-gray-100">
+                                            <td className="p-4 text-center font-semibold text-xs border-b border-blue-200" colSpan="3">
+                                                No Accepted Projects
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            </div>
-         </div>
         </div>
     );
 };

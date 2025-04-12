@@ -35,12 +35,23 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
     ];
 
     if (admin.role === "Head Coordinator") {
+        let requests = {
+            label: "Requests",
+            icon: FileText,
+            id: "requests",
+            children: [
+                { label: "Change of Institute", id: "changeInstitute", path: "/requests/change-institute" },
+                { label: "Miscellaneous Request", id: "miscRequest", path: "/requests/miscellaneous" }
+            ]
+        };
         menuItems.splice(1, 0, {
             label: "Scheme Management",
             icon: ClipboardList,
             id: "schemes",
             path: "/schemes"
         });
+        menuItems.splice(2, 0, requests);
+
     }
 
     if (admin.role === "Coordinator") {
@@ -66,18 +77,9 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
              
             ]
         };
-        let requests = {
-            label: "Requests",
-            icon: FileText,
-            id: "requests",
-            children: [
-                { label: "Change of Institute", id: "changeInstitute", path: "/requests/change-institute" },
-                { label: "Miscellaneous Request", id: "miscRequest", path: "/requests/miscellaneous" }
-            ]
-        };
+        
         menuItems.splice(1, 0, projectSubMenu);
         menuItems.splice(2, 0, quotations);
-        menuItems.splice(3, 0, requests);
 
     }
 

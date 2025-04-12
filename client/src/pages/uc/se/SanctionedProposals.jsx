@@ -3,39 +3,75 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
 import { AuthContext } from "../../Context/Authcontext";
+import { FaSearch, FaFilter, FaChevronDown } from "react-icons/fa";
+
 const SanctionedProposals = () => {
     const url = import.meta.env.VITE_REACT_APP_URL;
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const navigate = useNavigate();
     const { approvedProjects } = useContext(AuthContext);
-    const [acceptedProjects, setProjects] = useState();
-    useEffect(() => {
-        const projects = async () => {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("User not authenticated");
+    const [acceptedProjects, setProjects] = useState([]);
+    const [filteredProjects, setFilteredProjects] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [sortOrder, setSortOrder] = useState("newest");
 
-            const response = await fetch(`${url}projects/get-projects`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "accessToken": `${token}`
-                },
-            });
-            if (!response.ok) {
-                throw new Error("Failed to update user details");
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) throw new Error("User not authenticated");
+
+                const response = await fetch(`${url}projects/get-projects`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "accessToken": `${token}`
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to fetch projects");
+                }
+                const json = await response.json();
+                const projects = json.projects?.map(project => ({
+                    id: project._id,
+                    title: project.Title,
+                    endDate: project.endDate,
+                    createdAt: project.createdAt
+                })) || [];
+                
+                setProjects(projects);
+                setFilteredProjects(projects);
+            } catch (error) {
+                console.error("Error fetching projects:", error);
             }
-            const json = await response.json();
-            const proj = json.projects;
-            const Projects = await proj && proj.length > 0 && proj.map((project) => {
-                let id = project._id;
-                let title = project.Title;
-                let endDate = project.endDate;
-                return { id, title,endDate };
-            })
-            setProjects(Projects);
-        }
-        projects();
-    }, [])
+        };
+        fetchProjects();
+    }, [url]);
+
+    useEffect(() => {
+        const filterAndSortProjects = () => {
+            let results = [...acceptedProjects];
+            
+            // Apply search filter
+            if (searchTerm) {
+                results = results.filter(project =>
+                    project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    project.id.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            // Apply sorting
+            results.sort((a, b) => {
+                const dateA = new Date(a.createdAt);
+                const dateB = new Date(b.createdAt);
+                return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+            });
+            
+            setFilteredProjects(results);
+        };
+        
+        filterAndSortProjects();
+    }, [searchTerm, sortOrder, acceptedProjects]);
 
     return (
         <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900">
@@ -49,8 +85,60 @@ const SanctionedProposals = () => {
                             <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
                             <p className="mt-3 text-3xl font-bold text-blue-800">Ongoing Projects</p>
                         </div>
-                        <div className="bg-white shadow-md rounded-xl overflow-hidden">
+                        
+                        {/* Search and Filter Controls */}
+                        <div className="bg-white p-4 rounded-lg shadow-sm">
+                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                                {/* Search Input */}
+                                <div className="relative flex-1 w-full">
+                                    <div className="flex items-center rounded-lg px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 focus-within:bg-white focus-within:ring-1 focus-within:ring-blue-200">
+                                        <FaSearch className="text-gray-500 mr-2" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search by ID or Title"
+                                            className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-500 text-sm pr-8"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                        {searchTerm && (
+                                            <button
+                                                onClick={() => setSearchTerm('')}
+                                                className="absolute right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                                                aria-label="Clear search"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                {/* Sort Dropdown */}
+                                <div className="flex items-center gap-2 w-full sm:w-auto">
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <FaFilter className="mr-1" />
+                                        <span>Sort:</span>
+                                    </div>
+                                    <div className="relative w-full sm:w-40">
+                                        <select
+                                            className="appearance-none w-full bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                            value={sortOrder}
+                                            onChange={(e) => setSortOrder(e.target.value)}
+                                        >
+                                            <option value="newest">Newest First</option>
+                                            <option value="oldest">Oldest First</option>
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                            <FaChevronDown className="text-xs" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
+                        {/* Projects Table */}
+                        <div className="bg-white shadow-md rounded-xl overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead className="bg-blue-700 text-white">
@@ -62,8 +150,8 @@ const SanctionedProposals = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {acceptedProjects && acceptedProjects.length > 0 ? (
-                                            acceptedProjects.map((project) => (
+                                        {filteredProjects && filteredProjects.length > 0 ? (
+                                            filteredProjects.map((project) => (
                                                 <tr key={project.id} className="group hover:bg-blue-50 transition-colors border-b last:border-b-0">
                                                     <td className="p-4 text-center font-semibold text-xs">{project.id}</td>
                                                     <td className="p-4 text-center font-semibold text-xs">{project.title}</td>
@@ -78,12 +166,11 @@ const SanctionedProposals = () => {
                                                                 return "Time expired";
                                                             }
                                                         })()}
-                                                    </td>                                                    <td className="p-4 text-center font-semibold text-xs">
+                                                    </td>
+                                                    <td className="p-4 text-center font-semibold text-xs">
                                                         <button
-                                                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                                                            onClick={() => {
-                                                                navigate(`/project-dashboard/${project.id}`);
-                                                            }}
+                                                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                                                            onClick={() => navigate(`/project-dashboard/${project.id}`)}
                                                         >
                                                             View Dashboard
                                                         </button>
@@ -93,7 +180,7 @@ const SanctionedProposals = () => {
                                         ) : (
                                             <tr className="bg-gray-100">
                                                 <td className="p-4 text-center font-semibold text-xs border-b border-blue-200" colSpan="4">
-                                                    No Sanctioned Projects
+                                                    {searchTerm ? "No projects match your search" : "No Sanctioned Projects"}
                                                 </td>
                                             </tr>
                                         )}

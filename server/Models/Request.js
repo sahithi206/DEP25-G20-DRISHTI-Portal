@@ -4,7 +4,7 @@ const requestSchema = new mongoose.Schema({
     requestType: {
         type: String,
         required: true,
-        enum: ["Technical Support", "Document Request", "Other"], 
+        enum: ["Budget Revision","Technical Support", "Document Request", "Other"], 
     },
     description: {
         type: String,
