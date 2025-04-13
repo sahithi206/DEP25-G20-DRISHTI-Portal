@@ -13,6 +13,7 @@ const NonRecurringUC = require("../Models/UcNonrecurring.js");
 const SE = require("../Models/se/SE.js");
 const Report = require("../Models/progressReport.js");
 
+const Scheme = require("../Models/Scheme.js")
 const Proposal = require("../Models/Proposal");
 const bankDetails = require("../Models/bankDetails.js");
 const budgetSanctioned = require("../Models/budgetSanctioned.js");
@@ -23,6 +24,7 @@ const Bank = require("../Models/bankDetails.js");
 const Acknowledgement = require("../Models/acknowledgement");
 const Auth = require("./auth.js");
 const nodemailer = require("nodemailer");
+const UcNonrecurring = require("../Models/UcNonrecurring.js");
 
 const handleSaveAsPDF = () => {
   const pdf = new jsPDF("p", "mm", "a4");
@@ -438,16 +440,16 @@ router.get("/generate-uc/recurring/:id", fetchUser, async (req, res) => {
     if (!currentYearData) {
       return res.status(404).json({ success: false, message: "Yearly data not found for the current year" });
     }
-
+    const schemeDetails = await Scheme.findById(project.Scheme);
+    const schemeName = schemeDetails ? schemeDetails.name : "Unknown Scheme";
     const recurringUCData = {
       projectId: project._id,
       title: project.Title,
-      scheme: project.Scheme,
+      scheme: schemeName,
       currentYear: project.currentYear,
-      startDate: project.startDate,
-      principalInvestigator: project.userId?.Name,
-
-      endDate: project.endDate,
+      startDate: project.startDate ? new Date(project.startDate).toLocaleDateString() : "Unknown Start Date",
+      principalInvestigator: project.PI,
+      endDate: project.endDate ? new Date(project.endDate).toLocaleDateString() : "Unknown end Date",
       CarryForward: currentYearData.budgetUnspent,
       yearTotal: currentYearData.budgetSanctioned.yearTotal,
       total: currentYearData.budgetUnspent + currentYearData.budgetSanctioned.yearTotal,
@@ -483,13 +485,17 @@ router.get("/generate-uc/nonRecurring/:id", fetchUser, async (req, res) => {
       return res.status(404).json({ success: false, message: "Yearly data not found for the current year" });
     }
 
+    const schemeDetails = await Scheme.findById(project.Scheme);
+    const schemeName = schemeDetails ? schemeDetails.name : "Unknown Scheme";
+
     const nonRecurringUCData = {
       projectId: project._id,
       title: project.Title,
-      scheme: project.Scheme,
+      scheme: schemeName,
       currentYear: project.currentYear,
-      startDate: project.startDate,
-      endDate: project.endDate,
+      startDate: project.startDate ? new Date(project.startDate).toLocaleDateString() : "Unknown Start Date",
+      principalInvestigator: project.PI,
+      endDate: project.endDate ? new Date(project.endDate).toLocaleDateString() : "Unknown end Date",
       CarryForward: currentYearData.budgetUnspent,
       yearTotal: currentYearData.budgetSanctioned.yearTotal,
       total: currentYearData.budgetUnspent + currentYearData.budgetSanctioned.yearTotal,
@@ -503,4 +509,21 @@ router.get("/generate-uc/nonRecurring/:id", fetchUser, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 });
+ 
+router.get("/view-uc/se/:id", fetchUser, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const se = await SE.find({projectId:id});
+    const grant = await NonRecurringUC.find({projectId:id});
+    const recurringgrant= await RecurringUC.find({projectId:id});
+    if (!se) {
+      return res.status(400).json({ success: false, msg: "Statement of Expenditure Not Found" })
+    }
+    res.status(200).json({ success: true, msg: "Statement of Expenditure not Submitted", se,grant,recurringgrant });
+  }
+  catch (e) {
+    console.error("Error Fetching SE:", e);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+})
 module.exports = router;
