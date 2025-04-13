@@ -25,6 +25,7 @@ const ProjectProgressReports = () => {
                     `${import.meta.env.VITE_REACT_APP_URL}admin/progress-reports/${id}`
                 );
                 setProgressReports(response.data.data);
+                // console.log(response.data.data);
             } catch (err) {
                 setError("Failed to fetch progress reports.");
             } finally {
@@ -66,6 +67,7 @@ const ProjectProgressReports = () => {
         });
 
     const viewReport = (report) => {
+        console.log(report);
         setSelectedReport(report);
         setIsPopupOpen(true);
     };
@@ -267,8 +269,9 @@ const ProjectProgressReports = () => {
                             <span className="text-gray-800">{selectedReport.projectTitle}</span>
 
                             <label className="font-semibold text-gray-700">Principal Investigator:</label>
-                            <span className="text-gray-800">{selectedReport.principalInvestigator.join(", ")}</span>
-
+                            <span className="text-gray-800">
+                    {selectedReport.principalInvestigator?.join(", ") || "N/A"}
+                </span>
                             <label className="font-semibold text-gray-700">Research Area:</label>
                             <span className="text-gray-800">{selectedReport.researchArea}</span>
 

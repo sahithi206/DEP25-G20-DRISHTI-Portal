@@ -631,6 +631,7 @@ router.get("/progress-reports/:id", async (req, res) => {
           return res.status(404).json({ success: false, message: "Report not found" });
       }
       res.status(200).json({ success: true, data: report });
+      console.log(report);
   } catch (error) {
       res.status(500).json({ success: false, message: "Internal Server Error" });
   }
