@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import Sidebar from "../../utils/Sidebar";
 import HomeNavbar from "../../utils/HomeNavbar";
 import { toast } from "react-toastify";
@@ -8,7 +8,6 @@ const URL = import.meta.env.VITE_REACT_APP_URL;
 const UploadDocuments = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { id } = useParams();
-    let navigate = useNavigate();
     const [quotation, setQuotation] = useState(null);
     const [equipments, setEquip] = useState([]);
     const [salary, setSalary] = useState([]);
@@ -40,9 +39,7 @@ const UploadDocuments = () => {
         }
     };
 
-    const handleClose = () => {
-        setIsEditing(false);
-    };
+    // Removed unused handleClose
 
 
 
@@ -380,3 +377,5 @@ const UploadDocuments = () => {
 };
 
 export default UploadDocuments;
+
+

@@ -154,6 +154,11 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
   try {
     let { projectid } = req.params;
     console.log(projectid);
+
+    if (!ObjectId.isValid(projectid)) {
+        return res.status(400).json({ success: false, msg: "Invalid Project ID" });
+    }
+
     let id = new ObjectId(projectid);
     console.log(id);
     const project = await Project.findById(id);
@@ -167,7 +172,6 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
       .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
 
     const user = await User.findById(req.user._id).populate("proposals");
-    // const userProjects = user.proposals.filter(prop => prop && prop._id).map(prop => prop._id);
     const generalInfo = await GeneralInfo.findById(ids.generalInfoId);
     const researchDetails = await ResearchDetails.findById(ids.researchDetailsId);
     const PIDetails = await PI.findById(ids.PIDetailsId);
@@ -412,9 +416,23 @@ router.post("/progress-report/:id", fetchUser, async (req, res) => {
 
 router.get("/progress-report/:id", fetchUser, async (req, res) => {
   const { id } = req.params;
-
   try {
-    const progressReports = await ProgressReport.find({ projectId: id });
+    const progressReports = await Report.find({ projectId: id }).populate("projectId");
+    res.status(200).json({ success: true, data: progressReports });
+  } catch (error) {
+    console.error("Error fetching progress reports:", error);
+    res.status(500).json({ success: false, msg: "Server error" });
+  }
+});
+router.get("/reports/:id", fetchUser, async (req, res) => {
+  const { id } = req.params;
+  try {
+    console.log(id);
+    const progressReports = await Report.findById(id)
+      .populate("projectId")
+      .populate("principalInvestigator")
+      .populate("coPrincipalInvestigator");
+    console.log(progressReports);
     res.status(200).json({ success: true, data: progressReports });
   } catch (error) {
     console.error("Error fetching progress reports:", error);

@@ -5,8 +5,8 @@ const progressReportSchema = new mongoose.Schema({
     type:{type:String, default:"Yearly"},
     projectTitle: String,
     currentYear: Number,
-    principalInvestigator: [String],
-    coPrincipalInvestigator: [String],
+    principalInvestigator: [{ type: mongoose.Schema.Types.ObjectId, ref: "users", required: true }],
+    coPrincipalInvestigator: [{ type: mongoose.Schema.Types.ObjectId, ref: "users"}],
     researchArea: String,
     approvedObjectives: [String],
     dateOfStart: Date,
@@ -35,7 +35,11 @@ const progressReportSchema = new mongoose.Schema({
          working:String, 
          rate: String }
     ] ,
-    read: { type: Boolean, default: false }
+    read: { type: Boolean, default: false },
+    date:{
+        type:Date,
+        default:new Date()
+    }
 
 });
 
