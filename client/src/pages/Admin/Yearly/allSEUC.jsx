@@ -20,6 +20,15 @@ const AllSEUC = () => {
     const [instituteStamp, setInstituteStamp] = useState(null);
     const [reloadKey, setReloadKey] = useState(0);
     const [comment, setComment] = useState("");
+    const [searchQueryUC, setSearchQueryUC] = useState("");
+    const [searchQuerySE, setSearchQuerySE] = useState("");
+    const [sortOrderUC, setSortOrderUC] = useState("asc");
+    const [sortOrderSE, setSortOrderSE] = useState("asc");
+    const [filterUC, setFilterUC] = useState("");
+    const [filterSE, setFilterSE] = useState("");
+
+    const [isSortFilterOpen, setIsSortFilterOpen] = useState(false);
+
 
     const fetchAllUCs = async () => {
         try {
@@ -36,10 +45,12 @@ const AllSEUC = () => {
             if (!data.success || !data.data || data.data.length === 0) {
                 setError("No UCs found for admin approval");
                 setAllUCs([]);
+                setFilteredUCs([]);  
                 return;
             }
 
             setAllUCs(data.data);
+            setFilteredUCs(data.data);
         } catch (error) {
             console.error("Error fetching all UCs:", error);
             setError("Internal Server Error");
@@ -61,10 +72,12 @@ const AllSEUC = () => {
             if (!data.success || !data.data || data.data.length === 0) {
                 setError("No SEs found for admin approval");
                 setAllSEs([]);
+                setFilteredSEs([]);
                 return;
             }
 
             setAllSEs(data.data);
+            setFilteredSEs(data.data);
         } catch (error) {
             console.error("Error fetching all SEs:", error);
             setError("Internal Server Error");
@@ -197,29 +210,103 @@ const AllSEUC = () => {
         }
     };
 
+    const filteredUCs = allUCs
+    .filter((uc) => {
+        const matchesSearch = searchQueryUC
+            ? uc.projectId?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
+              uc.ucData?.title?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
+              uc.ucData?.instituteName?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
+              uc.ucData?.principalInvestigator?.toLowerCase().includes(searchQueryUC.toLowerCase())
+            : true;
+        const matchesFilter = filterUC ? uc.ucData?.instituteName === filterUC : true;
+        return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+        if (sortOrderUC === "asc") {
+            return new Date(a.submissionDate) - new Date(b.submissionDate);
+        } else {
+            return new Date(b.submissionDate) - new Date(a.submissionDate);
+        }
+    });
+    const filteredSEs = allSEs
+    .filter((se) => {
+        const matchesSearch = searchQuerySE
+            ? se.projectId?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
+              se.title?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
+              se.institute?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
+              se.name?.toLowerCase().includes(searchQuerySE.toLowerCase())
+            : true;
+        const matchesFilter = filterSE ? se.institute === filterSE : true;
+        return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+        if (sortOrderSE === "asc") {
+            return new Date(a.date) - new Date(b.date);
+        } else {
+            return new Date(b.date) - new Date(a.date);
+        }
+    });
+
     return (
         <div className="flex bg-gray-100 min-h-screen">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
                 <AdminNavbar activeSection={activeSection} />
+
+
+
+
                 <div className="p-6 space-y-1 mt-3">
                     <div key={reloadKey} className="mt-3 bg-white p-7 rounded-lg shadow-md">
                         <h2 className="text-lg font-bold mb-4">All UCs</h2>
+
+                        <div className="flex justify-between items-center mb-6">
+    <input
+        type="text"
+        placeholder="Search UCs..."
+        value={searchQueryUC}
+        onChange={(e) => setSearchQueryUC(e.target.value)}
+        className="p-2 border rounded w-1/3"
+    />
+    <div className="flex items-center space-x-4">
+        <select
+            value={sortOrderUC}
+            onChange={(e) => setSortOrderUC(e.target.value)}
+            className="p-2 border rounded"
+        >
+            <option value="asc">Sort by Date (Ascending)</option>
+            <option value="desc">Sort by Date (Descending)</option>
+        </select>
+        {/* <input
+            type="text"
+            placeholder="Filter by Institute"
+            value={filterUC}
+            onChange={(e) => setFilterUC(e.target.value)}
+            className="p-2 border rounded"
+        /> */}
+    </div>
+</div>
                         <table className="w-full border table-fixed">
                             <thead>
                                 <tr className="bg-gray-200">
-                                    <th className="p-4 text-left w-1/4">Certificate ID</th>
+                                    {/* <th className="p-4 text-left w-1/4">Certificate ID</th> */}
                                     <th className="p-4 text-left w-1/4">Project ID</th>
+                                    <th className="p-4 text-left w-1/5">Project Title</th>
+                                    <th className="p-4 text-left w-1/5">Principal Investigator</th> 
+                                    <th className="p-4 text-left w-1/4">Institute</th>
                                     <th className="p-4 text-left w-1/4">Submission Date</th>
                                     <th className="p-4 text-center w-1/4">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {allUCs.length > 0 ? (
-                                    allUCs.map((certificate) => (
+                                {filteredUCs.length > 0 ? (
+                                    filteredUCs.map((certificate) => (
                                         <tr key={certificate._id} className="border-b hover:bg-blue-50">
-                                            <td className="p-4 w-1/4">{certificate._id}</td>
+                                            {/* <td className="p-4 w-1/4">{certificate._id}</td> */}
                                             <td className="p-4 w-1/4">{certificate.projectId}</td>
+                                            <td className="p-4 w-1/4">{certificate.ucData.title}</td>
+                                            <td className="p-4 w-1/5">{certificate.ucData.principalInvestigator || "N/A"}</td> 
+                                            <td className="p-4 w-1/4">{certificate.ucData.instituteName}</td>
                                             <td className="p-4 w-1/4">
                                                 {new Date(certificate.submissionDate).toLocaleDateString()}
                                             </td>
@@ -262,23 +349,56 @@ const AllSEUC = () => {
                         </table>
 
                         <h2 className="text-lg font-bold mt-8 mb-4">All SEs</h2>
+                                                <div className="flex justify-between items-center mb-6">
+    <input
+        type="text"
+        placeholder="Search SEs..."
+        value={searchQuerySE}
+        onChange={(e) => setSearchQuerySE(e.target.value)}
+        className="p-2 border rounded w-1/3"
+    />
+    <div className="flex items-center space-x-4">
+        <select
+            value={sortOrderSE}
+            onChange={(e) => setSortOrderSE(e.target.value)}
+            className="p-2 border rounded"
+        >
+            <option value="asc">Sort by Date (Ascending)</option>
+            <option value="desc">Sort by Date (Descending)</option>
+        </select>
+        {/* <input
+            type="text"
+            placeholder="Filter by Institute"
+            value={filterSE}
+            onChange={(e) => setFilterSE(e.target.value)}
+            className="p-2 border rounded"
+        /> */}
+    </div>
+</div>
                         <table className="w-full border table-fixed">
+
                             <thead>
                                 <tr className="bg-gray-200">
-                                    <th className="p-4 text-left w-1/4">Certificate ID</th>
+                                    {/* <th className="p-4 text-left w-1/4">Certificate ID</th> */}
                                     <th className="p-4 text-left w-1/4">Project ID</th>
+                                    {/* <th className="p-4 text-left w-1/5">Project Title</th> */}
+                                    <th className="p-4 text-left w-1/5">Principal Investigator</th> 
+                                    < th className="p-4 text-left w-1/4">Institute</th>
                                     <th className="p-4 text-left w-1/4">Submission Date</th>
                                     <th className="p-4 text-center w-1/4">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {allSEs.length > 0 ? (
-                                    allSEs.map((se) => (
+                                {filteredSEs.length > 0 ? (
+                                    filteredSEs.map((se) => (
                                         <tr key={se._id} className="border-b hover:bg-blue-50">
-                                            <td className="p-4 w-1/4">{se._id}</td>
+                                            {/* <td className="p-4 w-1/4">{se._id}</td> */}
                                             <td className="p-4 w-1/4">{se.projectId}</td>
+                                            {/* <td className="p-4 w-1/4">{se.title}</td> */}
+                                            <td className="p-4 w-1/5">{se.name || "N/A"}</td> 
+                                            <td className="p-4 w-1/4">{se.institute}</td>
                                             <td className="p-4 w-1/4">
-                                                {new Date(se.submissionDate).toLocaleDateString()}
+                                                {new Date(se.date).toLocaleDateString()}
                                             </td>
                                             <td className="p-4 w-1/4 text-center">
                                                 <button
@@ -299,12 +419,12 @@ const AllSEUC = () => {
                                                 >
                                                     Accept
                                                 </button>
-                                                <button
+                                                {/* <button
                                                     className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                                                     onClick={() => handleAdminApproval(se._id, "reject", "SE")}
                                                 >
                                                     Reject
-                                                </button>
+                                                </button> */}
                                             </td>
                                         </tr>
                                     ))
