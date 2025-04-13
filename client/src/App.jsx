@@ -71,6 +71,8 @@ import View from "./pages/Qutations/View.jsx";
 import Viewquotations from "./pages/Qutations/ViewQuotations.jsx";
 import Miscellanous from "./pages/Admin/Requests/Miscellanous.jsx";
 import AllSEUC from "./pages/Admin/Yearly/allSEUC.jsx";
+import Progress from "./pages/Admin/Yearly/Progress.jsx";
+
 import ChangeInstitute from "./pages/Admin/Requests/ChangeOfInstitute"
 import ChangeInsti from "./pages/college/request.jsx";
 import ViewReports from "./pages/uc/se/ViewReports.jsx";
@@ -165,6 +167,8 @@ function MainLayout() {
           <Route path="/admin/quotations/:id" element={<ViewQuotations />} />
           <Route path="/requests/miscellaneous" element={<Miscellanous />} />
           <Route path="/admin/uc_se" element={<AllSEUC />} />
+          <Route path="/admin/progress-report" element={<Progress />} />
+
           <Route path="/requests/change-institute" element={<ChangeInstitute />} />
 
 

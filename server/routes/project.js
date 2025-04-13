@@ -11,7 +11,7 @@ const { ObjectId } = require("mongodb");
 const RecurringUC = require("../Models/UcRecurring.js");
 const NonRecurringUC = require("../Models/UcNonrecurring.js");
 const SE = require("../Models/se/SE.js");
-const Report = require("../Models/progressReport.js");
+const ProgressReport = require("../Models/progressReport.js");
 
 const Scheme = require("../Models/Scheme.js")
 const Proposal = require("../Models/Proposal");
@@ -385,7 +385,7 @@ router.post("/progress-report/:id", fetchUser, async (req, res) => {
   const { data, type } = req.body;
 
   try {
-    const check = await Report.findOne({ projectId: id, currentYear: data.currentYear });
+    const check = await ProgressReport.findOne({ projectId: id, currentYear: data.currentYear });
     console.log(check);
     if (check && type !== "Final") {
       return res.status(400).json({ success: false, msg: "A yearly Report for Current Financial Year was already submitted" });
@@ -400,7 +400,7 @@ router.post("/progress-report/:id", fetchUser, async (req, res) => {
         : [data.majorEquipment]
     };
 
-    const progressReport = new Report({
+    const progressReport = new ProgressReport({
       projectId: id,
       type,
       ...formattedData
@@ -417,6 +417,7 @@ router.post("/progress-report/:id", fetchUser, async (req, res) => {
 router.get("/progress-report/:id", fetchUser, async (req, res) => {
   const { id } = req.params;
   try {
+<<<<<<< HEAD
     const progressReports = await Report.find({ projectId: id }).populate("projectId");
     res.status(200).json({ success: true, data: progressReports });
   } catch (error) {
@@ -433,6 +434,9 @@ router.get("/reports/:id", fetchUser, async (req, res) => {
       .populate("principalInvestigator")
       .populate("coPrincipalInvestigator");
     console.log(progressReports);
+=======
+    const progressReports = await ProgressReport.find({ projectId: id });
+>>>>>>> 12111581a1c795ec549457bb7e08dc95f8f31b8e
     res.status(200).json({ success: true, data: progressReports });
   } catch (error) {
     console.error("Error fetching progress reports:", error);

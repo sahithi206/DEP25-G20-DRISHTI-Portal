@@ -34,13 +34,11 @@ const progressReportSchema = new mongoose.Schema({
          cost:Number, 
          working:String, 
          rate: String }
-    ],
-    date:{
-        type:Date,
-        dafault:new Date()
-      }
+    ] ,
+    read: { type: Boolean, default: false }
+
 });
 
-const ProgressReport = mongoose.model("ProgressReport", progressReportSchema);
+// const ProgressReport = mongoose.model("ProgressReport", progressReportSchema);
 
-module.exports = ProgressReport;
+module.exports = mongoose.model("ProgressReport", progressReportSchema, "progressreports");
