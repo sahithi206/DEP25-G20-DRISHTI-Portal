@@ -417,7 +417,6 @@ router.post("/progress-report/:id", fetchUser, async (req, res) => {
 router.get("/progress-report/:id", fetchUser, async (req, res) => {
   const { id } = req.params;
   try {
-<<<<<<< HEAD
     const progressReports = await Report.find({ projectId: id }).populate("projectId");
     res.status(200).json({ success: true, data: progressReports });
   } catch (error) {
@@ -434,9 +433,6 @@ router.get("/reports/:id", fetchUser, async (req, res) => {
       .populate("principalInvestigator")
       .populate("coPrincipalInvestigator");
     console.log(progressReports);
-=======
-    const progressReports = await ProgressReport.find({ projectId: id });
->>>>>>> 12111581a1c795ec549457bb7e08dc95f8f31b8e
     res.status(200).json({ success: true, data: progressReports });
   } catch (error) {
     console.error("Error fetching progress reports:", error);
