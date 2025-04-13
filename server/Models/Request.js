@@ -4,7 +4,7 @@ const requestSchema = new mongoose.Schema({
     requestType: {
         type: String,
         required: true,
-        enum: ["Technical Support", "Document Request", "Other"], 
+        enum: ["Budget Revision","Technical Support", "Document Request", "Other"], 
     },
     description: {
         type: String,
@@ -21,11 +21,11 @@ const requestSchema = new mongoose.Schema({
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "users",
         required: true,
     },
     comments: {
-        type: [String],
+        type: String,
         default: "",
     },
 });

@@ -4,22 +4,22 @@ import { AuthContext } from "../Context/Authcontext";
 const TechForm = ({ researchDetails }) => {
     const section = "technicalDetails";
     const [data, setData] = useState({});
-    const { submitResearchDetails} = useContext(AuthContext);
-    useEffect(()=>{
-        const nochange =async ()=>{
-            if(researchDetails){
-                    setData({  
-                        proposalTitle:researchDetails.Title,
-                        projectDuration:researchDetails.Duration,
-                        projectSummary:researchDetails.Summary,
-                        objectives: researchDetails.objectives.join("\n"),
-                        expectedOutput:researchDetails.Output,
-                        otherDetails:researchDetails.other
-                    })
+    const { submitResearchDetails } = useContext(AuthContext);
+    useEffect(() => {
+        const nochange = async () => {
+            if (researchDetails) {
+                setData({
+                    proposalTitle: researchDetails.Title,
+                    projectDuration: researchDetails.Duration,
+                    projectSummary: researchDetails.Summary,
+                    objectives: researchDetails.objectives.join("\n"),
+                    expectedOutput: researchDetails.Output,
+                    otherDetails: researchDetails.other
+                })
             }
         }
         nochange();
-    },[researchDetails]);
+    }, [researchDetails]);
     const charLimits = {
         proposalTitle: 100,
         projectSummary: 500,
@@ -28,7 +28,7 @@ const TechForm = ({ researchDetails }) => {
         otherDetails: 500,
     };
 
-    
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -43,15 +43,25 @@ const TechForm = ({ researchDetails }) => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
-                    const jsonData = JSON.parse(e.target.result);
+                    const csvData = e.target.result;
+                    const rows = csvData.split("\n").map((row) => row.split(","));
+                    const headers = rows[0];
+                    const values = rows[1];
+                    const jsonData = headers.reduce((acc, header, index) => {
+                        acc[header.trim()] = values[index]?.trim();
+                        return acc;
+                    }, {});
                     setData(jsonData);
                 } catch (error) {
-                    console.error("Invalid JSON file");
+                    console.error("Invalid CSV file");
                 }
             };
             reader.readAsText(file);
         }
     };
+
+    const csvTemplate = `proposalTitle,projectDuration,projectSummary,objectives,expectedOutput,otherDetails
+Sample Title,12,Sample Summary,"Objective 1\nObjective 2",Sample Output,Sample Other Details`;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -75,22 +85,32 @@ const TechForm = ({ researchDetails }) => {
 
     return (
         <div className="container mx-auto p-6">
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold mb-4">Technical Details</h1>
-                <input
-                    type="file"
-                    accept=".json"
-                    className="hidden"
-                    id="fileInput"
-                    onChange={handleFileUpload}
-                />
-                <label
-                    htmlFor="fileInput"
-                    className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
-                >
-                    Import CSV
-                </label>
-            </div>
+                <div className="flex justify-between items-center mb-4">
+    <h1 className="text-2xl font-bold mb-4">Technical Details</h1>
+    <input
+        type="file"
+        accept=".json"
+        className="hidden"
+        id="fileInput"
+        onChange={handleFileUpload}
+    />
+    <label
+        htmlFor="fileInput"
+        className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
+    >
+        Import CSV
+    </label>
+</div>
+<div className="mb-4">
+    <a
+        href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvTemplate)}`}
+        download="template.csv"
+        className="text-blue-600 hover:underline"
+    >
+        Download CSV Template
+    </a>
+</div>
+
 
             <form className="bg-white p-6 rounded-lg shadow-md" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
@@ -141,7 +161,7 @@ const TechForm = ({ researchDetails }) => {
                     Save
                 </button>
             </form>
-        </div>
+        </div >
     );
 };
 

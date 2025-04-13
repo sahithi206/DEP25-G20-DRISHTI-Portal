@@ -10,8 +10,12 @@ const proposalSchema = new Schema({
           createdAt: { type: Date, default: Date.now },
         }
       ],
-    Scheme:{ type: Schema.Types.ObjectId, ref: "Scheme", required: true}
-});
+    Scheme:{ type: Schema.Types.ObjectId, ref: "Scheme", required: true},
+    date:{
+      type:Date,
+      dafault:new Date()
+    }
+  });
 
 
 

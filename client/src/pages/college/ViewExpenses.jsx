@@ -493,7 +493,6 @@ const ProjectExpenses = () => {
                                                         </div>
                                                     </th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Amount</th>
-                                                    <th className="p-4 border-b font-medium text-gray-700">Created At</th>
                                                     <th className="p-4 border-b font-medium text-gray-700">Actions</th>
                                                 </tr>
                                             </thead>
@@ -525,7 +524,6 @@ const ProjectExpenses = () => {
                                                             </span>
                                                         </td>
                                                         <td className="p-4 border-b font-semibold text-gray-800">{formatCurrency(expense.amount)}</td>
-                                                        <td className="p-4 border-b text-gray-600">{formatDate(expense.createdAt)}</td>
                                                         <td className="p-4 border-b">
                                                             <div className="flex gap-3">
                                                                 <button

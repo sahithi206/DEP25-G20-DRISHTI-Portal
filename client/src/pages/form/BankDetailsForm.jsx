@@ -32,14 +32,47 @@ const BankDetailsForm = ({bankDetails }) => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
-                    const jsonData = JSON.parse(e.target.result);
-                    setData(jsonData);
+                    const csvData = e.target.result;
+                    const rows = csvData.split("\n").map(row => row.split(","));
+                    const [headers, ...dataRows] = rows;
+
+                    if (headers.length !== 5) {
+                        throw new Error("Invalid CSV format");
+                    }
+
+                    const jsonData = dataRows.reduce((acc, row) => {
+                        if (row.length === headers.length) {
+                            const entry = headers.reduce((obj, header, index) => {
+                                obj[header.trim()] = row[index].trim();
+                                return obj;
+                            }, {});
+                            acc.push(entry);
+                        }
+                        return acc;
+                    }, []);
+
+                    if (jsonData.length > 0) {
+                        setData(jsonData[0]); // Assuming the first row contains the bank details
+                    }
                 } catch (error) {
-                    console.error("Invalid JSON file");
+                    console.error("Invalid CSV file", error);
                 }
             };
             reader.readAsText(file);
         }
+    };
+
+    const downloadCSVTemplate = () => {
+        const headers = ["name", "accountNumber", "ifscCode", "bankName", "accountType"];
+        const csvContent = headers.join(",") + "\n";
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "bank_details_template.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const handleSubmit = async (e) => {
@@ -55,24 +88,36 @@ const BankDetailsForm = ({bankDetails }) => {
     };
 
     return (
-
-
         <div className="container mx-auto p-6">
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold mb-4">Bank Details Form</h1>
-                <input
-                    type="file"
-                    accept=".json"
-                    className="hidden"
-                    id="fileInput"
-                    onChange={handleFileUpload}
-                />
-                <label
-                    htmlFor="fileInput"
-                    className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
-                >
-                    Import CSV
-                </label>
+                
+                <div className="grid grid-cols-1 gap-4">
+                    <div>
+                        <input
+                            type="file"
+                            accept=".csv"
+                            className="hidden"
+                            id="fileInput"
+                            onChange={handleFileUpload}
+                        />
+                        <label
+                            htmlFor="fileInput"
+                            className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
+                        >
+                            Import CSV
+                        </label>
+                    </div>
+                    <div>
+                        <a
+                            href="#"
+                            onClick={downloadCSVTemplate}
+                            className="text-blue-600 underline cursor-pointer hover:text-blue-800"
+                        >
+                            Download Template
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <form className="bg-white p-6 rounded-lg shadow-md" onSubmit={handleSubmit}>
@@ -144,7 +189,6 @@ const BankDetailsForm = ({bankDetails }) => {
                 </button>
             </form>
         </div>
-
     );
 };
 

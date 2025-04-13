@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext } from "react";
 import { useNavigate } from "react-router-dom";
-
+import {toast} from "react-toastify";
 const AuthContext = createContext();
 const url = import.meta.env.VITE_REACT_APP_URL;
 console.log(url);
@@ -47,13 +47,13 @@ const AuthProvider = (props) => {
       const json = await response.json();
       const user = json.user;
       if (!json.success) {
-        alert(json.msg);
+        toast.error(json.msg);
         return;
       }
       return user;
     } catch (e) {
       console.log(e);
-      alert(e.msg || "Cannot fetch User Details");
+      toast.error(e.msg || "Cannot fetch User Details");
     }
   }
 
@@ -91,7 +91,7 @@ const AuthProvider = (props) => {
       return json;
     } catch (e) {
       console.log(e);
-      alert(e.msg || "Cannot Edit User Details");
+      toast.error(e.msg || "Cannot Edit User Details");
     }
   }
 
@@ -125,7 +125,7 @@ const AuthProvider = (props) => {
       console.log("OTP Sent:", json);
     } catch (e) {
       console.error("Cannot send OTP:", e.message);
-      alert(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -149,11 +149,11 @@ const AuthProvider = (props) => {
         navigate("/formsubmission");
       } else {
         console.error("Error:", result.msg);
-        alert("Error: " + result.msg);
+        toast.error("Error: " + result.msg);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      alert("Something went wrong while verifying OTP.");
+      toast.error("Something went wrong while verifying OTP.");
     }
   };
 
@@ -175,7 +175,7 @@ const AuthProvider = (props) => {
       }
     } catch (e) {
       console.error("Cannot Login:", e.message);
-      alert(e.msg || "Invalid Credentials");
+      toast.error(e.msg || "Invalid Credentials");
     }
   };
 
@@ -285,7 +285,7 @@ const AuthProvider = (props) => {
       return json;
     } catch (e) {
       console.error("Cannot submit research details:", e.message);
-      alert(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -374,7 +374,7 @@ const AuthProvider = (props) => {
       }
       const json = await response.json();
       console.log("PI Details Submitted:", json);
-      alert("PI/Co-PI details Submitted!!");
+      toast.success("PI/Co-PI details Submitted!!");
       return json;
     } catch (e) {
       console.error("Cannot submit PI details:", e.message);
@@ -455,7 +455,7 @@ const AuthProvider = (props) => {
     const token = localStorage.getItem("token");
     if (!token) {
       console.log("Use a valid Token");
-      alert("Authentication required.");
+      toast.error("Authentication required.");
       return;
     }
     try {
@@ -482,7 +482,7 @@ const AuthProvider = (props) => {
     const token = localStorage.getItem("token");
     if (!token) {
       console.log("Use a valid Token");
-      alert("Authentication required.");
+      toast.error("Authentication required.");
       return;
     }
     try {
@@ -498,12 +498,12 @@ const AuthProvider = (props) => {
         throw new Error("Failed to Fetch Proposals");
       }
       const json = await response.json();
-      alert(json.msg);
+      toast.success(json.msg);
       console.log(json.msg);
       return json.data;
     } catch (error) {
       console.error("Fetch Proposals error:", error);
-      alert(error.message || "Failed to Fetch Proposals");
+      toast.error(error.message || "Failed to Fetch Proposals");
     }
   };
 
@@ -518,7 +518,7 @@ const AuthProvider = (props) => {
     const token = localStorage.getItem("token");
     if (!token) {
       console.log("Use a valid Token");
-      alert("Authentication required.");
+      toast.error("Authentication required.");
       return;
     }
 
@@ -585,11 +585,11 @@ const AuthProvider = (props) => {
         navigate("/adminLogin");
       } else {
         console.error("Error:", result.msg);
-        alert("Error: " + result.msg);
+        toast.error("Error: " + result.msg);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      alert("Something went wrong while verifying OTP.");
+      toast.error("Something went wrong while verifying OTP.");
     }
   };
 
@@ -641,7 +641,7 @@ const AuthProvider = (props) => {
       }
     } catch (e) {
       console.error("Cannot Login:", e.message);
-      alert(e.message || "Invalid Credentials");
+      toast.error(e.message || "Invalid Credentials");
     }
   };
 
@@ -667,7 +667,7 @@ const AuthProvider = (props) => {
       }
     } catch (e) {
       console.error("Cannot create institute:", e.message);
-      alert(e.message);
+      toast.error(e.message);
     }
   };
 
@@ -689,7 +689,7 @@ const AuthProvider = (props) => {
       }
     } catch (e) {
       console.error("Cannot Login:", e.message);
-      alert(e.msg || "Invalid Credentials");
+      toast.error(e.msg || "Invalid Credentials");
     }
   }
 
@@ -697,7 +697,7 @@ const AuthProvider = (props) => {
     const token = localStorage.getItem("token");
     if (!token) {
       console.log("Use a valid Token");
-      alert("Authentication required.");
+      toast.error("Authentication required.");
       return;
     }
     try {
@@ -717,7 +717,7 @@ const AuthProvider = (props) => {
       return json.projects;
     } catch (error) {
       console.error("Error fetching institute projects:", error);
-      alert(error.message || "Failed to fetch institute projects");
+      toast.error(error.message || "Failed to fetch institute projects");
     }
   };
 
@@ -725,7 +725,7 @@ const AuthProvider = (props) => {
     const token = localStorage.getItem("token");
     if (!token) {
       console.log("Use a valid Token");
-      alert("Authentication required.");
+      toast.error("Authentication required.");
       return;
     }
     try {
@@ -745,7 +745,7 @@ const AuthProvider = (props) => {
       return json.users;
     } catch (error) {
       console.error("Error fetching institute users:", error);
-      alert(error.message || "Failed to fetch institute users");
+      toast.error(error.message || "Failed to fetch institute users");
     }
   };
 
@@ -753,7 +753,7 @@ const AuthProvider = (props) => {
     const token = localStorage.getItem("token");
     if (!token) {
       console.log("Use a valid Token");
-      alert("Authentication required.");
+      toast.error("Authentication required.");
       return;
     }
     try {
@@ -774,7 +774,7 @@ const AuthProvider = (props) => {
       return json.proposals;
     } catch (error) {
       console.error("Error fetching accepted proposals:", error);
-      alert(error.message || "Failed to fetch accepted proposals");
+      toast.error(error.message || "Failed to fetch accepted proposals");
     }
   };
 
@@ -782,7 +782,7 @@ const AuthProvider = (props) => {
     const token = localStorage.getItem("token");
     if (!token) {
       console.log("Use a valid Token");
-      alert("Authentication required.");
+      toast.error("Authentication required.");
       return;
     }
     try {
@@ -803,7 +803,7 @@ const AuthProvider = (props) => {
       return json.projects;
     } catch (error) {
       console.error("Error fetching sanctioned projects:", error);
-      alert(error.message || "Failed to fetch sanctioned projects");
+      toast.error(error.message || "Failed to fetch sanctioned projects");
     }
   };
 
@@ -813,7 +813,7 @@ const AuthProvider = (props) => {
     console.log(token);
     if (!token) {
       console.log("Use a valid Token");
-      alert("Authentication required.");
+      toast.error("Authentication required.");
       return;
     }
     try {

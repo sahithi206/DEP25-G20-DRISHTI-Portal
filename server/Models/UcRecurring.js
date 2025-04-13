@@ -17,6 +17,10 @@ const RecurringGrantSchema = new mongoose.Schema({
     consumables: { type: Number, required: true, default: 0 },
     others: { type: Number, required: true, default: 0 },
     status: { type: String, required: true, default: "Pending for institute approval." },
+    date:{
+        type:Date,
+        dafault:new Date()
+      }
 });
  
 

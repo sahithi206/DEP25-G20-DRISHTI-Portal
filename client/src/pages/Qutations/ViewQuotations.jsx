@@ -84,7 +84,7 @@ const UploadDocuments = () => {
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
             <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/view/Quotations/${id}`} />
+                <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/view/Quotations/${quotation?.projectId}`} />
                 <div className="p-6 space-y-4 mt-16"></div>
 
 <div className="p-6 bg-gray-100 min-h-screen">

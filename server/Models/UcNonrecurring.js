@@ -13,7 +13,10 @@ const NonRecurringGrantSchema = new mongoose.Schema({
     recurringExp:{type:Number,default:0},
     nonRecurringExp:{type:Number,required:true},
     status: { type: String, required: true, default: "Pending for institute approval." }, 
-
+    date:{
+        type:Date,
+        dafault:new Date()
+      }
 });
 
 module.exports =  mongoose.model("NonRecurringUC", NonRecurringGrantSchema);

@@ -218,11 +218,9 @@ const UCForm = () => {
     }
   };
 
-  // Handle file upload for signature
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check if file is an image
       if (!file.type.startsWith('image/')) {
         setError("Please upload only image files (PNG, JPG, JPEG)");
         return;
@@ -406,12 +404,10 @@ const UCForm = () => {
     const pdf = new jsPDF("p", "mm", "a4");
     const currentDate = new Date().toLocaleDateString("en-IN");
 
-    // Set page margins
     const pageWidth = 210;
     const margin = 20;
     const contentWidth = pageWidth - 2 * margin;
 
-    // Title Section
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(14);
     pdf.text("GFR 12-A", pageWidth / 2, 20, { align: "center" });
@@ -423,16 +419,13 @@ const UCForm = () => {
     pdf.text(`as on ${currentDate} to be submitted to Funding Agency`, pageWidth / 2, 44, { align: "center" });
     pdf.text("Is the UC Provisional (Provisional/Audited)", pageWidth / 2, 50, { align: "center" });
 
-    // Main Information Section
     pdf.setFontSize(11);
     pdf.setFont("helvetica", "normal");
 
     const items = [
       { label: "Name of the grant receiving Organization", value: ucData.instituteName },
       { label: "Name of Principal Investigator (PI)", value: ucData.principalInvestigator },
-      // { label: "SERB Sanction order no. & date", value: "ECR20XXXXXXXX Dated DD-MM-YYYY" },
       { label: "Title of the Project", value: ucData.title },
-      // { label: "Name of the Scheme", value: ucData.scheme },
       { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" }
     ];
 
@@ -448,13 +441,11 @@ const UCForm = () => {
       itemNum++;
     });
 
-    // Grants position at beginning of financial year
     yPos += 3;
     pdf.text(`${itemNum}`, margin, yPos);
     pdf.text("Grants position of the beginning of the Financial year", margin + 5, yPos);
     yPos += 7;
 
-    // Financial details
     pdf.text("Carry forward from previous financial year", margin + 20, yPos);
     pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
     yPos += 7;
@@ -467,12 +458,10 @@ const UCForm = () => {
     pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
     yPos += 10;
 
-    // Details of grants received section
     pdf.text(`${itemNum + 1}`, margin, yPos);
     pdf.text("Details of grants received, expenditure incurred and closing balances: (Actual)", margin + 5, yPos);
     yPos += 10;
 
-    // Complex table for grant details
     const headers = [
       [
         { content: "Unspent Balance of Grants\nreceived years", colSpan: 1 },
@@ -523,7 +512,6 @@ const UCForm = () => {
 
     yPos = pdf.lastAutoTable.finalY + 10;
 
-    // Component-wise utilization section
     if (selectedType === "recurring") {
       pdf.text("Component wise utilization of grants:", margin, yPos);
       yPos += 5;
@@ -586,17 +574,14 @@ const UCForm = () => {
     pdf.text(`Rs ${closingBalance}`, margin + 100, yPos);
     yPos += 15;
 
-    // Add new page for certification
     pdf.addPage();
     yPos = 20;
 
-    // Certification text
     pdf.setFontSize(10);
     pdf.text("Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly fulfilled/are being fulfilled and that I", margin, yPos);
     pdf.text("have exercised following checks to see that the money has been actually utilized for the purpose which it was sanctioned:", margin, yPos + 5);
     yPos += 15;
 
-    // Certification items
     const certItems = [
       "The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.",
       "There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.",
@@ -842,7 +827,6 @@ const UCForm = () => {
                     <p className="text-sm font-medium mt-1">
                       as on {new Date().toLocaleDateString()} to be submitted to Funding Agency
                     </p>
-                    {/* <p className="text-sm font-medium">Is the UC Provisional (Provisional/Audited)</p> */}
                   </div>
 
                   <h3 className="text-lg font-semibold text-blue-700 mb-4">
@@ -858,8 +842,12 @@ const UCForm = () => {
                     <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
                     <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
 
-                    <label className="font-semibold text-gray-700">Name of the Principal Investigator:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.principalInvestigator}</span>
+                    <label className="font-semibold text-gray-700">Name of the Principal Investigator(s):</label>
+                    <ul className="px-3 py-1 w-full list-disc list-inside">
+                      {ucData.principalInvestigator.map((pi, index) => (
+                        <li key={index}>{pi}</li>
+                      ))}
+                    </ul>
 
                     <label className="font-semibold text-gray-700">Present Year of Project:</label>
                     <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>

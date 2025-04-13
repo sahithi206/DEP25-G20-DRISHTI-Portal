@@ -67,6 +67,10 @@ const GeneralInfo = ({ generalInfo }) => {
             alert("Please select a file.");
             return;
         }
+        if (file.type !== "text/csv") {
+            alert("Please upload a valid CSV file.");
+            return;
+        }
         const formData = new FormData();
         formData.append("file", file);
         try {
@@ -74,7 +78,7 @@ const GeneralInfo = ({ generalInfo }) => {
             const response = await axios.post(url, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
-            if (fileType === "pdf") {
+            if (fileType === "csv") {
                 setProjects((prevProjects) => ({
                     ...prevProjects,
                     biodata: response.data.filePath || response.data.filename

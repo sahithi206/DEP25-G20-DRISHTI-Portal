@@ -29,8 +29,7 @@ const NonRecurringUC = require("../Models/UcNonrecurring.js");
 const SE = require("../Models/se/SE.js");
 const Comment = require("../Models/comment.js");
 const UCRequest = require("../Models/UCRequest.js");
-const ProgressReport = require("../models/ProgressReport");
-
+const ProgressReport = require("../Models/progressReport");
 
 
 router.get("/approvedProposals", fetchAdmin, async (req, res) => {

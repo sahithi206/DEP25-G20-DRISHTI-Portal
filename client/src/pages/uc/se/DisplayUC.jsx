@@ -22,7 +22,7 @@ const UtilizationCertificates = () => {
             }
             try {
                 
-                const response = await fetch(`${url}view-uc/se/${id}`, {
+                const response = await fetch(`${url}projects/view-uc/se/${id}`, {
                     method: "GET",
                     headers: {
                          "Content-Type": "application/json",
@@ -87,33 +87,21 @@ const UtilizationCertificates = () => {
                                 <tbody>
                                     {recurringCertificates&&recurringCertificates.length > 0 && recurringCertificates.map((certificate) => (
                                             <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0">
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate._id}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.type}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.currentYear}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.scheme}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.status}</td>
+                                                <td className="p-4 text-center text-sm text-blue-600 underline " onClick={() => handleViewCertificate(certificate)}>{certificate._id}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.type}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.currentYear}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.scheme}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.status}</td>
 
-                                                <td className="p-4 text-center">
-                                                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
-                                                        onClick={() => handleViewCertificate(certificate)}>
-                                                        View Certificate
-                                                    </button>
-                                                </td>
                                             </tr>
                                         ))
                                     }{nonRecurringCertificates&&nonRecurringCertificates&&nonRecurringCertificates.length > 0 &&nonRecurringCertificates.map((certificate) => (
                                             <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-gray-500 last:border-b-0">
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate._id}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.type}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.currentYear}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.scheme}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.status}</td>
-                                                <td className="p-4 text-center">
-                                                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
-                                                        onClick={() => handleViewCertificate(certificate)}>
-                                                        View Certificate
-                                                    </button>
-                                                </td>
+                                                <td className="p-4 text-center text-sm text-blue-600 underline" onClick={() => handleViewCertificate(certificate)}>{certificate._id}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.type}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.currentYear}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.scheme}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.status}</td>
                                             </tr>
                                         ))
                                     }                                      
