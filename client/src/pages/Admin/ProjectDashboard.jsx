@@ -123,7 +123,7 @@ const ProjectDashboard = () => {
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <button onClick={() => { navigate(`/admin/view-uc/se/${id}`) }} className="bg-green-500 text-white rounded-lg hover:bg-green-600" >View SE/UC</button>
-                        <HoverDropdownButton label="View Progress Report" onClick={() => { }} className="bg-blue-500 text-white" />
+                        <button onClick={() => {navigate(`/admin/progress-reports/${id}`)}} className="bg-blue-500 text-white rounded-lg hover:bg-blue-600" >View Progress Reports</button>
                         <HoverDropdownButton label="Upload Progress Report" options={[{ label: "Yearly Report", onClick: () => navigate(`/progress-report/${id}`) }, { label: "Final Report", onClick: () => navigate(`/final-report/${id}`) }]} className="bg-red-500 text-white" />
                     </div>
                     {loading ? (

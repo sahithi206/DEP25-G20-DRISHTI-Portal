@@ -59,6 +59,7 @@ import ViewCertificates from "./pages/Admin/certificates.jsx";
 import ViewSE from "./pages/Admin/SE.jsx";
 import CommentsPage from "./pages/uc/CommentsPage.jsx";
 import Quotations from "./pages/Qutations/Quotations.jsx"
+import ProjectProgressReports from "./pages/Admin/ProjectProgressReport.jsx";
 
 import ProjectExpenses from "./pages/ProjectExpenses.jsx";
 import UCPage from "./pages/college/UCpage.jsx";
@@ -144,6 +145,7 @@ function MainLayout() {
           <Route path="/project-expenses/:projectId" element={<ProjectExpenses />} />
           <Route path="/view/Quotations/:id" element={<View />} />
           <Route path="/viewQuotations/:id" element={<Viewquotations />} />
+          <Route path="/admin/progress-reports/:id" element={<ProjectProgressReports />} />
 
 
           <Route path="/admin" element={<AdminDashboard />} />
