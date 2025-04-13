@@ -7,7 +7,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 const ProjectProgressReports = () => {
-    const { id } = useParams(); // Get project ID from URL
+    const { id } = useParams();
     const [progressReports, setProgressReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -164,7 +164,6 @@ const ProjectProgressReports = () => {
                         </button>
                     </div>
 
-                    {/* Sort & Filter Dropdown */}
                     {isFilterOpen && (
                         <div className="absolute bg-white border border-gray-300 rounded-lg shadow-lg p-4 mt-2 w-80 z-10 right-0">
                             <h2 className="text-lg font-bold mb-2 text-gray-800">Sort & Filter Options</h2>
@@ -259,7 +258,6 @@ const ProjectProgressReports = () => {
                 </div>
             </div>
 
-            {/* Popup Window */}
             {isPopupOpen && selectedReport && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-lg shadow-lg w-[70%] max-h-[90vh] overflow-y-auto p-4">
