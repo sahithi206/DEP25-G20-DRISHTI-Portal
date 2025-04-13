@@ -35,7 +35,11 @@ const progressReportSchema = new mongoose.Schema({
          working:String, 
          rate: String }
     ] ,
-    read: { type: Boolean, default: false }
+    read: { type: Boolean, default: false },
+    date:{
+        type:Date,
+        default:new Date()
+    }
 
 });
 
