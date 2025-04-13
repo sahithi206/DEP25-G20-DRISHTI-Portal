@@ -77,6 +77,9 @@ import ChangeInstitute from "./pages/Admin/Requests/ChangeOfInstitute"
 import ChangeInsti from "./pages/college/request.jsx";
 import ViewReports from "./pages/uc/se/ViewReports.jsx";
 import FReport from "./pages/uc/se/Report";
+import ProjDashboard from "./pages/college/ProjectDashboard";
+import InstiQuotations from "./pages/college/Project/Quotations";
+import InstiQuotation from "./pages/college/Project/View.jsx";
 function App() {
   const getData = async () => {
     try {
@@ -188,6 +191,9 @@ function MainLayout() {
           <Route path="/institute/uc" element={<ApproveUC />} />
           <Route path="/institute/se" element={<ApproveSE />} />
           <Route path="/institute/requests" element={<ChangeInsti />} />
+          <Route path="/institute/project-dashboard/:id" element={<ProjDashboard />} />
+          <Route path="/institute/viewQuotations/:id" element={<InstiQuotations/>}/>
+          <Route path="/institute/Quotation/:id" element={<InstiQuotation/>}/>
 
           </Route>
       </Routes>

@@ -71,7 +71,6 @@ const RunningProjects = () => {
           )}
         </main>
       </div>
-      <Footer />
     </div>
   );
 };

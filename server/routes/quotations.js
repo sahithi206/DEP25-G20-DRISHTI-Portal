@@ -9,7 +9,7 @@ const Quotation = require('../Models/Quotations/quotation');
 const Project = require('../Models/Project');
 const Scheme = require("../Models/Scheme");
 const Comment = require('../Models/Quotations/comments.js');
-
+const { fetchInstitute } = require("../MiddleWares/fetchInstitute.js");
 const { ObjectId } = require("mongodb");
 const quotation = require('../Models/Quotations/quotation');
 
@@ -181,7 +181,6 @@ router.get('/admin/get-quotation/:id', fetchAdmin, async (req, res) => {
       return res.status(400).json({ success: false, msg: "Invalid Quotation ID" });
     }
     const quotation = await Quotation.findById(id);
-    console.log(quotation);
     if (!quotation) {
       return res.status(400).json({ success: false, msg: "Quotation not Found!!" });
     }
@@ -389,6 +388,55 @@ router.put('/admin/view-comment/:commentId', async (req, res) => {
       res.json({ msg: "Comment marked as viewed", comment: updated });
   } catch (error) {
       res.status(500).json({ msg: "Server error" });
+  }
+});
+router.get('/institute/get-quotation/:id', fetchInstitute, async (req, res) => {
+ try{
+  console.debug(`Fetching quotation with ID: ${req.params.id}`);
+    console.log(req.params.id);
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, msg: "Invalid Quotation ID" });
+    }
+    const quotation = await Quotation.findById(id);
+    console.log(quotation);
+    if (!quotation) {
+      return res.status(400).json({ success: false, msg: "Quotation not Found!!" });
+    }
+    const equipments = await Equipment.findById(quotation?.equipmentsId);
+    const salary = await SalaryBreakUp.findById(quotation?.salaryBreakUpId);
+    return res.status(200).json({ success: true, quotation,equipments,salary, msg: "Quotation fetched Successfully!!" });
+  } catch (e) {
+    console.error(e.message);
+    return res.status(500).json({ success: false, msg: "An error occurred while fetching the quotation: " + e.message });
+  }
+});
+
+router.get('/institute/get-quotations/:id', fetchInstitute, async (req, res) => {
+  try {
+    
+    const all_quotations = await Quotation.find({});
+    const quotations = (await Promise.all(
+      all_quotations.map(async (quotation) => {
+        const project = await Project.findById(quotation.projectId).select("Scheme Title");
+        console.log("Project", project);
+        const scheme = await Scheme.findById(project?.Scheme).select("coordinator name");
+        console.log("scheme", scheme);
+        console.log(req.admin);
+        return {
+          ...quotation.toObject(),
+          scheme: scheme?.name,
+          projectId: project?._id,
+          Title: project?.Title
+        };
+      })
+    )).filter(quotation => quotation !== null);
+    console.log(quotations);
+    res.status(200).json({ success: true, quotations, msg: "Quotations fetched Successfully!!" });
+
+  } catch (e) {
+    console.error(e.message);
+    res.status(500).json({ success: false, message: "An error occurred while fteching the quotation: " + e.message });
   }
 });
 

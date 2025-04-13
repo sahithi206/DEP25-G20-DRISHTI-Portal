@@ -196,7 +196,6 @@ const RegisterInstitute = () => {
           </form>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

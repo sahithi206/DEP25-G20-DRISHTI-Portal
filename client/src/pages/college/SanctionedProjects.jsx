@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
 import { AuthContext } from "../Context/Authcontext";
 import InstituteSidebar from "../../components/InstituteSidebar";
-
+import { useNavigate } from "react-router-dom";
 const SanctionedProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("sanctioned-projects");
   const { fetchSanctionedProjects } = useContext(AuthContext);
-
+  let navigate = useNavigate();
   useEffect(() => {
     const fetchProjects = async () => {
       setLoading(true);
@@ -56,7 +55,7 @@ const SanctionedProjects = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {projects.map((project) => (
                 <tr key={project._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-700">{project._id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-700" onClick={()=>{navigate(`/institute/project-dashboard/${project._id}`)}}>{project._id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-700">{project.Scheme}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900 font-medium">{project.Title}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-xs font-semibold text-blue-600">
@@ -97,7 +96,6 @@ const SanctionedProjects = () => {
       </div>
     </main>
   </div>
-  <Footer />
 </div>
 
   );

@@ -771,7 +771,7 @@ const AuthProvider = (props) => {
       }
       const json = await response.json();
       console.log("Accepted Proposals:", json.proposals);
-      return json.proposals;
+      return json.projects;
     } catch (error) {
       console.error("Error fetching accepted proposals:", error);
       toast.error(error.message || "Failed to fetch accepted proposals");

@@ -183,26 +183,6 @@ const ProposalScheme = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                             
-                            <div className="flex items-center gap-2">
-                                <label className="font-medium">From:</label>
-                                <input
-                                    type="date"
-                                    className="p-2 border rounded"
-                                    value={dateRange.start}
-                                    onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
-                                />
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                                <label className="font-medium">To:</label>
-                                <input
-                                    type="date"
-                                    className="p-2 border rounded"
-                                    value={dateRange.end}
-                                    onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
-                                />
-                            </div>
-                            
                             <button
                                 onClick={toggleSortDirection}
                                 className="flex items-center gap-1 bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded"

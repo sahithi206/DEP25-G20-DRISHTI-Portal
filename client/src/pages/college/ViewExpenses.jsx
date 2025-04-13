@@ -51,13 +51,10 @@ const ProjectExpenses = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Fetch project details
                 if (projectId) {
                     const details = await fetchInstituteGetProject(projectId);
                     setProjectDetails(details.data.project);
                 }
-
-                // Fetch expenses
                 const response = await fetch(`${url}institute/expenses/${projectId}`);
                 const data = await response.json();
 
@@ -110,8 +107,6 @@ const ProjectExpenses = () => {
 
             alert("Comment added successfully!");
             setComments((prev) => ({ ...prev, [expenseId]: "" }));
-
-            // Refresh comments for this expense
             fetchCommentsForExpense(expenseId);
         } catch (err) {
             console.error("Error adding comment:", err);
@@ -167,13 +162,9 @@ const ProjectExpenses = () => {
     const handleViewComments = (expense) => {
         setCurrentExpenseId(expense._id);
         setCurrentExpenseDescription(expense.description);
-
-        // Fetch comments for this expense if not already loaded
         if (!expenseComments[expense._id]) {
             fetchCommentsForExpense(expense._id);
         }
-
-        // Open the comments modal
         setIsCommentsModalOpen(true);
     };
 
@@ -182,11 +173,8 @@ const ProjectExpenses = () => {
         let total = 0;
 
         expenseData.forEach(expense => {
-            // Add to total
             const amount = parseFloat(expense.amount);
             total += amount;
-
-            // Group by type
             if (!byType[expense.type]) {
                 byType[expense.type] = 0;
             }
@@ -245,10 +233,8 @@ const ProjectExpenses = () => {
         });
     };
 
-    // Function to get type color for visual distinction
     const getTypeColor = (type) => {
-        if (!type) return "bg-gray-100 text-gray-800"; // Default color for undefined types
-
+        if (!type) return "bg-gray-100 text-gray-800"; 
         const colors = {
             materials: "bg-blue-100 text-blue-800",
             equipment: "bg-green-100 text-green-800",
@@ -267,8 +253,6 @@ const ProjectExpenses = () => {
 
         try {
             await deleteExpense(expenseId);
-
-            // Remove from state
             const updatedExpenses = expenses.filter(expense => expense._id !== expenseId);
             setExpenses(updatedExpenses);
             calculateSummary(updatedExpenses);
@@ -279,7 +263,6 @@ const ProjectExpenses = () => {
         }
     };
 
-    // Open modal and set existing data
     const openEditModal = (expense) => {
         setEditExpenseData({
             id: expense._id,
@@ -357,7 +340,6 @@ const ProjectExpenses = () => {
                         </div>
                     ) : (
                         <>
-                            {/* Project Info */}
                             {projectDetails ? (
                                 <div className="bg-white p-5 mb-6 rounded-lg shadow-md border-l-4 border-blue-600">
                                     <h2 className="text-2xl font-semibold mb-2 text-gray-800">Project: {projectDetails.Title}</h2>
@@ -369,7 +351,6 @@ const ProjectExpenses = () => {
                                 </div>
                             )}
 
-                            {/* Action Buttons */}
                             <div className="flex flex-wrap justify-between gap-4 mb-6">
                                 <Link
                                     to={`/add-expenses/${projectDetails?._id}`}
@@ -391,7 +372,6 @@ const ProjectExpenses = () => {
                                 </button>
                             </div>
 
-                            {/* Summary Cards */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                                 <div className="bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border-t-4 border-blue-500">
                                     <h3 className="text-lg font-semibold mb-2 text-gray-700">Total Expenses</h3>
@@ -409,7 +389,6 @@ const ProjectExpenses = () => {
                                 </div>
                             </div>
 
-                            {/* Expense List */}
                             <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
                                 <h3 className="text-xl font-semibold p-5 border-b bg-gray-50 flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -568,7 +547,6 @@ const ProjectExpenses = () => {
                 </main>
             </div>
 
-            {/* Edit Expense Modal */}
             {isEditModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-xl p-6 relative">
@@ -668,7 +646,6 @@ const ProjectExpenses = () => {
                 </div>
             )}
 
-            {/* Comments Modal */}
             {isCommentsModalOpen && currentExpenseId && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl p-6 relative max-h-[90vh] overflow-y-auto">

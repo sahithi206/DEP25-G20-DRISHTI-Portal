@@ -63,7 +63,6 @@ const InstituteLogin = () => {
           <p className="text-gray-700">New user? <Link to="/register-institute" className="text-blue-500 hover:underline">Register here</Link></p>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

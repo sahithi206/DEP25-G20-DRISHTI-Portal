@@ -5,7 +5,6 @@ import { IoMdArrowDropdown } from "react-icons/io";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
 const Navbar = () => {
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   return (

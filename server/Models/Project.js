@@ -45,7 +45,8 @@ const projectSchema = new Schema({
     date:{
       type:Date,
       dafault:new Date()
-    }
+    },
+    status: { type: String, enum: ["Ongoing", "Approved", "Completed"],default:"Approved", required: true },
   });
 
 module.exports = mongoose.model("Project", projectSchema);

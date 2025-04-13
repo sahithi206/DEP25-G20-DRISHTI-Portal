@@ -97,7 +97,6 @@ const InstituteDashboard = () => {
           )}
         </main>
       </div>
-      <Footer />
     </div>
   );
 };

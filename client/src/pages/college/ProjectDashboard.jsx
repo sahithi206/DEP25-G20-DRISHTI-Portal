@@ -1,11 +1,11 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Sidebar from "../utils/Sidebar";
-import HomeNavbar from "../utils/HomeNavbar";
+import Sidebar from "../../components/InstituteSidebar";
+import HomeNavbar from "../../components/Navbar"; 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 const ProjectDashboard = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeSection, setActiveSection] = useState("projects");
     const navigate = useNavigate();
     const { id } = useParams();
     const [project, setProject] = useState({});
@@ -27,7 +27,7 @@ const ProjectDashboard = () => {
                 return;
             }
             try {
-                const response = await fetch(`${import.meta.env.VITE_REACT_APP_URL}projects/get-project/${id}`, {
+                const response = await fetch(`${import.meta.env.VITE_REACT_APP_URL}institute/get-project/${id}`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -115,56 +115,52 @@ const ProjectDashboard = () => {
         );
     };
     return (
-        <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900">
-            <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
-            <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                <HomeNavbar isSidebarOpen={isSidebarOpen} path={"/ongoingproposals"} />
+        <div className="flex flex-col min-h-screen">
+        <HomeNavbar />
+        <div className="flex flex-grow">
+          <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+          <div className="p-6 space-y-6 mt-5 mr-9 ml-9 flex-grow">
+          <div className="bg-white shadow-md rounded-xl p-6 border-l-8 border-teal-600">
+          <h1 className="text-4xl text-center font-bold mb-4">Project Dashboard</h1>
+</div>
+            <div className="bg-white shadow-md rounded-xl p-6">
 
-                <div className="p-6 space-y-6 mt-16">
+                        <div className="grid grid-cols-3 gap-4 p-5">
 
-                    <div className="p-6 space-y-6">
-
-                        <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700">
-                            <h1 className="text-3xl font-black text-gray-900 mb-2">Project Dashboard</h1>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-                            <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View Quotations", onClick: () => navigate(`/view/Quotations/${id}`) }, { label: "Upload Quotation", onClick: () => navigate(`/quotations/${id}`) }]} className="bg-blue-500 text-white" />
+                            <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View Quotations", onClick: () => navigate(`/institute/viewQuotations/${id}`) }]} className="bg-blue-500 text-white" />
                             <HoverDropdownButton label="Upload SE/UC" options={[{ label: "Upload SE", onClick: () => navigate(`/se/${id}`) }, { label: "Generate UC", onClick: () => navigate(`/uc/${id}`) }, { label: "View Certificates", onClick: () => navigate(`/certificates/${id}`) }]} className="bg-green-500 text-white" />
-                            <HoverDropdownButton label="Upload Progress Report" options={[{ label: "Yearly Report", onClick: () => navigate(`/progress-report/${id}`) }, { label: "Final Report", onClick: () => navigate(`/final-report/${id}`) },{ label: "View Reports", onClick: () => navigate(`/viewReports/${id}`) }]} className="bg-red-500 text-white" />
-                            <HoverDropdownButton label="Expenses" options={[{ label: "Expense", onClick: () => navigate(`/project-expenses/${id}`) }]} className="bg-purple-500 text-white" />
+                            <HoverDropdownButton label="Expenses" options={[{ label: "Expense", onClick: () => navigate(`/view-expenses/${id}`) }]} className="bg-red-500 text-white" />
                         </div>
 
                         {loading ? (
-                            <p className="text-center text-lg font-semibold text-gray-700">Loading project details...</p>
+                            <p className="text-lg font-semibold text-gray-700">Loading project details...</p>
                         ) : error ? (
-                            <p className="text-center text-lg font-semibold text-red-600">{error}</p>
+                            <p className="text-lg font-semibold text-red-600">{error}</p>
                         ) : (
-                            <div className="bg-white shadow-md rounded-xl p-6">
-                                <div className="border border-gray-300 rounded px-3 py-3 w-full-4">
-                                    <h3 className="mt-2 mb-3 text-lg font-semibold text-gray-600 b uppercase tracking-wide">
+                            <div className="rounded-xl p-6">
+                                <div className="border border-gray-300 rounded px-3 py-3">
+                                    <h3 className="mt-2 mb-3 text-lg font-semibold text-gray-600 uppercase tracking-wide">
                                         Basic Information
                                     </h3>
                                     <div className="border-b border-gray-300 my-4"></div>
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Reserch Institute</span> : {generalInfo?.instituteName}</label>
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of Principal Investigator</span> : {generalInfo?.name}</label>
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Title of the Project</span> : {project.Title}</label>
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Scheme</span> : {scheme}</label>
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Start Date</span> : {new Date(project.startDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</label>
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">End Date</span> : {new Date(project.endDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</label>
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Duration of Project</span> : {project.years.toFixed(1) > 1 ? ` ${project.years.toFixed(1)} years` : `${project.years.toFixed(1)} year`} </label>
-                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Present Year of Project</span> : {project.currentYear}</label>
+                                    <div className="grid grid-cols-2 gap-4 mb-4 p-4">
+                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Research Institute</span>: {generalInfo?.instituteName}</label>
+                                        <label className="font-medium text-gray-700 text-sm ml-8"><span className="font-semibold">Name of Principal Investigator</span>: {generalInfo?.name}</label>
+                                        <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Title of the Project</span>: {project?.Title || "N/A"}</label>
+                                        <label className="font-medium text-gray-700 text-sm ml-8"><span className="font-semibold">Name of the Scheme</span>: {scheme || "N/A"}</label>
+                                        <label className="font-medium text-gray-700 text-sm "><span className="font-semibold">Start Date</span>: {project?.startDate ? new Date(project.startDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' }) : "N/A"}</label>
+                                        <label className="font-medium text-gray-700 text-sm ml-8"><span className="font-semibold">End Date</span>: {project?.endDate ? new Date(project.endDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' }) : "N/A"}</label>
+                                        <label className="font-medium text-gray-700 text-sm "><span className="font-semibold">Duration of Project</span>: {project?.years ? (project.years.toFixed(1) > 1 ? ` ${project.years.toFixed(1)} years` : `${project.years.toFixed(1)} year`) : "N/A"} </label>
+                                        <label className="font-medium text-gray-700 text-sm ml-8"><span className="font-semibold">Present Year of Project</span>: {project?.currentYear || "N/A"}</label>
                                     </div>
                                     <div className="grid grid-cols-1 gap-4">
                                         <div>
                                             <div className="border-b border-gray-300 my-4"></div>
                                             <div className="flex justify-between items-center px-5 mb-2">
-                                                <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide ">
+                                                <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide">
                                                     Time Left
                                                 </h3>
-                                                <p className="text-sm text-gray-600 ">
+                                                <p className="text-sm text-gray-600">
                                                     {timeData[0].value.toFixed(1)}% Time Left, {timeData[1].value.toFixed(1)}% Passed
                                                 </p>
                                             </div>
@@ -179,17 +175,17 @@ const ProjectDashboard = () => {
                                     </div>
                                 </div>
                                 <div className="p-4 space-y-3"></div>
-                                <div className="border border-gray-300 rounded px-3 py-3 w-full-4">
+                                <div className="border border-gray-300 rounded px-3 py-3">
                                     <h3 className="mt-2 mb-3 text-lg font-semibold text-gray-600 uppercase tracking-wide">
                                         Funding Information
                                     </h3>
                                     <div className="border-b border-gray-300 my-4"></div>
 
-                                    <div className="grid grid-cols-2 gap-3 mb-4">
-                                        <div className="grid grid-cols-1 gap-3 mb-4">
-                                            <div className="grid grid-cols-2 gap-3 mb-2">
-                                                <label className="font-medium text-gray-700"><span className="font-semibold">Total Cost of Project</span> : {project.TotalCost}</label>
-                                                <label className="font-medium text-gray-700"><span className="font-semibold">Total Used Amount : </span>{project.TotalUsed}</label>
+                                    <div className="grid grid-cols-2 gap-2 mb-4">
+                                        <div className="grid grid-cols-1 gap-2 mb-4">
+                                            <div className="grid grid-cols-2 gap-2 mb-2">
+                                                <label className="font-medium text-gray-700"><span className="font-semibold">Total Cost of Project</span>: {project.TotalCost}</label>
+                                                <label className="font-medium text-gray-700"><span className="font-semibold">Total Used Amount</span>: {project.TotalUsed}</label>
                                             </div>
                                             <label className="font-semibold text-gray-700">Budget Summary for Current Financial Year</label>
                                             <div className="overflow-hidden rounded-lg border border-gray-200">
@@ -237,12 +233,12 @@ const ProjectDashboard = () => {
                                 </div>
                                 <div className="p-4 space-y-3"></div>
 
-                                <div className="border border-gray-300 rounded px-3 py-3 w-full-4">
-                                    <h3 className="mt-2 mb-3 text-lg font-semibold text-gray-600 b uppercase tracking-wide">
-                                        Techincal Details
+                                <div className="border border-gray-300 rounded px-3 py-3">
+                                    <h3 className="mt-2 mb-3 text-lg font-semibold text-gray-600 uppercase tracking-wide">
+                                        Technical Details
                                     </h3>
                                     <div className="border-b border-gray-300 my-2"></div>
-                                    <div className="grid grid-cols-1 gap-2 mb-2 p-3 ">
+                                    <div className="grid grid-cols-1 gap-2 mb-2 p-3">
                                         <div>
                                             <p className="font-semibold text-gray-700">Objectives of the Project</p>
                                             {researchDetails?.objectives?.length > 0 ? (
@@ -268,12 +264,12 @@ const ProjectDashboard = () => {
                                 </div>
                                 <div className="p-4 space-y-3"></div>
 
-                                <div className="border border-gray-300 rounded px-3 py-3 w-full-4">
-                                    <h3 className="mt-2 mb-3 text-lg font-semibold text-gray-600 b uppercase tracking-wide">
+                                <div className="border border-gray-300 rounded px-3 py-3">
+                                    <h3 className="mt-2 mb-3 text-lg font-semibold text-gray-600 uppercase tracking-wide">
                                         PI/Co-PI Details
                                     </h3>
                                     <div className="border-b border-gray-300 my-2"></div>
-                                    <div className="grid grid-cols-1 gap-2 p-3 ">
+                                    <div className="grid grid-cols-1 gap-2 p-3">
                                         {pilist && pilist.length > 0 ?
                                             (<>
                                                 <h2 className="text-m text-gray-600 font-semibold mb-2">PI Information</h2>
@@ -288,8 +284,8 @@ const ProjectDashboard = () => {
                                                         <tbody>
                                                             {pilist.map((pi, index) => (
                                                                 <tr key={index} className="border">
-                                                                    <td className="border p-2 text-center">{pi.Name}</td>
-                                                                    <td className="border p-2 text-center">{pi.Institute}</td>
+                                                                    <td className="border p-2">{pi.Name}</td>
+                                                                    <td className="border p-2">{pi.Institute}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
@@ -301,7 +297,7 @@ const ProjectDashboard = () => {
                                     <div className="p-2 space-y-2"></div>
 
                                     <div className="border-b border-gray-300 my-2"></div>
-                                    <div className="grid grid-cols-1 p-3 ">
+                                    <div className="grid grid-cols-1 p-3">
                                         {copilist && copilist.length > 0 ?
                                             (
                                                 <>

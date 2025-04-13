@@ -23,7 +23,7 @@ const { ObjectId } = require("mongodb");
 const mongoose = require("mongoose");
 const moment = require("moment");
 const ExcelJS = require('exceljs');
-
+const Scheme = require("../Models/Scheme.js");
 
 router.get("/institute-projects", fetchInstitute, async (req, res) => {
   try {
@@ -55,18 +55,114 @@ router.get("/users", fetchInstitute, async (req, res) => {
 
 router.get("/:userId/accepted-proposals", fetchInstitute, async (req, res) => {
   try {
-    const { userId } = req.params;
-    const proposals = await Proposal.find({ userId: userId, status: "Accepted" });
-    if (!proposals.length) {
-      return res.status(404).json({ success: false, msg: "No accepted proposals found" });
+    let proj = await Project.find({ userId: req.params.userId });
+    if (proj.length <= 0) {
+      return res.status(200).json({ success: false, msg: "No Sanctioned Projects" })
     }
-    res.status(200).json({ success: true, proposals });
-  } catch (error) {
-    console.error("Error fetching accepted proposals:", error.message);
-    res.status(500).json({ success: false, msg: "Failed to fetch accepted proposals", error: error.message });
+    let projects= await Promise.all(
+        proj.map(async (proj,idx)=>{
+          const start = new Date(proj.startDate);
+    const end = new Date(proj.endDate);
+    let status = "";
+    if (new Date() < start) {
+      status = "Approved";
+    } else if (new Date() >= start && new Date() <= end) {
+      status = "Ongoing";
+    } else {
+      status = "Completed";
+    }
+    if(status!=proj.status){
+      let project = await Project.findByIdAndUpdate(proj._id,{status:status},{new:true});
+       proj=project;
+    }
+      return proj;
+        })
+    )
+    console.log(projects);
+    return res.status(200).json({
+      success: true, msg: "Sanctioned Projects Fetched Successfully",
+      projects
+    })
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ success: false, msg: "Failed to Fetch Project", error: "Internal Server Error" });
   }
 });
 
+router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
+  try {
+    let { projectid } = req.params;
+    console.log(projectid);
+
+    if (!ObjectId.isValid(projectid)) {
+        return res.status(400).json({ success: false, msg: "Invalid Project ID" });
+    }
+
+    let id = new ObjectId(projectid);
+    console.log(id);
+    let project = await Project.findById(id);
+
+    if (!project) {
+      return res.status(404).json({ success: false, msg: "Cannot Find Project" });
+    }
+    console.log(project);
+    const start = new Date(project.startDate);
+    const end = new Date(project.endDate);
+    
+    let status = "";
+    if (new Date() < start) {
+      status = "Approved";
+    } else if (new Date() >= start && new Date() <= end) {
+      status = "Ongoing";
+    } else {
+      status = "Completed";
+    }
+    project = await Project.findByIdAndUpdate(id,{status:status},{new:true});
+    const ids = await Project.findById(id)
+      .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
+
+    const generalInfo = await GeneralInfo.findById(ids.generalInfoId);
+    const researchDetails = await ResearchDetails.findById(ids.researchDetailsId);
+    const PIDetails = await PI.findById(ids.PIDetailsId);
+
+    const yearlyExp = await Promise.all(
+      ids.YearlyDataId.map(async (Id) => {
+        const budget = await YearlyData.findById(Id);
+        return budget ? budget.budgetUsed : null;
+      })
+    );
+
+    const yearlySanct = await Promise.all(
+      ids.YearlyDataId.map(async (Id) => {
+        const budget = await YearlyData.findById(Id);
+        return budget ? budget.budgetSanctioned.yearTotal : null;
+      })
+    );
+    const scheme = await Scheme.findById(project.Scheme);
+    const budget = ids.YearlyDataId?.[project.currentYear - 1]?.budgetSanctioned || null;
+    const budgetused = ids.YearlyDataId?.[project.currentYear - 1]?.budgetUsed || null;
+    const budgetUnspent = ids.YearlyDataId?.[project.currentYear - 1]?.budgetUnspent || null;
+    console.log(project);
+    return res.status(200).json({
+      success: true,
+      msg: "Fetched Project's Details Successfully",
+      project,
+      scheme:scheme.name,
+      generalInfo,
+      researchDetails,
+      PIDetails,
+      budget,
+      budgetused,
+      budgetUnspent,
+      yearlyExp,
+      yearlySanct,
+    });
+
+  } catch (e) {
+    console.log("ProjectError", e);
+    return res.status(500).json({ success: false, msg: "Failed to Fetch Project Details", error: "Internal Server Error" });
+  }
+});
 router.get("/sanctioned-projects", fetchInstitute, async (req, res) => {
   try {
     const institute = req.institute.college;
