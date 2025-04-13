@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";
 import { PlusCircle, MinusCircle } from "lucide-react";
-
+import {toast} from "react-toastify";
 import HomeNavbar from "../../../utils/HomeNavbar";
 import { AuthContext } from "../../Context/Authcontext";
 const url = import.meta.env.VITE_REACT_APP_URL;
@@ -27,7 +27,7 @@ const handleInputChange = (e) => {
 
 const handleAddEquipment = () => {
   if (!newEquipment.equipment || !newEquipment.cost || !newEquipment.working || !newEquipment.rate) {
-    alert("Please fill all fields");
+    toast.error("Please fill all fields");
     return;
   }
   setData((prevData) => ({
@@ -156,7 +156,7 @@ const handleAddEquipment = () => {
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Authentication required.");
+      toast.error("Authentication required.");
       return;
     }
     try {
@@ -179,14 +179,14 @@ const handleAddEquipment = () => {
       const json = await response.json();
       console.log(json.data);
       if (json.success) {
-        alert("Data submitted successfully!");
+        toast.success("Data submitted successfully!");
         navigate(`/project-dashboard/${id}`);
       } else {
-        alert(json.msg);
+        toast.error(json.msg);
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error in submitting data!");
+      toast.error("Error in submitting data!");
     }
   };
 

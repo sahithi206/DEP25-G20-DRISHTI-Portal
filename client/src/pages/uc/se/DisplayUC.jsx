@@ -81,7 +81,6 @@ const UtilizationCertificates = () => {
                                         <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Year</th>
                                         <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Scheme</th>
                                         <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Status</th>
-                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -105,9 +104,9 @@ const UtilizationCertificates = () => {
                                             </tr>
                                         ))
                                     }                                      
-                                    {!nonRecurringCertificates&&!recurringCertificates&&
+                                    {recurringCertificates.length === 0 && nonRecurringCertificates.length === 0 &&
                                         <tr>
-                                            <td colSpan="3" className="p-6 text-center text-gray-500">No Non-Recurring Certificates Found</td>
+                                            <td colSpan="5" className="p-6 text-center text-gray-500">No Utilization Certificates Found</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -124,23 +123,16 @@ const UtilizationCertificates = () => {
                                         <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Year</th>
                                         <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Scheme</th>
                                         <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Status</th>
-                                        <th className="p-4 text-center font-semibold text-sm text-white border-b border-blue-200">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {expenditureCertificates&&expenditureCertificates.length > 0 ? (
                                         expenditureCertificates.map((certificate) => (
                                             <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0">
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate._id}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.currentYear}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.scheme}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600">{certificate.status}</td>
-                                                <td className="p-4 text-center">
-                                                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
-                                                        onClick={() => {navigate(`/certificate-details/se/${certificate._id}`)}}>
-                                                        View Certificate
-                                                    </button>
-                                                </td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => {navigate(`/certificate-details/se/${certificate._id}`)}} >{certificate._id}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => {navigate(`/certificate-details/se/${certificate._id}`)}} >{certificate.currentYear}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => navigate(`/certificate-details/se/${certificate._id}`)} >{certificate.scheme}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => navigate(`/certificate-details/se/${certificate._id}`)} >{certificate.status}</td>
                                             </tr>
                                         ))
                                     ) : (
