@@ -2,50 +2,37 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
-import BudgetAllocationForm from './BudgetAllocationForm';
 
-const AdminProposalReview = () => {
+const CompletedProjects = () => {
     let navigate = useNavigate();
-    const [activeSection, setActiveSection] = useState("ongoing");
-    const [proposals, setProposals] = useState([]);
-    const [selectedProposal, setSelectedProposal] = useState(null);
-    const [comment, setComment] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
-    const URL = import.meta.env.VITE_REACT_APP_URL;
-
+    const [activeSection, setActiveSection] = useState("completed");
+    const [projects, setProjects] = useState([]);
     const [filteredProjects, setFilteredProjects] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterByInstitute, setFilterByInstitute] = useState("");
     const [filterByPI, setFilterByPI] = useState("");
     const [sortOrder, setSortOrder] = useState("asc");
     const [showFilterBox, setShowFilterBox] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const URL = import.meta.env.VITE_REACT_APP_URL;
 
     useEffect(() => {
-        if (selectedProposal) {
-            console.log("Selected Proposal Data:", selectedProposal);
-            console.log("PI Details:", selectedProposal.piInfo);
-            console.log("Budget Summary:", selectedProposal.totalBudget);
-            console.log("Bank Details:", selectedProposal.bankInfo);
-        }
-    }, [selectedProposal]);
-
-    useEffect(() => {
-        const fetchPendingProposals = async () => {
+        const fetchCompletedProjects = async () => {
             const token = localStorage.getItem("token");
             if (!token) {
-                setError("Please log in to view proposals.");
+                setError("Please log in to view projects.");
                 setLoading(false);
                 return;
             }
             try {
-                const response = await fetch(`${URL}admin/get-projects`, {
+                const response = await fetch(`${URL}admin/completed-projects`, {
                     method: "GET",
                     headers: { "accessToken": token },
                 });
                 const data = await response.json();
-                setProposals(data.data || []);
+                console.log("Data:", data);
+                setProjects(data.data || []);
                 setFilteredProjects(data.data || []);
             } catch (err) {
                 setError(err.message);
@@ -53,44 +40,43 @@ const AdminProposalReview = () => {
                 setLoading(false);
             }
         };
-        fetchPendingProposals();
+        fetchCompletedProjects();
     }, []);
 
+    // Dynamic filtering and sorting
     useEffect(() => {
-        const filtered = proposals
+        const filtered = projects
             .filter((project) => {
-                const matchesSearch = project.proposal?.Title?.toLowerCase().includes(searchQuery.toLowerCase());
+                // Filter by search query (title)
+                const matchesSearch = project.Title?.toLowerCase().includes(searchQuery.toLowerCase());
 
+                // Filter by institute
                 const matchesInstitute = filterByInstitute
-                    ? project.generalInfo?.instituteName?.toLowerCase().includes(filterByInstitute.toLowerCase())
+                    ? project.generalInfoId?.instituteName?.toLowerCase().includes(filterByInstitute.toLowerCase())
                     : true;
 
+                // Filter by PI
                 const matchesPI = filterByPI
-                    ? project.proposal?.PI?.some((pi) => pi.toLowerCase().includes(filterByPI.toLowerCase()))
+                    ? project.PI?.some((pi) => pi.toLowerCase().includes(filterByPI.toLowerCase()))
                     : true;
 
                 return matchesSearch && matchesInstitute && matchesPI;
             })
             .sort((a, b) => {
-                const dateA = new Date(a.proposal?.endDate);
-                const dateB = new Date(b.proposal?.endDate);
+                // Sort by completion date
+                const dateA = new Date(a.endDate);
+                const dateB = new Date(b.endDate);
                 return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
             });
 
         setFilteredProjects(filtered);
-    }, [searchQuery, filterByInstitute, filterByPI, sortOrder, proposals]);
+    }, [searchQuery, filterByInstitute, filterByPI, sortOrder, projects]);
 
     return (
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
                 <AdminNavbar activeSection={activeSection} />
-                {successMessage && (
-                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4">
-                        {successMessage}
-                    </div>
-                )}
-
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
                         {error}
@@ -98,7 +84,7 @@ const AdminProposalReview = () => {
                 )}
 
                 <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-md mb-6 mt-6">
-                    <h3 className="text-lg font-bold">Ongoing Projects</h3>
+                    <h3 className="text-lg font-bold">Completed Projects</h3>
                     <button
                         onClick={() => setShowFilterBox(!showFilterBox)}
                         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -158,43 +144,37 @@ const AdminProposalReview = () => {
                     </div>
                 )}
 
-                <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+                <div className="bg-white p-6 rounded-lg shadow-md">
                     {loading ? (
                         <p>Loading Projects...</p>
                     ) : filteredProjects.length === 0 ? (
-                        <p>No Ongoing Projects</p>
+                        <p>No Completed Projects</p>
                     ) : (
                         <table className="w-full border">
                             <thead>
                                 <tr className="bg-gray-200">
+                                <th className="p-2 text-left">Title</th>
                                     <th className="p-2 text-left">Project ID</th>
                                     <th className="p-2 text-left">Institute</th>
-                                    <th className="p-2 text-left">Title</th>
-                                    <th className="p-2 text-left">Time left</th>
+                                    <th className="p-2 text-left">Completion Date</th>
                                     <th className="p-2 text-left">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredProjects.map((project) => (
-                                    <tr key={project.proposal?._id} className="border-b">
-                                        <td className="p-2">{project.proposal?._id || "N/A"}</td>
-                                        <td className="p-2">{project.generalInfo?.instituteName || "N/A"}</td>
-                                        <td className="p-2">{project.proposal?.Title || "N/A"}</td>
+                                    <tr key={project._id} className="border-b">
+                                                                                <td className="p-2">{project.Title || "N/A"}</td>
+
+                                        <td className="p-2">{project._id || "N/A"}</td>
+                                        <td className="p-2">{project.generalInfoId?.instituteName || "N/A"}</td>
                                         <td className="p-2">
-                                            {(() => {
-                                                const endDate = new Date(project.proposal?.endDate);
-                                                const timeLeft = endDate - new Date();
-                                                if (timeLeft > 0) {
-                                                    const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
-                                                    return `${daysLeft} days left`;
-                                                } else {
-                                                    return "Time expired";
-                                                }
-                                            })()}
+                                            {project.endDate
+                                                ? new Date(project.endDate).toLocaleDateString()
+                                                : "N/A"}
                                         </td>
                                         <td className="p-2">
                                             <button
-                                                onClick={() => navigate(`/admin/project/${project.proposal?._id}`)}
+                                                onClick={() => navigate(`/admin/project/${project._id}`)}
                                                 className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                                             >
                                                 View
@@ -211,4 +191,4 @@ const AdminProposalReview = () => {
     );
 };
 
-export default AdminProposalReview;
+export default CompletedProjects;
