@@ -29,11 +29,6 @@ const ViewDocs = () => {
     const [sortOrder, setSortOrder] = useState("asc"); 
 const [filterStartDate, setFilterStartDate] = useState(""); 
 const [filterEndDate, setFilterEndDate] = useState(""); 
-    // const token = localStorage.getItem("token");
-    // let userId = null;
-    // if(token){
-    //     const decodedToken = jwtDecode(token);
-    // } 
 
     const fetchPendingUCs = async () => {
         try {
@@ -207,92 +202,6 @@ const sortedAndFilteredSEs = pendingSEs
         setCertificateData(null);
     };
 
-    // const handleSubmitComment = async () => {
-    //     if (!comment.trim()) {
-    //         alert("Comment cannot be empty");
-    //         return;
-    //     }
-    //     try {
-    //         const response = await fetch(`${url}admin/add-comment/${selectedCertificate._id}`, {
-    //             method: "POST",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //                 "accessToken": localStorage.getItem("token"),
-    //             },
-    //             body: JSON.stringify({
-    //                 comment,
-    //                 user,
-    //                 certificate: selectedCertificate,
-    //             }),
-    //         });
-
-    //         const data = await response.json();
-
-    //         if (data.success) {
-    //             alert("Comment added successfully!");
-    //             closeModal();
-    //         } else {
-    //             alert("Failed to add comment.");
-    //         }
-    //     } catch (error) {
-    //         console.error("Error submitting comment:", error);
-    //         alert("Error submitting comment.");
-    //     }
-    // };
-
-    // const handleUCAdminApproval = async (id, action) => {
-    //     try {
-    //         const response = await fetch(`${url}uc/admin-approval/${id}`, {
-    //             method: "PUT",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //                 "accessToken": localStorage.getItem("token"),
-    //             },
-    //             body: JSON.stringify({ action }),
-    //         });
-
-    //         const data = await response.json();
-
-
-    //         if (data.success) {
-    //             alert(`UC ${action}d successfully!`);
-    //             fetchPendingUCs();
-    //             setReloadKey((prevKey) => prevKey + 1);
-    //         } else {
-    //             alert(data.message || "Failed to process the request.");
-    //         }
-    //     } catch (error) {
-    //         console.error(`Error during ${action} action:`, error);
-    //         alert("An error occurred while processing the request.");
-    //     }
-    // };
-
-    // const handleSEAdminApproval = async (id, action) => {
-    //     try {
-    //         const response = await fetch(`${url}admin/se-admin-approval/${id}`, {
-
-    //             method: "PUT",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //                 "accessToken": localStorage.getItem("token"),
-    //             },
-    //             body: JSON.stringify({ action }),
-    //         });
-
-    //         const data = await response.json();
-
-    //         if (data.success) {
-    //             alert(`SE ${action}d successfully!`);
-    //             fetchPendingSEs();
-    //             setReloadKey((prevKey) => prevKey + 1);
-    //         } else {
-    //             alert(data.message || "Failed to process the request.");
-    //         }
-    //     } catch (error) {
-    //         console.error(`Error during ${action} action:`, error);
-    //         alert("An error occurred while processing the request.");
-    //     }
-    // };
 
 
     return (
@@ -363,30 +272,12 @@ const sortedAndFilteredSEs = pendingSEs
                                                 </td>
                                                 <td className="p-4 w-1/4 text-center">
                                                     <div className="flex justify-center gap-2">
-                                                        {/* <button
-                                                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                                                            onClick={() => openCommentModal(certificate)}
-                                                        >
-                                                            Add Comments
-                                                        </button> */}
                                                         <button
                                                             className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
                                                             onClick={() => handleViewCertificate(certificate)}
                                                         >
                                                             View 
                                                         </button>
-                                                        {/* <button
-                                                            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                                                            onClick={() => handleUCAdminApproval(certificate._id, "approve")}
-                                                        >
-                                                            Accept
-                                                        </button> */}
-                                                        {/* <button
-                                                            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                                            onClick={() => handleUCAdminApproval(certificate._id, "reject")}
-                                                        >
-                                                            Reject
-                                                        </button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -419,30 +310,12 @@ const sortedAndFilteredSEs = pendingSEs
                                                 <td className="p-4 w-1/4">SE</td>
                                                 <td className="p-4 w-1/4">{new Date(se.date).toLocaleDateString()}</td>
                                                 <td className="p-4 w-1/4 text-center">
-                                                    {/* <button
-                                                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2"
-                                                        onClick={() => openCommentModal(se)}
-                                                    >
-                                                        Add Comment
-                                                    </button> */}
                                                     <button
                                                         className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2"
                                                         onClick={() => handleViewSE(se)}
                                                     >
                                                         View
                                                     </button>
-                                                    {/* <button
-                                                        className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2"
-                                                        onClick={() => handleSEAdminApproval(se._id, "approve")}
-                                                    >
-                                                        Accept
-                                                    </button> */}
-                                                    {/* <button
-                                                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                                        onClick={() => handleSEAdminApproval(se._id, "reject")}
-                                                    >
-                                                        Reject
-                                                    </button> */}
                                                 </td>
                                             </tr>
                                         ))
@@ -459,31 +332,6 @@ const sortedAndFilteredSEs = pendingSEs
                     </div>
                 </div>
             </div>
-            {/* {isModalOpen && (
-                <div className="w-50 fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                        <h2 className="text-xl font-bold mb-4">Add Comment</h2>
-                        <textarea
-                            className="w-full p-6 border rounded"
-                            rows="4"
-                            placeholder="Enter your comment here..."
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                        ></textarea>
-                        <div className="flex justify-end mt-4">
-                            <button className="bg-gray-400 text-white px-4 py-2 rounded mr-2" onClick={closeModal}>
-                                Cancel
-                            </button>
-                            <button
-                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                                onClick={handleSubmitComment}
-                            >
-                                Submit
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )} */}
             {isCertificateOpen && certificateData && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-lg shadow-lg w-[90%] max-h-[90vh] overflow-y-auto p-6">
@@ -599,7 +447,6 @@ const sortedAndFilteredSEs = pendingSEs
                                 <p className="text-lg font-semibold">
                                     {selectedType === "recurring" ? "Recurring" : "Non-Recurring"}
                                 </p>
-                                {/* <p className="text-sm font-medium">Is the UC Provisional (Provisional/Audited)</p> */}
                             </div>
 
                             <h3 className="text-lg font-semibold text-blue-700 mb-4">
@@ -628,48 +475,63 @@ const sortedAndFilteredSEs = pendingSEs
                                 <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
 
                                 <div className="mb-6">
-    <h3 className="text-lg font-semibold text-gray-700 mb-4">
-        Grants position at the beginning of the Financial year
-    </h3>
-    <div className="pl-11 grid grid-cols-2 gap-4">
-        <label className="text-gray-700">Carry forward from previous financial year</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+                                    <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                                        Grants position at the beginning of the Financial year
+                                    </h3>
+                                    <div className="pl-11 grid grid-cols-2 gap-4">
+                                        <label className="text-gray-700">Carry forward from previous financial year</label>
+                                        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
 
-        <label className="text-gray-700">Others, If any</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
+                                        <label className="text-gray-700">Others, If any</label>
+                                        <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
 
-        <label className="text-gray-700">Total</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
-    </div>
-</div>
+                                        <label className="text-gray-700">Total</label>
+                                        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+                                    </div>
+                                </div>
                             </div>
                             <h3 className="text-lg font-semibold text-blue-700 mb-4">Financial Summary</h3>
                             <div className="overflow-x-auto">
                                 <table className="w-full border border-gray-300 rounded-lg">
                                     <thead>
-                                        <tr className="bg-blue-100 text-gray-700">
-                                            <th className="border border-gray-400 px-4 py-2">UnSpent Balances from Previous Years</th>
-                                            <th className="border border-gray-400 px-4 py-2">Grant Received</th>
-                                            <th className="border border-gray-400 px-4 py-2">Total</th>
-                                            <th className="border border-gray-400 px-4 py-2">Recurring Expenditure</th>
-                                            <th className="border border-gray-400 px-4 py-2">Closing Balance</th>
-                                        </tr>
+                                    <tr className="bg-blue-100 text-gray-700">
+                                        <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
+                                        <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
+                                        <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
+                                        <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
+                                        <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
+                                        <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
+                                        <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
+                                    </tr>
+                                    <tr className="bg-blue-50 text-gray-700">
+                                        <th className="border border-gray-400 px-4 py-2">1</th>
+                                        <th className="border border-gray-400 px-4 py-2">2</th>
+                                        <th className="border border-gray-400 px-4 py-2">3</th>
+                                        <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
+                                        <th className="border border-gray-400 px-4 py-2">Date</th>
+                                        <th className="border border-gray-400 px-4 py-2">Amount</th>
+                                        <th className="border border-gray-400 px-4 py-2">5</th>
+                                        <th className="border border-gray-400 px-4 py-2">6</th>
+                                        <th className="border border-gray-400 px-4 py-2">7</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        <tr className="text-center">
-                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.CarryForward}</td>
-                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.yearTotal}</td>
-                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.total}</td>
-                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.recurringExp}</td>
-                                            <td className="border border-gray-400 px-4 py-2">
-                                                Rs {ucData.total - ucData.recurringExp}
-                                            </td>
-                                        </tr>
+                                    <tr className="text-center">
+                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
+                                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
 
-                            {selectedType === "recurring" && (
+                            {(selectedType === "recurring" || selectedType !== "recurring" )&& (
                                 <>
                                     <h3 className="text-lg font-semibold text-blue-700 mt-6 mb-4">
                                         Component-wise Utilization of Grants

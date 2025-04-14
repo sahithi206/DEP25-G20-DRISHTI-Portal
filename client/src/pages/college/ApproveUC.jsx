@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/InstituteSidebar";
 import SignatureCanvas from 'react-signature-canvas';
+import TermsAndConditions from "../uc/se/TermsAndConditions";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -26,8 +27,6 @@ const ApproveUC = () => {
   const navigate = useNavigate();
 
   const stampCanvas = useRef(null);
-  const fileInputRef = useRef(null);
-
   useEffect(() => {
     const fetchPending = async () => {
       try {
@@ -95,31 +94,6 @@ const ApproveUC = () => {
     setInstituteStamp(null);
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        setError("Please upload only image files (PNG, JPG, JPEG)");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setInstituteStamp(event.target.result);
-        setShowStampModal(false);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const toggleUploadOption = () => {
-    setShowUploadOption(!showUploadOption);
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current.click();
-  };
-
   const handleAddStamp = () => {
     if (!selectedRequest) return;
     setShowStampModal(true);
@@ -149,52 +123,6 @@ const ApproveUC = () => {
       alert("Please provide a stamp before saving");
     }
   };
-
-  // const handleApprove = () => {
-  //   if (!selectedRequest || !instituteStamp) return;
-  //   setLoading(true);
-
-  //   try {
-  //     // Create approved request object
-  //     const approvedRequest = {
-  //       ...selectedRequest,
-  //       instituteStamp: instituteStamp,
-  //       approvalDate: new Date().toISOString(),
-  //       status: "approved"
-  //     };
-
-  //     // Get existing approved requests from local storage
-  //     const storedApprovedRequests = localStorage.getItem('approvedUCRequests');
-  //     const approvedRequests = storedApprovedRequests ? JSON.parse(storedApprovedRequests) : [];
-
-  //     // Add the new approved request
-  //     approvedRequests.push(approvedRequest);
-
-  //     // Save back to local storage
-  //     localStorage.setItem('approvedUCRequests', JSON.stringify(approvedRequests));
-
-  //     // Remove from pending requests
-  //     const updatedPendingRequests = pendingRequests.filter(req => req.id !== selectedRequest.id);
-  //     setPendingRequests(updatedPendingRequests);
-  //     localStorage.setItem('pendingUCRequests', JSON.stringify(updatedPendingRequests));
-
-  //     // Show success message
-  //     setShowApproveModal(false);
-  //     setShowSuccessModal(true);
-
-  //     // Reset selected request after short delay
-  //     setTimeout(() => {
-  //       setSelectedRequest(null);
-  //       setInstituteStamp(null);
-  //       setShowSuccessModal(false);
-  //       setLoading(false);
-  //     }, 2000);
-  //   } catch (err) {
-  //     console.error("Error approving request:", err.message);
-  //     alert("Failed to approve request");
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleApprove = async () => {
     if (!selectedRequest || !instituteStamp) return;
@@ -239,13 +167,10 @@ const ApproveUC = () => {
   const handleSaveAsPDF = () => {
     const pdf = new jsPDF("p", "mm", "a4");
     const currentDate = new Date().toLocaleDateString("en-IN");
-
-    // Set page margins
     const pageWidth = 210;
     const margin = 20;
     const contentWidth = pageWidth - 2 * margin;
 
-    // Title Section
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(14);
     pdf.text("GFR 12-A", pageWidth / 2, 20, { align: "center" });
@@ -257,17 +182,20 @@ const ApproveUC = () => {
     pdf.text(`as on ${currentDate} to be submitted to Funding Agency`, pageWidth / 2, 44, { align: "center" });
     pdf.text("Is the UC Provisional (Provisional/Audited)", pageWidth / 2, 50, { align: "center" });
 
-    // Main Information Section
     pdf.setFontSize(11);
     pdf.setFont("helvetica", "normal");
 
     const items = [
       { label: "Name of the grant receiving Organization", value: ucData.instituteName },
-      { label: "Name of Principal Investigator (PI)", value: ucData.principalInvestigator },
-      // { label: "SERB Sanction order no. & date", value: "ECR20XXXXXXXX Dated DD-MM-YYYY" },
+      { label: "Name of Principal Investigator (PI)", value: Array.isArray(ucData.principalInvestigator) 
+          ? ucData.principalInvestigator.join(", ") 
+          : ucData.principalInvestigator },
       { label: "Title of the Project", value: ucData.title },
-      // { label: "Name of the Scheme", value: ucData.scheme },
-      { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" }
+      { label: "Name of the Scheme", value: ucData.scheme || "N/A" },
+      { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" },
+      { label: "Present Year of Project", value: ucData.currentYear },
+      { label: "Start Date of Year", value: ucData.startDate },
+      { label: "End Date of Year", value: ucData.endDate }
     ];
 
     let yPos = 60;
@@ -282,13 +210,11 @@ const ApproveUC = () => {
       itemNum++;
     });
 
-    // Grants position at beginning of financial year
     yPos += 3;
     pdf.text(`${itemNum}`, margin, yPos);
     pdf.text("Grants position of the beginning of the Financial year", margin + 5, yPos);
     yPos += 7;
 
-    // Financial details
     pdf.text("Carry forward from previous financial year", margin + 20, yPos);
     pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
     yPos += 7;
@@ -301,29 +227,45 @@ const ApproveUC = () => {
     pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
     yPos += 10;
 
-    // Details of grants received section
     pdf.text(`${itemNum + 1}`, margin, yPos);
     pdf.text("Details of grants received, expenditure incurred and closing balances: (Actual)", margin + 5, yPos);
     yPos += 10;
 
-    // Complex table for grant details
     const headers = [
       [
-        { content: "Unspent Balance of Grants\nreceived years", colSpan: 1 },
-        { content: "Grant received\nduring the year", colSpan: 1 },
-        { content: "Total", colSpan: 1 },
+        { content: "Unspent Balances of\nGrants received years", colSpan: 1 },
+        { content: "Interest Earned\nthereon", colSpan: 1 },
+        { content: "Interest deposited\nback to Funding Agency", colSpan: 1 },
+        { content: "Grant received during the year", colSpan: 3 },
+        { content: "Total\n(1+2-3+4)", colSpan: 1 },
         { content: "Expenditure\nincurred", colSpan: 1 },
-        { content: "Closing\nBalance (5 - 6)", colSpan: 1 }
+        { content: "Closing Balance\n(5-6)", colSpan: 1 }
+      ],
+      [
+        { content: "1", colSpan: 1 },
+        { content: "2", colSpan: 1 },
+        { content: "3", colSpan: 1 },
+        { content: "Sanction No.", colSpan: 1 },
+        { content: "Date", colSpan: 1 },
+        { content: "Amount", colSpan: 1 },
+        { content: "5", colSpan: 1 },  
+        { content: "6", colSpan: 1 },
+        { content: "7", colSpan: 1 }
       ]
     ];
+    const recurringExp = ucData.recurringExp || 0;
 
     const data = [
       [
-        `Rs ${ucData.CarryForward}`,
-        `Rs ${ucData.yearTotal}`,
-        `Rs ${ucData.total}`,
-        `Rs ${ucData.recurringExp}`,
-        `Rs ${ucData.total - ucData.recurringExp}`
+        `Rs ${ucData.CarryForward.toLocaleString()}`,
+        "Rs 0",
+        "Rs 0",
+        ucData.sanctionNumber || "N/A",
+        ucData.sanctionDate || "N/A",
+        `Rs ${ucData.yearTotal.toLocaleString()}`,
+        `Rs ${ucData.total.toLocaleString()}`,
+        `Rs ${recurringExp.toLocaleString()}`,
+        `Rs ${(ucData.total - recurringExp).toLocaleString()}`
       ]
     ];
 
@@ -333,11 +275,11 @@ const ApproveUC = () => {
       startY: yPos,
       theme: 'grid',
       headStyles: {
-        fillColor: [255, 255, 255],
+        fillColor: [255, 255, 255], 
         textColor: [0, 0, 0],
         halign: 'center',
         valign: 'middle',
-        fontSize: 9
+        fontSize: 8
       },
       styles: {
         fontSize: 8,
@@ -347,18 +289,21 @@ const ApproveUC = () => {
         lineColor: [0, 0, 0]
       },
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 40 },
-        4: { cellWidth: 40 }
+        0: { cellWidth: 25 },
+        1: { cellWidth: 20 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 20 },
+        7: { cellWidth: 20 },
+        8: { cellWidth: 25 }
       }
     });
 
     yPos = pdf.lastAutoTable.finalY + 10;
 
-    // Component-wise utilization section
-    if (selectedType === "recurring") {
+    if (selectedType === "recurring" && selectedType !== "recurring") {
       pdf.text("Component wise utilization of grants:", margin, yPos);
       yPos += 5;
 
@@ -385,7 +330,7 @@ const ApproveUC = () => {
       yPos += 5;
 
       const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
-      const componentData = [[`Rs ${ucData.recurringExp}`, `Rs ${ucData.recurringExp}`]];
+      const componentData = [[`Rs ${recurringExp.toLocaleString()}`, `Rs ${recurringExp.toLocaleString()}`]];
 
       pdf.autoTable({
         head: componentHeaders,
@@ -399,7 +344,6 @@ const ApproveUC = () => {
       yPos = pdf.lastAutoTable.finalY + 10;
     }
 
-    // Details of grants position at end of year
     pdf.text("Details of grants position at the end of the year", margin, yPos);
     yPos += 7;
 
@@ -420,17 +364,13 @@ const ApproveUC = () => {
     pdf.text(`Rs ${closingBalance}`, margin + 100, yPos);
     yPos += 15;
 
-    // Add new page for certification
     pdf.addPage();
     yPos = 20;
-
-    // Certification text
     pdf.setFontSize(10);
     pdf.text("Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly fulfilled/are being fulfilled and that I", margin, yPos);
     pdf.text("have exercised following checks to see that the money has been actually utilized for the purpose which it was sanctioned:", margin, yPos + 5);
     yPos += 15;
 
-    // Certification items
     const certItems = [
       "The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.",
       "There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.",
@@ -438,9 +378,6 @@ const ApproveUC = () => {
       "The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.",
       "The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.",
       "The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.",
-      "It has been ensured that the physical and financial performance under ECRA has been according to the requirements, as prescribed in the guidelines issued by Govt. of India and the performance/targets achieved statement for the year to which the utilization of the fund resulted in outcomes given at Annexure-I duly enclosed.",
-      "The utilization of the fund resulted in outcomes given at Annexure-II duly enclosed (to be formulated by the Ministry/Department concerned as per their requirements/specifications)",
-      "Details of various schemes executed by the agency through grants-in-aid received from the same Ministry or from other Ministries is enclosed at Annexure-II (to be formulated by the Ministry/Department concerned as per their requirements/specifications)"
     ];
 
     certItems.forEach((item, index) => {
@@ -456,22 +393,12 @@ const ApproveUC = () => {
     yPos += 10;
     pdf.text("Date: " + new Date().toLocaleDateString("en-IN"), margin, yPos);
     yPos += 5;
-    // pdf.text("Place: ", margin, yPos);
-    // yPos += 15;
-
-    // // Signature section with actual signatures
-    // pdf.text("Signatures:", margin, yPos);
-    // yPos += 10;
-
-    // Add PI signature if available
     if (piSignature) {
       pdf.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
       pdf.text("Signature of PI", margin, yPos + 25);
     } else {
       pdf.text("Signature of PI: ________________", margin, yPos + 10);
     }
-
-    // Add institute stamp if approved
     if (instituteStamp) {
       pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
       pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
@@ -480,86 +407,6 @@ const ApproveUC = () => {
     yPos += 35;
 
     pdf.save(`UC_${ucData.title}_${selectedType}.pdf`);
-  };
-
-  const SignatureModal = () => {
-    if (!showStampModal) return null;
-
-    return (
-      <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowStampModal(false)}></div>
-        <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
-          <h3 className="text-xl font-bold text-center text-gray-800 mb-4">Sign here</h3>
-          <div className="flex justify-center mb-4">
-            <button
-              onClick={toggleUploadOption}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mx-2"
-            >
-              {showUploadOption ? "Draw Signature" : "Upload Signature"}
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/png, image/jpeg, image/jpg"
-              onChange={handleFileUpload}
-            />
-          </div>
-
-          {showUploadOption ? (
-            <div className="flex flex-col items-center">
-              <button
-                onClick={triggerFileInput}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 mb-4"
-              >
-                Select Image File (PNG, JPG)
-              </button>
-              {instituteStamp && (
-                <div className="mt-2 border border-gray-300 p-2 rounded">
-                  <img src={instituteStamp} alt="Uploaded signature" className="h-24 object-contain" />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="border border-gray-300 rounded-md mb-4">
-              <SignatureCanvas
-                ref={stampCanvas}
-                penColor="black"
-                canvasProps={{
-                  width: 500,
-                  height: 200,
-                  className: "signature-canvas w-full"
-                }}
-
-              />
-            </div>
-          )}
-
-          <div className="flex justify-between">
-            {!showUploadOption && (
-              <button
-                onClick={clearStamp}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              >
-                Clear
-              </button>
-            )}
-            <button
-              onClick={() => setShowStampModal(false)}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={saveStamp}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -700,49 +547,49 @@ const ApproveUC = () => {
 
                     <label className="font-semibold text-gray-700">End Date of Year:</label>
                     <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
-                    <div className="mb-6">
-    <h3 className="text-lg font-semibold text-gray-700 mb-4">
-        Grants position at the beginning of the Financial year
-    </h3>
-    <div className="pl-11 grid grid-cols-2 gap-4">
-        <label className="text-gray-700">Carry forward from previous financial year</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
-
-        <label className="text-gray-700">Others, If any</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
-
-        <label className="text-gray-700">Total</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
-    </div>
-</div>
                   </div>
                   <h3 className="text-lg font-semibold text-teal-700 mb-4">Financial Summary</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full border border-gray-300 rounded-lg">
                       <thead>
-                        <tr className="bg-gray-100 text-gray-700">
-                          <th className="border border-gray-400 px-4 py-2">Carry Forward</th>
-                          <th className="border border-gray-400 px-4 py-2">Grant Received</th>
-                          <th className="border border-gray-400 px-4 py-2">Total</th>
-                          <th className="border border-gray-400 px-4 py-2">Recurring Expenditure</th>
-                          <th className="border border-gray-400 px-4 py-2">Closing Balance</th>
-                        </tr>
+                      <tr className="bg-gray-100 text-gray-700">
+                        <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
+                        <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
+                        <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
+                        <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
+                        <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
+                        <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
+                        <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
+                    </tr>
+                    <tr className="bg-gray-50 text-gray-700">
+                        <th className="border border-gray-400 px-4 py-2">1</th>
+                        <th className="border border-gray-400 px-4 py-2">2</th>
+                        <th className="border border-gray-400 px-4 py-2">3</th>
+                        <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
+                        <th className="border border-gray-400 px-4 py-2">Date</th>
+                        <th className="border border-gray-400 px-4 py-2">Amount</th>
+                        <th className="border border-gray-400 px-4 py-2">5</th>
+                        <th className="border border-gray-400 px-4 py-2">6</th>
+                        <th className="border border-gray-400 px-4 py-2">7</th>
+                    </tr>
                       </thead>
                       <tbody>
-                        <tr className="text-center">
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.CarryForward}</td>
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.yearTotal}</td>
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.total}</td>
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.recurringExp}</td>
-                          <td className="border border-gray-400 px-4 py-2">
-                            Rs {ucData.total - ucData.recurringExp}
-                          </td>
-                        </tr>
+                      <tr className="text-center">
+                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
+                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
+                    </tr>
                       </tbody>
                     </table>
                   </div>
 
-                  {selectedType === "recurring" && (
+                  {(selectedType === "recurring" || selectedType !== "recurring" )&& (
                     <>
                       <h3 className="text-lg font-semibold text-teal-700 mt-6 mb-4">
                         Component-wise Utilization of Grants
@@ -773,6 +620,9 @@ const ApproveUC = () => {
                       </div>
                     </>
                   )}
+
+                  <TermsAndConditions />
+                  
 
                   {/* Signature Section */}
                   <div className="border-t border-gray-200 pt-4 mb-6 mt-6">
@@ -863,6 +713,42 @@ const ApproveUC = () => {
         </main>
       </div>
 
+      {/* Stamp Modal */}
+      {showStampModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowStampModal(false)}></div>
+          <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-center text-gray-800 mb-4">Add Institute Stamp</h3>
+            <div className="border border-gray-300 rounded-md mb-4">
+              <SignatureCanvas
+                ref={stampCanvas}
+                penColor="black"
+                canvasProps={{
+                  width: 500,
+                  height: 200,
+                  className: "signature-canvas w-full"
+                }}
+                onEnd={handleStampEnd}
+              />
+            </div>
+            <div className="flex justify-between">
+              <button
+                onClick={clearStamp}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Clear
+              </button>
+              <button
+                onClick={saveStamp}
+                className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                Save Stamp
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Approve Confirmation Modal */}
       {showApproveModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -912,7 +798,6 @@ const ApproveUC = () => {
           </div>
         </div>
       )}
-      <SignatureModal />
     </div >
   );
 };

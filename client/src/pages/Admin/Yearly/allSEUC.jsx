@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import AdminSidebar from "../../../components/AdminSidebar";
 import AdminNavbar from "../../../components/AdminNavbar";
+import TermsAndConditions from "../../uc/se/TermsAndConditions";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
@@ -252,10 +253,6 @@ const AllSEUC = () => {
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
                 <AdminNavbar activeSection={activeSection} />
-
-
-
-
                 <div className="p-6 space-y-1 mt-3">
                     <div key={reloadKey} className="mt-3 bg-white p-7 rounded-lg shadow-md">
                         <h2 className="text-lg font-bold mb-4">All UCs</h2>
@@ -277,19 +274,11 @@ const AllSEUC = () => {
             <option value="asc">Sort by Date (Ascending)</option>
             <option value="desc">Sort by Date (Descending)</option>
         </select>
-        {/* <input
-            type="text"
-            placeholder="Filter by Institute"
-            value={filterUC}
-            onChange={(e) => setFilterUC(e.target.value)}
-            className="p-2 border rounded"
-        /> */}
     </div>
 </div>
                         <table className="w-full border table-fixed">
                             <thead>
                                 <tr className="bg-gray-200">
-                                    {/* <th className="p-4 text-left w-1/4">Certificate ID</th> */}
                                     <th className="p-4 text-left w-1/4">Project ID</th>
                                     <th className="p-4 text-left w-1/5">Project Title</th>
                                     <th className="p-4 text-left w-1/5">Principal Investigator</th> 
@@ -302,7 +291,6 @@ const AllSEUC = () => {
                                 {filteredUCs.length > 0 ? (
                                     filteredUCs.map((certificate) => (
                                         <tr key={certificate._id} className="border-b hover:bg-blue-50">
-                                            {/* <td className="p-4 w-1/4">{certificate._id}</td> */}
                                             <td className="p-4 w-1/4">{certificate.projectId}</td>
                                             <td className="p-4 w-1/4">{certificate.ucData.title}</td>
                                             <td className="p-4 w-1/5">{certificate.ucData.principalInvestigator || "N/A"}</td> 
@@ -329,12 +317,6 @@ const AllSEUC = () => {
                                                 >
                                                     Accept
                                                 </button>
-                                                {/* <button
-                                                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                                    onClick={() => handleAdminApproval(certificate._id, "reject", "UC")}
-                                                >
-                                                    Reject
-                                                </button> */}
                                             </td>
                                         </tr>
                                     ))
@@ -349,39 +331,30 @@ const AllSEUC = () => {
                         </table>
 
                         <h2 className="text-lg font-bold mt-8 mb-4">All SEs</h2>
-                                                <div className="flex justify-between items-center mb-6">
-    <input
-        type="text"
-        placeholder="Search SEs..."
-        value={searchQuerySE}
-        onChange={(e) => setSearchQuerySE(e.target.value)}
-        className="p-2 border rounded w-1/3"
-    />
-    <div className="flex items-center space-x-4">
-        <select
-            value={sortOrderSE}
-            onChange={(e) => setSortOrderSE(e.target.value)}
-            className="p-2 border rounded"
-        >
-            <option value="asc">Sort by Date (Ascending)</option>
-            <option value="desc">Sort by Date (Descending)</option>
-        </select>
-        {/* <input
-            type="text"
-            placeholder="Filter by Institute"
-            value={filterSE}
-            onChange={(e) => setFilterSE(e.target.value)}
-            className="p-2 border rounded"
-        /> */}
-    </div>
-</div>
+                            <div className="flex justify-between items-center mb-6">
+                                <input
+                                    type="text"
+                                    placeholder="Search SEs..."
+                                    value={searchQuerySE}
+                                    onChange={(e) => setSearchQuerySE(e.target.value)}
+                                    className="p-2 border rounded w-1/3"
+                                />
+                                <div className="flex items-center space-x-4">
+                                    <select
+                                        value={sortOrderSE}
+                                        onChange={(e) => setSortOrderSE(e.target.value)}
+                                        className="p-2 border rounded"
+                                    >
+                                        <option value="asc">Sort by Date (Ascending)</option>
+                                        <option value="desc">Sort by Date (Descending)</option>
+                                    </select>
+                                </div>
+                            </div>
                         <table className="w-full border table-fixed">
 
                             <thead>
                                 <tr className="bg-gray-200">
-                                    {/* <th className="p-4 text-left w-1/4">Certificate ID</th> */}
                                     <th className="p-4 text-left w-1/4">Project ID</th>
-                                    {/* <th className="p-4 text-left w-1/5">Project Title</th> */}
                                     <th className="p-4 text-left w-1/5">Principal Investigator</th> 
                                     < th className="p-4 text-left w-1/4">Institute</th>
                                     <th className="p-4 text-left w-1/4">Submission Date</th>
@@ -392,9 +365,8 @@ const AllSEUC = () => {
                                 {filteredSEs.length > 0 ? (
                                     filteredSEs.map((se) => (
                                         <tr key={se._id} className="border-b hover:bg-blue-50">
-                                            {/* <td className="p-4 w-1/4">{se._id}</td> */}
+                                            
                                             <td className="p-4 w-1/4">{se.projectId}</td>
-                                            {/* <td className="p-4 w-1/4">{se.title}</td> */}
                                             <td className="p-4 w-1/5">{se.name || "N/A"}</td> 
                                             <td className="p-4 w-1/4">{se.institute}</td>
                                             <td className="p-4 w-1/4">
@@ -419,12 +391,6 @@ const AllSEUC = () => {
                                                 >
                                                     Accept
                                                 </button>
-                                                {/* <button
-                                                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                                    onClick={() => handleAdminApproval(se._id, "reject", "SE")}
-                                                >
-                                                    Reject
-                                                </button> */}
                                             </td>
                                         </tr>
                                     ))
@@ -624,49 +590,63 @@ const AllSEUC = () => {
                                 <label className="font-semibold text-gray-700">End Date of Year:</label>
                                 <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
                                 <div className="mb-6">
-    <h3 className="text-lg font-semibold text-gray-700 mb-4">
-        Grants position at the beginning of the Financial year
-    </h3>
-    <div className="pl-11 grid grid-cols-2 gap-4">
-        <label className="text-gray-700">Carry forward from previous financial year</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+                                    <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                                        Grants position at the beginning of the Financial year
+                                    </h3>
+                                    <div className="pl-11 grid grid-cols-2 gap-4">
+                                        <label className="text-gray-700">Carry forward from previous financial year</label>
+                                        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
 
-        <label className="text-gray-700">Others, If any</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
+                                        <label className="text-gray-700">Others, If any</label>
+                                        <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
 
-        <label className="text-gray-700">Total</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
-    </div>
-</div>
-                                {/* <span className="px-3 py-1 w-full">: {ucData.endDate}</span> */}
+                                        <label className="text-gray-700">Total</label>
+                                        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+                                    </div>
+                                </div>
                             </div>
                             <h3 className="text-lg font-semibold text-blue-700 mb-4">Financial Summary</h3>
                             <div className="overflow-x-auto">
                                 <table className="w-full border border-gray-300 rounded-lg">
                                     <thead>
-                                        <tr className="bg-blue-100 text-gray-700">
-                                            <th className="border border-gray-400 px-4 py-2">UnSpent Balances from Previous Years</th>
-                                            <th className="border border-gray-400 px-4 py-2">Grant Received</th>
-                                            <th className="border border-gray-400 px-4 py-2">Total</th>
-                                            <th className="border border-gray-400 px-4 py-2">Recurring Expenditure</th>
-                                            <th className="border border-gray-400 px-4 py-2">Closing Balance</th>
-                                        </tr>
+                                    <tr className="bg-blue-100 text-gray-700">
+                                        <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
+                                        <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
+                                        <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
+                                        <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
+                                        <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
+                                        <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
+                                        <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
+                                    </tr>
+                                    <tr className="bg-blue-50 text-gray-700">
+                                        <th className="border border-gray-400 px-4 py-2">1</th>
+                                        <th className="border border-gray-400 px-4 py-2">2</th>
+                                        <th className="border border-gray-400 px-4 py-2">3</th>
+                                        <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
+                                        <th className="border border-gray-400 px-4 py-2">Date</th>
+                                        <th className="border border-gray-400 px-4 py-2">Amount</th>
+                                        <th className="border border-gray-400 px-4 py-2">5</th>
+                                        <th className="border border-gray-400 px-4 py-2">6</th>
+                                        <th className="border border-gray-400 px-4 py-2">7</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        <tr className="text-center">
-                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.CarryForward}</td>
-                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.yearTotal}</td>
-                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.total}</td>
-                                            <td className="border border-gray-400 px-4 py-2">Rs {ucData.recurringExp}</td>
-                                            <td className="border border-gray-400 px-4 py-2">
-                                                Rs {ucData.total - ucData.recurringExp}
-                                            </td>
-                                        </tr>
+                                    <tr className="text-center">
+                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
+                                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
+                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
 
-                            {selectedType === "recurring" && (
+                            {(selectedType === "recurring" || selectedType !== "recurring" )&& (
                                 <>
                                     <h3 className="text-lg font-semibold text-blue-700 mt-6 mb-4">
                                         Component-wise Utilization of Grants
@@ -698,6 +678,8 @@ const AllSEUC = () => {
                                 </>
                             )}
                         </div>
+
+                        <TermsAndConditions />
 
                         <div className="border-t border-gray-200 pt-4 mb-6">
                             <h3 className="text-xl font-semibold mb-4">Signatures</h3>
