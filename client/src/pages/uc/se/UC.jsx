@@ -5,9 +5,9 @@ import HomeNavbar from "../../../utils/HomeNavbar";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import SignatureCanvas from 'react-signature-canvas';
+import TermsAndConditions from "./TermsAndConditions";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
-
 
 const UCForm = () => {
   const { id: projectId } = useParams();
@@ -423,9 +423,15 @@ const UCForm = () => {
 
     const items = [
       { label: "Name of the grant receiving Organization", value: ucData.instituteName },
-      { label: "Name of Principal Investigator (PI)", value: ucData.principalInvestigator },
+      { label: "Name of Principal Investigator (PI)", value: Array.isArray(ucData.principalInvestigator) 
+          ? ucData.principalInvestigator.join(", ") 
+          : ucData.principalInvestigator },
       { label: "Title of the Project", value: ucData.title },
-      { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" }
+      { label: "Name of the Scheme", value: ucData.scheme || "N/A" },
+      { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" },
+      { label: "Present Year of Project", value: ucData.currentYear },
+      { label: "Start Date of Year", value: ucData.startDate },
+      { label: "End Date of Year", value: ucData.endDate }
     ];
 
     let yPos = 60;
@@ -446,7 +452,7 @@ const UCForm = () => {
     yPos += 7;
 
     pdf.text("Carry forward from previous financial year", margin + 20, yPos);
-    pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
     yPos += 7;
 
     pdf.text("Others, If any", margin + 20, yPos);
@@ -454,7 +460,7 @@ const UCForm = () => {
     yPos += 7;
 
     pdf.text("Total", margin + 20, yPos);
-    pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
     yPos += 10;
 
     pdf.text(`${itemNum + 1}`, margin, yPos);
@@ -463,21 +469,41 @@ const UCForm = () => {
 
     const headers = [
       [
-        { content: "Unspent Balance of Grants\nreceived years", colSpan: 1 },
-        { content: "Grant received\nduring the year", colSpan: 1 },
-        { content: "Total", colSpan: 1 },
+        { content: "Unspent Balances of\nGrants received years", colSpan: 1 },
+        { content: "Interest Earned\nthereon", colSpan: 1 },
+        { content: "Interest deposited\nback to Funding Agency", colSpan: 1 },
+        { content: "Grant received during the year", colSpan: 3 },
+        { content: "Total\n(1+2-3+4)", colSpan: 1 },
         { content: "Expenditure\nincurred", colSpan: 1 },
-        { content: "Closing\nBalance (5 - 6)", colSpan: 1 }
+        { content: "Closing Balance\n(5-6)", colSpan: 1 }
+      ],
+      [
+        { content: "1", colSpan: 1 },
+        { content: "2", colSpan: 1 },
+        { content: "3", colSpan: 1 },
+        { content: "Sanction No.", colSpan: 1 },
+        { content: "Date", colSpan: 1 },
+        { content: "Amount", colSpan: 1 },
+        { content: "5", colSpan: 1 },  
+        { content: "6", colSpan: 1 },
+        { content: "7", colSpan: 1 }
       ]
     ];
 
+    // Set default value for recurringExp if it doesn't exist
+    const recurringExp = ucData.recurringExp || 0;
+
     const data = [
       [
-        `Rs ${ucData.CarryForward}`,
-        `Rs ${ucData.yearTotal}`,
-        `Rs ${ucData.total}`,
-        `Rs ${ucData.recurringExp}`,
-        `Rs ${ucData.total - ucData.recurringExp}`
+        `Rs ${ucData.CarryForward.toLocaleString()}`,
+        "Rs 0",
+        "Rs 0",
+        ucData.sanctionNumber || "N/A",
+        ucData.sanctionDate || "N/A",
+        `Rs ${ucData.yearTotal.toLocaleString()}`,
+        `Rs ${ucData.total.toLocaleString()}`,
+        `Rs ${recurringExp.toLocaleString()}`,
+        `Rs ${(ucData.total - recurringExp).toLocaleString()}`
       ]
     ];
 
@@ -487,11 +513,11 @@ const UCForm = () => {
       startY: yPos,
       theme: 'grid',
       headStyles: {
-        fillColor: [255, 255, 255],
+        fillColor: [255, 255, 255], 
         textColor: [0, 0, 0],
         halign: 'center',
         valign: 'middle',
-        fontSize: 9
+        fontSize: 8
       },
       styles: {
         fontSize: 8,
@@ -501,26 +527,30 @@ const UCForm = () => {
         lineColor: [0, 0, 0]
       },
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 40 },
-        4: { cellWidth: 40 }
+        0: { cellWidth: 25 },
+        1: { cellWidth: 20 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 20 },
+        7: { cellWidth: 20 },
+        8: { cellWidth: 25 }
       }
     });
 
     yPos = pdf.lastAutoTable.finalY + 10;
 
-    if (selectedType === "recurring") {
+    if (selectedType === "recurring" && selectedType !== "recurring") {
       pdf.text("Component wise utilization of grants:", margin, yPos);
       yPos += 5;
 
-      const componentHeaders = [["Component", "Total"]];
+      const componentHeaders = [["Grant-in-aid-General", "Total"]];
       const componentData = [
-        ["Human Resources", `Rs ${ucData.human_resources}`],
-        ["Consumables", `Rs ${ucData.consumables}`],
-        ["Others", `Rs ${ucData.others}`],
-        ["Total", `Rs ${ucData.recurringExp}`]
+        ["Human Resources", `Rs ${ucData.human_resources || 0}`],
+        ["Consumables", `Rs ${ucData.consumables || 0}`],
+        ["Others", `Rs ${ucData.others || 0}`],
+        ["Total", `Rs ${recurringExp.toLocaleString()}`]
       ];
 
       pdf.autoTable({
@@ -538,7 +568,7 @@ const UCForm = () => {
       yPos += 5;
 
       const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
-      const componentData = [[`Rs ${ucData.recurringExp}`, `Rs ${ucData.recurringExp}`]];
+      const componentData = [[`Rs ${recurringExp.toLocaleString()}`, `Rs ${recurringExp.toLocaleString()}`]];
 
       pdf.autoTable({
         head: componentHeaders,
@@ -552,15 +582,14 @@ const UCForm = () => {
       yPos = pdf.lastAutoTable.finalY + 10;
     }
 
-    // Details of grants position at end of year
     pdf.text("Details of grants position at the end of the year", margin, yPos);
     yPos += 7;
 
-    const closingBalance = ucData.total - ucData.recurringExp;
+    const closingBalance = ucData.total - recurringExp;
 
     pdf.text("(i)", margin, yPos);
     pdf.text("Balance available at end of financial year", margin + 10, yPos);
-    pdf.text(`Rs ${closingBalance}`, margin + 100, yPos);
+    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
     yPos += 7;
 
     pdf.text("(ii)", margin, yPos);
@@ -570,7 +599,7 @@ const UCForm = () => {
 
     pdf.text("(iii)", margin, yPos);
     pdf.text("Balance (Carry forward to next financial year)", margin + 10, yPos);
-    pdf.text(`Rs ${closingBalance}`, margin + 100, yPos);
+    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
     yPos += 15;
 
     pdf.addPage();
@@ -588,9 +617,6 @@ const UCForm = () => {
       "The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.",
       "The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.",
       "The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.",
-      "It has been ensured that the physical and financial performance under ECRA has been according to the requirements, as prescribed in the guidelines issued by Govt. of India and the performance/targets achieved statement for the year to which the utilization of the fund resulted in outcomes given at Annexure-I duly enclosed.",
-      "The utilization of the fund resulted in outcomes given at Annexure-II duly enclosed (to be formulated by the Ministry/Department concerned as per their requirements/specifications)",
-      "Details of various schemes executed by the agency through grants-in-aid received from the same Ministry or from other Ministries is enclosed at Annexure-II (to be formulated by the Ministry/Department concerned as per their requirements/specifications)"
     ];
 
     certItems.forEach((item, index) => {
@@ -614,13 +640,8 @@ const UCForm = () => {
       pdf.text("Signature of PI: ________________", margin, yPos + 10);
     }
 
-    // Add institute stamp if approved (only for recurring type)
-    if (instituteApproved && instituteStamp && selectedType === "recurring") {
-      pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
-      pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
-    }
-
-    if (instituteApproved && instituteStamp && selectedType === "nonRecurring") {
+    // Add institute stamp if approved
+    if (instituteApproved && instituteStamp) {
       pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
       pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
     }
@@ -628,7 +649,8 @@ const UCForm = () => {
     yPos += 35;
 
     pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
-  };
+};
+
 
   const sendToAdmin = async () => {
     try {
@@ -843,9 +865,12 @@ const UCForm = () => {
 
                     <label className="font-semibold text-gray-700">Name of the Principal Investigator(s):</label>
                     <ul className="px-3 py-1 w-full list-disc list-inside">
-                      {ucData.principalInvestigator.map((pi, index) => (
-                        <li key={index}>{pi}</li>
-                      ))}
+                    {Array.isArray(ucData.principalInvestigator) 
+                        ? ucData.principalInvestigator.map((pi, index) => (
+                            <li key={index}>{pi}</li>
+                        ))
+                        : <li>{ucData.principalInvestigator}</li>
+                    }
                     </ul>
 
                     <label className="font-semibold text-gray-700">Present Year of Project:</label>
@@ -876,79 +901,92 @@ const UCForm = () => {
                   <div className="overflow-x-auto">
                     <table className="w-full border border-gray-300 rounded-lg">
                       <thead>
-                        <tr className="bg-blue-100 text-gray-700">
-                          <th className="border border-gray-400 px-4 py-2">UnSpent Balances from Previous Years</th>
-                          <th className="border border-gray-400 px-4 py-2">Grant Received</th>
-                          <th className="border border-gray-400 px-4 py-2">Total</th>
-                          <th className="border border-gray-400 px-4 py-2">Recurring Expenditure</th>
-                          <th className="border border-gray-400 px-4 py-2">Closing Balance</th>
-                        </tr>
+                      <tr className="bg-blue-100 text-gray-700">
+                        <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
+                        <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
+                        <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
+                        <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
+                        <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
+                        <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
+                        <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
+                    </tr>
+                    <tr className="bg-blue-50 text-gray-700">
+                        <th className="border border-gray-400 px-4 py-2">1</th>
+                        <th className="border border-gray-400 px-4 py-2">2</th>
+                        <th className="border border-gray-400 px-4 py-2">3</th>
+                        <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
+                        <th className="border border-gray-400 px-4 py-2">Date</th>
+                        <th className="border border-gray-400 px-4 py-2">Amount</th>
+                        <th className="border border-gray-400 px-4 py-2">5</th>
+                        <th className="border border-gray-400 px-4 py-2">6</th>
+                        <th className="border border-gray-400 px-4 py-2">7</th>
+                    </tr>
                       </thead>
                       <tbody>
-                        <tr className="text-center">
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.CarryForward}</td>
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.yearTotal}</td>
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.total}</td>
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.recurringExp}</td>
-                          <td className="border border-gray-400 px-4 py-2">
-                            Rs {ucData.total - ucData.recurringExp}
-                          </td>
-                        </tr>
+                      <tr className="text-center">
+                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
+                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
+                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
+                    </tr>
                       </tbody>
                     </table>
                   </div>
 
-                  {selectedType === "recurring" && (
+                  {(selectedType === "recurring" || selectedType !== "recurring" )&& (
                     <>
                       <h3 className="text-lg font-semibold text-blue-700 mt-6 mb-4">
                         Component-wise Utilization of Grants
                       </h3>
                       <div className="overflow-x-auto">
                         <table className="w-full border border-gray-300 rounded-lg">
-                          <thead>
+                            <thead>
                             <tr className="bg-blue-100 text-gray-700">
-                              <th className="border border-gray-400 px-4 py-2">Component</th>
-                              <th className="border border-gray-400 px-4 py-2">Amount</th>
+                                <th className="border border-gray-400 px-4 py-2">Grant-in-aid-General</th>
+                                <th className="border border-gray-400 px-4 py-2">Total</th>
                             </tr>
-                          </thead>
-                          <tbody>
+                            </thead>
+                            <tbody>
                             <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">Human Resources</td>
-                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.human_resources}</td>
+                                <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
+                                <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
                             </tr>
-                            <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">Consumables</td>
-                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.consumables}</td>
-                            </tr>
-                            <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">Others</td>
-                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.others}</td>
-                            </tr>
-                          </tbody>
+                            </tbody>
                         </table>
-                      </div>
+                        </div>
                     </>
                   )}
 
-                  <div className="mb-6">
-                    <div className="font-semibold text-gray-700 mb-2">Certification</div>
-                    <p className="text-sm mb-2">
-                      Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly fulfilled/are being fulfilled and that I
-                      have exercised following checks to see that the money has been actually utilized for the purpose which it was sanctioned:
-                    </p>
-                    <ol className="list-roman pl-6 text-sm space-y-2">
-                      <li>The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.</li>
-                      <li>There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.</li>
-                      <li>To the best of our knowledge and belief, no transactions have been entered that are in violation of relevant Act/Rules/standing instructions and scheme guidelines.</li>
-                      <li>The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms an</li>
-                      <li>The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.</li>
-                      <li>The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.</li>
-                      <li>The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.</li>
-                      <li>It has been ensured that the physical and financial performance under ECRA has been according to the requirements, as prescribed in the guidelines issued by Govt. of India and the performance/targets achieved statement for the year to which the utilization of the fund resulted in outcomes given at Annexure-I duly enclosed.</li>
-                      <li>The utilization of the fund resulted in outcomes given at Annexure-II duly enclosed (to be formulated by the Ministry/Department concerned as per their requirements/specifications)</li>
-                      <li>Details of various schemes executed by the agency through grants-in-aid received from the same Ministry or from other Ministries is enclosed at Annexure-II (to be formulated by the Ministry/Department concerned as per their requirements/specifications)</li>
-                    </ol>
-                  </div>
+                <div className="mt-6">
+                <h3 className="text-lg font-semibold text-blue-700 mb-4">Details of grants position at the end of the year</h3>
+                <div className="pl-5">
+                    <div className="grid grid-cols-2 gap-4">
+                    <div className="flex">
+                        <span className="mr-2">(i)</span>
+                        <span>Balance available at end of financial year</span>
+                    </div>
+                    <span>: ₹ {ucData.total - ucData.recurringExp}</span>
+
+                    <div className="flex">
+                        <span className="mr-2">(ii)</span>
+                        <span>Unspent balance refunded to Funding Agency (if any)</span>
+                    </div>
+                    <span>: ₹ 0</span>
+
+                    <div className="flex">
+                        <span className="mr-2">(iii)</span>
+                        <span>Balance (Carry forward to next financial year)</span>
+                    </div>
+                    <span>: ₹ {ucData.total - ucData.recurringExp}</span>
+                    </div>
+                </div>
+                </div>
+                  <TermsAndConditions />
 
                   {/* Signature Section */}
                   <div className="border-t border-gray-200 pt-4 mb-6">
