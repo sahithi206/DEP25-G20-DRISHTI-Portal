@@ -636,5 +636,44 @@ router.get("/progress-reports/:id", async (req, res) => {
       res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
+
+
+router.get("/completed-projects", fetchAdmin, async (req, res) => {
+    try {
+        const userId = req.admin.id;
+        console.log("User ID from Token:", userId);
+
+        const schemes = await Scheme.find({ coordinator: userId });
+        console.log("Fetched Schemes:", schemes);
+
+        if (!schemes || schemes.length === 0) {
+            return res.status(400).json({ success: false, msg: "No schemes found for this admin." });
+        }
+
+        const schemeIds = schemes.map((scheme) => scheme._id);
+
+        const completedProjects = await Project.find({
+            Scheme: { $in: schemeIds },
+            status: "Completed", 
+        }).populate("generalInfoId bankDetailsId researchDetailsId PIDetailsId YearlyDataId");
+
+        console.log("Fetched Completed Projects:", completedProjects);
+
+        if (!completedProjects || completedProjects.length === 0) {
+            return res.status(400).json({ success: false, msg: "No completed projects found." });
+        }
+
+        res.status(200).json({
+            success: true,
+            msg: "Completed projects fetched successfully.",
+            data: completedProjects,
+        });
+    } catch (error) {
+        console.error("Error fetching completed projects:", error);
+        res.status(500).json({ success: false, msg: "Internal server error." });
+    }
+});
+
   
 module.exports = router;

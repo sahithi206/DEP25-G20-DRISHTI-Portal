@@ -15,6 +15,13 @@ const AdminProposalReview = () => {
     const [showFullDetails, setShowFullDetails] = useState(false);
     const URL = import.meta.env.VITE_REACT_APP_URL;
 
+    const [searchQuery, setSearchQuery] = useState("");
+const [filterByInstitute, setFilterByInstitute] = useState("");
+const [filterByPI, setFilterByPI] = useState("");
+const [sortOrder, setSortOrder] = useState("asc"); 
+
+
+
     useEffect(() => {
         if (selectedProposal) {
             console.log("Selected Proposal Data:", selectedProposal);
@@ -200,7 +207,6 @@ const AdminProposalReview = () => {
 
             const data = await response.json();
 
-            // Update the proposal in the list with the new comment
             const updatedProposals = proposals.map(p => {
                 if (p.proposal._id === proposalId) {
                     return {
@@ -224,6 +230,27 @@ const AdminProposalReview = () => {
         }
     };
 
+    const filteredAndSortedProposals = proposals
+    .filter((proposal) => {
+        const matchesSearch = proposal.researchDetails?.Title?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesInstitute = filterByInstitute
+            ? proposal.generalInfo?.instituteName?.toLowerCase().includes(filterByInstitute.toLowerCase())
+            : true;
+
+        const matchesPI = filterByPI
+            ? proposal.piInfo?.members?.some((member) =>
+                  member.name.toLowerCase().includes(filterByPI.toLowerCase())
+              )
+            : true;
+
+        return matchesSearch && matchesInstitute && matchesPI;
+    })
+    .sort((a, b) => {
+        const dateA = new Date(a.proposal.date);
+        const dateB = new Date(b.proposal.date);
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+
     return (
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
@@ -242,7 +269,57 @@ const AdminProposalReview = () => {
                     </div>
                 )}
 
-                <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+                <div className="mt-6 bg-white p-6 rounded-lg shadow-md w-full">
+                <div className="flex mt-6 gap-4 w-full">
+    <div className="flex justify-between item-center gap-4 bg-white p-4 rounded-lg shadow-md mb-6 w-full">
+        <h3 className="text-lg font-bold mb-4">Filter & Sort</h3>
+
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Search by Title</label>
+            <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Enter title..."
+                className="w-96 p-2 border rounded"
+            />
+        </div>
+
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Institute</label>
+            <input
+                type="text"
+                value={filterByInstitute}
+                onChange={(e) => setFilterByInstitute(e.target.value)}
+                placeholder="Enter institute name..."
+                className="w-96 p-2 border rounded"
+            />
+        </div>
+
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by PI</label>
+            <input
+                type="text"
+                value={filterByPI}
+                onChange={(e) => setFilterByPI(e.target.value)}
+                placeholder="Enter PI name..."
+                className="w-96 p-2 border rounded"
+            />
+        </div>
+
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sort by Submission Date</label>
+            <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="w-96 p-2 border rounded"
+            >
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+        </div>
+    </div>
+        </div>
                     {loading ? (
                         <p>Loading proposals...</p>
                     ) : proposals.length === 0 ? (
@@ -251,18 +328,30 @@ const AdminProposalReview = () => {
                         <table className="w-full border">
                             <thead>
                                 <tr className="bg-gray-200">
+                                <th className="p-2 text-left">Title</th>
                                     <th className="p-2 text-left">Proposal ID</th>
                                     <th className="p-2 text-left">Institute</th>
-                                    <th className="p-2 text-left">Title</th>
+                                    <th className="p-2 text-left">PIs</th>
+                                    <th className="p-2 text-left">Submission Date</th>
                                     <th className="p-2 text-left">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {proposals.map(proposal => (
+                                {filteredAndSortedProposals.map(proposal => (
                                     <tr key={proposal.proposal._id} className="border-b">
+                                        <td className="p-2">{proposal.researchDetails?.Title}</td>
                                         <td className="p-2">{proposal.proposal._id}</td>
                                         <td className="p-2">{proposal.generalInfo?.instituteName}</td>
-                                        <td className="p-2">{proposal.researchDetails?.Title}</td>
+                                        <td className="p-2">
+                    {proposal.piInfo?.members?.length > 0
+                        ? proposal.piInfo.members.map((member) => member.name).join(", ")
+                        : "N/A"}
+                </td>
+                <td className="p-2">
+                    {proposal.proposal.date
+                        ? new Date(proposal.proposal.date).toLocaleDateString()
+                        : "N/A"}
+                </td>
                                         <td className="p-2">
                                             <button
                                                 onClick={() => setSelectedProposal(proposal)}
@@ -401,7 +490,7 @@ const AdminProposalReview = () => {
                                 <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-6 shadow-sm">
 
                                     {/* PI List */}
-                                    {selectedProposal.piInfo.piList?.length > 0 && (
+                                    {selectedProposal.piInfo.members?.length > 0 && (
                                         <div className="mb-6">
                                             <h3 className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2">
                                                 Principal Investigator(s)
@@ -418,13 +507,13 @@ const AdminProposalReview = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {selectedProposal.piInfo.piList.map((pi, index) => (
+                                                        {selectedProposal.piInfo.members.map((member, index) => (
                                                             <tr key={index} className="border-b hover:bg-blue-50">
-                                                                <td className="p-2 border border-gray-200">{pi.Name || "N/A"}</td>
-                                                                <td className="p-2 border border-gray-200">{pi.email || "N/A"}</td>
-                                                                <td className="p-2 border border-gray-200">{pi.Mobile || "N/A"}</td>
-                                                                <td className="p-2 border border-gray-200">{pi.Institute || "N/A"}</td>
-                                                                <td className="p-2 border border-gray-200">{pi.Dept || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{member.name || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{member.email || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{member.mobileNo || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{member.instituteName || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{member.Dept || "N/A"}</td>
                                                             </tr>
                                                         ))}
                                                     </tbody>

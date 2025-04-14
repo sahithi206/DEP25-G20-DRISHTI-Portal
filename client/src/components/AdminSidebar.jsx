@@ -62,7 +62,8 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
             children: [
                 { label: "Approve Proposals", id: "approvals", path: "/review-proposals" },
                 { label: "Sanction Projects", id: "sanction", path: "/admin/sanction-projects" },
-                { label: "Ongoing Projects", id: "ongoing", path: "/admin/ongoing-projects" }
+                { label: "Ongoing Projects", id: "ongoing", path: "/admin/ongoing-projects" },
+                { label: "Completed Projects", id: "completed", path: "/admin/completed-projects" },
             ]
         };
 

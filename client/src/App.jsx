@@ -73,6 +73,7 @@ import Viewquotations from "./pages/Qutations/ViewQuotations.jsx";
 import Miscellanous from "./pages/Admin/Requests/Miscellanous.jsx";
 import AllSEUC from "./pages/Admin/Yearly/allSEUC.jsx";
 import Progress from "./pages/Admin/Yearly/Progress.jsx";
+import CompletedProjects from "./pages/Admin/CompletedProjects.jsx";
 
 import ChangeInstitute from "./pages/Admin/Requests/ChangeOfInstitute"
 import ChangeInsti from "./pages/college/request.jsx";
@@ -175,6 +176,7 @@ function MainLayout() {
           <Route path="/requests/miscellaneous" element={<Miscellanous />} />
           <Route path="/admin/uc_se" element={<AllSEUC />} />
           <Route path="/admin/progress-report" element={<Progress />} />
+          <Route path="/admin/completed-projects" element={<CompletedProjects />} />
 
           <Route path="/requests/change-institute" element={<ChangeInstitute />} />
 
