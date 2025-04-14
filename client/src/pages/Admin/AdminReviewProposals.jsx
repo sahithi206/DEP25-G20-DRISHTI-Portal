@@ -207,7 +207,6 @@ const [sortOrder, setSortOrder] = useState("asc");
 
             const data = await response.json();
 
-            // Update the proposal in the list with the new comment
             const updatedProposals = proposals.map(p => {
                 if (p.proposal._id === proposalId) {
                     return {
@@ -233,15 +232,11 @@ const [sortOrder, setSortOrder] = useState("asc");
 
     const filteredAndSortedProposals = proposals
     .filter((proposal) => {
-        // Filter by search query (title)
         const matchesSearch = proposal.researchDetails?.Title?.toLowerCase().includes(searchQuery.toLowerCase());
-
-        // Filter by institute
         const matchesInstitute = filterByInstitute
             ? proposal.generalInfo?.instituteName?.toLowerCase().includes(filterByInstitute.toLowerCase())
             : true;
 
-        // Filter by PI
         const matchesPI = filterByPI
             ? proposal.piInfo?.members?.some((member) =>
                   member.name.toLowerCase().includes(filterByPI.toLowerCase())
@@ -251,7 +246,6 @@ const [sortOrder, setSortOrder] = useState("asc");
         return matchesSearch && matchesInstitute && matchesPI;
     })
     .sort((a, b) => {
-        // Sort by submission date
         const dateA = new Date(a.proposal.date);
         const dateB = new Date(b.proposal.date);
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
@@ -334,9 +328,9 @@ const [sortOrder, setSortOrder] = useState("asc");
                         <table className="w-full border">
                             <thead>
                                 <tr className="bg-gray-200">
+                                <th className="p-2 text-left">Title</th>
                                     <th className="p-2 text-left">Proposal ID</th>
                                     <th className="p-2 text-left">Institute</th>
-                                    <th className="p-2 text-left">Title</th>
                                     <th className="p-2 text-left">PIs</th>
                                     <th className="p-2 text-left">Submission Date</th>
                                     <th className="p-2 text-left">Actions</th>
@@ -345,9 +339,9 @@ const [sortOrder, setSortOrder] = useState("asc");
                             <tbody>
                                 {filteredAndSortedProposals.map(proposal => (
                                     <tr key={proposal.proposal._id} className="border-b">
+                                        <td className="p-2">{proposal.researchDetails?.Title}</td>
                                         <td className="p-2">{proposal.proposal._id}</td>
                                         <td className="p-2">{proposal.generalInfo?.instituteName}</td>
-                                        <td className="p-2">{proposal.researchDetails?.Title}</td>
                                         <td className="p-2">
                     {proposal.piInfo?.members?.length > 0
                         ? proposal.piInfo.members.map((member) => member.name).join(", ")
