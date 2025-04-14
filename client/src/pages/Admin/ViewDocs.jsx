@@ -26,6 +26,9 @@ const ViewDocs = () => {
     const navigate = useNavigate();
     const { id } = useParams();
 
+    const [sortOrder, setSortOrder] = useState("asc"); 
+const [filterStartDate, setFilterStartDate] = useState(""); 
+const [filterEndDate, setFilterEndDate] = useState(""); 
     // const token = localStorage.getItem("token");
     // let userId = null;
     // if(token){
@@ -94,6 +97,44 @@ const ViewDocs = () => {
         fetchPendingUCs();
         fetchPendingSEs();
     }, [id]);
+
+    const sortedAndFilteredUCs = pendingUCs
+    .filter((uc) => {
+        const submissionDate = new Date(uc.submissionDate);
+        const startDate = filterStartDate ? new Date(filterStartDate) : null;
+        const endDate = filterEndDate ? new Date(filterEndDate) : null;
+
+        return (
+            (!startDate || submissionDate >= startDate) &&
+            (!endDate || submissionDate <= endDate)
+        );
+    })
+    .sort((a, b) => {
+        if (sortOrder === "asc") {
+            return new Date(a.submissionDate) - new Date(b.submissionDate);
+        } else {
+            return new Date(b.submissionDate) - new Date(a.submissionDate);
+        }
+    });
+
+const sortedAndFilteredSEs = pendingSEs
+    .filter((se) => {
+        const submissionDate = new Date(se.date);
+        const startDate = filterStartDate ? new Date(filterStartDate) : null;
+        const endDate = filterEndDate ? new Date(filterEndDate) : null;
+
+        return (
+            (!startDate || submissionDate >= startDate) &&
+            (!endDate || submissionDate <= endDate)
+        );
+    })
+    .sort((a, b) => {
+        if (sortOrder === "asc") {
+            return new Date(a.submissionDate) - new Date(b.submissionDate);
+        } else {
+            return new Date(b.submissionDate) - new Date(a.submissionDate);
+        }
+    });
 
     const handleViewCertificate = async (certificate) => {
         try {
@@ -262,7 +303,41 @@ const ViewDocs = () => {
                 <div className="p-6 space-y-1 mt-3">
                     <div key={reloadKey} className="mt-3 bg-white p-7 rounded-lg shadow-md">
                         <div>
+                        <div className="flex justofy-end items-center space-x-4 bg-gray-100 p-4 rounded-lg shadow-md">
+        <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">Start Date</label>
+            <input
+                type="date"
+                value={filterStartDate}
+                onChange={(e) => setFilterStartDate(e.target.value)}
+                className="p-2 border rounded"
+            />
+        </div>
+
+        <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">End Date</label>
+            <input
+                type="date"
+                value={filterEndDate}
+                onChange={(e) => setFilterEndDate(e.target.value)}
+                className="p-2 border rounded"
+            />
+        </div>
+
+        <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">Sort By</label>
+            <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="p-2 border rounded"
+            >
+                <option value="asc">Date (Ascending)</option>
+                <option value="desc">Date (Descending)</option>
+            </select>
+        </div>
+    </div>
                             <h2 className="text-lg font-bold mb-4">Approved UCs</h2>
+
                             <table className="w-full border table-fixed">
                                 <thead>
                                     <tr className="bg-gray-200">
@@ -273,8 +348,8 @@ const ViewDocs = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {pendingUCs.length > 0 ? (
-                                        pendingUCs.map((certificate) => (
+                                    {sortedAndFilteredUCs.length > 0 ? (
+                                        sortedAndFilteredUCs.map((certificate) => (
                                             <tr key={certificate._id} className="border-b hover:bg-blue-50">
                                                 <td
                                                     className="p-4 w-1/4 cursor-pointer text-gray-500 hover:underline"
@@ -337,12 +412,12 @@ const ViewDocs = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {pendingSEs.length > 0 ? (
-                                        pendingSEs.map((se) => (
+                                    {sortedAndFilteredSEs.length > 0 ? (
+                                        sortedAndFilteredSEs.map((se) => (
                                             <tr key={se._id} className="border-b hover:bg-blue-50">
                                                 <td className="p-4 w-1/4">{se._id}</td>
                                                 <td className="p-4 w-1/4">SE</td>
-                                                <td className="p-4 w-1/4">{new Date(se.submissionDate).toLocaleDateString()}</td>
+                                                <td className="p-4 w-1/4">{new Date(se.date).toLocaleDateString()}</td>
                                                 <td className="p-4 w-1/4 text-center">
                                                     {/* <button
                                                         className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2"
