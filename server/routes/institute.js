@@ -1,22 +1,13 @@
-
 const express = require("express");
 const router = express.Router();
 const Proposal = require("../Models/Proposal");
 const User = require("../Models/user");
 const GeneralInfo = require("../Models/General_Info");
 const ResearchDetails = require("../Models/researchDetails");
-const Budget = require("../Models/Budget");
-const Recurring = require("../Models/Recurring");
-const NonRecurring = require("../Models/NonRecurring");
-const Bank = require("../Models/bankDetails.js");
-const Acknowledgement = require("../Models/acknowledgement");
 const Institute = require("../Models/instituteID");
 const Project = require("../Models/Project.js");
 const PI = require("../Models/PI");
 const Expense = require("../Models/expense.js");
-const bankDetails = require("../Models/bankDetails.js");
-const budgetSanctioned = require("../Models/budgetSanctioned.js");
-const YearlyData = require("../Models/YearlyData.js");
 const csv = require("csv-parser");
 const { fetchInstitute } = require("../Middlewares/fetchInstitute.js");
 const { ObjectId } = require("mongodb");
@@ -24,7 +15,9 @@ const mongoose = require("mongoose");
 const moment = require("moment");
 const ExcelJS = require('exceljs');
 const Scheme = require("../Models/Scheme.js");
-
+const UCRequest = require("../Models/UCRequest.js");
+const SE = require("../Models/se/SE.js");
+const YearlyData = require("../Models/YearlyData");
 router.get("/institute-projects", fetchInstitute, async (req, res) => {
   try {
     const institute = req.institute.college;
@@ -32,8 +25,10 @@ router.get("/institute-projects", fetchInstitute, async (req, res) => {
     const users = await User.find({ Institute: institute });
     const userIds = users.map(user => user._id);
 
-    const projects = await Proposal.find({ userId: { $in: userIds }, status: "Accepted" }).populate('userId', 'Name');
-
+    const projects = await Project.find({ userId: { $in: userIds }, status: "Ongoing" })
+      .populate({ path: 'userId', select: 'Name' })
+      .populate({ path: 'Scheme', select: 'name' }); 
+    console.log("Fetched Projects:", projects);
     res.status(200).json({ success: true, projects });
   } catch (error) {
     console.error("Error fetching projects:", error.message);
@@ -170,7 +165,7 @@ router.get("/sanctioned-projects", fetchInstitute, async (req, res) => {
     const users = await User.find({ Institute: institute }).select("_id");
     const userIds = users.map(user => user._id);
     console.log("Projects", users, userIds);
-    const projects = await Project.find({ userId: { $in: userIds } });
+    const projects = await Project.find({ userId: { $in: userIds }, status:"Ongoing"}).populate('Scheme');
     console.log("Projects", projects);
     if (!projects.length) {
       return res.status(404).json({ success: false, msg: "No sanctioned projects found" });
@@ -182,6 +177,7 @@ router.get("/sanctioned-projects", fetchInstitute, async (req, res) => {
     res.status(500).json({ success: false, msg: "Failed to fetch sanctioned projects", error: error.message });
   }
 });
+
 
 router.get("/get-project-insti/:projectid", fetchInstitute, async (req, res) => {
   try {
@@ -655,11 +651,9 @@ router.post('/upload-expenses', async (req, res) => {
       return res.status(400).json({ message: 'CSV data is empty or invalid' });
     }
 
-    // Parse CSV rows
     const rows = csvData.split('\n');
     const headers = rows[0].split(',');
 
-    // Check for required headers (adjusted for new column order)
     const requiredHeaders = ['Date', 'CommittedDate', 'Description', 'Amount', 'Type'];
     const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
 
@@ -669,7 +663,6 @@ router.post('/upload-expenses', async (req, res) => {
       });
     }
 
-    // Process each row and map to the database column names
     const expenses = [];
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i].split(',');
@@ -707,5 +700,21 @@ router.post('/upload-expenses', async (req, res) => {
   }
 });
 
+router.get("/ucforms/:id", fetchInstitute, async (req, res) => {
+  try {
+    const recurringgrant = await UCRequest.find({ projectId: req.params.id });
+    const grant = await UCRequest.find({ projectId: req.params.id });
+    const se = await SE.find({ projectId: req.params.id });
+
+    if (grant.length <= 0 && recurringgrant.length <= 0 && se.length <= 0) {
+      return res.status(404).json({ succes: false, msg: "Certificates not found" });
+    }
+
+    res.status(200).json({ success: true, grant, se, recurringgrant, msg: "Certificates Fetched" });
+  } catch (error) {
+    console.error("Error fetching Certificates:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 module.exports = router;

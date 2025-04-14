@@ -8,8 +8,7 @@ const url = import.meta.env.VITE_REACT_APP_URL;
 const UtilizationCertificates = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [error, setError] = useState("");
-    const [recurringCertificates, setRecurringCertificates] = useState([]);
-    const [nonRecurringCertificates, setNonRecurringCertificates] = useState([]);
+    const [UC, setUC] = useState([]);
     const [expenditureCertificates, setSE] = useState([]);
     const navigate = useNavigate();
      const {id}=useParams();
@@ -37,8 +36,7 @@ const UtilizationCertificates = () => {
                     return;
                 }
                 console.log("Display",data);
-                setRecurringCertificates(data.recurringgrant);
-                setNonRecurringCertificates(data.grant);
+                setUC(data.grant);
                 setSE(data.se);
             } catch (error) {
                 console.error("Error fetching certificates:", error);
@@ -84,27 +82,18 @@ const UtilizationCertificates = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {recurringCertificates&&recurringCertificates.length > 0 && recurringCertificates.map((certificate) => (
+                                    {UC&&UC.length > 0 && UC.map((certificate) => (
                                             <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0">
                                                 <td className="p-4 text-center text-sm text-blue-600 underline " onClick={() => handleViewCertificate(certificate)}>{certificate._id}</td>
                                                 <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.type}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.currentYear}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.scheme}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.ucData.currentYear}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.ucData.scheme}</td>
                                                 <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.status}</td>
 
                                             </tr>
                                         ))
-                                    }{nonRecurringCertificates&&nonRecurringCertificates&&nonRecurringCertificates.length > 0 &&nonRecurringCertificates.map((certificate) => (
-                                            <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-gray-500 last:border-b-0">
-                                                <td className="p-4 text-center text-sm text-blue-600 underline" onClick={() => handleViewCertificate(certificate)}>{certificate._id}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.type}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.currentYear}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.scheme}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.status}</td>
-                                            </tr>
-                                        ))
                                     }                                      
-                                    {recurringCertificates.length === 0 && nonRecurringCertificates.length === 0 &&
+                                    {UC&&UC.length === 0 &&
                                         <tr>
                                             <td colSpan="5" className="p-6 text-center text-gray-500">No Utilization Certificates Found</td>
                                         </tr>

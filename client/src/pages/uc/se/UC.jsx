@@ -178,7 +178,6 @@ const UCForm = () => {
         setError(result.message || `Error fetching ${type} UC data`);
         return;
       }
-
       setUCData(result.data);
       console.log(result.data);
     } catch (err) {

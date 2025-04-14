@@ -81,6 +81,8 @@ import FReport from "./pages/uc/se/Report";
 import ProjDashboard from "./pages/college/ProjectDashboard";
 import InstiQuotations from "./pages/college/Project/Quotations";
 import InstiQuotation from "./pages/college/Project/View.jsx";
+import SEPage from "./pages/college/Project/SE.jsx";
+
 function App() {
   const getData = async () => {
     try {
@@ -190,6 +192,7 @@ function MainLayout() {
           <Route path="/view-expenses/:projectId" element={<ViewExpenses />} />
           <Route path="/comments/:projectId/:ucType" element={<CommentsPage />} />
           <Route path="/ucInsti/:projectId" element={<UCPage />} />
+          <Route path="/seInsti/:projectId" element={<SEPage />} />
           <Route path="/institute/uc" element={<ApproveUC />} />
           <Route path="/institute/se" element={<ApproveSE />} />
           <Route path="/institute/requests" element={<ChangeInsti />} />

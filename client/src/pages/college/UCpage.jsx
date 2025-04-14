@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams,Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";
-import InstituteSidebar from "../../components/InstituteSidebar";
+import Sidebar from "../../components/InstituteSidebar";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -12,8 +12,8 @@ const UCPage = () => {
     const { projectId } = useParams();
     const [ucType, setUcType] = useState("recurring");
     const[comments, setComments] = useState([]);
+    const [uc,setUc]=useState([]);
     const[newComment, setNewComment] = useState("");
-    // const [loading, setLoading] = useState(true);
     const [activeSection, setActiveSection] = useState("uc-page");
       const [error, setError] = useState("");
       const [fetchError, setFetchError] = useState("");
@@ -23,7 +23,6 @@ const UCPage = () => {
     useEffect(() => {
         const fetchComments = async () => {
             console.log("comments display");
-            // setLoading(true);
             try {
               const response = await fetch(`${url}uc-comments/${projectId}/${ucType}`, {
                 method: "GET",
@@ -49,7 +48,28 @@ const UCPage = () => {
               setFetchError("Failed to fetch comments");
             } 
           };
-      
+
+          const fetchUC=async()=>{
+              try {
+                const token= localStorage.getItem("token");
+                const response = await fetch(`${url}institute/ucforms/${projectId}`, {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                   accessToken:token
+                  }
+                });
+                
+                const data=await response.json();
+                if(response.ok){
+                  setUc([...data.grant]);
+                }
+            } catch (err) {
+              console.error("Error fetching UC:", err.message);
+              setFetchError("Failed to fetch UC");
+            } 
+          }
+          fetchUC();
           fetchComments();
         }, [projectId, ucType, url]);
     
@@ -123,9 +143,6 @@ const UCPage = () => {
           setError(`Failed to fetch ${ucType} UC data`);
         }
       };
-
-
-
       const handleSaveAsPDF = () => {
         const pdf = new jsPDF("p", "mm", "a4");
     
@@ -187,18 +204,40 @@ const UCPage = () => {
       //   setSelectedType(ucType);
       //   fetchUCData(ucType);
       // };
-
-
-
-      
+      const [statusFilter, setStatusFilter] = useState("");
+        const [searchTitle, setSearchTitle] = useState("");
+        const [filtereduc,setFilteredUC]=useState("");
+        const [statFilter,setStatFilter]=useState("");
+      useEffect(() => {
+         let filtered = uc;
+     
+         if (statusFilter) {
+           filtered = filtered.filter((proposal) => proposal.type === statusFilter);
+         }
+         if(statFilter){
+          filtered = filtered.filter((proposal) => proposal.status === statFilter);
+         }
+     
+         if (searchTitle) {
+           filtered = filtered.filter((proposal) =>
+             proposal.ucData.title.toLowerCase().includes(searchTitle.toLowerCase()) ||
+             (proposal.ucData?.principalInvestigator?.toLowerCase().includes(searchTitle.toLowerCase()) ?? "")
+          );
+         }
+     
+         setFilteredUC(filtered);
+       }, [statusFilter,statFilter, searchTitle, uc]);
     
       return (
-        <div className="flex bg-gray-100 min-h-screen">
-          <InstituteSidebar />
-          <div className="flex-grow p-6">
-            <Navbar />
-            <div className="bg-white shadow-md rounded-lg p-6">
-              <h1 className="text-3xl font-bold text-center mb-6">Utilization Certificate</h1>
+        <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex flex-grow">
+          <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+          <div className="p-6 space-y-6 mt-5 mr-9 ml-9 flex-grow">
+        <div className="bg-white shadow-md rounded-xl p-6 border-l-8 border-teal-600">
+        <h1 className="text-4xl font-extrabold text-gray-800 mb-2 text-center">Utilization Certificates</h1>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-md shadow-mt">
               <div className="mb-6">
                 <label htmlFor="ucType" className="font-semibold mr-2 text-center">
                   UC Type:
@@ -219,10 +258,8 @@ const UCPage = () => {
               >
                 View UC
               </button>
-            </div>
-    
-            <div className="bg-white shadow-md rounded-lg p-6 mt-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Comments</h2>
+              <div></div>
+              <h2 className="text-xl font-semibold text-gray-800 mt-6 mb-1">Comments</h2>
               {fetchError ? (
                 <p className="text-center text-red-500">{fetchError}</p>
               ) : comments && comments.length > 0 ? (
@@ -231,7 +268,6 @@ const UCPage = () => {
                     <li key={comment._id} className="p-4 border rounded-lg bg-gray-50">
                       <p className="text-gray-700">
                         <strong>Added By:</strong> {comment.role} {comment.userId?.Name }
-                       {/* || "Unknown User": comment.userId?.college || "Unknown Institute" */}
                         
                       </p>
                       <p className="text-gray-700">
@@ -259,15 +295,80 @@ const UCPage = () => {
                 >
                   Add Comment
                 </button>
-              </div>
-
             </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md overflow-hidden p-4">
+            <div className="flex justify-between mb-4 gap-4">
+              <input
+                type="text"
+                placeholder="Search by Title"
+                value={searchTitle}
+                onChange={(e) => setSearchTitle(e.target.value)}
+                className="flex-grow border border-gray-300 rounded-md px-4 py-2"
+              />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border border-gray-300 rounded-md px-4 py-2"
+              >
+                <option value="">All Type</option>
+                <option value="nonRecurring">Non Recurring</option>
+                <option value="recurring">Recurring</option>
+              </select>
+              <select
+                value={statFilter}
+                onChange={(e) => setStatFilter(e.target.value)}
+                className="border border-gray-300 rounded-md px-4 py-2"
+              > 
+                <option value="">All Status</option>
+                <option value="approvedByAdmin">Approved By Admin</option>
+                <option value="approvedByInst">Approved By Institute</option>
+                <option value="pendingAdminApproval">Pending By Admin</option>
+                <option value="rejectedByAdmin">Rejected By Admin</option>
+                <option value="pending">Pending By Institute</option>
+
+              </select>
+            </div>
+
+            {filtereduc.length > 0 ? (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Project ID</th>
+                    <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Title</th>
+                    <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Principal Investigator(s)</th>
+                    <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Type</th>
+                    <th className="px-6 py-3 text-left text-xs text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filtereduc.map((proposal) => (
+                    <tr key={proposal._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        <Link to={`/institute/project-dashboard/${proposal._id}`} className="text-blue-500 hover:underline">
+                          {proposal._id}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{proposal?.ucData.title || "No Title"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{proposal?.ucData.principalInvestigator || "No Title"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{proposal?.type}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{proposal?.status === "approvedByAdmin" ? "Approved By Admin" : proposal?.status === "approvedByInst" ? "Approved By Institute" :  proposal?.status === "pendingAdminApproval" ? "Pending By Admin":proposal.status==="rejectedByAdmin" ?"Rejected By Admin":"Pending"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-center">No Projects found for this user.</p>
+            )}
+          </div>
           </div>
     
           {isModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-lg p-6 w-3/4 max-w-6xl">
-      <h2 className="text-2xl font-bold mb-4">Utilization Certificate</h2>
+                    <div className="fixed inset-0 z-30 bg-black bg-opacity-50 flex items-center justify-center">
+       <div className="bg-white p-6 rounded-lg w-11/12 max-w-4xl shadow-2xl max-h-[90vh] overflow-y-auto relative">
+            <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Utilization Certificate - {ucType} </h2>
+
+            <div className="space-y-4 text-sm text-gray-700">
       {ucData ? (
         <div id="uc-details" className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
           <h3 className="text-lg font-semibold text-blue-700 mb-4">
@@ -367,8 +468,10 @@ const UCPage = () => {
         </button>
       </div>
     </div>
-  </div>
+    </div>
+</div>
 )}
+</div>
         </div>
       );
     };

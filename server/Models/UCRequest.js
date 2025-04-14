@@ -8,7 +8,6 @@ const UCRequestSchema = new mongoose.Schema({
     instituteStamp: { type: String, default: "null" },
     status: { type: String, enum: ["pending", "approvedByInst", "approved", "pendingAdminApproval","approvedByAdmin", "rejectedByAdmin"], default: "pending" },
     submissionDate: { type: Date, default: Date.now },
-    // approvalDate: Date
 });
 
 module.exports = mongoose.model("UCRequest", UCRequestSchema);

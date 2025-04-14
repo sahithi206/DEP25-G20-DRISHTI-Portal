@@ -128,7 +128,7 @@ const ProjectDashboard = () => {
                         <div className="grid grid-cols-3 gap-4 p-5">
 
                             <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View Quotations", onClick: () => navigate(`/institute/viewQuotations/${id}`) }]} className="bg-blue-500 text-white" />
-                            <HoverDropdownButton label="Upload SE/UC" options={[{ label: "Upload SE", onClick: () => navigate(`/se/${id}`) }, { label: "Generate UC", onClick: () => navigate(`/uc/${id}`) }, { label: "View Certificates", onClick: () => navigate(`/certificates/${id}`) }]} className="bg-green-500 text-white" />
+                            <HoverDropdownButton label="Upload SE/UC" options={[{ label: "View SE", onClick: () => navigate(`/seInsti/${id}`) }, { label: "View UC", onClick: () => navigate(`/ucInsti/${id}`) }]} className="bg-green-500 text-white" />
                             <HoverDropdownButton label="Expenses" options={[{ label: "Expense", onClick: () => navigate(`/view-expenses/${id}`) }]} className="bg-red-500 text-white" />
                         </div>
 

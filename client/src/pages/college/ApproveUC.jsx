@@ -20,14 +20,13 @@ const ApproveUC = () => {
   const [ucData, setUcData] = useState(null);
   const [piSignature, setPiSignature] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [activeSection, setActiveSection] = useState("us-se");
+  const [activeSection, setActiveSection] = useState("uc");
   const [showUploadOption, setShowUploadOption] = useState(false);
   const navigate = useNavigate();
 
   const stampCanvas = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Fetch pending requests from localStorage on component mount
   useEffect(() => {
     const fetchPending = async () => {
       try {
@@ -49,7 +48,33 @@ const ApproveUC = () => {
     };
     fetchPending();
   }, []);
-
+  const [sortOrder, setSortOrder] = useState("newest");
+    const [searchTitle, setSearchTitle] = useState("");
+    const [filteredUc, setFilteredUc] = useState([]);
+      useEffect(() => {
+        const filterrequests = () => {
+          let filtered = pendingRequests;
+          if (searchTitle) {
+            const searchTerm = searchTitle.toLowerCase();
+            filtered = filtered.filter((project) => {
+              if (project.name?.toLowerCase().includes(searchTerm)) return true;
+            
+              if ((project?.scheme ?? "Change Institute").toLowerCase().includes(searchTerm)) return true;
+    
+              return false;
+            });
+          }
+          
+          if (sortOrder === "newest") {
+            filtered.sort((a, b) => new Date(b.submissionDate || 0) - new Date(a.submissionDate || 0));
+          } else if (sortOrder === "oldest") {
+            filtered.sort((a, b) => new Date(a.submissionDate || 0) - new Date(b.submissionDate || 0));
+          }
+          setFilteredUc(filtered);
+        };
+    
+        filterrequests();
+      }, [searchTitle,sortOrder,pendingRequests ]);
 
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
@@ -65,11 +90,9 @@ const ApproveUC = () => {
     setInstituteStamp(null);
   };
 
-  // Handle file upload for signature
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check if file is an image
       if (!file.type.startsWith('image/')) {
         setError("Please upload only image files (PNG, JPG, JPEG)");
         return;
@@ -173,7 +196,6 @@ const ApproveUC = () => {
     setLoading(true);
 
     try {
-      // Send approval to backend
       const res = await fetch(`${url}uc/approve/${selectedRequest._id}`, {
         method: "PUT",
         headers: {
@@ -190,15 +212,12 @@ const ApproveUC = () => {
         throw new Error(data.message || "Approval failed");
       }
 
-      // Remove approved request from pending list
-      const updatedPendingRequests = pendingRequests.filter(req => req._id !== selectedRequest._id);
-      setPendingRequests(updatedPendingRequests);
+      const updatedPendingRequests = filteredUc.filter(req => req._id !== selectedRequest._id);
+      setFilteredUc(updatedPendingRequests);
 
-      // Show success message
       setShowApproveModal(false);
       setShowSuccessModal(true);
 
-      // Reset UI
       setTimeout(() => {
         setSelectedRequest(null);
         setInstituteStamp(null);
@@ -549,8 +568,44 @@ const ApproveUC = () => {
           {!selectedRequest ? (
             <div className="bg-white rounded-lg shadow-md p-6 mt-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Pending Requests</h2>
-
-              {pendingRequests.length === 0 ? (
+              <div className="flex space-x-4 mb-6">
+          <div className="relative flex-grow">
+                <input
+                  type="text"
+                  placeholder="Search projects by PI name or Type..."
+                  value={searchTitle}
+                  onChange={(e) => setSearchTitle(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    role="img"
+                    aria-label="Search icon"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
+          </div>
+              {filteredUc.length === 0 ? (
                 <div className="text-center py-8">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -559,7 +614,7 @@ const ApproveUC = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pendingRequests.map((request) => (
+                  {filteredUc.map((request) => (
                     <div
                       key={request.id}
                       className="border p-4 rounded-lg cursor-pointer transition-all duration-200 hover:border-grey-300 hover:bg-green-50"

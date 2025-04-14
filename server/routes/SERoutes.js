@@ -103,7 +103,22 @@ router.put("/approve/:id", async (req, res) => {
 // Get SE by projectId
 router.get("/:projectId", async (req, res) => {
     try {
-        const se = await SE.findOne({ projectId: req.params.projectId });
+        const se = await SE.find({ projectId: req.params.projectId });
+
+        if (!se) {
+            return res.status(404).json({ success: false, message: "No SE record found for this projectId" });
+        }
+
+        console.log("SE DATA:", se);
+        res.json({ success: true, data: se });
+    } catch (err) {
+        console.error("Error fetching SE by projectId:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+router.get("/:Id", async (req, res) => {
+    try {
+        const se = await SE.findById({_id:req.params.Id});
 
         if (!se) {
             return res.status(404).json({ success: false, message: "No SE record found for this projectId" });
@@ -135,17 +150,14 @@ router.get("/project/:name", async (req, res) => {
     }
 });
 
-// Get latest SE for a project (either pending or approved)
 router.get("/latest", async (req, res) => {
     try {
         const { projectId } = req.query;
 
-        // Validate projectId
         if (!projectId) {
             return res.status(400).json({ success: false, message: "Project ID is required" });
         }
 
-        // Fetch the latest SE document for the given projectId
         const se = await SE.findOne({ projectId }).sort({ createdAt: -1 });
 
         if (!se) {
@@ -158,8 +170,6 @@ router.get("/latest", async (req, res) => {
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 });
-
-// Get all SEs by institute
 router.get("/institute/:institute", async (req, res) => {
     try {
         const { institute } = req.params;
