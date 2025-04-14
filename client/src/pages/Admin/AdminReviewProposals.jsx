@@ -15,6 +15,11 @@ const AdminProposalReview = () => {
     const [showFullDetails, setShowFullDetails] = useState(false);
     const URL = import.meta.env.VITE_REACT_APP_URL;
 
+    const [searchQuery, setSearchQuery] = useState("");
+const [filterByInstitute, setFilterByInstitute] = useState("");
+const [filterByPI, setFilterByPI] = useState("");
+const [sortOrder, setSortOrder] = useState("asc"); 
+
 
 
     useEffect(() => {
@@ -226,6 +231,32 @@ const AdminProposalReview = () => {
         }
     };
 
+    const filteredAndSortedProposals = proposals
+    .filter((proposal) => {
+        // Filter by search query (title)
+        const matchesSearch = proposal.researchDetails?.Title?.toLowerCase().includes(searchQuery.toLowerCase());
+
+        // Filter by institute
+        const matchesInstitute = filterByInstitute
+            ? proposal.generalInfo?.instituteName?.toLowerCase().includes(filterByInstitute.toLowerCase())
+            : true;
+
+        // Filter by PI
+        const matchesPI = filterByPI
+            ? proposal.piInfo?.members?.some((member) =>
+                  member.name.toLowerCase().includes(filterByPI.toLowerCase())
+              )
+            : true;
+
+        return matchesSearch && matchesInstitute && matchesPI;
+    })
+    .sort((a, b) => {
+        // Sort by submission date
+        const dateA = new Date(a.proposal.date);
+        const dateB = new Date(b.proposal.date);
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+
     return (
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
@@ -244,7 +275,57 @@ const AdminProposalReview = () => {
                     </div>
                 )}
 
-                <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+                <div className="mt-6 bg-white p-6 rounded-lg shadow-md w-full">
+                <div className="flex mt-6 gap-4 w-full">
+    <div className="flex justify-between item-center gap-4 bg-white p-4 rounded-lg shadow-md mb-6 w-full">
+        <h3 className="text-lg font-bold mb-4">Filter & Sort</h3>
+
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Search by Title</label>
+            <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Enter title..."
+                className="w-96 p-2 border rounded"
+            />
+        </div>
+
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Institute</label>
+            <input
+                type="text"
+                value={filterByInstitute}
+                onChange={(e) => setFilterByInstitute(e.target.value)}
+                placeholder="Enter institute name..."
+                className="w-96 p-2 border rounded"
+            />
+        </div>
+
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by PI</label>
+            <input
+                type="text"
+                value={filterByPI}
+                onChange={(e) => setFilterByPI(e.target.value)}
+                placeholder="Enter PI name..."
+                className="w-96 p-2 border rounded"
+            />
+        </div>
+
+        <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sort by Submission Date</label>
+            <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="w-96 p-2 border rounded"
+            >
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+        </div>
+    </div>
+        </div>
                     {loading ? (
                         <p>Loading proposals...</p>
                     ) : proposals.length === 0 ? (
@@ -262,7 +343,7 @@ const AdminProposalReview = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {proposals.map(proposal => (
+                                {filteredAndSortedProposals.map(proposal => (
                                     <tr key={proposal.proposal._id} className="border-b">
                                         <td className="p-2">{proposal.proposal._id}</td>
                                         <td className="p-2">{proposal.generalInfo?.instituteName}</td>
