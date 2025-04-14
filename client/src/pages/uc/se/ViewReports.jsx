@@ -14,7 +14,7 @@ export default function Report() {
     const [filteredReports, setFilteredReports] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [filterType, setFilterType] = useState("");
-    const [sortOrder, setSortOrder] = useState("asc");
+    const [sortOrder, setSortOrder] = useState("desc");
     const { getReports } = useContext(AuthContext);
 
     useEffect(() => {

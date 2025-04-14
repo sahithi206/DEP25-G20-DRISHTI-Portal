@@ -200,7 +200,7 @@ const SEForm = () => {
                     name: info.generalInfo?.name || "NA",
                     institute: info.generalInfo?.instituteName || "NA",
                     title: info.project?.Title || "NA",
-                    scheme: info.project?.Scheme || "NA",
+                    scheme: info.project?.Scheme.name || "NA",
                     currentYear: info.project?.currentYear || "NA",
                     TotalCost: info.project?.TotalCost || 0,
                     startDate: formattedStartDate,
@@ -891,7 +891,7 @@ const SEForm = () => {
                                             </tr>
                                         ))}
                                         <tr className="text-center font-bold">
-                                            <td className="border border-gray-400 px-4 py-2">{yearlyExp.length + 1}</td>
+                                            <td className="border border-gray-400 px-4 py-2">7</td>
                                             <td className="border border-gray-400 px-4 py-2">Total</td>
                                             <td className="border border-gray-400 px-4 py-2">
                                                 {budgetSanctioned.total || 0}

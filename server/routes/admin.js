@@ -42,7 +42,10 @@ router.get("/approvedProposals", fetchAdmin, async (req, res) => {
       return res.status(400).json({ success: false, msg: "No Schemes found" });
     }
     const schemeIds = Schemes.map(scheme => scheme._id);
-    const proposals = await Proposal.find({ Scheme: { $in: schemeIds }, status: "Approved" });
+    const proposals = await Proposal.find({ Scheme: { $in: schemeIds }, status: "Approved" }).populate("Scheme");
+    if (!proposals || proposals.length === 0) {
+        return res.status(400).json({ success: false, msg: "No proposals found" });
+    }
     console.log("Fetched Proposals:", proposals);
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No proposals found" });
@@ -69,6 +72,8 @@ router.get("/approvedProposals", fetchAdmin, async (req, res) => {
     res.status(500).json({ success: false, msg: "Failed to Fetch Projects", error: "Internal Server Error" });
   }
 });
+
+
 
 router.get("/approvedProposal/:id", fetchAdmin, async (req, res) => {
   const { id } = req.params;
@@ -267,17 +272,36 @@ router.post("/createProject/:proposalId", async (req, res) => {
 router.get("/get-projects", fetchAdmin, async (req, res) => {
   try {
 
-    const proposals = await Project.find();
+    let proposals = await Project.find().populate("Scheme");
     console.log("Fetched Projects:", proposals);
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No Projects found" });
     }
-
+     let projects= await Promise.all(
+            proposals.map(async (proj,idx)=>{
+              const start = new Date(proj.startDate);
+        const end = new Date(proj.endDate);
+        let status = "";
+        if (new Date() < start) {
+          status = "Approved";
+        } else if (new Date() >= start && new Date() <= end) {
+          status = "Ongoing";
+        } else {
+          status = "Completed";
+        }
+        if(status!=proj.status){
+          let project = await Project.findByIdAndUpdate(proj._id,{status:status},{new:true});
+           proj=project;
+        }
+          return proj;
+            })
+        )
+       proposals=proposals.filter(prop=>prop.status==="Ongoing");
     const data = await Promise.all(
-      proposals.map(async (proposal) => {
-        const generalInfo = await GeneralInfo.findById(proposal.generalInfoId);
-        const researchDetails = await ResearchDetails.findById(proposal.researchDetailsId);
-        return { proposal, generalInfo, researchDetails };
+      proposals.map(async (project) => {
+        const generalInfo = await GeneralInfo.findById(project.generalInfoId);
+        const researchDetails = await ResearchDetails.findById(project.researchDetailsId);
+        return { project, generalInfo, researchDetails };
       })
     );
 
@@ -294,9 +318,21 @@ router.get("/get-project/:projectid", fetchAdmin, async (req, res) => {
   try {
     let { projectid } = req.params;
     let id = new ObjectId(projectid);
-    const project = await Project.findById(id);
+    let project = await Project.findById(id).populate("Scheme");
+     const start = new Date(project.startDate);
+        const end = new Date(project.endDate);
+        
+        let status = "";
+        if (new Date() < start) {
+          status = "Approved";
+        } else if (new Date() >= start && new Date() <= end) {
+          status = "Ongoing";
+        } else {
+          status = "Completed";
+        }
+        project = await Project.findByIdAndUpdate(id,{status:status},{new:true}).populate("Scheme");
     const ids = await Project.findById(id)
-      .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
+      .populate("generalInfoId researchDetailsId Scheme PIDetailsId YearlyDataId");
     console.log(project);
     const generalInfo = await GeneralInfo.findById(ids.generalInfoId);
     const researchDetails = await ResearchDetails.findById(ids.researchDetailsId);
@@ -316,6 +352,7 @@ router.get("/get-project/:projectid", fetchAdmin, async (req, res) => {
     const budget = ids.YearlyDataId?.[project.currentYear - 1]?.budgetSanctioned || null;
     const budgetused = ids.YearlyDataId?.[project.currentYear - 1]?.budgetUsed || null;
     const budgetUnspent = ids.YearlyDataId?.[project.currentYear - 1]?.budgetUnspent || null;
+    console.log(1);
     return res.status(200).json({
       success: true, msg: "Fetched Project's Details Successfully",
       project, generalInfo, researchDetails, PIDetails, budget, budgetused, budgetUnspent, yearlyExp, yearlySanct,
@@ -655,8 +692,8 @@ router.get("/completed-projects", fetchAdmin, async (req, res) => {
 
         const completedProjects = await Project.find({
             Scheme: { $in: schemeIds },
-            status: "Completed", 
-        }).populate("generalInfoId bankDetailsId researchDetailsId PIDetailsId YearlyDataId");
+            status:"Completed",
+          }).populate("generalInfoId bankDetailsId PIDetailsId  Scheme researchDetailsId PIDetailsId YearlyDataId");
 
         console.log("Fetched Completed Projects:", completedProjects);
 

@@ -21,6 +21,7 @@ const ApproveUC = () => {
   const [piSignature, setPiSignature] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("uc");
+
   const [showUploadOption, setShowUploadOption] = useState(false);
   const navigate = useNavigate();
 
@@ -50,6 +51,7 @@ const ApproveUC = () => {
   }, []);
   const [sortOrder, setSortOrder] = useState("newest");
     const [searchTitle, setSearchTitle] = useState("");
+    const [type,setType]=useState("");
     const [filteredUc, setFilteredUc] = useState([]);
       useEffect(() => {
         const filterrequests = () => {
@@ -64,6 +66,9 @@ const ApproveUC = () => {
               return false;
             });
           }
+          if(type){
+            filtered = filtered.filter(project => project.type === type);
+          }
           
           if (sortOrder === "newest") {
             filtered.sort((a, b) => new Date(b.submissionDate || 0) - new Date(a.submissionDate || 0));
@@ -74,7 +79,7 @@ const ApproveUC = () => {
         };
     
         filterrequests();
-      }, [searchTitle,sortOrder,pendingRequests ]);
+      }, [searchTitle,sortOrder,pendingRequests,type]);
 
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
@@ -603,6 +608,15 @@ const ApproveUC = () => {
               >
                 <option value="newest">Newest</option>
                 <option value="oldest">Oldest</option>
+              </select>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                 <option value="">All </option>
+                <option value="nonRecurring">Non Recurring</option>
+                <option value="recurring">Recurring</option>
               </select>
           </div>
               {filteredUc.length === 0 ? (

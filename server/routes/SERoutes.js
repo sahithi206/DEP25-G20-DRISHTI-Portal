@@ -116,9 +116,12 @@ router.get("/:projectId", async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
-router.get("/:Id", async (req, res) => {
-    try {
-        const se = await SE.findById({_id:req.params.Id});
+router.get("/get-se/:Id", fetchInstitute, async (req, res) => {
+    try { 
+        
+        const se = await SE.findById(req.params.Id);
+        console.log(req.params.Id);
+        console.log(se);
 
         if (!se) {
             return res.status(404).json({ success: false, message: "No SE record found for this projectId" });

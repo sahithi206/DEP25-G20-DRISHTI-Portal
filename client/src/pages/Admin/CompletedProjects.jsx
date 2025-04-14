@@ -2,26 +2,94 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
+import BudgetAllocationForm from './BudgetAllocationForm';
 
-const CompletedProjects = () => {
+const AdminProposalReview = () => {
     let navigate = useNavigate();
-    const [activeSection, setActiveSection] = useState("completed");
-    const [projects, setProjects] = useState([]);
-    const [filteredProjects, setFilteredProjects] = useState([]);
+    const [activeSection, setActiveSection] = useState("ongoing");
+    const [proposals, setProposals] = useState([]);
+    const [selectedProposal, setSelectedProposal] = useState(null);
+    const [comment, setComment] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+    const URL = import.meta.env.VITE_REACT_APP_URL;
+
     const [searchQuery, setSearchQuery] = useState("");
     const [filterByInstitute, setFilterByInstitute] = useState("");
     const [filterByPI, setFilterByPI] = useState("");
-    const [sortOrder, setSortOrder] = useState("asc");
     const [showFilterBox, setShowFilterBox] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-    const URL = import.meta.env.VITE_REACT_APP_URL;
 
     useEffect(() => {
-        const fetchCompletedProjects = async () => {
+        if (selectedProposal) {
+            console.log("Selected Proposal Data:", selectedProposal);
+            console.log("PI Details:", selectedProposal.piInfo);
+            console.log("Budget Summary:", selectedProposal.totalBudget);
+            console.log("Bank Details:", selectedProposal.bankInfo);
+        }
+    }, [selectedProposal]);
+   const [schemes,setSchemes]=useState([]);
+       useEffect(()=>{
+           const getSchemes= async()=>{
+               try{
+                   const res = await fetch(`${URL}schemes/get-allschemes`,{
+                       headers:{
+                           "Content-Type":"application/json",
+                           accessToken:localStorage.getItem("token")
+                       }
+                   })
+                   const data= await res.json();
+                   console.log(data);
+                   setSchemes(data);
+               }catch(e){
+                   console.log(e);
+               }
+           }
+           getSchemes();
+          }, [URL])
+       
+       const [schemeFilter, setFilter] = useState(""); 
+       const [sortOrder, setSortOrder] = useState("desc"); 
+         const [searchTitle, setSearchTitle] = useState("");
+                 const [filteredProjects, setFilteredUc] = useState([]);
+       useEffect(() => {
+           const filteredProjects = async () => {
+               let filtered = proposals;
+   
+               if (searchTitle) {
+                   const searchTerm = searchTitle.toLowerCase();
+                   filtered = filtered.filter((project) => {
+                       if (project?.generalInfoId?.instituteName?.toLowerCase().includes(searchTerm)) return true;
+                       if (project?.PI.some(member => member.toLowerCase().includes(searchTerm))) return true;
+                       if (project?.Scheme?.name.toLowerCase().includes(searchTerm)) return true;
+                       if (project?.Title?.toLowerCase().includes(searchTerm)) return true;
+
+                       return false;
+                   });
+               }
+   
+               if (schemeFilter) {
+                   filtered = filtered.filter(project => project.project.Scheme.name === schemeFilter);
+               }
+   
+               if (sortOrder) {
+                   filtered = filtered.sort((a, b) => {
+                       const dateA = new Date(a.project.date);
+                       const dateB = new Date(b.project.date);
+                       return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+                   });
+               }
+   
+               setFilteredUc(filtered);
+           };
+   
+           filteredProjects();
+       }, [searchTitle, sortOrder, proposals, schemeFilter]);
+    useEffect(() => {
+        const fetchPendingProposals = async () => {
             const token = localStorage.getItem("token");
             if (!token) {
-                setError("Please log in to view projects.");
+                setError("Please log in to view proposals.");
                 setLoading(false);
                 return;
             }
@@ -31,120 +99,90 @@ const CompletedProjects = () => {
                     headers: { "accessToken": token },
                 });
                 const data = await response.json();
-                console.log("Data:", data);
-                setProjects(data.data || []);
-                setFilteredProjects(data.data || []);
+                setProposals(data.data||[]);
+
+                console.log(data);
             } catch (err) {
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
-        fetchCompletedProjects();
+        fetchPendingProposals();
     }, []);
 
-    // Dynamic filtering and sorting
-    useEffect(() => {
-        const filtered = projects
-            .filter((project) => {
-                // Filter by search query (title)
-                const matchesSearch = project.Title?.toLowerCase().includes(searchQuery.toLowerCase());
-
-                // Filter by institute
-                const matchesInstitute = filterByInstitute
-                    ? project.generalInfoId?.instituteName?.toLowerCase().includes(filterByInstitute.toLowerCase())
-                    : true;
-
-                // Filter by PI
-                const matchesPI = filterByPI
-                    ? project.PI?.some((pi) => pi.toLowerCase().includes(filterByPI.toLowerCase()))
-                    : true;
-
-                return matchesSearch && matchesInstitute && matchesPI;
-            })
-            .sort((a, b) => {
-                // Sort by completion date
-                const dateA = new Date(a.endDate);
-                const dateB = new Date(b.endDate);
-                return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-            });
-
-        setFilteredProjects(filtered);
-    }, [searchQuery, filterByInstitute, filterByPI, sortOrder, projects]);
+   
 
     return (
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
                 <AdminNavbar activeSection={activeSection} />
+                {successMessage && (
+                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4">
+                        {successMessage}
+                    </div>
+                )}
+
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
                         {error}
                     </div>
                 )}
 
-                <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-md mb-6 mt-6">
-                    <h3 className="text-lg font-bold">Completed Projects</h3>
-                    <button
-                        onClick={() => setShowFilterBox(!showFilterBox)}
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    >
-                        {showFilterBox ? "Close Filters" : "Sort & Filter"}
-                    </button>
-                </div>
+                
 
-                {showFilterBox && (
-                    <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Search by Title</label>
-                                <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Enter title..."
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
+                  
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Institute</label>
-                                <input
-                                    type="text"
-                                    value={filterByInstitute}
-                                    onChange={(e) => setFilterByInstitute(e.target.value)}
-                                    placeholder="Enter institute name..."
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
+                <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+                <div className="flex space-x-4  mb-4">
+                   <div className="relative flex-grow">
+                       <input
+                           type="text"
+                           placeholder="Search projects by PI name ..."
+                           value={searchTitle}
+                           onChange={(e) => setSearchTitle(e.target.value)}
+                           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       />
+                       <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                           <svg
+                               xmlns="http://www.w3.org/2000/svg"
+                               className="h-5 w-5"
+                               fill="none"
+                               viewBox="0 0 24 24"
+                               stroke="currentColor"
+                               role="img"
+                               aria-label="Search icon"
+                           >
+                               <path
+                                   strokeLinecap="round"
+                                   strokeLinejoin="round"
+                                   strokeWidth={2}
+                                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                               />
+                           </svg>
+                       </div>
+                   </div>
+                   <select
+                       value={sortOrder}
+                       onChange={(e) => setSortOrder(e.target.value)}
+                       className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   >
+                       <option value="newest">Newest</option>
+                       <option value="oldest">Oldest</option>
+                   </select>
+                   <select
+                       value={schemeFilter}
+                       onChange={(e) => setFilter(e.target.value)}
+                       className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   >   
+                       <option value="">All</option>
+                       {schemes && schemes.length > 0 && schemes.map((val, index) => (
+                           <option value={val.name} key={val._id}>{val.name}</option>
+                       ))}
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Filter by PI</label>
-                                <input
-                                    type="text"
-                                    value={filterByPI}
-                                    onChange={(e) => setFilterByPI(e.target.value)}
-                                    placeholder="Enter PI name..."
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Sort by Date</label>
-                                <select
-                                    value={sortOrder}
-                                    onChange={(e) => setSortOrder(e.target.value)}
-                                    className="w-full p-2 border rounded"
-                                >
-                                    <option value="asc">Ascending</option>
-                                    <option value="desc">Descending</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                <div className="bg-white p-6 rounded-lg shadow-md">
+                   </select>
+               </div>
                     {loading ? (
                         <p>Loading Projects...</p>
                     ) : filteredProjects.length === 0 ? (
@@ -153,33 +191,33 @@ const CompletedProjects = () => {
                         <table className="w-full border">
                             <thead>
                                 <tr className="bg-gray-200">
-                                <th className="p-2 text-left">Title</th>
                                     <th className="p-2 text-left">Project ID</th>
+                                    <th className="p-2 text-left">Title</th>
+                                    <th className="p-2 text-left">Principal Investigator(s)</th>
+                                    <th className="p-2 text-left">Scheme</th>
+
                                     <th className="p-2 text-left">Institute</th>
-                                    <th className="p-2 text-left">Completion Date</th>
-                                    <th className="p-2 text-left">Actions</th>
+                                    
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredProjects.map((project) => (
-                                    <tr key={project._id} className="border-b">
-                                                                                <td className="p-2">{project.Title || "N/A"}</td>
-
-                                        <td className="p-2">{project._id || "N/A"}</td>
-                                        <td className="p-2">{project.generalInfoId?.instituteName || "N/A"}</td>
-                                        <td className="p-2">
-                                            {project.endDate
-                                                ? new Date(project.endDate).toLocaleDateString()
-                                                : "N/A"}
+                                    <tr key={project.project?._id} className="border-b">
+                                        <td className="p-2 text-sm text-blue-500 hover:underline"  onClick={() => navigate(`/admin/project/${project?._id}`)}>{project?._id || "N/A"}</td>
+                                        <td className="p-2 text-sm"  onClick={() => navigate(`/admin/project/${project?._id}`)}>{project?.Title || "N/A"}</td>
+                                        <td className="p-2 text-sm"  onClick={() => navigate(`/admin/project/${project?._id}`)}>
+                                        <ul className="list-disc pl-5">
+                                                {project.PI?.length > 0
+                                                    ? project.PI.map((member, index) => (
+                                                        <li key={index}>{member}</li>
+                                                    ))
+                                                    : <li>N/A</li>}
+                                            </ul>
                                         </td>
-                                        <td className="p-2">
-                                            <button
-                                                onClick={() => navigate(`/admin/project/${project._id}`)}
-                                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                                            >
-                                                View
-                                            </button>
-                                        </td>
+                                        <td className="p-2 text-sm"  onClick={() => navigate(`/admin/project/${project?._id}`)}>{project?.Scheme?.name}</td>
+                                        <td className="p-2 text-sm"  onClick={() => navigate(`/admin/project/${project?._id}`)}>{project.generalInfoId?.instituteName || "N/A"}</td>
+                                        
+                                       
                                     </tr>
                                 ))}
                             </tbody>
@@ -191,4 +229,4 @@ const CompletedProjects = () => {
     );
 };
 
-export default CompletedProjects;
+export default AdminProposalReview;

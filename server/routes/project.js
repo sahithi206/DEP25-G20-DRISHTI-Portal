@@ -16,6 +16,7 @@ const Scheme = require("../Models/Scheme.js")
 const Auth = require("./auth.js");
 const nodemailer = require("nodemailer");
 const UCRequest=require("../Models/UCRequest.js");
+const Report = require("../Models/progressReport.js");
 const handleSaveAsPDF = () => {
   const pdf = new jsPDF("p", "mm", "a4");
 
@@ -126,7 +127,7 @@ const handleSaveAsPDF = () => {
 
 router.get("/get-projects", fetchUser, async (req, res) => {
   try {
-    let proj = await Project.find({ userId: req.user._id });
+    let proj = await Project.find({ userId: req.user._id }).populate("Scheme");
     if (proj.length <= 0) {
       return res.status(200).json({ success: false, msg: "No Sanctioned Projects" })
     }
@@ -144,7 +145,7 @@ router.get("/get-projects", fetchUser, async (req, res) => {
           status = "Completed";
         }
         if (status != proj.status) {
-          let project = await Project.findByIdAndUpdate(proj._id, { status: status }, { new: true });
+          let project = await Project.findByIdAndUpdate(proj._id, { status: status }, { new: true }).populate("Scheme");
           proj = project;
         }
         return proj;
@@ -188,7 +189,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
     } else {
       status = "Completed";
     }
-    project = await Project.findByIdAndUpdate(id,{status:status},{new:true});
+    project = await Project.findByIdAndUpdate(id,{status:status},{new:true}).populate("Scheme");
     const ids = await Project.findById(id)
       .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
 
@@ -357,7 +358,7 @@ router.post("/se", fetchUser, async (req, res) => {
     if (seCheck) {
       return res.status(400).json({ success: false, msg: "Statement for Current Financial Year was already Submitted" })
     }
-    const se = new SE({
+    let se = new SE({
       projectId: data.projectId,
       name: data.name,
       institute: data.institute,
@@ -378,6 +379,7 @@ router.post("/se", fetchUser, async (req, res) => {
       piSignature: piSignature,
     });
     await se.save();
+     se = await SE.findById(se._id).populate("scheme");
 
     res.status(200).json({ success: true, msg: "Statement of Expenditure not Submitted", se });
   }

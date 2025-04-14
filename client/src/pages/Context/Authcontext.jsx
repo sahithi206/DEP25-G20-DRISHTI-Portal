@@ -499,6 +499,7 @@ const AuthProvider = (props) => {
       }
       const json = await response.json();
       toast.success(json.msg);
+      console.log(json.data);
       console.log(json.msg);
       return json.data;
     } catch (error) {
