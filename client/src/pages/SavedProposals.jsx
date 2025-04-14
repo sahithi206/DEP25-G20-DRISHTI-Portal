@@ -36,6 +36,7 @@ const SavedProposals = () => {
                         duration: String(project.researchDetails?.Duration || ''),
                         status: project.status || 'Unknown',
                         Scheme: schemeName,
+                        date:project.proposal.date,
                         ...(project.researchDetails?.Institute && {
                             institute: project.researchDetails.Institute
                         }),
@@ -55,14 +56,10 @@ const SavedProposals = () => {
             }
         };
         fetchProjects();
-        console.log(approvedProjects);
-        console.log(schemes);
-
         return () => {
             isMounted = false;
         };
     }, [approvedProjects]);
-
     const [schemeFilter, setSchemeFilter] = useState(""); 
        const [sortOrder, setSortOrder] = useState("desc"); 
          const [searchTitle, setSearchTitle] = useState("");
@@ -70,7 +67,7 @@ const SavedProposals = () => {
          
                  const [filteredProjects, setFilteredUc] = useState([]);
        useEffect(() => {
-           const filteredProjects = async () => {
+           const filterProjects = async () => {
                let filtered = acceptedProjects;
    
                if (searchTitle) {
@@ -90,15 +87,15 @@ const SavedProposals = () => {
                    filtered = filtered.sort((a, b) => {
                        const dateA = new Date(a.date);
                        const dateB = new Date(b.date);
-                       return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+                       return sortOrder === "asc" ? dateA - dateB:dateB - dateA ;
                    });
                }
    
                setFilteredUc(filtered);
            };
    
-           filteredProjects();
-       }, [searchTitle, sortOrder, approvedProjects, schemeFilter]);
+           filterProjects();
+       }, [searchTitle, sortOrder, acceptedProjects, schemeFilter]);
     return (
         <div className="flex min-h-screen">
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
@@ -168,8 +165,8 @@ const SavedProposals = () => {
         value={sortOrder}
         onChange={(e) => setSortOrder(e.target.value)}
       >
-        <option value="Newest">Newest First</option>
-        <option value="Oldest">Oldest First</option>
+        <option value="desc">Newest First</option>
+        <option value="asc">Oldest First</option>
       </select>
       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

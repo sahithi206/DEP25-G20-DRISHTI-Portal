@@ -90,11 +90,12 @@ const ProposalInbox = () => {
                     <div className="bg-white shadow-md rounded-xl overflow-hidden">
                         <div className="flex flex-col sm:flex-row gap-4 items-start p-4 sm rounded-lg:items-center">
                             <div className="flex items-center rounded-lg px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 focus-within:bg-white focus-within:ring-1 focus-within">
+                               
                                 <FaSearch className="text-gray-500 mr-2" />
                                 <input
                                     type="text"
                                     placeholder="Search by Institute, Specialization, or Title"
-                                    className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-500 text-sm"
+                                    className="w-full flex-grow bg-transparent outline-none text-gray-800 placeholder-gray-500 text-sm"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -104,31 +105,12 @@ const ProposalInbox = () => {
                                         className="ml-2 text-gray-400 hover:text-gray-600"
                                         aria-label="Clear search"
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
+                                        <FaTimes className="h-4 w-4" />
                                     </button>
                                 )}
                             </div>
 
                             <div className="flex items-center gap-3 w-full sm:w-auto">
-
-                                <div className="relative flex-1 sm:flex-none sm:w-40">
-                                    <select
-                                        className="appearance-none w-full bg-white  rounded-md pl-3 pr-8 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                        value={filter}
-                                        onChange={(e) => setFilter(e.target.value)}
-                                    >
-                                        <option value="All">All Status</option>
-                                        <option value="Rejected">Rejected</option>
-                                        <option value="Approved">Approved</option>
-                                        <option value="Pending">Pending</option>
-                                        <option value="Needs Revision">Needs Revision</option>
-                                    </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                        <FaChevronDown className="text-xs" />
-                                    </div>
-                                </div>
 
                                 <div className="relative flex-1 sm:flex-none sm:w-40">
                                     <select
