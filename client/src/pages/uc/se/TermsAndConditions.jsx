@@ -1,7 +1,7 @@
 const TermsAndConditions = () => {
     return (
       <div className="mt-8 bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm">
-        <h3 className="text-xl font-semibold text-blue-700 mb-4">Terms and Conditions</h3>
+        <h3 className="text-xl font-semibold text-teal-700 mb-4">Terms and Conditions</h3>
         <ul className="list-decimal list-inside text-sm text-gray-700 space-y-3">
         <li>The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.</li>
         <li>There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.</li>
