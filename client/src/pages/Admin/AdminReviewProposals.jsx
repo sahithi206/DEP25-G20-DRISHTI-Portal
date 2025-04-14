@@ -15,6 +15,8 @@ const AdminProposalReview = () => {
     const [showFullDetails, setShowFullDetails] = useState(false);
     const URL = import.meta.env.VITE_REACT_APP_URL;
 
+
+
     useEffect(() => {
         if (selectedProposal) {
             console.log("Selected Proposal Data:", selectedProposal);
@@ -254,6 +256,8 @@ const AdminProposalReview = () => {
                                     <th className="p-2 text-left">Proposal ID</th>
                                     <th className="p-2 text-left">Institute</th>
                                     <th className="p-2 text-left">Title</th>
+                                    <th className="p-2 text-left">PIs</th>
+                                    <th className="p-2 text-left">Submission Date</th>
                                     <th className="p-2 text-left">Actions</th>
                                 </tr>
                             </thead>
@@ -263,6 +267,16 @@ const AdminProposalReview = () => {
                                         <td className="p-2">{proposal.proposal._id}</td>
                                         <td className="p-2">{proposal.generalInfo?.instituteName}</td>
                                         <td className="p-2">{proposal.researchDetails?.Title}</td>
+                                        <td className="p-2">
+                    {proposal.piInfo?.members?.length > 0
+                        ? proposal.piInfo.members.map((member) => member.name).join(", ")
+                        : "N/A"}
+                </td>
+                <td className="p-2">
+                    {proposal.proposal.date
+                        ? new Date(proposal.proposal.date).toLocaleDateString()
+                        : "N/A"}
+                </td>
                                         <td className="p-2">
                                             <button
                                                 onClick={() => setSelectedProposal(proposal)}
@@ -401,7 +415,7 @@ const AdminProposalReview = () => {
                                 <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-6 shadow-sm">
 
                                     {/* PI List */}
-                                    {selectedProposal.piInfo.piList?.length > 0 && (
+                                    {selectedProposal.piInfo.members?.length > 0 && (
                                         <div className="mb-6">
                                             <h3 className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b-2">
                                                 Principal Investigator(s)
@@ -418,13 +432,13 @@ const AdminProposalReview = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {selectedProposal.piInfo.piList.map((pi, index) => (
+                                                        {selectedProposal.piInfo.members.map((member, index) => (
                                                             <tr key={index} className="border-b hover:bg-blue-50">
-                                                                <td className="p-2 border border-gray-200">{pi.Name || "N/A"}</td>
-                                                                <td className="p-2 border border-gray-200">{pi.email || "N/A"}</td>
-                                                                <td className="p-2 border border-gray-200">{pi.Mobile || "N/A"}</td>
-                                                                <td className="p-2 border border-gray-200">{pi.Institute || "N/A"}</td>
-                                                                <td className="p-2 border border-gray-200">{pi.Dept || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{member.name || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{member.email || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{member.mobileNo || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{member.instituteName || "N/A"}</td>
+                                                                <td className="p-2 border border-gray-200">{member.Dept || "N/A"}</td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
