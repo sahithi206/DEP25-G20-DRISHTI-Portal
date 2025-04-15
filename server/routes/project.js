@@ -349,8 +349,8 @@ router.get("/ucforms/nonRecurring/:id", fetchUser, async (req, res) => {
 });
 router.post("/se", fetchUser, async (req, res) => {
   try {
-    const { data, yearlyBudget, budgetSanctioned, manpower, consumables, others, equipment, total, totalExp, balance, piSignature } = req.body;
-    if (!data || !yearlyBudget || !budgetSanctioned || !manpower || !consumables || !others || !equipment || !total || !totalExp || !balance || !piSignature) {
+    const { data, yearlyBudget, budgetSanctioned, manpower, consumables, travel, overhead, others, equipment, total, totalExp, balance, piSignature } = req.body;
+    if (!data || !yearlyBudget || !budgetSanctioned || !manpower || !consumables || !travel || !overhead || !others || !equipment || !total || !totalExp || !balance || !piSignature) {
       return res.status(400).json({ success: false, msg: "Fill all the Details" });
     }
     const seCheck = await SE.findOne({ projectId: data.projectId, scheme: data.scheme, currentYear: data.currentYear });
@@ -371,6 +371,8 @@ router.post("/se", fetchUser, async (req, res) => {
       budgetSanctioned: budgetSanctioned,
       human_resources: manpower,
       consumables: consumables,
+      travel: travel,
+      overhead: overhead,
       others: others,
       nonRecurring: equipment,
       total: total,

@@ -251,6 +251,15 @@ const AllSEUC = () => {
             }
         });
 
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+
+    const financialYear =
+        currentMonth >= 3
+            ? `${currentYear}-${(currentYear + 1).toString().slice(-2)}`
+            : `${currentYear - 1}-${currentYear.toString().slice(-2)}`;
+
     return (
         <div className="flex bg-gray-100 min-h-screen">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
@@ -444,14 +453,13 @@ const AllSEUC = () => {
                             </p>
                         </div>
 
-                        <div className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
+                        <div id="se-details" className="bg-white rounded-lg p-6 border-t-4 border-blue-800">
                             <div className="grid grid-cols-2 gap-4 mb-4">
                                 <label className="font-semibold text-gray-700">File Number</label>
                                 <span className="px-3 py-1 w-full">: {certificateData.projectId}</span>
                             </div>
-
                             <div className="grid grid-cols-2 gap-4 mb-4">
-                                <label className="font-semibold text-gray-700">Name of the Grant Receiving Organization</label>
+                                <label className="font-semibold text-gray-700">Name of the grant receiving Organization</label>
                                 <span className="px-3 py-1 w-full">: {certificateData.institute}</span>
                                 <label className="font-semibold text-gray-700">Name of Principal Investigator:</label>
                                 <span className="px-3 py-1 w-full">: {certificateData.name}</span>
@@ -459,7 +467,7 @@ const AllSEUC = () => {
                                 <span className="px-3 py-1 w-full">: {certificateData.scheme}</span>
                                 <label className="font-semibold text-gray-700">Present Year of Project</label>
                                 <span className="px-3 py-1 w-full">: {certificateData.currentYear}</span>
-                                <label className="font-semibold text-gray-700">Total Project Cost</label>
+                                <label className="font-semibold text-gray-700">Total Project Cost </label>
                                 <span className="px-3 py-1 w-full">: {certificateData.TotalCost}</span>
                                 <label className="font-semibold text-gray-700">Start Date of Year</label>
                                 <span className="px-3 py-1 w-full">: {certificateData.startDate}</span>
@@ -467,57 +475,135 @@ const AllSEUC = () => {
                                 <span className="px-3 py-1 w-full">: {certificateData.endDate}</span>
                             </div>
 
-
-
-
                             <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
-                            <ul className="list-disc pl-6">
-                                {certificateData.yearlyBudget &&
-                                    certificateData.yearlyBudget.map((sanct, index) => (
-                                        <li key={index} className="px-3 py-1 text-gray-700 font-bold w-full">
-                                            <span>Year {index + 1}: {sanct}</span>
-                                        </li>
-                                    ))}
+                            <ul className="list-disc pl-6 mb-6">
+                                {certificateData.yearlyBudget && certificateData.yearlyBudget.map((sanct, index) => (
+                                    <li key={index} className="px-3 py-1 text-gray-700 font-bold w-full">
+                                        <span>Year {index + 1}: {sanct}</span>
+                                    </li>
+                                ))}
                             </ul>
-
                             <div className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
-                                <h2 className="text-center text-2xl font-bold mb-4">Statement of Expenditure</h2>
+                                <h2 className="text-center text-2xl font-bold mb-4">STATEMENT OF EXPENDITURE (FY {financialYear})</h2>
+                                <h3 className="text-center text-lg font-semibold mb-4">Statement of Expenditure (to be submitted financial year wise)</h3>
                                 <div className="overflow-x-auto">
                                     <table className="w-full border border-gray-300 rounded-lg text-sm">
                                         <thead>
                                             <tr className="bg-blue-100 text-gray-700">
-                                                <th className="border border-gray-400 px-4 py-2">S/N</th>
-                                                <th className="border border-gray-400 px-4 py-2">Sanctioned Heads</th>
-                                                <th className="border border-gray-400 px-4 py-2">Total Funds Sanctioned</th>
-                                                <th className="border border-gray-400 px-4 py-2">Expenditure Incurred</th>
-                                                <th className="border border-gray-400 px-4 py-2">Balance</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">S/No</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Sanctioned Heads</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Total Funds Sanctioned</th>
+                                                <th className="border border-gray-400 px-2 py-1" colSpan="3">Expenditure Incurred</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Total Expenditure (vii=iv+v+vi)</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Balance against sanctioned as on 31.03.{new Date().getFullYear()} (viii=iii-vii)</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Requirement of Funds unto 31st March next year</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Remarks (if any)</th>
+                                            </tr>
+                                            <tr className="bg-blue-100 text-gray-700">
+                                                <th className="border border-gray-400 px-2 py-1">I Yr.</th>
+                                                <th className="border border-gray-400 px-2 py-1">II Yr.</th>
+                                                <th className="border border-gray-400 px-2 py-1">III Yr.</th>
+                                            </tr>
+                                            <tr className="bg-blue-100 text-gray-700 text-center">
+                                                <th className="border border-gray-400 px-2 py-1">(i)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(ii)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(iii)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(iv)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(v)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(vi)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(vii)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(viii)</th>
+                                                <th className="border border-gray-400 px-2 py-1"></th>
+                                                <th className="border border-gray-400 px-2 py-1"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {[
-                                                { name: "Manpower Costs", key: "human_resources" },
-                                                { name: "Consumables", key: "consumables" },
-                                                { name: "Travel", key: "travel" },
-                                                { name: "Other Costs", key: "others" },
-                                                { name: "Equipment", key: "nonRecurring" },
-                                                { name: "Overhead Expenses", key: "overhead" },
-                                            ].map((head, index) => (
-                                                <tr key={index} className="text-center">
-                                                    <td className="border border-gray-400 px-4 py-2">{index + 1}</td>
-                                                    <td className="border border-gray-400 px-4 py-2">{head.name}</td>
-                                                    <td className="border border-gray-400 px-4 py-2">
-                                                        {certificateData.budgetSanctioned[head.key] || 0}
-                                                    </td>
-                                                    <td className="border border-gray-400 px-4 py-2">
-                                                        {certificateData.totalExp[head.key] || 0}
-                                                    </td>
-                                                    <td className="border border-gray-400 px-4 py-2">
-                                                        {certificateData.balance[head.key] || 0}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                                { id: 1, name: "Manpower Costs", key: "human_resources" },
+                                                { id: 2, name: "Consumables", key: "consumables" },
+                                                { id: 3, name: "Travel", key: "travel" },
+                                                { id: 4, name: "Contingencies", key: "contingencies" },
+                                                { id: 5, name: "Other Cost, if any", key: "others" },
+                                                { id: 6, name: "Equipments", key: "nonRecurring" },
+                                                { id: 7, name: "Overhead Expenses", key: "overhead" },
+                                            ].map((head) => {
+                                                // Calculate total expenditure for this head
+                                                const year1Value = certificateData.human_resources && head.key === "human_resources" ? certificateData.human_resources[0] || 0 :
+                                                    certificateData[head.key] ? certificateData[head.key][0] || 0 : 0;
+                                                const year2Value = certificateData.human_resources && head.key === "human_resources" ? certificateData.human_resources[1] || 0 :
+                                                    certificateData[head.key] ? certificateData[head.key][1] || 0 : 0;
+                                                const year3Value = certificateData.human_resources && head.key === "human_resources" ? certificateData.human_resources[2] || 0 :
+                                                    certificateData[head.key] ? certificateData[head.key][2] || 0 : 0;
+
+                                                const totalExpValue = certificateData.totalExp && certificateData.totalExp[head.key]
+                                                    ? certificateData.totalExp[head.key]
+                                                    : (year1Value + year2Value + year3Value);
+
+                                                const sanctionedValue = certificateData.budgetSanctioned && certificateData.budgetSanctioned[head.key]
+                                                    ? certificateData.budgetSanctioned[head.key]
+                                                    : 0;
+
+                                                const balance = sanctionedValue - totalExpValue;
+
+                                                // Calculate fund requirement for next year
+                                                let fundRequirement = 0;
+                                                if (head.key === "overhead" && certificateData.budgetSanctioned && certificateData.budgetSanctioned.overhead) {
+                                                    fundRequirement = certificateData.budgetSanctioned.overhead * 0.3;
+                                                }
+
+                                                return (
+                                                    <tr key={head.id} className="text-center">
+                                                        <td className="border border-gray-400 px-2 py-1">{head.id}</td>
+                                                        <td className="border border-gray-400 px-2 py-1 text-left">{head.name}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{sanctionedValue}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{year1Value}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{year2Value}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{year3Value}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{totalExpValue}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{balance}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">
+                                                            {head.key === "overhead" ? fundRequirement.toFixed(0) : 0}
+                                                        </td>
+                                                        <td className="border border-gray-400 px-2 py-1">
+                                                            {head.key === "nonRecurring" ? "Including of commitments" : ""}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            <tr className="text-center font-bold">
+                                                <td className="border border-gray-400 px-2 py-1">8</td>
+                                                <td className="border border-gray-400 px-2 py-1 text-center">Total</td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {certificateData.budgetSanctioned && certificateData.budgetSanctioned.total ? certificateData.budgetSanctioned.total : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {certificateData.total ? certificateData.total[0] || 0 : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {certificateData.total ? certificateData.total[1] || 0 : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {certificateData.total ? certificateData.total[2] || 0 : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {certificateData.totalExp && certificateData.totalExp.total ? certificateData.totalExp.total : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {((certificateData.budgetSanctioned && certificateData.budgetSanctioned.total) || 0) -
+                                                        ((certificateData.totalExp && certificateData.totalExp.total) || 0)}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {(certificateData.budgetSanctioned && certificateData.budgetSanctioned.overhead ? certificateData.budgetSanctioned.overhead * 0.3 : 0).toFixed(0)}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1"></td>
+                                            </tr>
                                         </tbody>
                                     </table>
+                                </div>
+                                <div className="mt-6">
+                                    <p className="text-sm text-gray-700">
+                                        <strong>Note:</strong> The audited statement of expenditure incurred under the Heads, and proper utilization of funds released during the period, may be sent to the agency immediately after the end of the financial year.
+                                    </p>
                                 </div>
                             </div>
                             <div className="border-t border-gray-200 pt-4 mb-6">
@@ -536,7 +622,7 @@ const AllSEUC = () => {
                                         <h4 className="font-medium mb-1">Accounts Officer</h4>
                                         <p className="text-medium mb-2 text-gray-500">{certificateData.institute}</p>
                                         <div className="border p-2 rounded mb-2">
-                                            <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
+                                            <img src={authSignature} alt="Institute Stamp" className="h-24 object-contain" />
                                         </div>
                                     </div>
 

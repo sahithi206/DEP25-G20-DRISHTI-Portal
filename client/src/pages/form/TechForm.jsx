@@ -70,7 +70,10 @@ Sample Title,12,Sample Summary,"Objective 1\nObjective 2",Sample Output,Sample O
                 Title: data.proposalTitle,
                 Duration: data.projectDuration,
                 Summary: data.projectSummary,
-                objectives: data.objectives.split("\n"),
+                objectives: data.objectives
+                    .split("\n")
+                    .map((obj) => obj.trim())
+                    .filter((obj) => obj !== ""),
                 Output: data.expectedOutput,
                 other: data.otherDetails
             });
