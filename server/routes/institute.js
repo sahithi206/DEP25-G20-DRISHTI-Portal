@@ -90,7 +90,6 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
 
     if (!ObjectId.isValid(projectid)) {
       return res.status(400).json({ success: false, msg: "Invalid Project ID" });
-      return res.status(400).json({ success: false, msg: "Invalid Project ID" });
     }
 
     let id = new ObjectId(projectid);
@@ -113,7 +112,6 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
     } else {
       status = "Completed";
     }
-    project = await Project.findByIdAndUpdate(id, { status: status }, { new: true });
     project = await Project.findByIdAndUpdate(id, { status: status }, { new: true });
     const ids = await Project.findById(id)
       .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
@@ -144,7 +142,6 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
       success: true,
       msg: "Fetched Project's Details Successfully",
       project,
-      scheme: scheme.name,
       scheme: scheme.name,
       generalInfo,
       researchDetails,
