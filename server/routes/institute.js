@@ -21,7 +21,6 @@ const YearlyData = require("../Models/YearlyData");
 router.get("/institute-projects", fetchInstitute, async (req, res) => {
   try {
     const institute = req.institute.college;
-
     const users = await User.find({ Institute: institute });
     const userIds = users.map(user => user._id);
 
@@ -91,6 +90,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
 
     if (!ObjectId.isValid(projectid)) {
       return res.status(400).json({ success: false, msg: "Invalid Project ID" });
+      return res.status(400).json({ success: false, msg: "Invalid Project ID" });
     }
 
     let id = new ObjectId(projectid);
@@ -104,6 +104,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
     const start = new Date(project.startDate);
     const end = new Date(project.endDate);
 
+
     let status = "";
     if (new Date() < start) {
       status = "Approved";
@@ -112,6 +113,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
     } else {
       status = "Completed";
     }
+    project = await Project.findByIdAndUpdate(id, { status: status }, { new: true });
     project = await Project.findByIdAndUpdate(id, { status: status }, { new: true });
     const ids = await Project.findById(id)
       .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
@@ -142,6 +144,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
       success: true,
       msg: "Fetched Project's Details Successfully",
       project,
+      scheme: scheme.name,
       scheme: scheme.name,
       generalInfo,
       researchDetails,

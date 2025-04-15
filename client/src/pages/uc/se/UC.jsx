@@ -9,7 +9,6 @@ import TermsAndConditions from "./TermsAndConditions";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
-
 const UCForm = () => {
   const { id: projectId } = useParams();
   const navigate = useNavigate();
@@ -464,7 +463,7 @@ const UCForm = () => {
     yPos += 7;
 
     pdf.text("Total", margin + 20, yPos);
-    pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
     yPos += 10;
 
     pdf.text(`${itemNum + 1}`, margin, yPos);

@@ -644,6 +644,7 @@ router.get("/progress-reports", async (req, res) => {
   try {
     const reports = await ProgressReport.find({ read: false }).populate("projectId");
     res.status(200).json({ success: true, data: reports });
+
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
@@ -654,6 +655,7 @@ router.put("/progress-reports/:id/mark-as-read", async (req, res) => {
     const { id } = req.params;
     await ProgressReport.findByIdAndUpdate(id, { read: true });
     res.status(200).json({ success: true, message: "Report marked as read" });
+
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }

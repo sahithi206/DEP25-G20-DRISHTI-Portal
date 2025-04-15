@@ -19,8 +19,6 @@ const AdminProposalReview = () => {
     const [filterByInstitute, setFilterByInstitute] = useState("");
     const [filterByPI, setFilterByPI] = useState("");
 
-
-
     useEffect(() => {
         if (selectedProposal) {
             console.log("Selected Proposal Data:", selectedProposal);

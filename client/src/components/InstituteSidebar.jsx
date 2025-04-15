@@ -13,7 +13,7 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
     const fetchInstituteUserDetails = async () => {
       try {
         const data = await getInstUser();
-        // console.log("SIDEBAR DATA:", data);
+        console.log("SIDEBAR DATA:", data);
         setInstituteUser(data);
       } catch (error) {
         console.error("Error fetching institute user:", error);
@@ -61,37 +61,17 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
     });
   }
 
-  // Define reports based on role
-  let reportItems = [];
-
-  if (instituteUser.role === "Head of Institute") {
-    // Head of Institute can see all reports
-    reportItems = [
+  // Add Reports dropdown for all roles
+  menuItems.push({
+    label: "Reports",
+    icon: FaBullseye,
+    id: "reports",
+    children: [
       { label: "UC", id: "uc", path: "/institute/uc" },
       { label: "SE", id: "se", path: "/institute/se" },
       { label: "Progress Report", id: "progress", path: "/institute/progress-report" }
-    ];
-  } else if (instituteUser.role === "CFO") {
-    // CFO can only see UC
-    reportItems = [
-      { label: "UC", id: "uc", path: "/institute/uc" }
-    ];
-  } else if (instituteUser.role === "Accounts Officer") {
-    // Accounts Officer can only see SE
-    reportItems = [
-      { label: "SE", id: "se", path: "/institute/se" }
-    ];
-  }
-
-  // Add Reports dropdown if there are any report items for the role
-  if (reportItems.length > 0) {
-    menuItems.push({
-      label: "Reports",
-      icon: FaBullseye,
-      id: "reports",
-      children: reportItems
-    });
-  }
+    ]
+  });
 
   return (
     <div className="w-72 bg-gray-900 text-white flex flex-col p-5 h-screen overflow-y-auto">

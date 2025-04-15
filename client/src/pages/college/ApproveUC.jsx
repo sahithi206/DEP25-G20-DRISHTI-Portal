@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/InstituteSidebar";
 import { AuthContext } from "../Context/Authcontext";
-import SignatureCanvas from 'react-signature-canvas';
+import SignatureCanvas from 'react-signature-canvas';;
 import TermsAndConditions from "../uc/se/TermsAndConditions";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -426,6 +426,17 @@ const ApproveUC = () => {
         { content: "6", colSpan: 1 },
         { content: "7", colSpan: 1 }
       ]
+      // [
+      //   { content: "1", colSpan: 1 },
+      //   { content: "2", colSpan: 1 },
+      //   { content: "3", colSpan: 1 },
+      //   { content: "Sanction No.", colSpan: 1 },
+      //   { content: "Date", colSpan: 1 },
+      //   { content: "Amount", colSpan: 1 },
+      //   { content: "5", colSpan: 1 },
+      //   { content: "6", colSpan: 1 },
+      //   { content: "7", colSpan: 1 }
+      // ]
     ];
     const recurringExp = ucData.recurringExp || 0;
 
@@ -702,7 +713,8 @@ const ApproveUC = () => {
                         </span>
                       </div>
                     </div>
-                  ))}
+                  ))
+                  }
                 </div>
               )}
             </div>
@@ -785,6 +797,24 @@ const ApproveUC = () => {
                           <th className="border border-gray-400 px-4 py-2">5</th>
                           <th className="border border-gray-400 px-4 py-2">6</th>
                           <th className="border border-gray-400 px-4 py-2">7</th>
+                          <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
+                          <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
+                          <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
+                          <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
+                          <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
+                          <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
+                          <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
+                        </tr>
+                        <tr className="bg-gray-50 text-gray-700">
+                          <th className="border border-gray-400 px-4 py-2">1</th>
+                          <th className="border border-gray-400 px-4 py-2">2</th>
+                          <th className="border border-gray-400 px-4 py-2">3</th>
+                          <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
+                          <th className="border border-gray-400 px-4 py-2">Date</th>
+                          <th className="border border-gray-400 px-4 py-2">Amount</th>
+                          <th className="border border-gray-400 px-4 py-2">5</th>
+                          <th className="border border-gray-400 px-4 py-2">6</th>
+                          <th className="border border-gray-400 px-4 py-2">7</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -798,11 +828,19 @@ const ApproveUC = () => {
                           <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
                           <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
                           <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                          <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
+                          <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
-
                   {(selectedType === "recurring" || selectedType !== "recurring") && (
                     <>
                       <h3 className="text-lg font-semibold text-teal-700 mt-6 mb-4">
