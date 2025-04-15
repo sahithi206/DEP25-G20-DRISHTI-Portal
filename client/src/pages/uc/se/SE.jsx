@@ -57,75 +57,9 @@ const SEForm = () => {
         TotalCost: 0
     });
     const { id } = useParams();
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
     const { getProject } = useContext(AuthContext);
-
-    // const fetchExistingSEForm = async (projectId) => {
-    //     try {
-    //         const token = localStorage.getItem("token");
-    //         if (!token) {
-    //             console.error("No authentication token found");
-    //             return;
-    //         }
-
-    //         const response = await fetch(`${url}se/${projectId}`, {
-    //             method: "GET",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //                 "accessToken": `${token}`,
-    //             },
-    //         });
-
-    //         if (response.status === 404) {
-    //             console.log("No existing SE form found for this project");
-    //             return null;
-    //         }
-
-    //         if (!response.ok) {
-    //             throw new Error(`Failed to fetch SE form: ${response.status} ${response.statusText}`);
-    //         }
-
-    //         const data = await response.json();
-    //         const se = data.data;
-    //         if (data.success && data.data) {
-
-    //             setSentForApproval(true);
-    //             setPiSignature(se.piSignature);
-    //             setInstituteStamp(se.instituteStamp);
-    //             setauthSignature(se.authSignature);
-
-    //             setSeRequestId(se._id);
-    //             if (se.status === "approvedByInst") {
-    //                 setInstituteApproved(true);
-    //             }
-    //             else if (se.status === "pendingAdminApproval") {
-    //                 setInstituteApproved(true);
-    //                 setSentToAdmin(true);
-    //             } else if (se.status === "approvedByAdmin") {
-    //                 setInstituteApproved(true);
-    //                 setSentToAdmin(true);
-    //                 setAdminApproved(true);
-    //             } else if (se.status === "rejectedByAdmin") {
-    //                 setInstituteApproved(true);
-    //                 setSentToAdmin(true);
-    //                 setAdminRejected(true);
-    //             }
-    //         } else {
-    //             setSentForApproval(false);
-    //             setPiSignature(null);
-    //             setInstituteStamp(null);
-    //         }
-
-    //         return se;
-    //     } catch (error) {
-    //         console.error("Error fetching existing SE form:", error);
-    //         return null;
-    //     }
-    // };
-
     useEffect(() => {
         const fetchStatus = async () => {
             if (id) {
@@ -186,8 +120,6 @@ const SEForm = () => {
             try {
                 const json = await getProject(id);
                 const info = json?.data || {};
-                // console.log(info);
-
                 setYearlyExp(info.yearlyExp || []);
 
                 const today = new Date().toISOString().split("T")[0];
@@ -223,8 +155,6 @@ const SEForm = () => {
 
                 }
                 setYearly(info.yearlySanct || []);
-                // console.log("Yearly Budget", info.yearlySanct);
-                // console.log("Yearly Budget", yearly);
                 setBudget(info.yearlyExp || []);
             } catch (error) {
                 setError(error.message);
@@ -234,7 +164,6 @@ const SEForm = () => {
         };
 
         fetchProjectDetails();
-        // fetchExistingSEForm(id);
     }, [id]);
 
     useEffect(() => {
@@ -243,14 +172,10 @@ const SEForm = () => {
         let manpowerExp = 0, consumablesExp = 0, othersExp = 0, equipmentExp = 0, totalExp = 0;
         let manpowerArray = [], consumablesArray = [], othersArray = [], equipmentArray = [], totalArray = [], travelArray = [], overheadArray = [];
         let travelExp = 0, overheadExp = 0;
-
-        // console.log("wjnfewf", yearlyExp)
         yearlyExp.forEach((yearData, index) => {
-            // console.log("Year Data", yearData);
             if (yearData?.recurring?.human_resources !== undefined) {
                 manpowerExp += yearData.recurring.human_resources;
                 manpowerArray.push(yearData.recurring.human_resources);
-                // console.log("Manpower weiuf", manpowerArray);
             }
             if (yearData?.recurring?.consumables !== undefined) {
                 consumablesExp += yearData.recurring.consumables;
@@ -684,77 +609,157 @@ const SEForm = () => {
     };
 
     const handleSaveAsPDF = () => {
-        const margin = 20;
-        const doc = new jsPDF("l", "mm", "a4");
+        const margin = 10;
+        const doc = new jsPDF({
+            orientation: "l",
+            unit: "mm",
+            format: [400, 300], 
+          });
+          
 
         doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        doc.text("RESEARCHX", 148.5, 10, { align: "center" });
-        doc.setFontSize(14);
-        doc.setFont("helvetica");
-        doc.text("Statement of Expenditure", 148.5, 15, { align: "center" });
+            doc.setFont("helvetica", "bold");
+            doc.text("RESEARCHX", 148.5, 10, { align: "center" });
+            doc.setFontSize(14);
+            doc.setFont("helvetica");
+            doc.text("STATEMENT OF EXPENDITURE", 148.5, 15, { align: "center" });
 
-        doc.setFontSize(12);
-        doc.text("Request for Annual Installment with Up-to-Date Statement of Expenditure", 148.5, 25, { align: "center" });
-        doc.text(`For Financial Year: ${financialYear}`, 148.5, 30, { align: "center" });
+            doc.setFontSize(12);
+            doc.text("Request for Annual Installment with Up-to-Date Statement of Expenditure", 148.5, 25, { align: "center" });
+            doc.text(`For Financial Year: ${financialYear}`, 148.5, 30, { align: "center" });
 
-        doc.setFontSize(10);
-        doc.text(`1.File No.: ${data.projectId || "NA"}`, 10, 35);
-        doc.text(`2. Name of the PI: ${data.name || "NA"}`, 10, 40);
-        doc.text(`3. Total Project Cost: ${data.TotalCost || "NA"}`, 10, 45);
-        doc.text(`4. Date of Commencement: ${data.startDate || "NA"}`, 10, 50);
-        doc.text("5. Statement of Expenditure: (Enclosed)", 10, 55);
+            doc.setFontSize(10);
+            doc.text(`1. File No.: ${data.projectId || "NA"}`, 10, 35);
+            doc.text(`2. Name of the PI: ${data.name || "NA"}`, 10, 40);
+            doc.text(`3. Name of the grant receiving Organization: ${data.institute || "NA"}`, 10, 45);
+            doc.text(`4. Name of the Scheme: ${data.scheme || "NA"}`, 10, 50);
+            doc.text(`5. Present Year of Project: ${data.currentYear || "NA"}`, 10, 55);
+            doc.text(`6. Total Project Cost: ${data.TotalCost || "NA"}`, 10, 60);
+            doc.text(`7. Start Date of Year: ${data.startDate || "NA"}`, 10, 65);
+            doc.text(`8. End Date of Year: ${data.endDate || "NA"}`, 10, 70);
 
-        doc.text("Grant Received in Each Year:", 10, 65);
-        yearlyBudget.forEach((amount, index) => {
-            doc.text(`Year ${index + 1}: ${amount}`, 15, 70 + index * 5);
-        });
+            doc.text("Grant Received in Each Year:", 10, 80);
+            yearlyBudget.forEach((amount, index) => {
+                doc.text(`Year ${index + 1}: ${amount}`, 15, 85 + index * 5);
+            });
 
-        const headers = [
-            ["S/N", "Sanctioned Heads", "Total Funds Sanctioned", "Expenditure Incurred", "Balance"],
-        ];
+            const headers = [
+                [
+                    { content: "S/No", rowSpan: 2 },
+                    { content: "Sanctioned Heads", rowSpan: 2 },
+                    { content: "Total Funds Sanctioned", rowSpan: 2 },
+                    { content: "Expenditure Incurred", colSpan: 3 },
+                    { content: "Total Expenditure (vii=iv+v+vi)", rowSpan: 2 },
+                    { content: `Balance against sanctioned as on 31.03.${new Date().getFullYear()} (viii=iii-vii)`, rowSpan: 2 },
+                    { content: "Requirement of Funds unto 31st March next year", rowSpan: 2 },
+                    { content: "Remarks (if any)", rowSpan: 2 }
+                ],
+                [
+                    "", "", "",
+                    { content: "I Yr." },
+                    { content: "II Yr." },
+                    { content: "III Yr." },
+                    "", "", "", "" 
+                ],
+                [
+                    { content: "(i)" },
+                    { content: "(ii)" },
+                    { content: "(iii)" },
+                    { content: "(iv)" },
+                    { content: "(v)" },
+                    { content: "(vi)" },
+                    { content: "(vii)" },
+                    { content: "(viii)" },
+                    { content: "" },
+                    { content: "" }
+                ]
+            ];
 
-        const tableData = [
-            { name: "Manpower Costs", key: "human_resources" },
-            { name: "Consumables", key: "consumables" },
-            { name: "Travel", key: "travel" },
-            { name: "Other Costs", key: "others" },
-            { name: "Equipment", key: "nonRecurring" },
-            { name: "Overhead Expenses", key: "overhead" },
-        ].map((head, index) => [
-            index + 1,
-            head.name,
-            budgetSanctioned[head.key] || 0,
-            ...yearlyExp.map((yearData) => yearData?.recurring?.[head.key] || yearData?.[head.key] || 0),
-            yearlyExp.reduce((acc, val) => acc + (val?.recurring?.[head.key] || val?.[head.key] || 0), 0),
-            (budgetSanctioned[head.key] || 0) -
-            yearlyExp.reduce((acc, val) => acc + (val?.recurring?.[head.key] || val?.[head.key] || 0), 0),
-        ]);
+            const tableData = [
+                { id: 1, name: "Manpower Costs", key: "human_resources" },
+                { id: 2, name: "Consumables", key: "consumables" },
+                { id: 3, name: "Travel", key: "travel" },
+                { id: 4, name: "Contingencies", key: "contingencies" },
+                { id: 5, name: "Other Cost, if any", key: "others" },
+                { id: 6, name: "Equipments", key: "nonRecurring" },
+                { id: 7, name: "Overhead Expenses", key: "overhead" },
+            ].map((head) => {
+                const totalExpenditure = yearlyExp.reduce(
+                    (acc, val) => acc + (val?.recurring?.[head.key] || val?.[head.key] || 0), 
+                    0
+                );
+                const balance = (budgetSanctioned[head.key] || 0) - totalExpenditure;
+                const requirementNextYear = head.key === "overhead" ? 
+                    (budgetSanctioned[head.key] * 0.3 || 0).toFixed(0) : 0;
+                const remarks = head.key === "nonRecurring" ? "Including of commitments" : "";
+                
+                return [
+                    head.id,
+                    head.name,
+                    budgetSanctioned[head.key] || 0,
+                    yearlyExp[0]?.recurring?.[head.key] || yearlyExp[0]?.[head.key] || 0,
+                    yearlyExp[1]?.recurring?.[head.key] || yearlyExp[1]?.[head.key] || 0,
+                    yearlyExp[2]?.recurring?.[head.key] || yearlyExp[2]?.[head.key] || 0,
+                    totalExpenditure,
+                    balance,
+                    requirementNextYear,
+                    remarks
+                ];
+            });
 
-        tableData.push([
-            yearlyExp.length + 1,
-            "Total",
-            budgetSanctioned.total || 0,
-            ...yearlyExp.map((yearData) => yearData?.yearTotal || 0),
-            yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0),
-            (budgetSanctioned.total || 0) - yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0),
-        ]);
+            const totalExpenditure = yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0);
+            const totalBalance = (budgetSanctioned.total || 0) - totalExpenditure;
+            const totalRequirementNextYear = (budgetSanctioned.overhead * 0.3 || 0).toFixed(0);
 
-        doc.autoTable({
-            head: headers,
-            body: tableData,
-            startY: 80,
-            theme: "grid",
-            styles: { fontSize: 8, textColor: [50, 50, 50] },
-            headStyles: { fillColor: [50, 50, 50], textColor: [255, 255, 255] },
-        });
+            tableData.push([
+                8,
+                "Total",
+                budgetSanctioned.total || 0,
+                yearlyExp[0]?.yearTotal || 0,
+                yearlyExp[1]?.yearTotal || 0,
+                yearlyExp[2]?.yearTotal || 0,
+                totalExpenditure,
+                totalBalance,
+                totalRequirementNextYear,
+                ""
+            ]);
 
-        // Add note
-        const note = `
-    Note:
-    1. The audited statement of expenditure incurred under the Heads, and proper utilization of funds released during the period, 
-    may be sent to agency immediately after the end of the financial year.
-    `;
+            doc.autoTable({
+                head: headers,
+                body: tableData,
+                startY: 100,
+                theme: "grid",
+                styles: { fontSize: 8, textColor: [50, 50, 50] },
+                headStyles: { fillColor: [220, 230, 241], textColor: [0, 0, 0], fontStyle: 'bold' },
+                columnStyles: {
+                    0: { cellWidth: 10 },
+                    1: { cellWidth: 30 },  
+                    2: { cellWidth: 20 },  
+                    3: { cellWidth: 15 },  
+                    4: { cellWidth: 15 },  
+                    5: { cellWidth: 15 },  
+                    6: { cellWidth: 20 },  
+                    7: { cellWidth: 20 },  
+                    8: { cellWidth: 20 },  
+                    9: { cellWidth: 25 },  
+                },
+                didParseCell: function (data) {
+                    if (data.section === 'head') {
+                        data.cell.styles.fillColor = [220, 230, 241];
+                        data.cell.styles.textColor = [0, 0, 0];
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                    if (data.section === 'body' && data.row.index === tableData.length - 1) {
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                }
+            });
+
+            const note = `
+        Note:
+        1. The audited statement of expenditure incurred under the Heads, and proper utilization of funds released during the period, 
+        may be sent to agency immediately after the end of the financial year.
+        `;
         doc.setFontSize(10);
         let yPos = doc.lastAutoTable.finalY + 10;
         doc.text(note, margin, yPos);
@@ -839,75 +844,107 @@ const SEForm = () => {
 
 
                         <div className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
-                            <h2 className="text-center text-2xl font-bold mb-4">Statement of Expenditure for FY {financialYear}</h2>
-                            <h3 className="text-center text-lg font-semibold mb-4">Statement of Expenditure to be submitted financial year wise.</h3>
+                            <h2 className="text-center text-2xl font-bold mb-4">STATEMENT OF EXPENDITURE (FY {financialYear})</h2>
+                            <h3 className="text-center text-lg font-semibold mb-4">Statement of Expenditure (to be submitted financial year wise )</h3>
                             <div className="overflow-x-auto">
                                 <table className="w-full border border-gray-300 rounded-lg text-sm">
                                     <thead>
                                         <tr className="bg-blue-100 text-gray-700">
-                                            <th className="border border-gray-400 px-4 py-2" rowSpan="2">S/N</th>
-                                            <th className="border border-gray-400 px-4 py-2" rowSpan="2">Sanctioned Heads</th>
-                                            <th className="border border-gray-400 px-4 py-2" rowSpan="2">Total Funds Sanctioned</th>
-                                            <th className="border border-gray-400 px-4 py-2" colSpan={yearlyExp.length}>Expenditure Incurred</th>
-                                            <th className="border border-gray-400 px-4 py-2" rowSpan="2">Total Expenditure</th>
-                                            <th className="border border-gray-400 px-4 py-2" rowSpan="2">Balance</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">S/No</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Sanctioned Heads</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Total Funds Sanctioned</th>
+                                            <th className="border border-gray-400 px-2 py-1" colSpan="3">Expenditure Incurred</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Total Expenditure (vii=iv+v+vi)</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Balance against sanctioned as on 31.03.{new Date().getFullYear()} (viii=iii-vii)</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Requirement of Funds unto 31st March next year</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Remarks (if any)</th>
                                         </tr>
                                         <tr className="bg-blue-100 text-gray-700">
-                                            {yearlyExp.map((_, index) => (
-                                                <th key={index} className="border border-gray-400 px-4 py-2">Year {index + 1}</th>
-                                            ))}
+                                            <th className="border border-gray-400 px-2 py-1">I Yr.</th>
+                                            <th className="border border-gray-400 px-2 py-1">II Yr.</th>
+                                            <th className="border border-gray-400 px-2 py-1">III Yr.</th>
+                                        </tr>
+                                        <tr className="bg-blue-100 text-gray-700 text-center">
+                                            <th className="border border-gray-400 px-2 py-1">(i)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(ii)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(iii)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(iv)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(v)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(vi)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(vii)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(viii)</th>
+                                            <th className="border border-gray-400 px-2 py-1"></th>
+                                            <th className="border border-gray-400 px-2 py-1"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {[
-                                            { name: "Manpower Costs", key: "human_resources" },
-                                            { name: "Consumables", key: "consumables" },
-                                            { name: "Travel", key: "travel" },
-                                            { name: "Other Costs", key: "others" },
-                                            { name: "Equipment", key: "nonRecurring" },
-                                            { name: "Overhead Expenses", key: "overhead" },
-                                        ].map((head, index) => (
-                                            <tr key={index} className="text-center">
-                                                <td className="border border-gray-400 px-4 py-2">{index + 1}</td>
-                                                <td className="border border-gray-400 px-4 py-2">{head.name}</td>
-                                                <td className="border border-gray-400 px-4 py-2">
+                                            { id: 1, name: "Manpower Costs", key: "human_resources" },
+                                            { id: 2, name: "Consumables", key: "consumables" },
+                                            { id: 3, name: "Travel", key: "travel" },
+                                            { id: 4, name: "Contingencies", key: "contingencies" },
+                                            { id: 5, name: "Other Cost, if any", key: "others" },
+                                            { id: 6, name: "Equipments", key: "nonRecurring" },
+                                            { id: 7, name: "Overhead Expenses", key: "overhead" },
+                                        ].map((head) => (
+                                            <tr key={head.id} className="text-center">
+                                                <td className="border border-gray-400 px-2 py-1">{head.id}</td>
+                                                <td className="border border-gray-400 px-2 py-1 text-left">{head.name}</td>
+                                                <td className="border border-gray-400 px-2 py-1">
                                                     {budgetSanctioned[head.key] || 0}
                                                 </td>
-                                                {yearlyExp.map((yearData, yearIndex) => (
-                                                    <td key={yearIndex} className="border border-gray-400 px-4 py-2">
-                                                        {yearData?.recurring?.[head.key] || yearData?.[head.key] || 0}
-                                                    </td>
-                                                ))}
-                                                <td className="border border-gray-400 px-4 py-2">
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {yearlyExp[0]?.recurring?.[head.key] || yearlyExp[0]?.[head.key] || 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {yearlyExp[1]?.recurring?.[head.key] || yearlyExp[1]?.[head.key] || 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {yearlyExp[2]?.recurring?.[head.key] || yearlyExp[2]?.[head.key] || 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
                                                     {yearlyExp.reduce((acc, val) => acc + (val?.recurring?.[head.key] || val?.[head.key] || 0), 0)}
                                                 </td>
-                                                <td className="border border-gray-400 px-4 py-2">
-                                                    {(budgetSanctioned[head.key] || 0) -
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {(budgetSanctioned[head.key] || 0) - 
                                                         yearlyExp.reduce((acc, val) => acc + (val?.recurring?.[head.key] || val?.[head.key] || 0), 0)}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {head.key === "overhead" ? (budgetSanctioned[head.key] * 0.3 || 0).toFixed(0) : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {head.key === "nonRecurring" ? "Including of commitments" : ""}
                                                 </td>
                                             </tr>
                                         ))}
                                         <tr className="text-center font-bold">
-                                            <td className="border border-gray-400 px-4 py-2">7</td>
-                                            <td className="border border-gray-400 px-4 py-2">Total</td>
-                                            <td className="border border-gray-400 px-4 py-2">
+                                            <td className="border border-gray-400 px-2 py-1">8</td>
+                                            <td className="border border-gray-400 px-2 py-1 text-center">Total</td>
+                                            <td className="border border-gray-400 px-2 py-1">
                                                 {budgetSanctioned.total || 0}
                                             </td>
-                                            {yearlyExp.map((yearData, yearIndex) => (
-                                                <td key={yearIndex} className="border border-gray-400 px-4 py-2">
-                                                    {yearData?.yearTotal || 0}
-                                                </td>
-                                            ))}
-                                            <td className="border border-gray-400 px-4 py-2">
+                                            <td className="border border-gray-400 px-2 py-1">
+                                                {yearlyExp[0]?.yearTotal || 0}
+                                            </td>
+                                            <td className="border border-gray-400 px-2 py-1">
+                                                {yearlyExp[1]?.yearTotal || 0}
+                                            </td>
+                                            <td className="border border-gray-400 px-2 py-1">
+                                                {yearlyExp[2]?.yearTotal || 0}
+                                            </td>
+                                            <td className="border border-gray-400 px-2 py-1">
                                                 {yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0)}
                                             </td>
-                                            <td className="border border-gray-400 px-4 py-2">
-                                                {(budgetSanctioned.total || 0) -
+                                            <td className="border border-gray-400 px-2 py-1">
+                                                {(budgetSanctioned.total || 0) - 
                                                     yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0)}
                                             </td>
+                                            <td className="border border-gray-400 px-2 py-1">
+                                                {(budgetSanctioned.overhead * 0.3 || 0).toFixed(0)}
+                                            </td>
+                                            <td className="border border-gray-400 px-2 py-1"></td>
                                         </tr>
                                     </tbody>
-
                                 </table>
                             </div>
                             <div className="mt-6">
