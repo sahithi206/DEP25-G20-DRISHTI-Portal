@@ -862,25 +862,30 @@ const UCForm = () => {
                   <h3 className="text-lg font-semibold text-blue-700 mb-4">
                     {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
                   </h3>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
+
+                    <label className="font-semibold text-gray-700">Name of the Principal Investigator(s):</label>
+                    <span className="px-3 py-1 w-full">:{ucData.principalInvestigator?.length > 0 ? (
+                      <ul className="list-disc pl-5">
+                        {ucData.principalInvestigator.map((name, idx) => (
+                          <li key={idx}>{name}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "N/A"
+                    )}
+                    </span>
+
                     <label className="font-semibold text-gray-700">Title of the Project:</label>
                     <span className="px-3 py-1 w-full">: {ucData.title}</span>
 
                     <label className="font-semibold text-gray-700">Name of the Scheme:</label>
                     <span className="px-3 py-1 w-full">: {ucData.scheme}</span>
 
-                    <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
-
-                    <label className="font-semibold text-gray-700">Name of the Principal Investigator(s):</label>
-                    <ul className="px-3 py-1 w-full list-disc list-inside">
-                      {Array.isArray(ucData.principalInvestigator)
-                        ? ucData.principalInvestigator.map((pi, index) => (
-                          <li key={index}>{pi}</li>
-                        ))
-                        : <li>{ucData.principalInvestigator}</li>
-                      }
-                    </ul>
+                    <label className="font-semibold text-gray-700">Whether recurring or non-recurring:</label>
+                    <span className="px-3 py-1 w-full">: {selectedType}</span>
 
                     <label className="font-semibold text-gray-700">Present Year of Project:</label>
                     <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
@@ -940,8 +945,13 @@ const UCForm = () => {
                           <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
                           <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
                           <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
+                          <td className="border border-gray-400 px-4 py-2">
+                            ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                          </td>
+                          <td className="border border-gray-400 px-4 py-2">
+                            ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                          </td>
+
                         </tr>
                       </tbody>
                     </table>
@@ -962,9 +972,14 @@ const UCForm = () => {
                           </thead>
                           <tbody>
                             <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
-                              <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
+                              <td className="border border-gray-400 px-4 py-2">
+                                ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                              </td>
+                              <td className="border border-gray-400 px-4 py-2">
+                                ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                              </td>
                             </tr>
+
                           </tbody>
                         </table>
                       </div>
@@ -972,14 +987,18 @@ const UCForm = () => {
                   )}
 
                   <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-blue-700 mb-4">Details of grants position at the end of the year</h3>
+                    <h3 className="text-lg font-semibold text-blue-700 mb-4">
+                      Details of grants position at the end of the year
+                    </h3>
                     <div className="pl-5">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex">
                           <span className="mr-2">(i)</span>
                           <span>Balance available at end of financial year</span>
                         </div>
-                        <span>: ₹ {ucData.total - ucData.recurringExp}</span>
+                        <span>
+                          : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                        </span>
 
                         <div className="flex">
                           <span className="mr-2">(ii)</span>
@@ -991,10 +1010,13 @@ const UCForm = () => {
                           <span className="mr-2">(iii)</span>
                           <span>Balance (Carry forward to next financial year)</span>
                         </div>
-                        <span>: ₹ {ucData.total - ucData.recurringExp}</span>
+                        <span>
+                          : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                        </span>
                       </div>
                     </div>
                   </div>
+
                   <TermsAndConditions />
 
                   {/* Signature Section */}

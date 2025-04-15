@@ -741,12 +741,6 @@ const ApproveUC = () => {
                     {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <label className="font-semibold text-gray-700">Title of the Project:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.title}</span>
-
-                    <label className="font-semibold text-gray-700">Name of the Scheme:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.scheme}</span>
-
                     <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
                     <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
 
@@ -762,6 +756,15 @@ const ApproveUC = () => {
                     )}
                     </span>
 
+                    <label className="font-semibold text-gray-700">Title of the Project:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.title}</span>
+
+                    <label className="font-semibold text-gray-700">Name of the Scheme:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.scheme}</span>
+
+                    <label className="font-semibold text-gray-700">Whether recurring or non-recurring:</label>
+                    <span className="px-3 py-1 w-full">: {selectedType}</span>
+
                     <label className="font-semibold text-gray-700">Present Year of Project:</label>
                     <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
 
@@ -770,6 +773,21 @@ const ApproveUC = () => {
 
                     <label className="font-semibold text-gray-700">End Date of Year:</label>
                     <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                        Grants position at the beginning of the Financial year
+                      </h3>
+                      <div className="pl-11 grid grid-cols-2 gap-4">
+                        <label className="text-gray-700">Carry forward from previous financial year</label>
+                        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+
+                        <label className="text-gray-700">Others, If any</label>
+                        <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
+
+                        <label className="text-gray-700">Total</label>
+                        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+                      </div>
+                    </div>
                   </div>
                   <h3 className="text-lg font-semibold text-teal-700 mb-4">Financial Summary</h3>
                   <div className="overflow-x-auto">
@@ -805,8 +823,12 @@ const ApproveUC = () => {
                           <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
                           <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
                           <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
+                          <td className="border border-gray-400 px-4 py-2">
+                            ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                          </td>
+                          <td className="border border-gray-400 px-4 py-2">
+                            ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                          </td>
                         </tr>
                       </tbody>
                     </table>
@@ -820,29 +842,56 @@ const ApproveUC = () => {
                       <div className="overflow-x-auto">
                         <table className="w-full border border-gray-300 rounded-lg">
                           <thead>
-                            <tr className="bg-gray-100 text-gray-700">
-                              <th className="border border-gray-400 px-4 py-2">Component</th>
-                              <th className="border border-gray-400 px-4 py-2">Amount</th>
+                            <tr className="bg-blue-100 text-gray-700">
+                              <th className="border border-gray-400 px-4 py-2">Grant-in-aid-General</th>
+                              <th className="border border-gray-400 px-4 py-2">Total</th>
                             </tr>
                           </thead>
                           <tbody>
                             <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">Human Resources</td>
-                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.human_resources}</td>
+                              <td className="border border-gray-400 px-4 py-2">
+                                ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                              </td>
+                              <td className="border border-gray-400 px-4 py-2">
+                                ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                              </td>
                             </tr>
-                            <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">Consumables</td>
-                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.consumables}</td>
-                            </tr>
-                            <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">Others</td>
-                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.others}</td>
-                            </tr>
+
                           </tbody>
                         </table>
                       </div>
                     </>
                   )}
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-blue-700 mb-4">
+                      Details of grants position at the end of the year
+                    </h3>
+                    <div className="pl-5">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex">
+                          <span className="mr-2">(i)</span>
+                          <span>Balance available at end of financial year</span>
+                        </div>
+                        <span>
+                          : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                        </span>
+
+                        <div className="flex">
+                          <span className="mr-2">(ii)</span>
+                          <span>Unspent balance refunded to Funding Agency (if any)</span>
+                        </div>
+                        <span>: ₹ 0</span>
+
+                        <div className="flex">
+                          <span className="mr-2">(iii)</span>
+                          <span>Balance (Carry forward to next financial year)</span>
+                        </div>
+                        <span>
+                          : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
                   <TermsAndConditions />
 
@@ -925,7 +974,7 @@ const ApproveUC = () => {
                   <div className="flex justify-between mt-8">
                     <button
                       onClick={handleSaveAsPDF}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
                     >
                       <div className="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -992,7 +1041,7 @@ const ApproveUC = () => {
                   <input
                     type="file"
                     accept="image/*"
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-teal-700 hover:file:bg-blue-100"
                     onChange={(e) => {
                       const file = e.target.files[0];
                       if (file) {
@@ -1088,7 +1137,7 @@ const ApproveUC = () => {
               </button>
               <button
                 onClick={handleSendToCFO}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-teal-700 transition duration-200"
                 disabled={loading || !instituteStamp}
               >
                 {loading ? (
