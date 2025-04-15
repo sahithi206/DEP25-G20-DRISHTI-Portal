@@ -750,8 +750,17 @@ const ApproveUC = () => {
                     <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
                     <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
 
-                    <label className="font-semibold text-gray-700">Name of the Principal Investigator:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.principalInvestigator}</span>
+                    <label className="font-semibold text-gray-700">Name of the Principal Investigator(s):</label>
+                    <span className="px-3 py-1 w-full">:{ucData.principalInvestigator?.length > 0 ? (
+                      <ul className="list-disc pl-5">
+                        {ucData.principalInvestigator.map((name, idx) => (
+                          <li key={idx}>{name}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "N/A"
+                    )}
+                    </span>
 
                     <label className="font-semibold text-gray-700">Present Year of Project:</label>
                     <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
