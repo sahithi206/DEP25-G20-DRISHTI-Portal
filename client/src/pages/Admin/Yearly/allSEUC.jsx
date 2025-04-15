@@ -19,6 +19,7 @@ const AllSEUC = () => {
     const [selectedType, setSelectedType] = useState("");
     const [piSignature, setPiSignature] = useState(null);
     const [instituteStamp, setInstituteStamp] = useState(null);
+    const [authSignature, setAuthSignature] = useState(null);
     const [reloadKey, setReloadKey] = useState(0);
     const [comment, setComment] = useState("");
     const [searchQueryUC, setSearchQueryUC] = useState("");
@@ -46,7 +47,7 @@ const AllSEUC = () => {
             if (!data.success || !data.data || data.data.length === 0) {
                 setError("No UCs found for admin approval");
                 setAllUCs([]);
-                setFilteredUCs([]);  
+                setFilteredUCs([]);
                 return;
             }
 
@@ -110,6 +111,7 @@ const AllSEUC = () => {
             setIsUCCertificateOpen(true);
             setPiSignature(data.data.piSignature);
             setInstituteStamp(data.data.instituteStamp);
+            setAuthSignature(data.data.authSignature);
             setSelectedType(data.data.type);
             setUCData(data.data.ucData);
         } catch (error) {
@@ -138,6 +140,7 @@ const AllSEUC = () => {
             setCertificateData(data.data);
             setInstituteStamp(data.data.instituteStamp);
             setPiSignature(data.data.piSignature);
+            setAuthSignature(data.data.authSignature);
             setIsCertificateOpen(true);
 
         } catch (error) {
@@ -212,41 +215,41 @@ const AllSEUC = () => {
     };
 
     const filteredUCs = allUCs
-    .filter((uc) => {
-        const matchesSearch = searchQueryUC
-            ? uc.projectId?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
-              uc.ucData?.title?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
-              uc.ucData?.instituteName?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
-              uc.ucData?.principalInvestigator?.toLowerCase().includes(searchQueryUC.toLowerCase())
-            : true;
-        const matchesFilter = filterUC ? uc.ucData?.instituteName === filterUC : true;
-        return matchesSearch && matchesFilter;
-    })
-    .sort((a, b) => {
-        if (sortOrderUC === "asc") {
-            return new Date(a.submissionDate) - new Date(b.submissionDate);
-        } else {
-            return new Date(b.submissionDate) - new Date(a.submissionDate);
-        }
-    });
+        .filter((uc) => {
+            const matchesSearch = searchQueryUC
+                ? uc.projectId?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
+                uc.ucData?.title?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
+                uc.ucData?.instituteName?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
+                uc.ucData?.principalInvestigator?.toLowerCase().includes(searchQueryUC.toLowerCase())
+                : true;
+            const matchesFilter = filterUC ? uc.ucData?.instituteName === filterUC : true;
+            return matchesSearch && matchesFilter;
+        })
+        .sort((a, b) => {
+            if (sortOrderUC === "asc") {
+                return new Date(a.submissionDate) - new Date(b.submissionDate);
+            } else {
+                return new Date(b.submissionDate) - new Date(a.submissionDate);
+            }
+        });
     const filteredSEs = allSEs
-    .filter((se) => {
-        const matchesSearch = searchQuerySE
-            ? se.projectId?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
-              se.title?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
-              se.institute?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
-              se.name?.toLowerCase().includes(searchQuerySE.toLowerCase())
-            : true;
-        const matchesFilter = filterSE ? se.institute === filterSE : true;
-        return matchesSearch && matchesFilter;
-    })
-    .sort((a, b) => {
-        if (sortOrderSE === "asc") {
-            return new Date(a.date) - new Date(b.date);
-        } else {
-            return new Date(b.date) - new Date(a.date);
-        }
-    });
+        .filter((se) => {
+            const matchesSearch = searchQuerySE
+                ? se.projectId?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
+                se.title?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
+                se.institute?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
+                se.name?.toLowerCase().includes(searchQuerySE.toLowerCase())
+                : true;
+            const matchesFilter = filterSE ? se.institute === filterSE : true;
+            return matchesSearch && matchesFilter;
+        })
+        .sort((a, b) => {
+            if (sortOrderSE === "asc") {
+                return new Date(a.date) - new Date(b.date);
+            } else {
+                return new Date(b.date) - new Date(a.date);
+            }
+        });
 
     return (
         <div className="flex bg-gray-100 min-h-screen">
@@ -258,30 +261,30 @@ const AllSEUC = () => {
                         <h2 className="text-lg font-bold mb-4">All UCs</h2>
 
                         <div className="flex justify-between items-center mb-6">
-    <input
-        type="text"
-        placeholder="Search UCs..."
-        value={searchQueryUC}
-        onChange={(e) => setSearchQueryUC(e.target.value)}
-        className="p-2 border rounded w-1/3"
-    />
-    <div className="flex items-center space-x-4">
-        <select
-            value={sortOrderUC}
-            onChange={(e) => setSortOrderUC(e.target.value)}
-            className="p-2 border rounded"
-        >
-            <option value="asc">Sort by Date (Ascending)</option>
-            <option value="desc">Sort by Date (Descending)</option>
-        </select>
-    </div>
-</div>
+                            <input
+                                type="text"
+                                placeholder="Search UCs..."
+                                value={searchQueryUC}
+                                onChange={(e) => setSearchQueryUC(e.target.value)}
+                                className="p-2 border rounded w-1/3"
+                            />
+                            <div className="flex items-center space-x-4">
+                                <select
+                                    value={sortOrderUC}
+                                    onChange={(e) => setSortOrderUC(e.target.value)}
+                                    className="p-2 border rounded"
+                                >
+                                    <option value="asc">Sort by Date (Ascending)</option>
+                                    <option value="desc">Sort by Date (Descending)</option>
+                                </select>
+                            </div>
+                        </div>
                         <table className="w-full border table-fixed">
                             <thead>
                                 <tr className="bg-gray-200">
                                     <th className="p-4 text-left w-1/4">Project ID</th>
                                     <th className="p-4 text-left w-1/5">Project Title</th>
-                                    <th className="p-4 text-left w-1/5">Principal Investigator</th> 
+                                    <th className="p-4 text-left w-1/5">Principal Investigator</th>
                                     <th className="p-4 text-left w-1/4">Institute</th>
                                     <th className="p-4 text-left w-1/4">Submission Date</th>
                                     <th className="p-4 text-center w-1/4">Actions</th>
@@ -293,7 +296,7 @@ const AllSEUC = () => {
                                         <tr key={certificate._id} className="border-b hover:bg-blue-50">
                                             <td className="p-4 w-1/4">{certificate.projectId}</td>
                                             <td className="p-4 w-1/4">{certificate.ucData.title}</td>
-                                            <td className="p-4 w-1/5">{certificate.ucData.principalInvestigator || "N/A"}</td> 
+                                            <td className="p-4 w-1/5">{certificate.ucData.principalInvestigator || "N/A"}</td>
                                             <td className="p-4 w-1/4">{certificate.ucData.instituteName}</td>
                                             <td className="p-4 w-1/4">
                                                 {new Date(certificate.submissionDate).toLocaleDateString()}
@@ -331,31 +334,31 @@ const AllSEUC = () => {
                         </table>
 
                         <h2 className="text-lg font-bold mt-8 mb-4">All SEs</h2>
-                            <div className="flex justify-between items-center mb-6">
-                                <input
-                                    type="text"
-                                    placeholder="Search SEs..."
-                                    value={searchQuerySE}
-                                    onChange={(e) => setSearchQuerySE(e.target.value)}
-                                    className="p-2 border rounded w-1/3"
-                                />
-                                <div className="flex items-center space-x-4">
-                                    <select
-                                        value={sortOrderSE}
-                                        onChange={(e) => setSortOrderSE(e.target.value)}
-                                        className="p-2 border rounded"
-                                    >
-                                        <option value="asc">Sort by Date (Ascending)</option>
-                                        <option value="desc">Sort by Date (Descending)</option>
-                                    </select>
-                                </div>
+                        <div className="flex justify-between items-center mb-6">
+                            <input
+                                type="text"
+                                placeholder="Search SEs..."
+                                value={searchQuerySE}
+                                onChange={(e) => setSearchQuerySE(e.target.value)}
+                                className="p-2 border rounded w-1/3"
+                            />
+                            <div className="flex items-center space-x-4">
+                                <select
+                                    value={sortOrderSE}
+                                    onChange={(e) => setSortOrderSE(e.target.value)}
+                                    className="p-2 border rounded"
+                                >
+                                    <option value="asc">Sort by Date (Ascending)</option>
+                                    <option value="desc">Sort by Date (Descending)</option>
+                                </select>
                             </div>
+                        </div>
                         <table className="w-full border table-fixed">
 
                             <thead>
                                 <tr className="bg-gray-200">
                                     <th className="p-4 text-left w-1/4">Project ID</th>
-                                    <th className="p-4 text-left w-1/5">Principal Investigator</th> 
+                                    <th className="p-4 text-left w-1/5">Principal Investigator</th>
                                     < th className="p-4 text-left w-1/4">Institute</th>
                                     <th className="p-4 text-left w-1/4">Submission Date</th>
                                     <th className="p-4 text-center w-1/4">Actions</th>
@@ -365,9 +368,9 @@ const AllSEUC = () => {
                                 {filteredSEs.length > 0 ? (
                                     filteredSEs.map((se) => (
                                         <tr key={se._id} className="border-b hover:bg-blue-50">
-                                            
+
                                             <td className="p-4 w-1/4">{se.projectId}</td>
-                                            <td className="p-4 w-1/5">{se.name || "N/A"}</td> 
+                                            <td className="p-4 w-1/5">{se.name || "N/A"}</td>
                                             <td className="p-4 w-1/4">{se.institute}</td>
                                             <td className="p-4 w-1/4">
                                                 {new Date(se.date).toLocaleDateString()}
@@ -518,26 +521,34 @@ const AllSEUC = () => {
                                 </div>
                             </div>
                             <div className="border-t border-gray-200 pt-4 mb-6">
-                    <h3 className="text-xl font-semibold mb-4">Signatures</h3>
+                                <h3 className="text-xl font-semibold mb-4">Signatures</h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="border p-4 rounded-lg">
-                            <h4 className="font-medium mb-1">Principal Investigator Signature</h4>
-                            <p className="text-medium mb-2 text-gray-500">{certificateData.name}</p>
-                            <div className="border p-2 rounded mb-2">
-                                <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
-                            </div>
-                        </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="border p-4 rounded-lg">
+                                        <h4 className="font-medium mb-1">Principal Investigator Signature</h4>
+                                        <p className="text-medium mb-2 text-gray-500">{certificateData.name}</p>
+                                        <div className="border p-2 rounded mb-2">
+                                            <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
+                                        </div>
+                                    </div>
 
-                        <div className="border p-4 rounded-lg">
-                            <h4 className="font-medium mb-1">Institute Approval</h4>
-                            <p className="text-medium mb-2 text-gray-500">{certificateData.institute}</p>
-                            <div className="border p-2 rounded mb-2">
-                                <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
+                                    <div className="border p-4 rounded-lg">
+                                        <h4 className="font-medium mb-1">Accounts Officer</h4>
+                                        <p className="text-medium mb-2 text-gray-500">{certificateData.institute}</p>
+                                        <div className="border p-2 rounded mb-2">
+                                            <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
+                                        </div>
+                                    </div>
+
+                                    <div className="border p-4 rounded-lg">
+                                        <h4 className="font-medium mb-1">Institute Approval</h4>
+                                        <p className="text-medium mb-2 text-gray-500">{certificateData.institute}</p>
+                                        <div className="border p-2 rounded mb-2">
+                                            <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
                         </div>
 
                         <div className="flex justify-end mt-4">
@@ -609,44 +620,44 @@ const AllSEUC = () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full border border-gray-300 rounded-lg">
                                     <thead>
-                                    <tr className="bg-blue-100 text-gray-700">
-                                        <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
-                                        <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
-                                        <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
-                                        <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
-                                        <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
-                                        <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
-                                        <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
-                                    </tr>
-                                    <tr className="bg-blue-50 text-gray-700">
-                                        <th className="border border-gray-400 px-4 py-2">1</th>
-                                        <th className="border border-gray-400 px-4 py-2">2</th>
-                                        <th className="border border-gray-400 px-4 py-2">3</th>
-                                        <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
-                                        <th className="border border-gray-400 px-4 py-2">Date</th>
-                                        <th className="border border-gray-400 px-4 py-2">Amount</th>
-                                        <th className="border border-gray-400 px-4 py-2">5</th>
-                                        <th className="border border-gray-400 px-4 py-2">6</th>
-                                        <th className="border border-gray-400 px-4 py-2">7</th>
-                                    </tr>
+                                        <tr className="bg-blue-100 text-gray-700">
+                                            <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
+                                            <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
+                                            <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
+                                            <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
+                                            <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
+                                            <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
+                                            <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
+                                        </tr>
+                                        <tr className="bg-blue-50 text-gray-700">
+                                            <th className="border border-gray-400 px-4 py-2">1</th>
+                                            <th className="border border-gray-400 px-4 py-2">2</th>
+                                            <th className="border border-gray-400 px-4 py-2">3</th>
+                                            <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
+                                            <th className="border border-gray-400 px-4 py-2">Date</th>
+                                            <th className="border border-gray-400 px-4 py-2">Amount</th>
+                                            <th className="border border-gray-400 px-4 py-2">5</th>
+                                            <th className="border border-gray-400 px-4 py-2">6</th>
+                                            <th className="border border-gray-400 px-4 py-2">7</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
-                                    <tr className="text-center">
-                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
-                                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
-                                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
-                                    </tr>
+                                        <tr className="text-center">
+                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
+                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
 
-                            {(selectedType === "recurring" || selectedType !== "recurring" )&& (
+                            {(selectedType === "recurring" || selectedType !== "recurring") && (
                                 <>
                                     <h3 className="text-lg font-semibold text-blue-700 mt-6 mb-4">
                                         Component-wise Utilization of Grants
@@ -684,12 +695,21 @@ const AllSEUC = () => {
                         <div className="border-t border-gray-200 pt-4 mb-6">
                             <h3 className="text-xl font-semibold mb-4">Signatures</h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="border p-4 rounded-lg">
                                     <h4 className="font-medium  mb-1">Principal Investigator Signature</h4>
                                     <p className="text-medium mb-2 text-gray-500">{ucData.principalInvestigator}</p>
                                     <div className="border p-2 rounded mb-2">
                                         <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
+                                    </div>
+
+                                </div>
+
+                                <div className="border p-4 rounded-lg">
+                                    <h4 className="font-medium  mb-1">CFO Signature</h4>
+                                    <p className="text-medium mb-2 text-gray-500">Chief Finance Officer</p>
+                                    <div className="border p-2 rounded mb-2">
+                                        <img src={authSignature} alt="CFO Signature" className="h-24 object-contain" />
                                     </div>
 
                                 </div>

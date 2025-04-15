@@ -36,6 +36,7 @@ const SEForm = () => {
     const [sentForApproval, setSentForApproval] = useState(false);
     const [instituteApproved, setInstituteApproved] = useState(false);
     const [instituteStamp, setInstituteStamp] = useState(null);
+    const [authSignature, setauthSignature] = useState(null);
     const [showUploadOption, setShowUploadOption] = useState(false);
     const [sentToAdmin, setSentToAdmin] = useState(false);
     const [adminApproved, setAdminApproved] = useState(false);
@@ -62,72 +63,75 @@ const SEForm = () => {
 
     const { getProject } = useContext(AuthContext);
 
-    const fetchExistingSEForm = async (projectId) => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                console.error("No authentication token found");
-                return;
-            }
+    // const fetchExistingSEForm = async (projectId) => {
+    //     try {
+    //         const token = localStorage.getItem("token");
+    //         if (!token) {
+    //             console.error("No authentication token found");
+    //             return;
+    //         }
 
-            const response = await fetch(`${url}se/${projectId}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "accessToken": `${token}`,
-                },
-            });
+    //         const response = await fetch(`${url}se/${projectId}`, {
+    //             method: "GET",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //                 "accessToken": `${token}`,
+    //             },
+    //         });
 
-            if (response.status === 404) {
-                console.log("No existing SE form found for this project");
-                return null;
-            }
+    //         if (response.status === 404) {
+    //             console.log("No existing SE form found for this project");
+    //             return null;
+    //         }
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch SE form: ${response.status} ${response.statusText}`);
-            }
+    //         if (!response.ok) {
+    //             throw new Error(`Failed to fetch SE form: ${response.status} ${response.statusText}`);
+    //         }
 
-            const data = await response.json();
-            if (data.success && data.data) {
-                const se = data.data;
+    //         const data = await response.json();
+    //         const se = data.data;
+    //         if (data.success && data.data) {
 
-                setSentForApproval(true);
-                setPiSignature(se.piSignature);
-                setInstituteStamp(se.instituteStamp);
-                setSeRequestId(se._id);
-                if (se.status === "approvedByInst") {
-                    setInstituteApproved(true);
-                }
-                else if (se.status === "pendingAdminApproval") {
-                    setInstituteApproved(true);
-                    setSentToAdmin(true);
-                } else if (se.status === "approvedByAdmin") {
-                    setInstituteApproved(true);
-                    setSentToAdmin(true);
-                    setAdminApproved(true);
-                } else if (se.status === "rejectedByAdmin") {
-                    setInstituteApproved(true);
-                    setSentToAdmin(true);
-                    setAdminRejected(true);
-                }
-            } else {
-                setSentForApproval(false);
-                setPiSignature(null);
-                setInstituteStamp(null);
-            }
+    //             setSentForApproval(true);
+    //             setPiSignature(se.piSignature);
+    //             setInstituteStamp(se.instituteStamp);
+    //             setauthSignature(se.authSignature);
 
-            return se;
-        } catch (error) {
-            console.error("Error fetching existing SE form:", error);
-            return null;
-        }
-    };
+    //             setSeRequestId(se._id);
+    //             if (se.status === "approvedByInst") {
+    //                 setInstituteApproved(true);
+    //             }
+    //             else if (se.status === "pendingAdminApproval") {
+    //                 setInstituteApproved(true);
+    //                 setSentToAdmin(true);
+    //             } else if (se.status === "approvedByAdmin") {
+    //                 setInstituteApproved(true);
+    //                 setSentToAdmin(true);
+    //                 setAdminApproved(true);
+    //             } else if (se.status === "rejectedByAdmin") {
+    //                 setInstituteApproved(true);
+    //                 setSentToAdmin(true);
+    //                 setAdminRejected(true);
+    //             }
+    //         } else {
+    //             setSentForApproval(false);
+    //             setPiSignature(null);
+    //             setInstituteStamp(null);
+    //         }
+
+    //         return se;
+    //     } catch (error) {
+    //         console.error("Error fetching existing SE form:", error);
+    //         return null;
+    //     }
+    // };
 
     useEffect(() => {
         const fetchStatus = async () => {
             if (id) {
                 try {
                     const res = await fetch(`${url}se/latest?projectId=${id}`);
+                    console.log("RESSSS:", res);
                     if (!res.ok) {
                         if (res.status === 404) {
                             console.warn("No SE found for this project");
@@ -143,12 +147,12 @@ const SEForm = () => {
                         setSentForApproval(true);
                         setPiSignature(se.piSignature || null);
                         setInstituteStamp(se.instituteStamp || null);
+                        setauthSignature(se.authSignature);
                         setSeRequestId(se._id);
-
                         if (se.status === "approvedByInst") {
                             setInstituteApproved(true);
                         }
-                        else if (seRequestId.status === "pendingAdminApproval") {
+                        else if (se.status === "pendingAdminApproval") {
                             setInstituteApproved(true);
                             setSentToAdmin(true);
                         } else if (se.status === "approvedByAdmin") {
@@ -182,7 +186,7 @@ const SEForm = () => {
             try {
                 const json = await getProject(id);
                 const info = json?.data || {};
-                console.log(info);
+                // console.log(info);
 
                 setYearlyExp(info.yearlyExp || []);
 
@@ -219,8 +223,8 @@ const SEForm = () => {
 
                 }
                 setYearly(info.yearlySanct || []);
-                console.log("Yearly Budget", info.yearlySanct);
-                console.log("Yearly Budget", yearly);
+                // console.log("Yearly Budget", info.yearlySanct);
+                // console.log("Yearly Budget", yearly);
                 setBudget(info.yearlyExp || []);
             } catch (error) {
                 setError(error.message);
@@ -230,7 +234,7 @@ const SEForm = () => {
         };
 
         fetchProjectDetails();
-        fetchExistingSEForm(id);
+        // fetchExistingSEForm(id);
     }, [id]);
 
     useEffect(() => {
@@ -240,13 +244,13 @@ const SEForm = () => {
         let manpowerArray = [], consumablesArray = [], othersArray = [], equipmentArray = [], totalArray = [], travelArray = [], overheadArray = [];
         let travelExp = 0, overheadExp = 0;
 
-        console.log("wjnfewf", yearlyExp)
+        // console.log("wjnfewf", yearlyExp)
         yearlyExp.forEach((yearData, index) => {
-            console.log("Year Data", yearData);
+            // console.log("Year Data", yearData);
             if (yearData?.recurring?.human_resources !== undefined) {
                 manpowerExp += yearData.recurring.human_resources;
                 manpowerArray.push(yearData.recurring.human_resources);
-                console.log("Manpower weiuf", manpowerArray);
+                // console.log("Manpower weiuf", manpowerArray);
             }
             if (yearData?.recurring?.consumables !== undefined) {
                 consumablesExp += yearData.recurring.consumables;
@@ -654,37 +658,25 @@ const SEForm = () => {
             });
 
             const result = await response.json();
+
+            if (!response.ok) {
+                console.error("Server response:", result);
+                throw new Error(`Submission failed: ${response.status} ${response.statusText}`);
+            }
+
             if (!result.success) {
                 setError(result.message || "Failed to send for approval");
                 return;
             }
 
             setSeRequestId(result.id);
+            setShowSuccessPopup(true);
+            setSentForApproval(true);
 
+            setTimeout(() => {
+                setShowSuccessPopup(false);
+            }, 3000);
 
-            const responseText = await response.text();
-
-            if (!response.ok) {
-                console.error("Server response:", responseText);
-                throw new Error(`Submission failed: ${response.status} ${response.statusText}`);
-            }
-
-            try {
-                const json = JSON.parse(responseText);
-                if (json.success) {
-                    setShowSuccessPopup(true);
-                    setSentForApproval(true);
-
-                    setTimeout(() => {
-                        setShowSuccessPopup(false);
-                    }, 3000);
-                } else {
-                    alert(`Error in submitting form: ${json.message || 'Unknown error'}`);
-                }
-            } catch (e) {
-                console.error("Error parsing JSON:", e);
-                alert("Error in response format");
-            }
         } catch (error) {
             console.error("Error:", error);
             alert(`Error in submitting data: ${error.message}`);
@@ -774,6 +766,11 @@ const SEForm = () => {
             doc.text("Signature of PI", margin, yPos + 25);
         } else {
             doc.text("Signature of PI: ________________", margin, yPos + 10);
+        }
+
+        if (instituteApproved && authSignature) {
+            doc.addImage(authSignature, 'PNG', margin + 40, yPos, 50, 20);
+            doc.text("Accounts Officer Signature", margin + 40, yPos + 25);
         }
 
         if (instituteApproved && instituteStamp) {
@@ -924,7 +921,7 @@ const SEForm = () => {
                         <div className="border-t border-gray-200 pt-4 mb-6">
                             <h3 className="text-xl font-semibold mb-4">Signatures</h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="border p-4 rounded-lg">
                                     <h4 className="font-medium mb-2">Principal Investigator</h4>
                                     {piSignature ? (
@@ -945,6 +942,22 @@ const SEForm = () => {
                                         >
                                             {piSignature ? "Change Signature" : "Add Signature"}
                                         </button>
+                                    )}
+                                </div>
+
+                                <div className="border p-4 rounded-lg">
+
+                                    <h4 className="font-medium  mb-1"> Accounts Officer Signature</h4>
+                                    {instituteApproved && authSignature ? (
+                                        <div className="border p-2 rounded mb-2">
+                                            <img src={authSignature} alt="AO Sign" className="h-24 object-contain" />
+                                        </div>
+                                    ) : (
+                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
+                                            <p className="text-gray-500">
+                                                {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
 

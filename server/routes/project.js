@@ -15,7 +15,7 @@ const ProgressReport = require("../Models/progressReport.js");
 const Scheme = require("../Models/Scheme.js")
 const Auth = require("./auth.js");
 const nodemailer = require("nodemailer");
-const UCRequest=require("../Models/UCRequest.js");
+const UCRequest = require("../Models/UCRequest.js");
 const Report = require("../Models/progressReport.js");
 const handleSaveAsPDF = () => {
   const pdf = new jsPDF("p", "mm", "a4");
@@ -167,7 +167,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
     console.log(projectid);
 
     if (!ObjectId.isValid(projectid)) {
-        return res.status(400).json({ success: false, msg: "Invalid Project ID" });
+      return res.status(400).json({ success: false, msg: "Invalid Project ID" });
     }
 
     let id = new ObjectId(projectid);
@@ -180,7 +180,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
     console.log(project);
     const start = new Date(project.startDate);
     const end = new Date(project.endDate);
-    
+
     let status = "";
     if (new Date() < start) {
       status = "Approved";
@@ -189,7 +189,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
     } else {
       status = "Completed";
     }
-    project = await Project.findByIdAndUpdate(id,{status:status},{new:true}).populate("Scheme");
+    project = await Project.findByIdAndUpdate(id, { status: status }, { new: true }).populate("Scheme");
     const ids = await Project.findById(id)
       .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
 
@@ -219,7 +219,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
       success: true,
       msg: "Fetched Project's Details Successfully",
       project,
-      scheme:scheme.name,
+      scheme: scheme.name,
       generalInfo,
       researchDetails,
       PIDetails,
@@ -379,7 +379,7 @@ router.post("/se", fetchUser, async (req, res) => {
       piSignature: piSignature,
     });
     await se.save();
-     se = await SE.findById(se._id).populate("scheme");
+    se = await SE.findById(se._id).populate("scheme");
 
     res.status(200).json({ success: true, msg: "Statement of Expenditure not Submitted", se });
   }
@@ -551,16 +551,16 @@ router.get("/generate-uc/nonRecurring/:id", fetchUser, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 });
- 
+
 router.get("/view-uc/se/:id", fetchUser, async (req, res) => {
   try {
     const { id } = req.params;
-    const se = await SE.find({projectId:id});
-    const grant = await UCRequest.find({projectId:id});
+    const se = await SE.find({ projectId: id });
+    const grant = await UCRequest.find({ projectId: id });
     if (!se) {
       return res.status(400).json({ success: false, msg: "Statement of Expenditure Not Found" })
     }
-    res.status(200).json({ success: true, msg: "Statement of Expenditure not Submitted", se,grant });
+    res.status(200).json({ success: true, msg: "Statement of Expenditure not Submitted", se, grant });
   }
   catch (e) {
     console.error("Error Fetching SE:", e);

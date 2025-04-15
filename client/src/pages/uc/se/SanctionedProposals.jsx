@@ -12,7 +12,7 @@ const SanctionedProposals = () => {
     const { approvedProjects } = useContext(AuthContext);
     const [acceptedProjects, setProjects] = useState([]);
     const [filteredProjects, setFilteredProjects] = useState([]);
- 
+
 
     useEffect(() => {
         const fetchProjects = async () => {
@@ -35,10 +35,10 @@ const SanctionedProposals = () => {
                 setProjects(json.projects);
                 console.log(acceptedProjects);
                 if (acceptedProjects) {
-                   if (acceptedProjects && Array.isArray(acceptedProjects)) {
-                       const schemesArray = acceptedProjects.map(project => project.Scheme?.name || "");
-                       setSchemes(schemesArray);
-                   }
+                    if (acceptedProjects && Array.isArray(acceptedProjects)) {
+                        const schemesArray = acceptedProjects.map(project => project.Scheme?.name || "");
+                        setSchemes(schemesArray);
+                    }
                 }
                 setFilteredProjects(json.projects);
             } catch (error) {
@@ -47,42 +47,42 @@ const SanctionedProposals = () => {
         };
         fetchProjects();
     }, [url]);
-   const [schemes,setSchemes]=useState([]);
-        
-          
-   const [schemeFilter, setFilter] = useState(""); 
-          const [sortOrder, setSortOrder] = useState("desc"); 
-            const [searchTitle, setSearchTitle] = useState("");
-          useEffect(() => {
-              const filteredProjects = async () => {
-                  let filtered = acceptedProjects;
-      
-                  if (searchTitle) {
-                      const searchTerm = searchTitle.toLowerCase();
-                      filtered = filtered.filter((project) => {
-                          if (project?.Title.toLowerCase().includes(searchTerm)) return true;
-      
-                          return false;
-                      });
-                  }
-      
-                  if (schemeFilter) {
-                      filtered = filtered.filter(project => project.project.Scheme.name === schemeFilter);
-                  }
-      
-                  if (sortOrder) {
-                      filtered = filtered.sort((a, b) => {
-                          const dateA = new Date(a.project.date);
-                          const dateB = new Date(b.project.date);
-                          return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-                      });
-                  }
-      
-                  setFilteredProjects(filtered);
-              };
-      
-              filteredProjects();
-          }, [searchTitle, sortOrder, acceptedProjects, schemeFilter]);
+    const [schemes, setSchemes] = useState([]);
+
+
+    const [schemeFilter, setFilter] = useState("");
+    const [sortOrder, setSortOrder] = useState("desc");
+    const [searchTitle, setSearchTitle] = useState("");
+    useEffect(() => {
+        const filteredProjects = async () => {
+            let filtered = acceptedProjects;
+
+            if (searchTitle) {
+                const searchTerm = searchTitle.toLowerCase();
+                filtered = filtered.filter((project) => {
+                    if (project?.Title.toLowerCase().includes(searchTerm)) return true;
+
+                    return false;
+                });
+            }
+
+            if (schemeFilter) {
+                filtered = filtered.filter(project => project.project.Scheme.name === schemeFilter);
+            }
+
+            if (sortOrder) {
+                filtered = filtered.sort((a, b) => {
+                    const dateA = new Date(a.project.date);
+                    const dateB = new Date(b.project.date);
+                    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+                });
+            }
+
+            setFilteredProjects(filtered);
+        };
+
+        filteredProjects();
+    }, [searchTitle, sortOrder, acceptedProjects, schemeFilter]);
 
     return (
         <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900">
@@ -96,55 +96,55 @@ const SanctionedProposals = () => {
                             <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
                             <p className="mt-3 text-3xl font-bold text-blue-800">Ongoing Projects</p>
                         </div>
-                        
-                        <div className="flex space-x-4  mb-4">
-                   <div className="relative flex-grow">
-                       <input
-                           type="text"
-                           placeholder="Search projects by PI name ..."
-                           value={searchTitle}
-                           onChange={(e) => setSearchTitle(e.target.value)}
-                           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       />
-                       <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                           <svg
-                               xmlns="http://www.w3.org/2000/svg"
-                               className="h-5 w-5"
-                               fill="none"
-                               viewBox="0 0 24 24"
-                               stroke="currentColor"
-                               role="img"
-                               aria-label="Search icon"
-                           >
-                               <path
-                                   strokeLinecap="round"
-                                   strokeLinejoin="round"
-                                   strokeWidth={2}
-                                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                               />
-                           </svg>
-                       </div>
-                   </div>
-                   <select
-                       value={sortOrder}
-                       onChange={(e) => setSortOrder(e.target.value)}
-                       className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                   >
-                       <option value="newest">Newest</option>
-                       <option value="oldest">Oldest</option>
-                   </select>
-                   <select
-                       value={schemeFilter}
-                       onChange={(e) => setFilter(e.target.value)}
-                       className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                   >   
-                       <option value="">All</option>
-                       {schemes && schemes.length > 0 && schemes.map((val, index) => (
-                           <option value={val} key={val._id}>{val}</option>
-                       ))}
 
-                   </select>
-               </div>
+                        <div className="flex space-x-4  mb-4">
+                            <div className="relative flex-grow">
+                                <input
+                                    type="text"
+                                    placeholder="Search projects by PI name ..."
+                                    value={searchTitle}
+                                    onChange={(e) => setSearchTitle(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-5 w-5"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        role="img"
+                                        aria-label="Search icon"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
+                            <select
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value)}
+                                className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="newest">Newest</option>
+                                <option value="oldest">Oldest</option>
+                            </select>
+                            <select
+                                value={schemeFilter}
+                                onChange={(e) => setFilter(e.target.value)}
+                                className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">All</option>
+                                {schemes && schemes.length > 0 && schemes.map((val, index) => (
+                                    <option value={val} key={val._id}>{val}</option>
+                                ))}
+
+                            </select>
+                        </div>
                         {/* Projects Table */}
                         <div className="bg-white shadow-md rounded-xl overflow-hidden">
                             <div className="overflow-x-auto">
@@ -180,7 +180,7 @@ const SanctionedProposals = () => {
                                                     <td className="p-4 text-center font-semibold text-xs">
                                                         <button
                                                             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                                                            onClick={() => navigate(`/project-dashboard/${project.id}`)}
+                                                            onClick={() => navigate(`/project-dashboard/${project._id}`)}
                                                         >
                                                             View Dashboard
                                                         </button>

@@ -1,8 +1,9 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/InstituteSidebar";
+import { AuthContext } from "../Context/Authcontext";
 import SignatureCanvas from 'react-signature-canvas';
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -10,60 +11,85 @@ import "jspdf-autotable";
 const url = import.meta.env.VITE_REACT_APP_URL;
 
 const ApproveSE = () => {
+  const { getInstUser } = useContext(AuthContext);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showStampModal, setShowStampModal] = useState(false);
-  const [instituteStamp, setInstituteStamp] = useState(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [seData, setSeData] = useState(null);
-  const [piSignature, setPiSignature] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("se-approve");
+  const [userRole, setUserRole] = useState("");
+  const [showSendToAOModal, setShowSendToAOModal] = useState(false);
+  const [sentToAO, setSentToAO] = useState(false);
+  const [authApproved, setAuthApproved] = useState(false);
+  const [instituteApproved, setInstituteApproved] = useState(false);
+  const [piSignature, setPiSignature] = useState(null);
+  const [instituteStamp, setInstituteStamp] = useState(null);
+  const [authSignature, setAuthSignature] = useState(null);
   const [showUploadOption, setShowUploadOption] = useState(false);
   const navigate = useNavigate();
 
   const stampCanvas = useRef(null);
   const fileInputRef = useRef(null);
-   const [sortOrder, setSortOrder] = useState("newest");
-      const [searchTitle, setSearchTitle] = useState("");
-      const [filteredUc, setFilteredUc] = useState([]);
-        useEffect(() => {
-          const filterrequests = () => {
-            let filtered = pendingRequests;
-            if (searchTitle) {
-              const searchTerm = searchTitle.toLowerCase();
-              filtered = filtered.filter((project) => {
-                if (project.name?.toLowerCase().includes(searchTerm)) return true;
-              
-                if ((project?.scheme ?? "Change Institute").toLowerCase().includes(searchTerm)) return true;
-      
-                return false;
-              });
-            }
-            
-            if (sortOrder === "newest") {
-              filtered.sort((a, b) => new Date(b.endDate || 0) - new Date(a.endDate || 0));
-            } else if (sortOrder === "oldest") {
-              filtered.sort((a, b) => new Date(a.endDate || 0) - new Date(b.endDate || 0));
-            }
-            setFilteredUc(filtered);
-          };
-      
-          filterrequests();
-        }, [searchTitle,sortOrder,pendingRequests]);
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [searchTitle, setSearchTitle] = useState("");
+  const [filteredSe, setFilteredSe] = useState([]);
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      const data = await getInstUser();
+      if (data?.role) {
+        setUserRole(data.role);
+      }
+    };
+    fetchRole();
+  }, []);
+
+  useEffect(() => {
+    const filterrequests = () => {
+      let filtered = pendingRequests;
+      if (searchTitle) {
+        const searchTerm = searchTitle.toLowerCase();
+        filtered = filtered.filter((project) => {
+          if (project.name?.toLowerCase().includes(searchTerm)) return true;
+
+          if ((project?.scheme ?? "Change Institute").toLowerCase().includes(searchTerm)) return true;
+
+          return false;
+        });
+      }
+
+      if (sortOrder === "newest") {
+        filtered.sort((a, b) => new Date(b.endDate || 0) - new Date(a.endDate || 0));
+      } else if (sortOrder === "oldest") {
+        filtered.sort((a, b) => new Date(a.endDate || 0) - new Date(b.endDate || 0));
+      }
+      setFilteredSe(filtered);
+    };
+
+    filterrequests();
+  }, [searchTitle, sortOrder, pendingRequests]);
 
   // Fetch pending requests on component mount
   useEffect(() => {
     const fetchPending = async () => {
+      if (!userRole) return;
+
+      let endpoint = `${url}se/pending`;
+      if (userRole === "Accounts Officer") {
+        endpoint = `${url}se/pendingAuthSign`;
+      }
+
       try {
-        const res = await fetch(`${url}se/pending`, {
+        const res = await fetch(endpoint, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            accessToken: localStorage.getItem("token")
-          }
+            accessToken: localStorage.getItem("token"),
+          },
         });
 
         const data = await res.json();
@@ -75,19 +101,65 @@ const ApproveSE = () => {
       }
     };
     fetchPending();
-  }, []);
+  }, [userRole]);
 
-  const handleViewDetails = (request) => {
+  const handleViewDetails = async (request) => {
+    console.log("Handle View IN ApproveSE:", request);
     setSelectedRequest(request);
     setSeData(request);
     setPiSignature(request.piSignature);
+
+    if (request.projectId) { // Use the local variable
+      try {
+        console.log(`Making request to: ${url}se/latest?projectId=${request.projectId}`);
+
+        const res = await fetch(`${url}se/latest?projectId=${request.projectId}`);
+        console.log("Response received:", res.status);
+
+        const data = await res.json();
+        console.log("Response data:", data);
+        if (data.success && data.data) {
+          const se = data.data;
+          console.log("SE data received:", se);
+          setPiSignature(se.piSignature);
+          if (se.status === "approvedByInst") {
+            setInstituteStamp(se.instituteStamp);
+            setAuthSignature(se.authSignature);
+            setInstituteApproved(true);
+            setAuthApproved(true)
+            setSentToAO(true)
+          }
+          else if (se.status === "pendingAuthSign") {
+            setInstituteStamp(se.instituteStamp);
+            setSentToAO(true);
+          } else if (se.status === "approvedByAuth") {
+            setSentToAO(true);
+            setAuthApproved(true);
+            setInstituteStamp(se.instituteStamp);
+            setAuthSignature(se.authSignature);
+          } else {
+            setInstituteApproved(false);
+          }
+        } else {
+          setPiSignature(null);
+          setInstituteStamp(null);
+          setAuthSignature(null);
+        }
+      } catch (err) {
+        console.error("Error fetching approval status:", err);
+      }
+    }
   };
 
   const handleBackToList = () => {
     setSelectedRequest(null);
+    setSentToAO(false);
+    setInstituteApproved(false);
+    setAuthApproved(false);
     setSeData(null);
     setPiSignature(null);
     setInstituteStamp(null);
+    setAuthSignature(null);
   };
 
   // Handle file upload for signature
@@ -117,6 +189,17 @@ const ApproveSE = () => {
     fileInputRef.current.click();
   };
 
+  const handleStampEnd = () => {
+    if (stampCanvas.current) {
+      const stampDataUrl = stampCanvas.current.toDataURL();
+      if (userRole === "Accounts Officer") {
+        setAuthSignature(stampDataUrl);
+      } else {
+        setInstituteStamp(stampDataUrl);
+      }
+    }
+  };
+
   const handleAddStamp = () => {
     if (!selectedRequest) return;
     setShowStampModal(true);
@@ -125,18 +208,110 @@ const ApproveSE = () => {
   const clearStamp = () => {
     if (stampCanvas.current) {
       stampCanvas.current.clear();
-      setInstituteStamp(null);
+      if (userRole === "Accounts Officer") {
+        setAuthSignature(null);
+      } else {
+        setInstituteStamp(null);
+      }
     }
   };
 
   const saveStamp = () => {
     if (stampCanvas.current && !stampCanvas.current.isEmpty()) {
       const stampDataUrl = stampCanvas.current.toDataURL();
-      setInstituteStamp(stampDataUrl);
+      if (userRole === "Accounts Officer") {
+        setAuthSignature(stampDataUrl);
+      } else {
+        setInstituteStamp(stampDataUrl);
+      }
       setShowStampModal(false);
       setShowApproveModal(false);
     } else {
-      alert("Please provide a stamp before saving");
+      alert("Please provide a signature/stamp before saving");
+    }
+  };
+
+  const handleSendToAO = async () => {
+    if (!selectedRequest || !instituteStamp) return;
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${url}se/send-to-auth/${selectedRequest._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          accessToken: localStorage.getItem("token")
+        },
+        body: JSON.stringify({
+          instituteStamp: instituteStamp
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Failed to send to AO");
+      }
+
+      const updatedPendingRequests = pendingRequests.filter(req => req._id !== selectedRequest._id);
+      setPendingRequests(updatedPendingRequests);
+
+      setShowSendToAOModal(false);
+      setShowSuccessModal(true);
+      setSentToAO(true);
+
+      setTimeout(() => {
+        setSelectedRequest(null);
+        setInstituteStamp(null);
+        setShowSuccessModal(false);
+        setLoading(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Error sending to AO:", err.message);
+      alert("Failed to send to AO");
+      setLoading(false);
+    }
+  };
+
+  const handleAOApprove = async () => {
+    if (!selectedRequest || !authSignature) return;
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${url}se/auth-approval/${selectedRequest._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          accessToken: localStorage.getItem("token")
+        },
+        body: JSON.stringify({
+          authSignature: authSignature
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Approval failed");
+      }
+
+      const updatedPendingRequests = pendingRequests.filter(req => req._id !== selectedRequest._id);
+      setPendingRequests(updatedPendingRequests);
+
+      setShowApproveModal(false);
+      setShowSuccessModal(true);
+      setAuthApproved(true)
+
+      setTimeout(() => {
+        setSelectedRequest(null);
+        setAuthSignature(null);
+        setShowSuccessModal(false);
+        setLoading(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Error approving request:", err.message);
+      alert("Failed to approve request");
+      setLoading(false);
     }
   };
 
@@ -164,8 +339,8 @@ const ApproveSE = () => {
       }
 
       // Remove approved request from pending list
-      const updatedPendingRequests = filteredUc.filter(req => req._id !== selectedRequest._id);
-      setFilteredUc(updatedPendingRequests);
+      const updatedPendingRequests = filteredSe.filter(req => req._id !== selectedRequest._id);
+      setFilteredSe(updatedPendingRequests);
 
       // Show success message
       setShowApproveModal(false);
@@ -320,6 +495,12 @@ const ApproveSE = () => {
       pdf.text("Principal Investigator: ________________", margin, yPos + 15);
     }
 
+    // Adding Authority signature if available
+    if (authSignature) {
+      pdf.addImage(authSignature, 'PNG', margin + 50, yPos, 50, 20);
+      pdf.text("Accounts Officer Signature", margin + 50, yPos + 25);
+    }
+
     // Add institute stamp if approved
     if (instituteStamp) {
       pdf.addImage(instituteStamp, 'PNG', pageWidth - margin - 50, yPos + 5, 50, 20);
@@ -329,84 +510,22 @@ const ApproveSE = () => {
     pdf.save(`SE_${seData.name}_${seData.currentYear}.pdf`);
   };
 
-  const SignatureModal = () => {
-    if (!showStampModal) return null;
+  // Get appropriate page title based on user role
+  const getPageTitle = () => {
+    if (userRole === "Accounts Officer") {
+      return "Approve Statement of Expenditures (AO)";
+    } else {
+      return "Approve Statement of Expenditures";
+    }
+  };
 
-    return (
-      <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowStampModal(false)}></div>
-        <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
-          <h3 className="text-xl font-bold text-center text-gray-800 mb-4">Sign here</h3>
-          <div className="flex justify-center mb-4">
-            <button
-              onClick={toggleUploadOption}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mx-2"
-            >
-              {showUploadOption ? "Draw Signature" : "Upload Signature"}
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/png, image/jpeg, image/jpg"
-              onChange={handleFileUpload}
-            />
-          </div>
-
-          {showUploadOption ? (
-            <div className="flex flex-col items-center">
-              <button
-                onClick={triggerFileInput}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 mb-4"
-              >
-                Select Image File (PNG, JPG)
-              </button>
-              {instituteStamp && (
-                <div className="mt-2 border border-gray-300 p-2 rounded">
-                  <img src={instituteStamp} alt="Uploaded signature" className="h-24 object-contain" />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="border border-gray-300 rounded-md mb-4">
-              <SignatureCanvas
-                ref={stampCanvas}
-                penColor="black"
-                canvasProps={{
-                  width: 500,
-                  height: 200,
-                  className: "signature-canvas w-full"
-                }}
-
-              />
-            </div>
-          )}
-
-          <div className="flex justify-between">
-            {!showUploadOption && (
-              <button
-                onClick={clearStamp}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              >
-                Clear
-              </button>
-            )}
-            <button
-              onClick={() => setShowStampModal(false)}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={saveStamp}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+  // Get appropriate stamp modal title based on user role
+  const getStampModalTitle = () => {
+    if (userRole === "Accounts Officer") {
+      return "Add AO Signature";
+    } else {
+      return "Add Institute Stamp";
+    }
   };
 
   return (
@@ -415,49 +534,49 @@ const ApproveSE = () => {
       <div className="flex flex-grow">
         <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
         <main className="flex-grow container mx-auto p-6">
-          <h1 className="text-2xl font-bold mb-4 text-center">Approve Statement of Expenditure</h1>
+          <h1 className="text-2xl font-bold mb-4 text-center">{getPageTitle()}</h1>
 
           {!selectedRequest ? (
             <div className="bg-white rounded-lg shadow-md p-6 mt-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Pending SE Requests</h2>
               <div className="flex space-x-4 mb-6">
                 <div className="relative flex-grow">
-                      <input
-                        type="text"
-                        placeholder="Search projects by PI name ..."
-                        value={searchTitle}
-                        onChange={(e) => setSearchTitle(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          role="img"
-                          aria-label="Search icon"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  <select
-                      value={sortOrder}
-                      onChange={(e) => setSortOrder(e.target.value)}
-                      className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  <input
+                    type="text"
+                    placeholder="Search projects by PI name ..."
+                    value={searchTitle}
+                    onChange={(e) => setSearchTitle(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      role="img"
+                      aria-label="Search icon"
                     >
-                      <option value="newest">Newest</option>
-                      <option value="oldest">Oldest</option>
-                    </select>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
                 </div>
-              {filteredUc.length === 0 ? (
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                </select>
+              </div>
+              {filteredSe.length === 0 ? (
                 <div className="text-center py-8">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -466,31 +585,31 @@ const ApproveSE = () => {
                 </div>
               ) : (
                 <>
-               
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredUc.map((request) => (
-                    <div
-                      key={request._id}
-                      className="border p-4 rounded-lg cursor-pointer transition-all duration-200 hover:border-grey-300 hover:bg-blue-50"
-                      onClick={() => handleViewDetails(request)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-medium text-gray-800">PI Name: {request.name}</h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Year: {request.currentYear}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Total: Rs. {request.totalExp.total}
-                          </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredSe.map((request) => (
+                      <div
+                        key={request._id}
+                        className="border p-4 rounded-lg cursor-pointer transition-all duration-200 hover:border-grey-300 hover:bg-blue-50"
+                        onClick={() => handleViewDetails(request)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-medium text-gray-800">PI Name: {request.name}</h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Year: {request.currentYear}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Total: Rs. {request.totalExp.total}
+                            </p>
+                          </div>
+                          <span className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                            Pending
+                          </span>
                         </div>
-                        <span className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                          Pending
-                        </span>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
                 </>
               )}
             </div>
@@ -590,7 +709,7 @@ const ApproveSE = () => {
                   <div className="border-t border-gray-200 pt-4 mb-6 mt-6">
                     <h3 className="text-xl font-semibold mb-4">Signatures</h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="border p-4 rounded-lg">
                         <h4 className="font-medium mb-2">Principal Investigator</h4>
                         {piSignature ? (
@@ -601,6 +720,33 @@ const ApproveSE = () => {
                           <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
                             <p className="text-gray-500">No signature added</p>
                           </div>
+                        )}
+                      </div>
+
+                      <div className="border p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Accounts Officer</h4>
+                        {authSignature ? (
+                          <div className="border p-2 rounded mb-2">
+                            <img src={authSignature} alt="AO Signature" className="h-24 object-contain" />
+                          </div>
+                        ) : (
+                          <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
+                            <p className="text-gray-500">No signature added</p>
+                          </div>
+                        )}
+                        {!authSignature && userRole === "Accounts Officer" && (
+                          <button
+                            onClick={handleAddStamp}
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
+                            disabled={loading}
+                          >
+                            <div className="flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Add Signature
+                            </div>
+                          </button>
                         )}
                       </div>
 
@@ -617,7 +763,7 @@ const ApproveSE = () => {
                             </p>
                           </div>
                         )}
-                        {!instituteStamp && (
+                        {!instituteStamp && userRole === "Head of Institute" && (
                           <button
                             onClick={handleAddStamp}
                             className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -629,30 +775,50 @@ const ApproveSE = () => {
                     </div>
                   </div>
 
-                  <div className="flex justify-end space-x-4 mt-6">
+                  <div className="flex justify-between mt-8">
                     <button
                       onClick={handleSaveAsPDF}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      Save as PDF
+                      <div className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Save as PDF
+                      </div>
                     </button>
 
-                    <button
-                      onClick={() => setShowApproveModal(true)}
-                      disabled={!instituteStamp}
-                      className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${instituteStamp
-                        ? "bg-green-600 text-white hover:bg-green-700"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        }`}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Approve SE
-                    </button>
+                    <div className="flex space-x-4">
+                      {userRole === "Head of Institute" && selectedRequest.status === "pending" && (
+                        <button
+                          onClick={() => setShowSendToAOModal(true)}
+                          className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
+                          disabled={loading || !!instituteStamp === false}
+                        >
+                          Send to AO for Signature
+                        </button>
+                      )}
+
+                      {userRole === "Accounts Officer" && selectedRequest.status === "pendingAuthSign" && (
+                        <button
+                          onClick={() => setShowApproveModal(true)}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
+                          disabled={loading}
+                        >
+                          Add Signature & Approve
+                        </button>
+                      )}
+
+                      {userRole === "Head of Institute" && selectedRequest.status === "approvedByAuth" && (
+                        <button
+                          onClick={() => setShowApproveModal(true)}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
+                          disabled={loading}
+                        >
+                          Approve SE
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -661,56 +827,271 @@ const ApproveSE = () => {
         </main>
       </div>
 
-      {/* Approve Confirmation Modal */}
-      {showApproveModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowApproveModal(false)}></div>
-          <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
-            <div className="text-center mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-blue-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <h3 className="text-xl font-bold text-gray-800 mt-2">Confirm Approval</h3>
-              <p className="text-gray-600 mt-1">
-                Are you sure you want to approve this Statement of Expenditure?
-              </p>
+      {/* Modal for adding stamp/signature */}
+      {showStampModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">{getStampModalTitle()}</h3>
+              <button onClick={() => setShowStampModal(false)}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="mb-4">
+              {showUploadOption ? (
+                <div className="flex flex-col items-center space-y-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          if (userRole === "CFO") {
+                            setAuthSignature(event.target.result);
+                          } else {
+                            setInstituteStamp(event.target.result);
+                          }
+                          setShowStampModal(false);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                  <button
+                    className="text-blue-600 hover:underline"
+                    onClick={() => setShowUploadOption(false)}
+                  >
+                    or Draw Instead
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="border border-gray-300 rounded-lg w-full">
+                    <SignatureCanvas
+                      ref={stampCanvas}
+                      penColor="black"
+                      canvasProps={{
+                        width: 450,
+                        height: 200,
+                        className: 'w-full h-full rounded-lg'
+                      }}
+                      onEnd={handleStampEnd}
+                    />
+                  </div>
+                  <button
+                    className="text-blue-600 hover:underline"
+                    onClick={() => setShowUploadOption(true)}
+                  >
+                    or Upload Image Instead
+                  </button>
+                </div>
+              )}
             </div>
             <div className="flex justify-between">
               <button
-                onClick={() => setShowApproveModal(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                onClick={clearStamp}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
+              >
+                Clear
+              </button>
+              <div className="space-x-2">
+                <button
+                  onClick={() => setShowStampModal(false)}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveStamp}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for confirming send to AO */}
+      {showSendToAOModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Send to AO for Signature</h3>
+              <button onClick={() => setShowSendToAOModal(false)}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="mb-6">Are you sure you want to send this Statement of Expenditure to the AO for signature?</p>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowSendToAOModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
+                disabled={loading}
               >
                 Cancel
               </button>
               <button
-                onClick={handleApprove}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                onClick={handleSendToAO}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+                disabled={loading || !instituteStamp}
               >
-                Approve
+                {loading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin h-4 w-4 mr-2 border-b-2 border-white rounded-full"></div>
+                    Processing...
+                  </div>
+                ) : "Confirm"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Success Modal */}
+      {/* Modal for confirming approval */}
+      {showApproveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">
+                {userRole === "Accounts Officer" ? "Approve UC (AO)" : "Approve UC (HOI)"}
+              </h3>
+              <button onClick={() => setShowApproveModal(false)}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="mb-6">
+              {userRole === "Accounts Officer"
+                ? "Are you sure you want to approve this Statement of Expenditure? This will add your signature to the document."
+                : "Are you sure you want to approve this Statement of Expenditure? This will add the institute stamp to the document."}
+            </p>
+            {userRole === "Accounts Officer" && !authSignature ? (
+              <div className="mb-4">
+                <p className="text-amber-600 mb-2">Please add your signature first</p>
+                <div className="border border-gray-300 rounded-lg w-full mb-4">
+                  <SignatureCanvas
+                    ref={stampCanvas}
+                    penColor="black"
+                    canvasProps={{
+                      width: 450,
+                      height: 150,
+                      className: 'w-full h-full rounded-lg'
+                    }}
+                    onEnd={handleStampEnd}
+                  />
+                </div>
+                <div className="flex justify-between mb-4">
+                  <button
+                    onClick={clearStamp}
+                    className="px-4 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={saveStamp}
+                    className="px-4 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+                  >
+                    Save Signature
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {userRole === "Head of Institute" && selectedRequest.status === "approvedByAuth" && !instituteStamp ? (
+              <div className="mb-4">
+                <p className="text-amber-600 mb-2">Please add institute stamp first</p>
+                <div className="border border-gray-300 rounded-lg w-full mb-4">
+                  <SignatureCanvas
+                    ref={stampCanvas}
+                    penColor="black"
+                    canvasProps={{
+                      width: 450,
+                      height: 150,
+                      className: 'w-full h-full rounded-lg'
+                    }}
+                    onEnd={handleStampEnd}
+                  />
+                </div>
+                <div className="flex justify-between mb-4">
+                  <button
+                    onClick={clearStamp}
+                    className="px-4 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={saveStamp}
+                    className="px-4 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+                  >
+                    Save Stamp
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowApproveModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={userRole === "Accounts Officer" ? handleAOApprove : handleApprove}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+                disabled={loading || (userRole === "Accounts Officer" ? !authSignature : !instituteStamp)}
+              >
+                {loading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin h-4 w-4 mr-2 border-b-2 border-white rounded-full"></div>
+                    Processing...
+                  </div>
+                ) : "Confirm Approval"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="fixed inset-0 bg-black opacity-30"></div>
-          <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
-            <div className="text-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <h3 className="text-xl font-bold text-gray-800 mt-4">Approval Successful</h3>
-              <p className="text-gray-600 mt-1">
-                The Statement of Expenditure has been approved successfully.
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {userRole === "Head of Institute" && selectedRequest?.status === "pending"
+                  ? "Successfully sent to Accounts Officer"
+                  : userRole === "Accounts Officer"
+                    ? "Successfully approved"
+                    : "Successfully approved UC"}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {userRole === "Head of Institute" && selectedRequest?.status === "pending"
+                  ? "The Statement of Expenditure has been sent to the Accounts Officer for signature."
+                  : userRole === "Accounts Officer"
+                    ? "The UC has been approved and sent back to HOI for final approval."
+                    : "The Statement of Expenditure has been successfully approved."}
               </p>
             </div>
           </div>
         </div>
       )}
-      <SignatureModal />
     </div>
   );
 };

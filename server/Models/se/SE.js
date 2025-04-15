@@ -38,21 +38,24 @@ const SESchema = new mongoose.Schema({
     },
     piSignature: { type: String },
     instituteStamp: { type: String, default: "null" },
+    authSignature: { type: String, default: "null" },
     status: {
         type: String,
         enum: [
             "pending",
-            "approvedByInst", 
-            "pendingAdminApproval", 
-            "approvedByAdmin", 
-            "rejectedByAdmin", 
+            "pendingByAuth",
+            "approvedByAuth",
+            "approvedByInst",
+            "pendingAdminApproval",
+            "approvedByAdmin",
+            "rejectedByAdmin",
         ],
         default: "pending",
     },
-    date:{
-        type:Date,
-        dafault:new Date()
-      }
+    date: {
+        type: Date,
+        dafault: new Date()
+    }
 });
 
 

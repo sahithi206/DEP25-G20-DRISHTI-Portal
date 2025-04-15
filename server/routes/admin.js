@@ -44,7 +44,7 @@ router.get("/approvedProposals", fetchAdmin, async (req, res) => {
     const schemeIds = Schemes.map(scheme => scheme._id);
     const proposals = await Proposal.find({ Scheme: { $in: schemeIds }, status: "Approved" }).populate("Scheme");
     if (!proposals || proposals.length === 0) {
-        return res.status(400).json({ success: false, msg: "No proposals found" });
+      return res.status(400).json({ success: false, msg: "No proposals found" });
     }
     console.log("Fetched Proposals:", proposals);
     if (!proposals.length) {
@@ -277,9 +277,9 @@ router.get("/get-projects", fetchAdmin, async (req, res) => {
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No Projects found" });
     }
-     let projects= await Promise.all(
-            proposals.map(async (proj,idx)=>{
-              const start = new Date(proj.startDate);
+    let projects = await Promise.all(
+      proposals.map(async (proj, idx) => {
+        const start = new Date(proj.startDate);
         const end = new Date(proj.endDate);
         let status = "";
         if (new Date() < start) {
@@ -289,14 +289,14 @@ router.get("/get-projects", fetchAdmin, async (req, res) => {
         } else {
           status = "Completed";
         }
-        if(status!=proj.status){
-          let project = await Project.findByIdAndUpdate(proj._id,{status:status},{new:true});
-           proj=project;
+        if (status != proj.status) {
+          let project = await Project.findByIdAndUpdate(proj._id, { status: status }, { new: true });
+          proj = project;
         }
-          return proj;
-            })
-        )
-       proposals=proposals.filter(prop=>prop.status==="Ongoing");
+        return proj;
+      })
+    )
+    proposals = proposals.filter(prop => prop.status === "Ongoing");
     const data = await Promise.all(
       proposals.map(async (project) => {
         const generalInfo = await GeneralInfo.findById(project.generalInfoId);
@@ -319,18 +319,18 @@ router.get("/get-project/:projectid", fetchAdmin, async (req, res) => {
     let { projectid } = req.params;
     let id = new ObjectId(projectid);
     let project = await Project.findById(id).populate("Scheme");
-     const start = new Date(project.startDate);
-        const end = new Date(project.endDate);
-        
-        let status = "";
-        if (new Date() < start) {
-          status = "Approved";
-        } else if (new Date() >= start && new Date() <= end) {
-          status = "Ongoing";
-        } else {
-          status = "Completed";
-        }
-        project = await Project.findByIdAndUpdate(id,{status:status},{new:true}).populate("Scheme");
+    const start = new Date(project.startDate);
+    const end = new Date(project.endDate);
+
+    let status = "";
+    if (new Date() < start) {
+      status = "Approved";
+    } else if (new Date() >= start && new Date() <= end) {
+      status = "Ongoing";
+    } else {
+      status = "Completed";
+    }
+    project = await Project.findByIdAndUpdate(id, { status: status }, { new: true }).populate("Scheme");
     const ids = await Project.findById(id)
       .populate("generalInfoId researchDetailsId Scheme PIDetailsId YearlyDataId");
     console.log(project);
@@ -614,7 +614,7 @@ router.get("/view-by-se/:seId", fetchAdmin, async (req, res) => {
 
 router.get("/all-ucforms/", fetchAdmin, async (req, res) => {
   try {
-    const ucForms = await UCRequest.find({status : "pendingAdminApproval"}).sort({ createdAt: -1 });
+    const ucForms = await UCRequest.find({ status: "pendingAdminApproval" }).sort({ createdAt: -1 });
     console.log("UC Forms:", ucForms);
     if (!ucForms || ucForms.length === 0) {
       return res.status(404).json({ success: false, msg: "No UC forms found" });
@@ -626,10 +626,9 @@ router.get("/all-ucforms/", fetchAdmin, async (req, res) => {
   }
 });
 
-
 router.get("/all-seforms", fetchAdmin, async (req, res) => {
   try {
-    const seForms = await SE.find({status : "pendingAdminApproval"}).sort({ createdAt: -1 });
+    const seForms = await SE.find({ status: "pendingAdminApproval" }).sort({ createdAt: -1 });
     console.log("SE Forms:", seForms);
     if (!seForms || seForms.length === 0) {
       return res.status(404).json({ success: false, msg: "No SE forms found" });
@@ -643,74 +642,71 @@ router.get("/all-seforms", fetchAdmin, async (req, res) => {
 
 router.get("/progress-reports", async (req, res) => {
   try {
-      const reports = await ProgressReport.find({ read: false }).populate("projectId");
-      res.status(200).json({ success: true, data: reports });
+    const reports = await ProgressReport.find({ read: false }).populate("projectId");
+    res.status(200).json({ success: true, data: reports });
   } catch (error) {
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
 
 router.put("/progress-reports/:id/mark-as-read", async (req, res) => {
   try {
-      const { id } = req.params;
-      await ProgressReport.findByIdAndUpdate(id, { read: true });
-      res.status(200).json({ success: true, message: "Report marked as read" });
+    const { id } = req.params;
+    await ProgressReport.findByIdAndUpdate(id, { read: true });
+    res.status(200).json({ success: true, message: "Report marked as read" });
   } catch (error) {
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
 // id is the projectId, not object id of progress report
 router.get("/progress-reports/:id", async (req, res) => {
   try {
-      const { id } = req.params;
-      const report = await ProgressReport.find({projectId: id});
-      if (!report) {
-          return res.status(404).json({ success: false, message: "Report not found" });
-      }
-      res.status(200).json({ success: true, data: report });
-      console.log(report);
+    const { id } = req.params;
+    const report = await ProgressReport.find({ projectId: id });
+    if (!report) {
+      return res.status(404).json({ success: false, message: "Report not found" });
+    }
+    res.status(200).json({ success: true, data: report });
+    console.log(report);
   } catch (error) {
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
 
-
-
 router.get("/completed-projects", fetchAdmin, async (req, res) => {
-    try {
-        const userId = req.admin.id;
-        console.log("User ID from Token:", userId);
+  try {
+    const userId = req.admin.id;
+    console.log("User ID from Token:", userId);
 
-        const schemes = await Scheme.find({ coordinator: userId });
-        console.log("Fetched Schemes:", schemes);
+    const schemes = await Scheme.find({ coordinator: userId });
+    console.log("Fetched Schemes:", schemes);
 
-        if (!schemes || schemes.length === 0) {
-            return res.status(400).json({ success: false, msg: "No schemes found for this admin." });
-        }
-
-        const schemeIds = schemes.map((scheme) => scheme._id);
-
-        const completedProjects = await Project.find({
-            Scheme: { $in: schemeIds },
-            status:"Completed",
-          }).populate("generalInfoId bankDetailsId PIDetailsId  Scheme researchDetailsId PIDetailsId YearlyDataId");
-
-        console.log("Fetched Completed Projects:", completedProjects);
-
-        if (!completedProjects || completedProjects.length === 0) {
-            return res.status(400).json({ success: false, msg: "No completed projects found." });
-        }
-
-        res.status(200).json({
-            success: true,
-            msg: "Completed projects fetched successfully.",
-            data: completedProjects,
-        });
-    } catch (error) {
-        console.error("Error fetching completed projects:", error);
-        res.status(500).json({ success: false, msg: "Internal server error." });
+    if (!schemes || schemes.length === 0) {
+      return res.status(400).json({ success: false, msg: "No schemes found for this admin." });
     }
+
+    const schemeIds = schemes.map((scheme) => scheme._id);
+
+    const completedProjects = await Project.find({
+      Scheme: { $in: schemeIds },
+      status: "Completed",
+    }).populate("generalInfoId bankDetailsId PIDetailsId  Scheme researchDetailsId PIDetailsId YearlyDataId");
+
+    console.log("Fetched Completed Projects:", completedProjects);
+
+    if (!completedProjects || completedProjects.length === 0) {
+      return res.status(400).json({ success: false, msg: "No completed projects found." });
+    }
+
+    res.status(200).json({
+      success: true,
+      msg: "Completed projects fetched successfully.",
+      data: completedProjects,
+    });
+  } catch (error) {
+    console.error("Error fetching completed projects:", error);
+    res.status(500).json({ success: false, msg: "Internal server error." });
+  }
 });
 
-  
 module.exports = router;

@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext } from "react";
 import { useNavigate } from "react-router-dom";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 const AuthContext = createContext();
 const url = import.meta.env.VITE_REACT_APP_URL;
 console.log(url);
@@ -650,12 +650,15 @@ const AuthProvider = (props) => {
   // to be used when institute verification done 
   //  alright its done
 
-  const createInstitute = async (email, password, instituteName, otp) => {
+  const createInstitute = async (data) => {
     try {
+
+      console.log("Verifying OTP with data:", JSON.stringify(data));
+
       const response = await fetch(`${url}auth/create-institute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, college: instituteName, otp }),
+        body: JSON.stringify(data),
       });
 
       const json = await response.json();
@@ -912,6 +915,34 @@ const AuthProvider = (props) => {
     }
   };
 
+  const getInstUser = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("Token not found. Please log in.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${url}institute/profile`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": token,
+        },
+      });
+
+      const json = await response.json();
+      // console.log("ghdfjvvfbvhjdyfhukfh:", json)
+      if (!json.success) {
+        console.error(json.msg);
+        return;
+      }
+
+      return json.institute;
+    } catch (error) {
+      console.error("Error fetching User:", error);
+    }
+  };
 
   return (
     <AuthContext.Provider value={{
@@ -921,7 +952,7 @@ const AuthProvider = (props) => {
       submitPIDetails, submitAcknowledgement, getuser, approvedProjects, fetchInstituteProjects,
       userInstiAcceptedProposals, createInstitute, fetchInstituteUsers, loginInstitute, getProject,
       fetchSanctionedProjects, fetchInstituteGetProject, getSchemes, deleteProposal, adminLogin,
-      adminVerifyOtp, getAdmin, deleteExpense, editExpense
+      adminVerifyOtp, getAdmin, deleteExpense, editExpense, getInstUser
     }}>
       {props.children}
     </AuthContext.Provider>

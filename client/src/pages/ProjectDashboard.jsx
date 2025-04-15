@@ -17,7 +17,7 @@ const ProjectDashboard = () => {
     const [error, setError] = useState(null);
     const [pilist, setPI] = useState([]);
     const [copilist, setCopi] = useState([]);
-    const [scheme,setScheme]=useState("");
+    const [scheme, setScheme] = useState("");
     useEffect(() => {
         const fetchProjectDetails = async () => {
             const token = localStorage.getItem("token");
@@ -132,7 +132,7 @@ const ProjectDashboard = () => {
 
                             <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View Quotations", onClick: () => navigate(`/view/Quotations/${id}`) }, { label: "Upload Quotation", onClick: () => navigate(`/quotations/${id}`) }]} className="bg-blue-500 text-white" />
                             <HoverDropdownButton label="Upload SE/UC" options={[{ label: "Upload SE", onClick: () => navigate(`/se/${id}`) }, { label: "Generate UC", onClick: () => navigate(`/uc/${id}`) }, { label: "View Certificates", onClick: () => navigate(`/certificates/${id}`) }]} className="bg-green-500 text-white" />
-                            <HoverDropdownButton label="Upload Progress Report" options={[{ label: "Yearly Report", onClick: () => navigate(`/progress-report/${id}`) }, { label: "Final Report", onClick: () => navigate(`/final-report/${id}`) },{ label: "View Reports", onClick: () => navigate(`/viewReports/${id}`) }]} className="bg-red-500 text-white" />
+                            <HoverDropdownButton label="Upload Progress Report" options={[{ label: "Yearly Report", onClick: () => navigate(`/progress-report/${id}`) }, { label: "Final Report", onClick: () => navigate(`/final-report/${id}`) }, { label: "View Reports", onClick: () => navigate(`/viewReports/${id}`) }]} className="bg-red-500 text-white" />
                             <HoverDropdownButton label="Expenses" options={[{ label: "Expense", onClick: () => navigate(`/project-expenses/${id}`) }]} className="bg-purple-500 text-white" />
                         </div>
 
@@ -298,10 +298,9 @@ const ProjectDashboard = () => {
                                             </>
                                             ) : ([])}
                                     </div>
-                                    <div className="p-2 space-y-2"></div>
 
                                     <div className="border-b border-gray-300 my-2"></div>
-                                    <div className="grid grid-cols-1 p-3 ">
+                                    <div className="grid grid-cols-1 gap-2 p-3 ">
                                         {copilist && copilist.length > 0 ?
                                             (
                                                 <>
@@ -317,8 +316,8 @@ const ProjectDashboard = () => {
                                                             <tbody>
                                                                 {copilist.map((pi, index) => (
                                                                     <tr key={index} className="border">
-                                                                        <td className="border p-2">{pi.Name}</td>
-                                                                        <td className="border p-2">{pi.Institute}</td>
+                                                                        <td className="border p-2 text-center">{pi.Name}</td>
+                                                                        <td className="border p-2 text-center">{pi.Institute}</td>
                                                                     </tr>
                                                                 ))}
                                                             </tbody>

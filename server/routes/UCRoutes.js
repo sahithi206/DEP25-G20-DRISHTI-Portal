@@ -1,5 +1,7 @@
 const express = require("express");
 const UCRequest = require("../Models/UCRequest");
+const UcRecurring = require("../Models/UcRecurring");
+const UcNonRecurring = require("../Models/UcNonrecurring");
 const { fetchInstitute } = require("../Middlewares/fetchInstitute");
 const router = express.Router();
 
@@ -30,15 +32,34 @@ router.post("/submit", async (req, res) => {
 router.get("/pending", fetchInstitute, async (req, res) => {
     try {
         const instituteName = req.institute.college; // or req.institute.name if nested
-        console.log("INSTITUE:", instituteName);
-        const pending = await UCRequest.find({
-            status: "pending",
+        console.log("INSTITUTE:", instituteName);
+
+        const pendingOrApproved = await UCRequest.find({
+            status: { $in: ["pending", "pendingAuthSign", "approvedByAuth"] },
             "ucData.instituteName": instituteName
         });
 
-        res.json({ success: true, data: pending });
+        res.json({ success: true, data: pendingOrApproved });
     } catch (err) {
-        console.error("Error fetching pending UCs:", err);
+        console.error("Error fetching pending or approved UCs:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+//Get all pendingAuthSign UCs
+router.get("/pendingAuthSign", fetchInstitute, async (req, res) => {
+    try {
+        const instituteName = req.institute.college; // or req.institute.name if nested
+        console.log("INSTITUTE CFO:", instituteName);
+
+        const pendingAuthSign = await UCRequest.find({
+            status: "pendingAuthSign",
+            "ucData.instituteName": instituteName
+        });
+
+        res.json({ success: true, data: pendingAuthSign });
+    } catch (err) {
+        console.error("Error fetching pendingAuthSign UCs:", err);
         res.status(500).json({ success: false, message: err.message });
     }
 });
@@ -104,14 +125,17 @@ router.get("/approved", async (req, res) => {
 // Get latest UC (either pending or approved)
 router.get("/latest", async (req, res) => {
     try {
+        console.log("Inside latest");
         const { projectId, type } = req.query;
+        console.log("Request query parameters:", req.query);
+        console.log("Looking for UC with projectId:", projectId, "and type:", type);
 
         if (!projectId || !type) {
             return res.status(400).json({ success: false, message: "Missing projectId or type" });
         }
 
         const latestUC = await UCRequest.findOne({ projectId, type }).sort({ submissionDate: -1 });
-
+        // console.log("LATEST UC:", latestUC);
         if (!latestUC) {
             return res.status(404).json({ success: false, message: "No UC found" });
         }
@@ -123,61 +147,120 @@ router.get("/latest", async (req, res) => {
     }
 });
 
+router.put("/send-to-auth/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { instituteStamp } = req.body;
+
+        if (!instituteStamp) {
+            return res.status(400).json({ success: false, message: "Institute stamp is required" });
+        }
+
+        const updatedUC = await UCRequest.findByIdAndUpdate(
+            id,
+            {
+                status: "pendingAuthSign",
+                instituteStamp,
+                approvalDate: new Date()
+            },
+            { new: true }
+        );
+
+        if (!updatedUC) {
+            return res.status(404).json({ success: false, message: "UC Request not found" });
+        }
+        res.json({ success: true, data: updatedUC });
+    } catch (err) {
+        console.error("Error approving UC:", err);
+        res.status(500).json({ success: false, message: "Server error during approval" });
+    }
+});
+
+router.put("/auth-approval/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { authSignature } = req.body;
+
+        if (!authSignature) {
+            return res.status(400).json({ success: false, message: "Institute stamp is required" });
+        }
+
+        const updatedUC = await UCRequest.findByIdAndUpdate(
+            id,
+            {
+                status: "approvedByAuth",
+                authSignature,
+                approvalDate: new Date()
+            },
+            { new: true }
+        );
+
+        if (!updatedUC) {
+            return res.status(404).json({ success: false, message: "UC Request not found" });
+        }
+
+        res.json({ success: true, data: updatedUC });
+    } catch (err) {
+        console.error("Error approving UC:", err);
+        res.status(500).json({ success: false, message: "Server error during approval" });
+    }
+});
+
 router.put("/send-to-admin/:id", async (req, res) => {
     try {
-      const { id } = req.params;
-  
-      const ucRequest = await UCRequest.findById(id);
-  
-      if (!ucRequest) {
-        return res.status(404).json({ success: false, message: "UC request not found" });
-      }
-  
-      if (ucRequest.status !== "approvedByInst") {
-        return res.status(400).json({ success: false, message: "UC must be approved by the institute first" });
-      }
-  
-      ucRequest.status = "pendingAdminApproval";
-      await ucRequest.save();
-  
-      res.status(200).json({ success: true, message: "UC sent to admin for approval" });
-    } catch (error) {
-      console.error("Error sending UC to admin:", error.message);
-      res.status(500).json({ success: false, message: "Internal server error" });
-    }
-  });
+        const { id } = req.params;
 
-  router.put("/admin-approval/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { action } = req.body; 
-  
-      const ucRequest = await UCRequest.findById(id);
-  
-      if (!ucRequest) {
-        return res.status(404).json({ success: false, message: "UC request not found" });
-      }
-  
-      if (ucRequest.status !== "pendingAdminApproval") {
-        return res.status(400).json({ success: false, message: "UC is not pending admin approval" });
-      }
-  
-      if (action === "approve") {
-        ucRequest.status = "approvedByAdmin";
-        ucRequest.approvalDate = new Date();
-      } else if (action === "reject") {
-        ucRequest.status = "rejectedByAdmin";
-      } else {
-        return res.status(400).json({ success: false, message: "Invalid action" });
-      }
-  
-      await ucRequest.save();
-  
-      res.status(200).json({ success: true, message: `UC ${action}d by admin` });
+        const ucRequest = await UCRequest.findById(id);
+
+        if (!ucRequest) {
+            return res.status(404).json({ success: false, message: "UC request not found" });
+        }
+
+        if (ucRequest.status !== "approvedByInst") {
+            return res.status(400).json({ success: false, message: "UC must be approved by the institute first" });
+        }
+
+        ucRequest.status = "pendingAdminApproval";
+        await ucRequest.save();
+
+        res.status(200).json({ success: true, message: "UC sent to admin for approval" });
     } catch (error) {
-      console.error("Error during admin approval:", error.message);
-      res.status(500).json({ success: false, message: "Internal server error" });
+        console.error("Error sending UC to admin:", error.message);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
-  });
+});
+
+router.put("/admin-approval/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action } = req.body;
+
+        const ucRequest = await UCRequest.findById(id);
+
+        if (!ucRequest) {
+            return res.status(404).json({ success: false, message: "UC request not found" });
+        }
+
+        if (ucRequest.status !== "pendingAdminApproval") {
+            return res.status(400).json({ success: false, message: "UC is not pending admin approval" });
+        }
+
+        if (action === "approve") {
+            ucRequest.status = "approvedByAdmin";
+            ucRequest.approvalDate = new Date();
+        } else if (action === "reject") {
+            ucRequest.status = "rejectedByAdmin";
+        } else {
+            return res.status(400).json({ success: false, message: "Invalid action" });
+        }
+
+        await ucRequest.save();
+
+        res.status(200).json({ success: true, message: `UC ${action}d by admin` });
+    } catch (error) {
+        console.error("Error during admin approval:", error.message);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
 
 module.exports = router;

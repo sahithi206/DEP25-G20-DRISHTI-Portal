@@ -16,8 +16,8 @@ const AdminProposalReview = () => {
     const URL = import.meta.env.VITE_REACT_APP_URL;
 
     const [searchQuery, setSearchQuery] = useState("");
-const [filterByInstitute, setFilterByInstitute] = useState("");
-const [filterByPI, setFilterByPI] = useState("");
+    const [filterByInstitute, setFilterByInstitute] = useState("");
+    const [filterByPI, setFilterByPI] = useState("");
 
 
 
@@ -228,64 +228,64 @@ const [filterByPI, setFilterByPI] = useState("");
             setTimeout(() => setError(""), 3000);
         }
     };
-          const [schemes,setSchemes]=useState([]);
-              useEffect(()=>{
-                  const getSchemes= async()=>{
-                      try{
-                          const res = await fetch(`${URL}schemes/get-allschemes`,{
-                              headers:{
-                                  "Content-Type":"application/json",
-                                  accessToken:localStorage.getItem("token")
-                              }
-                          })
-                          const data= await res.json();
-                          console.log(data);
-                          setSchemes(data);
-                      }catch(e){
-                          console.log(e);
-                      }
-                  }
-                  getSchemes();
-                 }, [URL])
-              
-              const [schemeFilter, setFilter] = useState(""); 
-              const [sortOrder, setSortOrder] = useState("desc"); 
-                const [searchTitle, setSearchTitle] = useState("");
-                        const [filteredAndSortedProposals, setFilteredUc] = useState([]);
-              useEffect(() => {
-                  const filteredProjects = async () => {
-                      let filtered = proposals;
-          
-                      if (searchTitle) {
-                          const searchTerm = searchTitle.toLowerCase();
-                          filtered = filtered.filter((project) => {
-                              if (project?.generalInfo?.instituteName?.toLowerCase().includes(searchTerm)) return true;
-                              if (project?.piInfo?.piList?.some(member => member.name.toLowerCase().includes(searchTerm))) return true;
-                              if (project?.proposal?.Scheme?.name.toLowerCase().includes(searchTerm)) return true;
-          
-                              return false;
-                          });
-                      }
-          
-                      if (schemeFilter) {
-                          filtered = filtered.filter(project => project.proposal.Scheme.name === schemeFilter);
-                      }
-          
-                      if (sortOrder) {
-                          filtered = filtered.sort((a, b) => {
-                              const dateA = new Date(a.proposal.date);
-                              const dateB = new Date(b.proposal.date);
-                              return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-                          });
-                      }
-          
-                      setFilteredUc(filtered);
-                  };
-          
-                  filteredProjects();
-              }, [searchTitle, sortOrder, proposals, schemeFilter]);
-   
-   
+    const [schemes, setSchemes] = useState([]);
+    useEffect(() => {
+        const getSchemes = async () => {
+            try {
+                const res = await fetch(`${URL}schemes/get-allschemes`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        accessToken: localStorage.getItem("token")
+                    }
+                })
+                const data = await res.json();
+                console.log(data);
+                setSchemes(data);
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        getSchemes();
+    }, [URL])
+
+    const [schemeFilter, setFilter] = useState("");
+    const [sortOrder, setSortOrder] = useState("desc");
+    const [searchTitle, setSearchTitle] = useState("");
+    const [filteredAndSortedProposals, setFilteredUc] = useState([]);
+    useEffect(() => {
+        const filteredProjects = async () => {
+            let filtered = proposals;
+
+            if (searchTitle) {
+                const searchTerm = searchTitle.toLowerCase();
+                filtered = filtered.filter((project) => {
+                    if (project?.generalInfo?.instituteName?.toLowerCase().includes(searchTerm)) return true;
+                    if (project?.piInfo?.piList?.some(member => member.name.toLowerCase().includes(searchTerm))) return true;
+                    if (project?.proposal?.Scheme?.name.toLowerCase().includes(searchTerm)) return true;
+
+                    return false;
+                });
+            }
+
+            if (schemeFilter) {
+                filtered = filtered.filter(project => project.proposal.Scheme.name === schemeFilter);
+            }
+
+            if (sortOrder) {
+                filtered = filtered.sort((a, b) => {
+                    const dateA = new Date(a.proposal.date);
+                    const dateB = new Date(b.proposal.date);
+                    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+                });
+            }
+
+            setFilteredUc(filtered);
+        };
+
+        filteredProjects();
+    }, [searchTitle, sortOrder, proposals, schemeFilter]);
+
+
 
     return (
         <div className="flex h-screen bg-gray-100">
@@ -306,7 +306,7 @@ const [filterByPI, setFilterByPI] = useState("");
                 )}
 
                 <div className="mt-6 bg-white p-6 rounded-lg shadow-md w-full">
-                <div className="flex space-x-4 mb-6">
+                    <div className="flex space-x-4 mb-6">
                         <div className="relative flex-grow">
                             <input
                                 type="text"
@@ -346,7 +346,7 @@ const [filterByPI, setFilterByPI] = useState("");
                             value={schemeFilter}
                             onChange={(e) => setFilter(e.target.value)}
                             className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >   
+                        >
                             <option value="">All</option>
                             {schemes && schemes.length > 0 && schemes.map((val, index) => (
                                 <option value={val.name} key={val._id}>{val.name}</option>
@@ -362,7 +362,7 @@ const [filterByPI, setFilterByPI] = useState("");
                         <table className="w-full border">
                             <thead>
                                 <tr className="bg-gray-200">
-                                <th className="p-2 text-left">Title</th>
+                                    <th className="p-2 text-left">Title</th>
                                     <th className="p-2 text-left">Proposal ID</th>
                                     <th className="p-2 text-left">Institute</th>
                                     <th className="p-2 text-left">PIs</th>
@@ -377,15 +377,16 @@ const [filterByPI, setFilterByPI] = useState("");
                                         <td className="p-2">{proposal.proposal._id}</td>
                                         <td className="p-2">{proposal.generalInfo?.instituteName}</td>
                                         <td className="p-2">
-                    {proposal.piInfo?.members?.length > 0
-                        ? proposal.piInfo.members.map((member) => member.name).join(", ")
-                        : "N/A"}
-                </td>
-                <td className="p-2">
-                    {proposal.proposal.date
-                        ? new Date(proposal.proposal.date).toLocaleDateString()
-                        : "N/A"}
-                </td>
+                                            {(proposal.piInfo?.members && proposal.piInfo.members.length > 0)
+                                                ? proposal.piInfo.members.map((member) => member.name || "N/A").join(", ")
+                                                : "N/A"}
+                                        </td>
+
+                                        <td className="p-2">
+                                            {proposal.proposal.date
+                                                ? new Date(proposal.proposal.date).toLocaleDateString()
+                                                : "N/A"}
+                                        </td>
                                         <td className="p-2">
                                             <button
                                                 onClick={() => setSelectedProposal(proposal)}

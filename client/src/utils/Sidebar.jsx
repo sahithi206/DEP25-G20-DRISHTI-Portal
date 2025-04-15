@@ -8,7 +8,8 @@ import { FaMoneyBillWave, FaUser } from "react-icons/fa";
 import { MdRequestPage } from "react-icons/md";
 
 const SidebarMenu = [
-    {        title: "Proposal Submission",
+    {
+        title: "Proposal Submission",
         icon: <IoDocumentTextOutline className='inline-block mr-2' />,
         dropdown: [
             { name: "Form Submission", path: "/formsubmission" },
@@ -51,7 +52,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         <div className={`h-screen bg-gray-900 text-white fixed transition-all duration-300 ${isSidebarOpen ? "w-64" : "w-16"} overflow-y-auto`}>
             {/* Sidebar Header */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-gray-700">
-                {isSidebarOpen && <h1 className="text-lg font-bold cursor-pointer" onClick={() => navigate("/menupage")}>ANRFOnline Home</h1>}
+                {isSidebarOpen && <h1 className="text-lg font-bold cursor-pointer" onClick={() => navigate("/menupage")}>ResearchX Home</h1>}
                 <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-xl">
                     {isSidebarOpen ? <FaTimes /> : <FaBars />}
                 </button>

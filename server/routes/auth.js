@@ -266,12 +266,12 @@ router.post("/change-password", fetchUser, async (req, res) => {
 })
 
 router.post("/create-institute", async (req, res) => {
-  const { email, password, college, otp } = req.body;
+  const { name, role, email, password, college, otp } = req.body;
 
   try {
-    const validOtp = await OTPModel.findOne({ email, otp });
-    if (!validOtp || new Date() - new Date(validOtp.createdAt) > 5 * 60 * 1000) {
-      return res.status(400).json({ success: false, msg: "Invalid or expired OTP" });
+
+    if (!email || !otp || !name || !password || !role || !college) {
+      return res.status(400).json({ success: true, msg: "All fields are required" });
     }
 
     let institute = await Institute.findOne({ email });
@@ -279,12 +279,18 @@ router.post("/create-institute", async (req, res) => {
       return res.status(400).json({ success: false, msg: "An Institute with this email already exists" });
     }
 
+    const validOtp = await OTPModel.findOne({ email, otp });
+    if (!validOtp || new Date() - new Date(validOtp.createdAt) > 5 * 60 * 1000) {
+      return res.status(400).json({ success: false, msg: "Invalid or expired OTP" });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const newInstitute = new Institute({ email, password: hashedPassword, college });
+    const newInstitute = new Institute({ name, role, email, password: hashedPassword, college });
     await newInstitute.save();
 
     await OTPModel.deleteOne({ _id: validOtp._id });
+    console.log("NEWINSTITUTE:", newInstitute);
 
     const accessToken = jwt.sign({ institute: newInstitute }, process.env.TOKEN, { expiresIn: "36000m" });
     res.status(201).json({ success: true, msg: "Institute user created successfully", institute: newInstitute, accessToken });
