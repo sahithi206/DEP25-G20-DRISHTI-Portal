@@ -1,44 +1,59 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line
+  PieChart, Pie, Cell
 } from "recharts";
-
+const url = import.meta.env.VITE_REACT_APP_URL;
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [summaryCards, setSummaryCards] = useState([]);
+  const [projectStats, setProjectStats] = useState([]);
+  const [schemeProjects, setSchemeProjects] = useState([]);
+  const [fundTrend, setFundTrend] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample data (replace with real data from backend if needed)
-  const projectStats = [
-    { name: "Ongoing", value: 15 },
-    { name: "Completed", value: 8 },
-    { name: "Approved", value: 5 }
-  ];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const res = await axios.get(`${url}admin/dashboard-stats`);
+        console.log("Dashboard API response:", res.data);
+        const data = res.data;
+  
+        setSummaryCards([
+          { title: "Total Schemes", value: data.summaryCards.totalSchemes },
+          { title: "Total Projects", value: data.summaryCards.totalProjects },
+          { title: "Active Projects", value: data.summaryCards.activeProjects },
+          { title: "Fund Approved", value: data.summaryCards.fundApproved }
+        ]);
+  
+        setProjectStats(data.projectStats || []);
+        setSchemeProjects(data.schemeProjects || []);
+        setFundTrend(data.fundTrend || []);
+  
+        setLoading(false); 
+      } catch (err) {
+        console.error("Dashboard data fetch failed:", err);
+        setError("Failed to load dashboard data."); 
+        setLoading(false); 
+      }
+    };
+  
+    fetchDashboardData();
+  }, []);
 
-  const schemeProjects = [
-    { scheme: "Scheme A", projects: 6 },
-    { scheme: "Scheme B", projects: 10 },
-    { scheme: "Scheme C", projects: 5 },
-    { scheme: "Scheme D", projects: 7 }
-  ];
+  if (loading) {
+    return <div className="text-center mt-20 text-xl">Loading dashboard...</div>;
+  }
 
-  const fundTrend = [
-    { month: "Jan", funds: 200000 },
-    { month: "Feb", funds: 350000 },
-    { month: "Mar", funds: 150000 },
-    { month: "Apr", funds: 420000 },
-    { month: "May", funds: 300000 }
-  ];
-
-  const summaryCards = [
-    { title: "Total Schemes", value: 12 },
-    { title: "Total Projects", value: 28 },
-    { title: "Active Projects", value: 15 },
-    { title: "Fund Approved", value: "₹ 48L" },
-  ];
+  if (error) {
+    return <div className="text-center mt-20 text-red-500">{error}</div>;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -50,7 +65,6 @@ const AdminDashboard = () => {
         <div className="mt-6">
           <h2 className="text-2xl font-semibold mb-4">Admin Dashboard Overview</h2>
 
-          {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             {summaryCards.map((card, idx) => (
               <div
@@ -63,14 +77,19 @@ const AdminDashboard = () => {
             ))}
           </div>
 
-          {/* Charts Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Pie Chart */}
             <div className="bg-white p-4 rounded-2xl shadow-md">
               <h3 className="text-lg font-medium mb-4">Project Status Distribution</h3>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
-                  <Pie data={projectStats} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
+                  <Pie
+                    data={projectStats}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                  >
                     {projectStats.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
@@ -81,7 +100,6 @@ const AdminDashboard = () => {
               </ResponsiveContainer>
             </div>
 
-            {/* Bar Chart */}
             <div className="bg-white p-4 rounded-2xl shadow-md">
               <h3 className="text-lg font-medium mb-4">Projects per Scheme</h3>
               <ResponsiveContainer width="100%" height={250}>
@@ -95,17 +113,16 @@ const AdminDashboard = () => {
               </ResponsiveContainer>
             </div>
 
-            {/* Line Chart */}
             <div className="bg-white p-4 rounded-2xl shadow-md col-span-1 md:col-span-2">
-              <h3 className="text-lg font-medium mb-4">Fund Disbursement Trend</h3>
+              <h3 className="text-lg font-medium mb-4">Fund Approved Trend</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={fundTrend}>
+                <BarChart data={fundTrend}>
                   <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="funds" stroke="#00C49F" strokeWidth={3} />
-                </LineChart>
+                  <Bar dataKey="funds" fill="#00C49F" radius={[8, 8, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>

@@ -21,7 +21,6 @@ const fs = require("fs");
 const nodemailer = require("nodemailer");
 const NonRecurring = require("../Models/NonRecurring");
 const budgetSanctioned = require("../Models/budgetSanctioned.js");
-const Scheme = require("../Models/Scheme");
 const Project = require("../Models/Project.js")
 const { ObjectId } = require("mongodb");
 const RecurringUC = require("../Models/UcRecurring.js");
@@ -708,6 +707,59 @@ router.get("/completed-projects", fetchAdmin, async (req, res) => {
   }
 });
 
+router.get('/dashboard-stats', async (req, res) => {
+  try {
+    const totalProjects = await Project.countDocuments();
+    const activeProjects = await Project.countDocuments({ status: "Ongoing" });
+    const completedProjects = await Project.countDocuments({ status: "Completed" });
+    const approvedProjects = await Project.countDocuments({ status: "Approved" });
+
+    const schemes = await Project.aggregate([
+      {
+        $group: {
+          _id: "$Scheme",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    console.log(schemes);
+    
+
+    const fundTrend = await Project.aggregate([
+      {
+        $group: {
+          _id: { $substr: ["$startDate", 5, 2] }, 
+          funds: { $sum: "$TotalCost" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    res.json({
+      summaryCards: {
+        totalSchemes: schemes.length,
+        totalProjects,
+        activeProjects,
+        fundApproved: "₹ 48L" 
+      },
+      projectStats: [
+        { name: "Ongoing", value: activeProjects },
+        { name: "Completed", value: completedProjects },
+        { name: "Approved", value: approvedProjects }
+      ],
+      schemeProjects: schemes.map(s => ({
+        scheme: s._id || "Unknown",
+        projects: s.count
+      })),
+      fundTrend: fundTrend.map(entry => ({
+        month: entry._id,
+        funds: entry.funds
+      }))
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 module.exports = router;

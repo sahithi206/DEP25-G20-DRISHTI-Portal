@@ -32,7 +32,12 @@ const AdminNavbar = ({ activeSection }) => {
     <div className="flex justify-between items-center bg-white p-4 shadow-md rounded-lg">
       <div>
         <h1 className="text-2xl font-semibold">{title}</h1>
-        {admin && <p className="text-sm text-gray-500">Welcome, Admin</p>}
+        {admin && (
+          <p className="text-sm text-gray-500">
+            Welcome, {admin.name} ({admin.role})
+          </p>
+        )}
+
       </div>
       <div className="flex space-x-4">
         <button className="p-2 bg-blue-100 text-blue-700 rounded-md flex items-center hover:bg-blue-200 transition">
