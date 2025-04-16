@@ -717,15 +717,11 @@ router.get("/ucforms/:id", fetchInstitute, async (req, res) => {
   }
 });
 
-// Route to get institute profile data, protected by fetchInstitute middleware
 router.get('/profile', fetchInstitute, async (req, res) => {
   try {
 
-    // console.log("Inst Details:", req.institute);
-    // req.institute contains the institute ID from the JWT token
+    console.log("Inst Details:", req.institute);
     const instituteId = req.institute._id;
-
-    // Fetch institute details including user role
     const institute = await Institute.findById(instituteId).select("-password");
 
     if (!institute) {
@@ -738,5 +734,78 @@ router.get('/profile', fetchInstitute, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+
+router.put('/profile', fetchInstitute, async (req, res) => {
+  const { name, email, college, role } = req.body;
+  
+  const profileFields = {};
+  if (name) profileFields.name = name;
+  if (email) profileFields.email = email;
+  if (college) profileFields.college = college;
+  if (role) profileFields.role = role;
+  
+  try {
+    let admin = await Institute.findById(req.user.id);
+    
+    if (!admin) {
+      return res.status(404).json({ msg: 'Admin profile not found' });
+    }
+    
+    if (email && email !== admin.email) {
+      const emailExists = await Institute.findOne({ email });
+      if (emailExists) {
+        return res.status(400).json({ msg: 'Email already in use' });
+      }
+    }
+    
+    admin = await Institute.findByIdAndUpdate(
+      req.user.id,
+      { $set: profileFields },
+      { new: true }
+    ).select('-password');
+    
+    res.json(admin);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// router.put('/password', fetchInstitute, async (req, res) => {
+//   const { currentPassword, newPassword } = req.body;
+
+//   if (!currentPassword || !newPassword) {
+//     return res.status(400).json({ msg: 'Both current and new passwords are required' });
+//   }
+
+//   try {
+//     const institute = await Institute.findById(req.user.id);
+
+//     if (!institute) {
+//       return res.status(404).json({ msg: 'Institute profile not found' });
+//     }
+
+//     const isMatch = await bcrypt.compare(currentPassword, institute.password);
+//     if (!isMatch) {
+//       return res.status(400).json({ msg: 'Current password is incorrect' });
+//     }
+
+//     const isSamePassword = await bcrypt.compare(newPassword, institute.password);
+//     if (isSamePassword) {
+//       return res.status(400).json({ msg: 'New password must be different from the current password' });
+//     }
+
+//     const salt = await bcrypt.genSalt(10);
+//     institute.password = await bcrypt.hash(newPassword, salt);
+//     await institute.save();
+
+//     return res.json({ msg: 'Password updated successfully' });
+//   } catch (err) {
+//     console.error('Password update error:', err.message);
+//     return res.status(500).json({ msg: 'Internal server error' });
+//   }
+// });
+
 
 module.exports = router;

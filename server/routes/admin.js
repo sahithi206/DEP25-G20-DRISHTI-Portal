@@ -31,7 +31,6 @@ const Comment = require("../Models/comment.js");
 const UCRequest = require("../Models/UCRequest.js");
 const ProgressReport = require("../Models/progressReport");
 
-
 router.get("/approvedProposals", fetchAdmin, async (req, res) => {
   try {
     const userId = req.admin.id;
@@ -72,8 +71,6 @@ router.get("/approvedProposals", fetchAdmin, async (req, res) => {
     res.status(500).json({ success: false, msg: "Failed to Fetch Projects", error: "Internal Server Error" });
   }
 });
-
-
 
 router.get("/approvedProposal/:id", fetchAdmin, async (req, res) => {
   const { id } = req.params;
@@ -660,7 +657,7 @@ router.put("/progress-reports/:id/mark-as-read", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
-// id is the projectId, not object id of progress report
+
 router.get("/progress-reports/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -710,5 +707,7 @@ router.get("/completed-projects", fetchAdmin, async (req, res) => {
     res.status(500).json({ success: false, msg: "Internal server error." });
   }
 });
+
+
 
 module.exports = router;
