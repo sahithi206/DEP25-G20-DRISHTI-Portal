@@ -708,13 +708,12 @@ router.get("/completed-projects", fetchAdmin, async (req, res) => {
   }
 });
 
-router.get('/dashboard-stats', verifyToken, async (req, res) => {
+router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
   try {
-    // The verifyToken middleware should add the admin's ID to req.user
-    const adminId = req.user.id;
-
+    const adminId = req.admin.id;
+    console.log("Admin ID:", adminId);
     // Find schemes where coordinatorId matches the current admin
-    const adminSchemes = await Schemes.find({ coordinatorId: adminId });
+    const adminSchemes = await Schemes.find({ coordinator: adminId });
     const schemeIds = adminSchemes.map(scheme => scheme._id);
 
     // Count projects based on the admin's schemes

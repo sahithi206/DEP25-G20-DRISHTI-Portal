@@ -23,7 +23,7 @@ const AdminDashboard = () => {
       try {
         // Get token from localStorage
         const token = localStorage.getItem('token');
-
+        console.log("")
         if (!token) {
           // Redirect to login if no token
           // window.location.href = '/admin/login';
@@ -35,7 +35,7 @@ const AdminDashboard = () => {
         // Include token in the request header
         const config = {
           headers: {
-            Authorization: `Bearer ${token}`
+            'accessToken': token,
           }
         };
 
