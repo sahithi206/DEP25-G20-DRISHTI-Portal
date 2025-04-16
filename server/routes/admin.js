@@ -267,8 +267,13 @@ router.post("/createProject/:proposalId", async (req, res) => {
 
 router.get("/get-projects", fetchAdmin, async (req, res) => {
   try {
+    const userId = req.admin.id;
+    console.log("User ID from Token:", userId);
 
     let proposals = await Project.find().populate("Scheme");
+    proposals = proposals.filter(
+      (proj) => proj.Scheme?.coordinator?.toString() === userId
+    );
     console.log("Fetched Projects:", proposals);
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No Projects found" });
@@ -711,12 +716,24 @@ router.get("/completed-projects", fetchAdmin, async (req, res) => {
 router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
   try {
     const adminId = req.admin.id;
-    console.log("Admin ID:", adminId);
-    // Find schemes where coordinatorId matches the current admin
-    const adminSchemes = await Schemes.find({ coordinator: adminId });
-    const schemeIds = adminSchemes.map(scheme => scheme._id);
+    const adminRole = req.admin.role;
+    console.log("Admin ID:", adminId, "Role:", adminRole);
 
-    // Count projects based on the admin's schemes
+    let schemeIds = [];
+    let adminSchemes = [];
+
+    // Fetch schemes based on role
+    if (adminRole === "Head Coordinator") {
+      // For Head Coordinator, get all schemes
+      adminSchemes = await Schemes.find({});
+      schemeIds = adminSchemes.map(scheme => scheme._id);
+    } else {
+      // For regular Coordinator, get only schemes they coordinate
+      adminSchemes = await Schemes.find({ coordinator: adminId });
+      schemeIds = adminSchemes.map(scheme => scheme._id);
+    }
+
+    // Count projects based on the schemes
     const totalProjects = await Project.countDocuments({ Scheme: { $in: schemeIds } });
     const activeProjects = await Project.countDocuments({
       Scheme: { $in: schemeIds },
@@ -759,7 +776,7 @@ router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
 
     console.log("SCHEMES:", schemes);
 
-    // Calculate funding trend by month for the admin's schemes
+    // Calculate funding trend by month for the schemes
     const fundTrend = await Project.aggregate([
       { $match: { Scheme: { $in: schemeIds } } },
       {
