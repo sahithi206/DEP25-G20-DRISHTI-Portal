@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../../Context/Authcontext";
 import AdminSidebar from "../../../components/AdminSidebar";
 import AdminNavbar from "../../../components/AdminNavbar";
 import TermsAndConditions from "../../uc/se/TermsAndConditions";
@@ -6,6 +7,7 @@ import TermsAndConditions from "../../uc/se/TermsAndConditions";
 const url = import.meta.env.VITE_REACT_APP_URL;
 
 const AllSEUC = () => {
+    const { fetchInstituteOfficials } = useContext(AuthContext);
     const [activeSection, setActiveSection] = useState("allRequests");
     const [error, setError] = useState("");
     const [allUCs, setAllUCs] = useState([]);
@@ -28,6 +30,11 @@ const AllSEUC = () => {
     const [sortOrderSE, setSortOrderSE] = useState("asc");
     const [filterUC, setFilterUC] = useState("");
     const [filterSE, setFilterSE] = useState("");
+    const [instituteOfficials, setInstituteOfficials] = useState({
+        headOfInstitute: "Loading...",
+        cfo: "Loading...",
+        accountsOfficer: "Loading...",
+    });
 
     const [isSortFilterOpen, setIsSortFilterOpen] = useState(false);
 
@@ -107,7 +114,8 @@ const AllSEUC = () => {
                 alert("Failed to fetch certificate details.");
                 return;
             }
-
+            const authData = await fetchInstituteOfficials(data.data.ucData.instituteName);
+            setInstituteOfficials(authData);
             setIsUCCertificateOpen(true);
             setPiSignature(data.data.piSignature);
             setInstituteStamp(data.data.instituteStamp);
@@ -136,7 +144,8 @@ const AllSEUC = () => {
                 alert("Failed to fetch SE details.");
                 return;
             }
-
+            const authData = await fetchInstituteOfficials(data.data.institute);
+            setInstituteOfficials(authData);
             setCertificateData(data.data);
             setInstituteStamp(data.data.instituteStamp);
             setPiSignature(data.data.piSignature);
@@ -232,6 +241,7 @@ const AllSEUC = () => {
                 return new Date(b.submissionDate) - new Date(a.submissionDate);
             }
         });
+
     const filteredSEs = allSEs
         .filter((se) => {
             const matchesSearch = searchQuerySE
@@ -469,10 +479,6 @@ const AllSEUC = () => {
                                 <span className="px-3 py-1 w-full">: {certificateData.currentYear}</span>
                                 <label className="font-semibold text-gray-700">Total Project Cost </label>
                                 <span className="px-3 py-1 w-full">: {certificateData.TotalCost}</span>
-                                <label className="font-semibold text-gray-700">Start Date of Year</label>
-                                <span className="px-3 py-1 w-full">: {certificateData.startDate}</span>
-                                <label className="font-semibold text-gray-700">End Date of Year</label>
-                                <span className="px-3 py-1 w-full">: {certificateData.endDate}</span>
                             </div>
 
                             <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
@@ -696,14 +702,6 @@ const AllSEUC = () => {
                                 <label className="font-semibold text-gray-700">Whether recurring or non-recurring:</label>
                                 <span className="px-3 py-1 w-full">: {selectedType}</span>
 
-                                <label className="font-semibold text-gray-700">Present Year of Project:</label>
-                                <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
-
-                                <label className="font-semibold text-gray-700">Start Date of Year:</label>
-                                <span className="px-3 py-1 w-full">: {ucData.startDate}</span>
-
-                                <label className="font-semibold text-gray-700">End Date of Year:</label>
-                                <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
                                 <div className="mb-6">
                                     <h3 className="text-lg font-semibold text-gray-700 mb-4">
                                         Grants position at the beginning of the Financial year
@@ -750,8 +748,8 @@ const AllSEUC = () => {
                                             <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ 0</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ 0</td>
-                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
+                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || '23/2017/003478'}</td>
+                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || '12-03-2025'}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
                                             <td className="border border-gray-400 px-4 py-2">
@@ -833,31 +831,35 @@ const AllSEUC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="border p-4 rounded-lg">
                                     <h4 className="font-medium  mb-1">Principal Investigator Signature</h4>
-                                    <p className="text-medium mb-2 text-gray-500">{ucData.principalInvestigator}</p>
                                     <div className="border p-2 rounded mb-2">
                                         <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
                                     </div>
-
+                                    <p className="font-medium">Signature of PI : ...........................</p>
+                                    <p className="font-medium">Name: {ucData.principalInvestigator[0]}</p>
                                 </div>
 
                                 <div className="border p-4 rounded-lg">
                                     <h4 className="font-medium  mb-1">CFO Signature</h4>
-                                    <p className="text-medium mb-2 text-gray-500">Chief Finance Officer</p>
+                                    {/* <p className="text-medium mb-2 text-gray-500">Chief Finance Officer</p> */}
                                     <div className="border p-2 rounded mb-2">
                                         <img src={authSignature} alt="CFO Signature" className="h-24 object-contain" />
                                     </div>
-
+                                    <p className="font-medium">Signature ...............</p>
+                                    <p className="font-medium">Name: {instituteOfficials.cfo}</p>
+                                    <p className="font-medium">Chief Finance Officer</p>
+                                    <p className="font-medium">(Head of Finance)</p>
                                 </div>
 
                                 <div className="border p-4 rounded-lg">
 
                                     <h4 className="font-medium  mb-1">Institute Approval</h4>
-                                    <p className="text-medium mb-2 text-gray-500">{ucData.instituteName}</p>
-
+                                    {/* <p className="text-medium mb-2 text-gray-500">{ucData.instituteName}</p> */}
                                     <div className="border p-2 rounded mb-2">
                                         <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
                                     </div>
-
+                                    <p className="font-medium">Signature.................</p>
+                                    <p className="font-medium">Name: {instituteOfficials.headOfInstitute}</p>
+                                    <p className="font-medium">Head of Organisation</p>
                                 </div>
                             </div>
                         </div>

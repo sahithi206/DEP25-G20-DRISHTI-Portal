@@ -411,10 +411,10 @@ const UCPage = () => {
                           <span className="px-3 py-1 w-full">: {ucData.principalInvestigator}</span>
                           <label className="font-semibold text-gray-700">Present Year of Project:</label>
                           <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
-                          <label className="font-semibold text-gray-700">Start Date of Year:</label>
+                          {/* <label className="font-semibold text-gray-700">Start Date of Year:</label>
                           <span className="px-3 py-1 w-full">: {ucData.startDate}</span>
                           <label className="font-semibold text-gray-700">End Date of Year:</label>
-                          <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
+                          <span className="px-3 py-1 w-full">: {ucData.endDate}</span> */}
                           <div className="mb-6">
                             <h3 className="text-lg font-semibold text-gray-700 mb-4">
                               Grants position at the beginning of the Financial year

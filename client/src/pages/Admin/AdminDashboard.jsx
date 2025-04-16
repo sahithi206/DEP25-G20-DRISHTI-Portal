@@ -21,29 +21,53 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const res = await axios.get(`${url}admin/dashboard-stats`);
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+          // Redirect to login if no token
+          // window.location.href = '/admin/login';
+          setError("Authentication required. Please login.");
+          setLoading(false);
+          return;
+        }
+
+        // Include token in the request header
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        };
+
+        const res = await axios.get(`${url}admin/dashboard-stats`, config);
         console.log("Dashboard API response:", res.data);
         const data = res.data;
-  
+
         setSummaryCards([
           { title: "Total Schemes", value: data.summaryCards.totalSchemes },
           { title: "Total Projects", value: data.summaryCards.totalProjects },
           { title: "Active Projects", value: data.summaryCards.activeProjects },
           { title: "Fund Approved", value: data.summaryCards.fundApproved }
         ]);
-  
+
         setProjectStats(data.projectStats || []);
         setSchemeProjects(data.schemeProjects || []);
         setFundTrend(data.fundTrend || []);
-  
-        setLoading(false); 
+
+        setLoading(false);
       } catch (err) {
         console.error("Dashboard data fetch failed:", err);
-        setError("Failed to load dashboard data."); 
-        setLoading(false); 
+        if (err.response?.status === 401) {
+          setError("Authentication failed. Please login again.");
+          // Optional: Redirect to login
+          // window.location.href = '/admin/login';
+        } else {
+          setError("Failed to load dashboard data.");
+        }
+        setLoading(false);
       }
     };
-  
+
     fetchDashboardData();
   }, []);
 

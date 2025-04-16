@@ -536,10 +536,10 @@ const SEPage = () => {
                                 <span className="px-3 py-1 w-full">: {seData.currentYear}</span>
                                 <label className="font-semibold text-gray-700">Total Project Cost </label>
                                 <span className="px-3 py-1 w-full">: {seData.TotalCost}</span>
-                                <label className="font-semibold text-gray-700">Start Date of Year</label>
+                                {/* <label className="font-semibold text-gray-700">Start Date of Year</label>
                                 <span className="px-3 py-1 w-full">: {seData.startDate}</span>
                                 <label className="font-semibold text-gray-700">End Date of Year</label>
-                                <span className="px-3 py-1 w-full">: {seData.endDate}</span>
+                                <span className="px-3 py-1 w-full">: {seData.endDate}</span> */}
                             </div>
 
                             <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>

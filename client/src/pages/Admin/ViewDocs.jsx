@@ -26,9 +26,9 @@ const ViewDocs = () => {
     const navigate = useNavigate();
     const { id } = useParams();
 
-    const [sortOrder, setSortOrder] = useState("asc"); 
-const [filterStartDate, setFilterStartDate] = useState(""); 
-const [filterEndDate, setFilterEndDate] = useState(""); 
+    const [sortOrder, setSortOrder] = useState("asc");
+    const [filterStartDate, setFilterStartDate] = useState("");
+    const [filterEndDate, setFilterEndDate] = useState("");
 
     const fetchPendingUCs = async () => {
         try {
@@ -94,42 +94,42 @@ const [filterEndDate, setFilterEndDate] = useState("");
     }, [id]);
 
     const sortedAndFilteredUCs = pendingUCs
-    .filter((uc) => {
-        const submissionDate = new Date(uc.submissionDate);
-        const startDate = filterStartDate ? new Date(filterStartDate) : null;
-        const endDate = filterEndDate ? new Date(filterEndDate) : null;
+        .filter((uc) => {
+            const submissionDate = new Date(uc.submissionDate);
+            const startDate = filterStartDate ? new Date(filterStartDate) : null;
+            const endDate = filterEndDate ? new Date(filterEndDate) : null;
 
-        return (
-            (!startDate || submissionDate >= startDate) &&
-            (!endDate || submissionDate <= endDate)
-        );
-    })
-    .sort((a, b) => {
-        if (sortOrder === "asc") {
-            return new Date(a.submissionDate) - new Date(b.submissionDate);
-        } else {
-            return new Date(b.submissionDate) - new Date(a.submissionDate);
-        }
-    });
+            return (
+                (!startDate || submissionDate >= startDate) &&
+                (!endDate || submissionDate <= endDate)
+            );
+        })
+        .sort((a, b) => {
+            if (sortOrder === "asc") {
+                return new Date(a.submissionDate) - new Date(b.submissionDate);
+            } else {
+                return new Date(b.submissionDate) - new Date(a.submissionDate);
+            }
+        });
 
-const sortedAndFilteredSEs = pendingSEs
-    .filter((se) => {
-        const submissionDate = new Date(se.date);
-        const startDate = filterStartDate ? new Date(filterStartDate) : null;
-        const endDate = filterEndDate ? new Date(filterEndDate) : null;
+    const sortedAndFilteredSEs = pendingSEs
+        .filter((se) => {
+            const submissionDate = new Date(se.date);
+            const startDate = filterStartDate ? new Date(filterStartDate) : null;
+            const endDate = filterEndDate ? new Date(filterEndDate) : null;
 
-        return (
-            (!startDate || submissionDate >= startDate) &&
-            (!endDate || submissionDate <= endDate)
-        );
-    })
-    .sort((a, b) => {
-        if (sortOrder === "asc") {
-            return new Date(a.submissionDate) - new Date(b.submissionDate);
-        } else {
-            return new Date(b.submissionDate) - new Date(a.submissionDate);
-        }
-    });
+            return (
+                (!startDate || submissionDate >= startDate) &&
+                (!endDate || submissionDate <= endDate)
+            );
+        })
+        .sort((a, b) => {
+            if (sortOrder === "asc") {
+                return new Date(a.submissionDate) - new Date(b.submissionDate);
+            } else {
+                return new Date(b.submissionDate) - new Date(a.submissionDate);
+            }
+        });
 
     const handleViewCertificate = async (certificate) => {
         try {
@@ -212,39 +212,39 @@ const sortedAndFilteredSEs = pendingSEs
                 <div className="p-6 space-y-1 mt-3">
                     <div key={reloadKey} className="mt-3 bg-white p-7 rounded-lg shadow-md">
                         <div>
-                        <div className="flex justofy-end items-center space-x-4 bg-gray-100 p-4 rounded-lg shadow-md">
-        <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">Start Date</label>
-            <input
-                type="date"
-                value={filterStartDate}
-                onChange={(e) => setFilterStartDate(e.target.value)}
-                className="p-2 border rounded"
-            />
-        </div>
+                            <div className="flex justofy-end items-center space-x-4 bg-gray-100 p-4 rounded-lg shadow-md">
+                                <div className="flex flex-col">
+                                    <label className="text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                    <input
+                                        type="date"
+                                        value={filterStartDate}
+                                        onChange={(e) => setFilterStartDate(e.target.value)}
+                                        className="p-2 border rounded"
+                                    />
+                                </div>
 
-        <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">End Date</label>
-            <input
-                type="date"
-                value={filterEndDate}
-                onChange={(e) => setFilterEndDate(e.target.value)}
-                className="p-2 border rounded"
-            />
-        </div>
+                                <div className="flex flex-col">
+                                    <label className="text-sm font-medium text-gray-700 mb-1">End Date</label>
+                                    <input
+                                        type="date"
+                                        value={filterEndDate}
+                                        onChange={(e) => setFilterEndDate(e.target.value)}
+                                        className="p-2 border rounded"
+                                    />
+                                </div>
 
-        <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">Sort By</label>
-            <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="p-2 border rounded"
-            >
-                <option value="asc">Date (Ascending)</option>
-                <option value="desc">Date (Descending)</option>
-            </select>
-        </div>
-    </div>
+                                <div className="flex flex-col">
+                                    <label className="text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                                    <select
+                                        value={sortOrder}
+                                        onChange={(e) => setSortOrder(e.target.value)}
+                                        className="p-2 border rounded"
+                                    >
+                                        <option value="asc">Date (Ascending)</option>
+                                        <option value="desc">Date (Descending)</option>
+                                    </select>
+                                </div>
+                            </div>
                             <h2 className="text-lg font-bold mb-4">Approved UCs</h2>
 
                             <table className="w-full border table-fixed">
@@ -276,7 +276,7 @@ const sortedAndFilteredSEs = pendingSEs
                                                             className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
                                                             onClick={() => handleViewCertificate(certificate)}
                                                         >
-                                                            View 
+                                                            View
                                                         </button>
                                                     </div>
                                                 </td>
@@ -359,10 +359,10 @@ const sortedAndFilteredSEs = pendingSEs
                                 <span className="px-3 py-1 w-full">: {certificateData.currentYear}</span>
                                 <label className="font-semibold text-gray-700">Total Project Cost</label>
                                 <span className="px-3 py-1 w-full">: {certificateData.TotalCost}</span>
-                                <label className="font-semibold text-gray-700">Start Date of Year</label>
+                                {/* <label className="font-semibold text-gray-700">Start Date of Year</label>
                                 <span className="px-3 py-1 w-full">: {certificateData.startDate}</span>
                                 <label className="font-semibold text-gray-700">End Date of Year</label>
-                                <span className="px-3 py-1 w-full">: {certificateData.endDate}</span>
+                                <span className="px-3 py-1 w-full">: {certificateData.endDate}</span> */}
                             </div>
 
                             <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
@@ -468,11 +468,11 @@ const sortedAndFilteredSEs = pendingSEs
                                 <label className="font-semibold text-gray-700">Present Year of Project:</label>
                                 <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
 
-                                <label className="font-semibold text-gray-700">Start Date of Year:</label>
+                                {/* <label className="font-semibold text-gray-700">Start Date of Year:</label>
                                 <span className="px-3 py-1 w-full">: {ucData.startDate}</span>
 
                                 <label className="font-semibold text-gray-700">End Date of Year:</label>
-                                <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
+                                <span className="px-3 py-1 w-full">: {ucData.endDate}</span> */}
 
                                 <div className="mb-6">
                                     <h3 className="text-lg font-semibold text-gray-700 mb-4">
@@ -494,44 +494,44 @@ const sortedAndFilteredSEs = pendingSEs
                             <div className="overflow-x-auto">
                                 <table className="w-full border border-gray-300 rounded-lg">
                                     <thead>
-                                    <tr className="bg-blue-100 text-gray-700">
-                                        <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
-                                        <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
-                                        <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
-                                        <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
-                                        <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
-                                        <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
-                                        <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
-                                    </tr>
-                                    <tr className="bg-blue-50 text-gray-700">
-                                        <th className="border border-gray-400 px-4 py-2">1</th>
-                                        <th className="border border-gray-400 px-4 py-2">2</th>
-                                        <th className="border border-gray-400 px-4 py-2">3</th>
-                                        <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
-                                        <th className="border border-gray-400 px-4 py-2">Date</th>
-                                        <th className="border border-gray-400 px-4 py-2">Amount</th>
-                                        <th className="border border-gray-400 px-4 py-2">5</th>
-                                        <th className="border border-gray-400 px-4 py-2">6</th>
-                                        <th className="border border-gray-400 px-4 py-2">7</th>
-                                    </tr>
+                                        <tr className="bg-blue-100 text-gray-700">
+                                            <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
+                                            <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
+                                            <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
+                                            <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
+                                            <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
+                                            <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
+                                            <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
+                                        </tr>
+                                        <tr className="bg-blue-50 text-gray-700">
+                                            <th className="border border-gray-400 px-4 py-2">1</th>
+                                            <th className="border border-gray-400 px-4 py-2">2</th>
+                                            <th className="border border-gray-400 px-4 py-2">3</th>
+                                            <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
+                                            <th className="border border-gray-400 px-4 py-2">Date</th>
+                                            <th className="border border-gray-400 px-4 py-2">Amount</th>
+                                            <th className="border border-gray-400 px-4 py-2">5</th>
+                                            <th className="border border-gray-400 px-4 py-2">6</th>
+                                            <th className="border border-gray-400 px-4 py-2">7</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
-                                    <tr className="text-center">
-                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ 0</td>
-                                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
-                                        <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
-                                        <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
-                                    </tr>
+                                        <tr className="text-center">
+                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || '23/2017/003478'}</td>
+                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || '12-03-2025'}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
+                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
 
-                            {(selectedType === "recurring" || selectedType !== "recurring" )&& (
+                            {(selectedType === "recurring" || selectedType !== "recurring") && (
                                 <>
                                     <h3 className="text-lg font-semibold text-blue-700 mt-6 mb-4">
                                         Component-wise Utilization of Grants

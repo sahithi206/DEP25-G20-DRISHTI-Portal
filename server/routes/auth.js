@@ -407,5 +407,41 @@ router.get("/get-admin", fetchAdmin, async (req, res) => {
   }
 });
 
+router.post('/officials', async (req, res) => {
+  try {
+    const { instituteName } = req.body;
+
+    const officials = await Institute.find({
+      college: instituteName,
+      role: { $in: ['Head of Institute', 'CFO', 'Accounts Officer'] }
+    }).select('-password');
+
+    if (!officials || officials.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        message: "No officials found for this institute"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: officials.map(official => ({
+        id: official._id,
+        name: official.name,
+        role: official.role,
+        email: official.email,
+        college: official.college
+      }))
+    });
+  } catch (error) {
+    console.error("Error fetching institute officials:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching institute officials"
+    });
+  }
+});
+
 
 module.exports = router;

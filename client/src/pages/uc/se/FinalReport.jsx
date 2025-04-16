@@ -13,29 +13,29 @@ export default function Report() {
   const { id } = useParams();
   const [user, setUser] = useState({});
   const { getuser, getProject } = useContext(AuthContext);
-const [newEquipment, setNewEquipment] = useState({
-  equipment: "",
-  cost: "",
-  working: "",
-  rate: "",
-});
+  const [newEquipment, setNewEquipment] = useState({
+    equipment: "",
+    cost: "",
+    working: "",
+    rate: "",
+  });
 
-const handleInputChange = (e) => {
-  const { name, value } = e.target;
-  setNewEquipment((prev) => ({ ...prev, [name]: value }));
-};
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewEquipment((prev) => ({ ...prev, [name]: value }));
+  };
 
-const handleAddEquipment = () => {
-  if (!newEquipment.equipment || !newEquipment.cost || !newEquipment.working || !newEquipment.rate) {
-    alert("Please fill all fields");
-    return;
-  }
-  setData((prevData) => ({
-    ...prevData,
-    majorEquipment: [...prevData.majorEquipment, newEquipment],
-  }));
-  setNewEquipment({ equipment: "", cost: "", working: "", rate: "" });
-};
+  const handleAddEquipment = () => {
+    if (!newEquipment.equipment || !newEquipment.cost || !newEquipment.working || !newEquipment.rate) {
+      alert("Please fill all fields");
+      return;
+    }
+    setData((prevData) => ({
+      ...prevData,
+      majorEquipment: [...prevData.majorEquipment, newEquipment],
+    }));
+    setNewEquipment({ equipment: "", cost: "", working: "", rate: "" });
+  };
   const handleRemoveItem = (index) => {
     setData((prevState) => ({
       ...prevState,
@@ -49,7 +49,7 @@ const handleAddEquipment = () => {
   const [data, setData] = useState({
     projectId: "",
     projectTitle: "",
-    currentYear:1,
+    currentYear: 1,
     principalInvestigator: [],
     coPrincipalInvestigator: [],
     researchArea: "",
@@ -156,38 +156,38 @@ const handleAddEquipment = () => {
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-        alert("Authentication required.");
-        return;
+      alert("Authentication required.");
+      return;
     }
     try {
-        const response = await fetch(`${url}projects/progress-report/${id}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "accessToken": ` ${token}`,
-            },
-            body: JSON.stringify({
-                type:"Final",
-                data: {
-                    ...data,
-                    approvedObjectives: data.approvedObjectives.join("\n"),
-                    majorEquipment: Array.isArray(data.majorEquipment)
-                        ? data.majorEquipment
-                        : [data.majorEquipment] 
-                }
-            })
-        });
-        const json = await response.json();
-        console.log(json.data);
-        if (json.success) {
-            alert("Data submitted successfully!");
-            navigate(`/project-dashboard/${id}`);
-        } else {
-            alert(json.msg);
-        }
+      const response = await fetch(`${url}projects/progress-report/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": ` ${token}`,
+        },
+        body: JSON.stringify({
+          type: "Final",
+          data: {
+            ...data,
+            approvedObjectives: data.approvedObjectives.join("\n"),
+            majorEquipment: Array.isArray(data.majorEquipment)
+              ? data.majorEquipment
+              : [data.majorEquipment]
+          }
+        })
+      });
+      const json = await response.json();
+      console.log(json.data);
+      if (json.success) {
+        alert("Data submitted successfully!");
+        navigate(`/project-dashboard/${id}`);
+      } else {
+        alert(json.msg);
+      }
     } catch (error) {
-        console.error("Error:", error);
-        alert("Error in submitting data!");
+      console.error("Error:", error);
+      alert("Error in submitting data!");
     }
   };
 
@@ -518,88 +518,88 @@ const handleAddEquipment = () => {
 
             {page === 4 && (
               <>
-               <h1 className="text-3xl font-semibold mb-4">Achievements & Future Work</h1>
+                <h1 className="text-3xl font-semibold mb-4">Achievements & Future Work</h1>
 
-{/* Equipment Input Form */}
-<div className="grid grid-cols-2 gap-4 mb-4">
-  <label className="font-semibold text-gray-700">Equipment Name & Model</label>
-  <input
-    type="text"
-    name="equipment"
-    value={newEquipment.equipment}
-    onChange={handleInputChange}
-    className="px-3 py-1 w-full border rounded-lg"
-  />
+                {/* Equipment Input Form */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <label className="font-semibold text-gray-700">Equipment Name & Model</label>
+                  <input
+                    type="text"
+                    name="equipment"
+                    value={newEquipment.equipment}
+                    onChange={handleInputChange}
+                    className="px-3 py-1 w-full border rounded-lg"
+                  />
 
-  <label className="font-semibold text-gray-700">Cost (Rs in lakhs)</label>
-  <input
-    type="number"
-    name="cost"
-    value={newEquipment.cost}
-    onChange={handleInputChange}
-    className="px-3 py-1 w-full border rounded-lg"
-  />
+                  <label className="font-semibold text-gray-700">Cost (Rs in lakhs)</label>
+                  <input
+                    type="number"
+                    name="cost"
+                    value={newEquipment.cost}
+                    onChange={handleInputChange}
+                    className="px-3 py-1 w-full border rounded-lg"
+                  />
 
-  <label className="font-semibold text-gray-700">Working (Yes/No)</label>
-  <input
-    type="text"
-    name="working"
-    value={newEquipment.working}
-    onChange={handleInputChange}
-    className="px-3 py-1 w-full border rounded-lg"
-  />
+                  <label className="font-semibold text-gray-700">Working (Yes/No)</label>
+                  <input
+                    type="text"
+                    name="working"
+                    value={newEquipment.working}
+                    onChange={handleInputChange}
+                    className="px-3 py-1 w-full border rounded-lg"
+                  />
 
-  <label className="font-semibold text-gray-700">Utilisation Rate (%)</label>
-  <input
-    type="text"
-    name="rate"
-    value={newEquipment.rate}
-    onChange={handleInputChange}
-    className="px-3 py-1 w-full border rounded-lg"
-  />
-</div>
+                  <label className="font-semibold text-gray-700">Utilisation Rate (%)</label>
+                  <input
+                    type="text"
+                    name="rate"
+                    value={newEquipment.rate}
+                    onChange={handleInputChange}
+                    className="px-3 py-1 w-full border rounded-lg"
+                  />
+                </div>
 
-<button
-  onClick={handleAddEquipment}
-  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 mb-4"
->
-  Add Equipment
-</button>
+                <button
+                  onClick={handleAddEquipment}
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 mb-4"
+                >
+                  Add Equipment
+                </button>
 
-{/* Display Table Only if Data Exists */}
-{data.majorEquipment.length > 0 && (
-  <table className="border border-black w-full text-center mb-4">
-    <thead>
-      <tr className="border border-black">
-        <th className="border border-black px-4 py-2">S No</th>
-        <th className="border border-black px-4 py-2">Equipment (Model and Make)</th>
-        <th className="border border-black px-4 py-2">Cost (Rs in lakhs)</th>
-        <th className="border border-black px-4 py-2">Working (Yes/ No)</th>
-        <th className="border border-black px-4 py-2">Utilisation Rate (%)</th>
-        <th className="border border-black px-4 py-2">Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      {data.majorEquipment.map((row, index) => (
-        <tr key={index} className="border border-black">
-          <td className="border border-black px-4 py-2">{index + 1}</td>
-          <td className="border border-black px-4 py-2">{row.equipment}</td>
-          <td className="border border-black px-4 py-2">{row.cost}</td>
-          <td className="border border-black px-4 py-2">{row.working}</td>
-          <td className="border border-black px-4 py-2">{row.rate}</td>
-          <td className="border border-black px-4 py-2">
-            <button
-              onClick={() => handleRemoveItem(index)}
-              className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-700"
-            >
-              Remove
-            </button>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-)}
+                {/* Display Table Only if Data Exists */}
+                {data.majorEquipment.length > 0 && (
+                  <table className="border border-black w-full text-center mb-4">
+                    <thead>
+                      <tr className="border border-black">
+                        <th className="border border-black px-4 py-2">S No</th>
+                        <th className="border border-black px-4 py-2">Equipment (Model and Make)</th>
+                        <th className="border border-black px-4 py-2">Cost (Rs in lakhs)</th>
+                        <th className="border border-black px-4 py-2">Working (Yes/ No)</th>
+                        <th className="border border-black px-4 py-2">Utilisation Rate (%)</th>
+                        <th className="border border-black px-4 py-2">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.majorEquipment.map((row, index) => (
+                        <tr key={index} className="border border-black">
+                          <td className="border border-black px-4 py-2">{index + 1}</td>
+                          <td className="border border-black px-4 py-2">{row.equipment}</td>
+                          <td className="border border-black px-4 py-2">{row.cost}</td>
+                          <td className="border border-black px-4 py-2">{row.working}</td>
+                          <td className="border border-black px-4 py-2">{row.rate}</td>
+                          <td className="border border-black px-4 py-2">
+                            <button
+                              onClick={() => handleRemoveItem(index)}
+                              className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-700"
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </>
             )}
 
@@ -615,14 +615,14 @@ const handleAddEquipment = () => {
                   Previous
                 </button>
               )}
-              {page < 4&&page>1 && (
+              {page < 4 && page > 1 && (
                 <button onClick={nextPage} className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700">
                   Next
                 </button>
               )}
               {page === 4 && (
                 <button onClick={handleSubmit} className="bg-blue-500 text-white py-2 px-4 rounded-md ml-auto p-8 hover:bg-blue-700">
-                   Submit
+                  Submit
                 </button>
               )}
             </div>

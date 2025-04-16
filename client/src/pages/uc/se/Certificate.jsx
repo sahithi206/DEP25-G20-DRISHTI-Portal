@@ -11,7 +11,7 @@ const Certificates = () => {
     const { getuser } = useContext(AuthContext);
     const [data, setData] = useState({});
     const [user, setUser] = useState({});
-    const [closing,setClosing]=useState(data.total);
+    const [closing, setClosing] = useState(data.total);
     const { id, type } = useParams();
 
     const [loading, setLoading] = useState(true);
@@ -49,13 +49,13 @@ const Certificates = () => {
                 const user = await getuser();
                 setUser(user);
                 console.log(user);
-                if(type==="nonRecurring"){
+                if (type === "nonRecurring") {
                     console.log(data.nonRecurringExp);
-                    console.log("nonRecurring",data.total - data.nonRecurringExp)
+                    console.log("nonRecurring", data.total - data.nonRecurringExp)
                     setClosing(data.total - data.nonRecurringExp);
-                }else {
+                } else {
                     console.log(data.nonRecurringExp);
-                    console.log("Recurring",data.total - data.recurringExp)
+                    console.log("Recurring", data.total - data.recurringExp)
                     setClosing(data.total - data.recurringExp);
                 }
             } catch (error) {
@@ -65,7 +65,7 @@ const Certificates = () => {
         };
 
         fetchCertificates();
-    }, [id,type]);
+    }, [id, type]);
 
 
     return (
@@ -98,11 +98,10 @@ const Certificates = () => {
                             <span className="px-3 py-1 w-full">: {data.scheme}</span>
                             <label className="font-semibold text-gray-700">Present Year of Project</label>
                             <span className="px-3 py-1 w-full">: {data.currentYear}</span>
-                            <label className="font-semibold text-gray-700">Start Date of Year</label>
+                            {/* <label className="font-semibold text-gray-700">Start Date of Year</label>
                             <span className="px-3 py-1 w-full">: {data.startDate}</span>
-
                             <label className="font-semibold text-gray-700">End Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.endDate}</span>
+                            <span className="px-3 py-1 w-full">: {data.endDate}</span> */}
 
                         </div>
 
@@ -166,12 +165,12 @@ const Certificates = () => {
                         </div>
 
                         <div className="mb-4 py-4 flex justify-center space-x-10">
-    <button
-        className="mt-4 bg-blue-600 text-white px-6 py-2 w-full rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md"
-    >
-        Export as PDF
-    </button>
-</div>
+                            <button
+                                className="mt-4 bg-blue-600 text-white px-6 py-2 w-full rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md"
+                            >
+                                Export as PDF
+                            </button>
+                        </div>
 
 
                     </div>

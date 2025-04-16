@@ -12,7 +12,7 @@ const url = import.meta.env.VITE_REACT_APP_URL;
 
 const ApproveUC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { getInstUser } = useContext(AuthContext);
+  const { getInstUser, fetchInstituteOfficials } = useContext(AuthContext);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showStampModal, setShowStampModal] = useState(false);
@@ -31,6 +31,11 @@ const ApproveUC = () => {
   const [instituteStamp, setInstituteStamp] = useState(null);
   const [authSignature, setAuthSignature] = useState(null);
   const [showUploadOption, setShowUploadOption] = useState(false);
+  const [instituteOfficials, setInstituteOfficials] = useState({
+    headOfInstitute: "Loading...",
+    cfo: "Loading...",
+    accountsOfficer: "Loading...",
+  });
   const navigate = useNavigate();
 
   const stampCanvas = useRef(null);
@@ -111,20 +116,22 @@ const ApproveUC = () => {
     setSelectedType(requestType);
     setUcData(request.ucData);
 
-    console.log("VIEWW - Debug point 1", request.projectId, requestType); // Added more context
+    // console.log("VIEWW - Debug point 1", request.projectId, requestType); 
 
     if (request.projectId && requestType) { // Use the local variable
       try {
-        console.log(`Making request to: ${url}uc/latest?projectId=${request.projectId}&type=${requestType}`);
+        // console.log(`Making request to: ${url}uc/latest?projectId=${request.projectId}&type=${requestType}`);
 
         const res = await fetch(`${url}uc/latest?projectId=${request.projectId}&type=${requestType}`);
-        console.log("Response received:", res.status);
+        // console.log("Response received:", res.status);
 
         const data = await res.json();
-        console.log("Response data:", data);
+        // console.log("Response data:", data);
         if (data.success && data.data) {
           const uc = data.data;
-          console.log("UC data received:", uc);
+          const authData = await fetchInstituteOfficials(uc.ucData.instituteName);
+          // console.log("Auth Data:", authData);
+          setInstituteOfficials(authData);
           setPiSignature(uc.piSignature);
           setUcRequestId(uc._id);
           if (uc.status === "approvedByInst") {
@@ -367,9 +374,6 @@ const ApproveUC = () => {
       { label: "Title of the Project", value: ucData.title },
       { label: "Name of the Scheme", value: ucData.scheme || "N/A" },
       { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" },
-      { label: "Present Year of Project", value: ucData.currentYear },
-      { label: "Start Date of Year", value: ucData.startDate },
-      { label: "End Date of Year", value: ucData.endDate }
     ];
 
     let yPos = 60;
@@ -390,7 +394,7 @@ const ApproveUC = () => {
     yPos += 7;
 
     pdf.text("Carry forward from previous financial year", margin + 20, yPos);
-    pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
     yPos += 7;
 
     pdf.text("Others, If any", margin + 20, yPos);
@@ -398,7 +402,7 @@ const ApproveUC = () => {
     yPos += 7;
 
     pdf.text("Total", margin + 20, yPos);
-    pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
     yPos += 10;
 
     pdf.text(`${itemNum + 1}`, margin, yPos);
@@ -428,6 +432,10 @@ const ApproveUC = () => {
       ]
     ];
     const recurringExp = ucData.recurringExp || 0;
+    const nonRecurringExp = ucData.nonRecurringExp || 0;
+
+    const isRecurring = selectedType === "recurring";
+    const usedExp = isRecurring ? recurringExp : nonRecurringExp;
 
     const data = [
       [
@@ -438,8 +446,8 @@ const ApproveUC = () => {
         ucData.sanctionDate || "N/A",
         `Rs ${ucData.yearTotal.toLocaleString()}`,
         `Rs ${ucData.total.toLocaleString()}`,
-        `Rs ${recurringExp.toLocaleString()}`,
-        `Rs ${(ucData.total - recurringExp).toLocaleString()}`
+        `Rs ${usedExp.toLocaleString()}`,
+        `Rs ${(ucData.total - usedExp).toLocaleString()}`
       ]
     ];
 
@@ -477,55 +485,34 @@ const ApproveUC = () => {
 
     yPos = pdf.lastAutoTable.finalY + 10;
 
-    if (selectedType === "recurring" && selectedType !== "recurring") {
-      pdf.text("Component wise utilization of grants:", margin, yPos);
-      yPos += 5;
+    const amount = isRecurring ? recurringExp : nonRecurringExp;
 
-      const componentHeaders = [["Component", "Total"]];
-      const componentData = [
-        ["Human Resources", `Rs ${ucData.human_resources}`],
-        ["Consumables", `Rs ${ucData.consumables}`],
-        ["Others", `Rs ${ucData.others}`],
-        ["Total", `Rs ${ucData.recurringExp}`]
-      ];
+    pdf.text("Component wise utilization of grants:", margin, yPos);
+    yPos += 5;
 
-      pdf.autoTable({
-        head: componentHeaders,
-        body: componentData,
-        startY: yPos,
-        theme: 'grid',
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
-        styles: { fontSize: 10, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] }
-      });
+    const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
+    const formattedAmount = `Rs ${amount.toLocaleString()}`;
+    const componentData = [[formattedAmount, formattedAmount]];
 
-      yPos = pdf.lastAutoTable.finalY + 10;
-    } else {
-      pdf.text("Component wise utilization of grants:", margin, yPos);
-      yPos += 5;
+    pdf.autoTable({
+      head: componentHeaders,
+      body: componentData,
+      startY: yPos,
+      theme: 'grid',
+      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
+      styles: { fontSize: 10, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] }
+    });
 
-      const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
-      const componentData = [[`Rs ${recurringExp.toLocaleString()}`, `Rs ${recurringExp.toLocaleString()}`]];
-
-      pdf.autoTable({
-        head: componentHeaders,
-        body: componentData,
-        startY: yPos,
-        theme: 'grid',
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
-        styles: { fontSize: 10, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] }
-      });
-
-      yPos = pdf.lastAutoTable.finalY + 10;
-    }
+    yPos = pdf.lastAutoTable.finalY + 10;
 
     pdf.text("Details of grants position at the end of the year", margin, yPos);
     yPos += 7;
 
-    const closingBalance = ucData.total - ucData.recurringExp;
+    const closingBalance = isRecurring ? (ucData.total - recurringExp) : (ucData.total - nonRecurringExp);
 
     pdf.text("(i)", margin, yPos);
     pdf.text("Balance available at end of financial year", margin + 10, yPos);
-    pdf.text(`Rs ${closingBalance}`, margin + 100, yPos);
+    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
     yPos += 7;
 
     pdf.text("(ii)", margin, yPos);
@@ -535,15 +522,17 @@ const ApproveUC = () => {
 
     pdf.text("(iii)", margin, yPos);
     pdf.text("Balance (Carry forward to next financial year)", margin + 10, yPos);
-    pdf.text(`Rs ${closingBalance}`, margin + 100, yPos);
+    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
     yPos += 15;
 
     pdf.addPage();
     yPos = 20;
+
     pdf.setFontSize(10);
-    pdf.text("Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly fulfilled/are being fulfilled and that I", margin, yPos);
-    pdf.text("have exercised following checks to see that the money has been actually utilized for the purpose which it was sanctioned:", margin, yPos + 5);
-    yPos += 15;
+    pdf.text("Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly ", margin, yPos);
+    pdf.text("fulfilled/are being fulfilled and that I have exercised following checks to see that the money has ", margin, yPos + 5);
+    pdf.text("been utilized for the purpose for which it was sanctioned.", margin, yPos + 10);
+    yPos += 20;
 
     const certItems = [
       "The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.",
@@ -564,29 +553,72 @@ const ApproveUC = () => {
       yPos += (splitText.length * 5) + 5;
     });
 
+
     yPos += 10;
     pdf.text("Date: " + new Date().toLocaleDateString("en-IN"), margin, yPos);
+    yPos += 10;
+
+    // Set up signature section
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Signatures", margin, yPos);
     yPos += 5;
+
+    // Create signature table
+    const sigWidth = (contentWidth) / 3;
+    const sigHeight = 40;
+    const startX = margin;
+
+    // Draw signature table outline
+    pdf.rect(startX, yPos, contentWidth, sigHeight + 25);
+    pdf.line(startX + sigWidth, yPos, startX + sigWidth, yPos + sigHeight + 25); // First vertical divider
+    pdf.line(startX + sigWidth * 2, yPos, startX + sigWidth * 2, yPos + sigHeight + 25); // Second vertical divider
+    pdf.line(startX, yPos + sigHeight, startX + contentWidth, yPos + sigHeight); // Horizontal divider
+
+    // Add PI signature
     if (piSignature) {
-      pdf.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
-      pdf.text("Signature of PI", margin, yPos + 25);
+      pdf.addImage(piSignature, 'PNG', startX + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
     } else {
-      pdf.text("Signature of PI: ________________", margin, yPos + 10);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "italic");
+      pdf.text("No signature added", startX + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
     }
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("Signature of PI : ...........................", startX + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
 
-    // Adding CFO/Authority signature if available
+    // Add CFO signature
     if (authSignature) {
-      pdf.addImage(authSignature, 'PNG', margin + 50, yPos, 50, 20);
-      pdf.text("CFO Signature", margin + 50, yPos + 25);
+      pdf.addImage(authSignature, 'PNG', startX + sigWidth + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+    } else {
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "italic");
+      pdf.text(sentToCFO ? "Awaiting approval" : "Not sent for approval yet",
+        startX + sigWidth + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
     }
 
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("Signature ...............", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
+    pdf.text(`Name: ${instituteOfficials.cfo}`, startX + sigWidth + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+    pdf.text("Chief Finance Officer", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
+    pdf.text("(Head of Finance)", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 20, { align: "center" });
+
+    // Add Institute Head signature and stamp
     if (instituteStamp) {
-      pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
-      pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
+      pdf.addImage(instituteStamp, 'PNG', startX + sigWidth * 2 + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+    } else {
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "italic");
+      pdf.text("No signature added",
+        startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
     }
 
-    yPos += 35;
-
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("Signature.................", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
+    pdf.text(`Name: ${instituteOfficials.headOfInstitute}`, startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+    pdf.text("Head of Organisation", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
     pdf.save(`UC_${ucData.title}_${selectedType}.pdf`);
   };
 
@@ -768,11 +800,6 @@ const ApproveUC = () => {
                     <label className="font-semibold text-gray-700">Present Year of Project:</label>
                     <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
 
-                    <label className="font-semibold text-gray-700">Start Date of Year:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.startDate}</span>
-
-                    <label className="font-semibold text-gray-700">End Date of Year:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold text-gray-700 mb-4">
                         Grants position at the beginning of the Financial year
@@ -819,8 +846,8 @@ const ApproveUC = () => {
                           <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
                           <td className="border border-gray-400 px-4 py-2">₹ 0</td>
                           <td className="border border-gray-400 px-4 py-2">₹ 0</td>
-                          <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
-                          <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
+                          <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || '23/2017/003478'}</td>
+                          <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || '12-03-2025'}</td>
                           <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
                           <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
                           <td className="border border-gray-400 px-4 py-2">
@@ -911,6 +938,8 @@ const ApproveUC = () => {
                             <p className="text-gray-500">No signature added</p>
                           </div>
                         )}
+                        <p className="font-medium">Signature of PI : ...........................</p>
+                        <p className="font-medium">Name: {ucData.principalInvestigator[0]}</p>
                       </div>
 
                       <div className="border p-4 rounded-lg">
@@ -924,6 +953,12 @@ const ApproveUC = () => {
                             <p className="text-gray-500">No signature added</p>
                           </div>
                         )}
+                        <div>
+                          <p className="font-medium">Signature ...............</p>
+                          <p className="font-medium">Name: {instituteOfficials.cfo}</p>
+                          <p className="font-medium">Chief Finance Officer</p>
+                          <p className="font-medium">(Head of Finance)</p>
+                        </div>
                         {!authSignature && userRole === "CFO" && (
                           <button
                             onClick={handleAddStamp}
@@ -953,6 +988,11 @@ const ApproveUC = () => {
                             </p>
                           </div>
                         )}
+                        <div>
+                          <p className="font-medium">Signature.................</p>
+                          <p className="font-medium">Name: {instituteOfficials.headOfInstitute}</p>
+                          <p className="font-medium">Head of Organisation</p>
+                        </div>
                         {!instituteStamp && userRole === "Head of Institute" && (
                           <button
                             onClick={handleAddStamp}

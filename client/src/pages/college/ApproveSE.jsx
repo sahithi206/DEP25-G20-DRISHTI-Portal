@@ -11,7 +11,7 @@ import "jspdf-autotable";
 const url = import.meta.env.VITE_REACT_APP_URL;
 
 const ApproveSE = () => {
-  const { getInstUser } = useContext(AuthContext);
+  const { getInstUser, fetchInstituteOfficials } = useContext(AuthContext);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -30,6 +30,11 @@ const ApproveSE = () => {
   const [instituteStamp, setInstituteStamp] = useState(null);
   const [authSignature, setAuthSignature] = useState(null);
   const [showUploadOption, setShowUploadOption] = useState(false);
+  const [instituteOfficials, setInstituteOfficials] = useState({
+    headOfInstitute: "Loading...",
+    cfo: "Loading...",
+    accountsOfficer: "Loading...",
+  });
   const navigate = useNavigate();
 
   const stampCanvas = useRef(null);
@@ -104,23 +109,26 @@ const ApproveSE = () => {
   }, [userRole]);
 
   const handleViewDetails = async (request) => {
-    console.log("Handle View IN ApproveSE:", request);
+    // console.log("Handle View IN ApproveSE:", request);
     setSelectedRequest(request);
     setSeData(request);
     setPiSignature(request.piSignature);
 
     if (request.projectId) { // Use the local variable
       try {
-        console.log(`Making request to: ${url}se/latest?projectId=${request.projectId}`);
+        // console.log(`Making request to: ${url}se/latest?projectId=${request.projectId}`);
 
         const res = await fetch(`${url}se/latest?projectId=${request.projectId}`);
-        console.log("Response received:", res.status);
+        // console.log("Response received:", res.status);
 
         const data = await res.json();
-        console.log("Response data:", data);
+        // console.log("Response data:", data);
         if (data.success && data.data) {
           const se = data.data;
-          console.log("SE data received:", se);
+          // console.log("SE data received:", se);
+          const authData = await fetchInstituteOfficials(se.institute);
+          // console.log("Auth Data:", authData);
+          setInstituteOfficials(authData);
           setPiSignature(se.piSignature);
           if (se.status === "approvedByInst") {
             setInstituteStamp(se.instituteStamp);
@@ -139,6 +147,11 @@ const ApproveSE = () => {
             setAuthSignature(se.authSignature);
           } else {
             setInstituteApproved(false);
+            setInstituteOfficials({
+              headOfInstitute: "pending approval...",
+              cfo: "pending approval...",
+              accountsOfficer: "pending approval..."
+            });
           }
         } else {
           setPiSignature(null);
@@ -361,153 +374,341 @@ const ApproveSE = () => {
   };
 
   const handleSaveAsPDF = () => {
-    const pdf = new jsPDF("p", "mm", "a4");
-    const currentDate = new Date().toLocaleDateString("en-IN");
-
-    // Set page margins
-    const pageWidth = 210;
-    const margin = 20;
+    const doc = new jsPDF("p", "pt", "a4");
+    const margin = 40;
+    const pageWidth = doc.internal.pageSize.getWidth();
     const contentWidth = pageWidth - 2 * margin;
 
-    // Title Section
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(14);
-    pdf.text("STATEMENT OF EXPENDITURE", pageWidth / 2, 20, { align: "center" });
-    pdf.setFontSize(12);
-    pdf.text(`FOR THE PERIOD: ${seData.startDate} TO ${seData.endDate}`, pageWidth / 2, 28, { align: "center" });
+    // Function to check and add new page if needed
+    const checkForNewPage = (currentY, requiredSpace) => {
+      const maxY = doc.internal.pageSize.getHeight() - 50; // Maximum Y position before needing a new page
+      if (currentY + requiredSpace > maxY) {
+        doc.addPage();
+        // Add header to new page
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("RESEARCHX - STATEMENT OF EXPENDITURE", pageWidth / 2, margin, { align: "center" });
+        return margin + 30; // Reset Y position with header space
+      }
+      return currentY;
+    };
 
-    // Project details
-    pdf.setFontSize(11);
-    pdf.setFont("helvetica", "normal");
+    // Add title and subtitle with proper styling
+    let yPos = margin + 20;
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("RESEARCHX", pageWidth / 2, yPos, { align: "center" });
+    yPos += 25;
+    doc.text("STATEMENT OF EXPENDITURE", pageWidth / 2, yPos, { align: "center" });
 
-    let yPos = 40;
+    // Add subtitle with smaller font
+    yPos += 30;
+    doc.setFontSize(12);
+    doc.text("Request for Annual Installment with Up-to-Date Statement of Expenditure",
+      pageWidth / 2, yPos, { align: "center" });
 
-    pdf.text(`1. Project Title: ${seData.name}`, margin, yPos);
-    yPos += 8;
+    // Add financial year
+    yPos += 25;
+    doc.text(`For Financial Year: ${financialYear}`,
+      pageWidth / 2, yPos, { align: "center" });
 
-    pdf.text(`2. Name of the Institution: ${seData.institute}`, margin, yPos);
-    yPos += 8;
+    // Project info in numbered list format
+    yPos += 40;
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
 
-    pdf.text(`3. Funding Agency: ${seData.scheme}`, margin, yPos);
-    yPos += 8;
-
-    pdf.text(`4. Project Year: ${seData.currentYear}`, margin, yPos);
-    yPos += 8;
-
-    pdf.text(`5. Total Project Cost: Rs. ${seData.TotalCost}`, margin, yPos);
-    yPos += 16;
-
-    // Budget table
-    pdf.setFont("helvetica", "bold");
-    pdf.text("6. Sanctioned Budget & Expenditure", margin, yPos);
-    yPos += 10;
-
-    // Component-wise expenditure table
-    const headers = [
-      [
-        { content: "Budget Head", colSpan: 1 },
-        { content: "Sanctioned Amount (Rs)", colSpan: 1 },
-        { content: "Expenditure (Rs)", colSpan: 1 },
-        { content: "Balance (Rs)", colSpan: 1 }
-      ]
+    // Project details in numbered format
+    const projectDetails = [
+      { number: "1", label: "File No.", value: seData.projectId || "N/A" },
+      { number: "2", label: "Name of the PI", value: seData.name || "N/A" },
+      { number: "3", label: "Name of the grant receiving Organization", value: seData.institute || "N/A" },
+      { number: "4", label: "Name of the Scheme", value: seData.scheme || "N/A" },
+      { number: "5", label: "Present Year of Project", value: seData.currentYear || "N/A" },
+      { number: "6", label: "Total Project Cost", value: seData.TotalCost || "N/A" }
     ];
 
-    const data = [
-      [
-        "Human Resources",
-        `${seData.budgetSanctioned.human_resources}`,
-        `${seData.totalExp.human_resources}`,
-        `${seData.balance.human_resources}`
-      ],
-      [
-        "Consumables",
-        `${seData.budgetSanctioned.consumables}`,
-        `${seData.totalExp.consumables}`,
-        `${seData.balance.consumables}`
-      ],
-      [
-        "Others",
-        `${seData.budgetSanctioned.others}`,
-        `${seData.totalExp.others}`,
-        `${seData.balance.others}`
-      ],
-      [
-        "Non-Recurring",
-        `${seData.budgetSanctioned.nonRecurring}`,
-        `${seData.totalExp.nonRecurring}`,
-        `${seData.balance.nonRecurring}`
-      ],
-      [
-        "Total",
-        `${seData.budgetSanctioned.total}`,
-        `${seData.totalExp.total}`,
-        `${seData.balance.total}`
-      ]
+    // Draw project details
+    projectDetails.forEach((item) => {
+      doc.setFont("helvetica", "normal");
+      doc.text(`${item.number}`, margin, yPos);
+      doc.text(`${item.label}`, margin + 30, yPos);
+      doc.text(`: ${item.value}`, margin + 300, yPos);
+      yPos += 25;
+    });
+
+    // Check if we need a new page before grant details
+    yPos = checkForNewPage(yPos, 100); // Estimate space needed
+
+    // Grant received yearly
+    doc.setFont("helvetica", "bold");
+    doc.text("Grant Received in Each Year:", margin, yPos + 10);
+    doc.setFont("helvetica", "normal");
+
+    yPos += 35;
+
+    if (seData.yearlyBudget && seData.yearlyBudget.length > 0) {
+      seData.yearlyBudget.forEach((budget, index) => {
+        doc.text(`Year ${index + 1}: ${budget}`, margin + 30, yPos);
+        yPos += 20;
+      });
+    } else {
+      doc.text("Year 1: 1560000", margin + 30, yPos);
+    }
+
+    yPos += 30;
+
+    // Check if we need a new page for the table
+    yPos = checkForNewPage(yPos, 200); // Estimate minimum table height
+
+    // Statement of Expenditure table
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Statement of Expenditure (to be submitted financial year wise)",
+      pageWidth / 2, yPos, { align: "center" });
+
+    yPos += 20;
+
+    // Table headers and data for jsPDF-AutoTable
+    const tableHeaders = [
+      [{ content: "S/No", rowSpan: 2 },
+      { content: "Sanctioned Heads", rowSpan: 2 },
+      { content: "Total Funds Sanctioned", rowSpan: 2 },
+      { content: "Expenditure Incurred", colSpan: 3 },
+      { content: "Total Expenditure", rowSpan: 2 },
+      { content: "Balance", rowSpan: 2 },
+      { content: "Fund Requirement", rowSpan: 2 },
+      { content: "Remarks", rowSpan: 2 }],
+      ["", "", "", "I Yr.", "II Yr.", "III Yr.", "", "", "", ""]
     ];
 
-    pdf.autoTable({
-      head: headers,
-      body: data,
+    const tableData = [
+      { id: 1, name: "Manpower Costs", key: "human_resources" },
+      { id: 2, name: "Consumables", key: "consumables" },
+      { id: 3, name: "Travel", key: "travel" },
+      { id: 4, name: "Contingencies", key: "contingencies" },
+      { id: 5, name: "Other Cost, if any", key: "others" },
+      { id: 6, name: "Equipments", key: "nonRecurring" },
+      { id: 7, name: "Overhead Expenses", key: "overhead" },
+    ].map(head => {
+      const year1Value = seData.human_resources && head.key === "human_resources" ? seData.human_resources[0] || 0 :
+        seData[head.key] ? seData[head.key][0] || 0 : 0;
+      const year2Value = seData.human_resources && head.key === "human_resources" ? seData.human_resources[1] || 0 :
+        seData[head.key] ? seData[head.key][1] || 0 : 0;
+      const year3Value = seData.human_resources && head.key === "human_resources" ? seData.human_resources[2] || 0 :
+        seData[head.key] ? seData[head.key][2] || 0 : 0;
+
+      const totalExpValue = seData.totalExp && seData.totalExp[head.key]
+        ? seData.totalExp[head.key]
+        : (year1Value + year2Value + year3Value);
+
+      const sanctionedValue = seData.budgetSanctioned && seData.budgetSanctioned[head.key]
+        ? seData.budgetSanctioned[head.key]
+        : 0;
+
+      const balance = sanctionedValue - totalExpValue;
+
+      // Calculate fund requirement for next year
+      let fundRequirement = 0;
+      if (head.key === "overhead" && seData.budgetSanctioned && seData.budgetSanctioned.overhead) {
+        fundRequirement = seData.budgetSanctioned.overhead * 0.3;
+      }
+
+      const remark = head.key === "nonRecurring" ? "Including of commitments" : "";
+
+      return [
+        head.id.toString(),
+        head.name,
+        sanctionedValue.toString(),
+        year1Value.toString(),
+        year2Value.toString(),
+        year3Value.toString(),
+        totalExpValue.toString(),
+        balance.toString(),
+        head.key === "overhead" ? fundRequirement.toFixed(0) : "0",
+        remark
+      ];
+    });
+
+    // Add total row
+    const totalSanctioned = seData.budgetSanctioned && seData.budgetSanctioned.total ? seData.budgetSanctioned.total : 0;
+    const totalY1 = seData.total ? seData.total[0] || 0 : 0;
+    const totalY2 = seData.total ? seData.total[1] || 0 : 0;
+    const totalY3 = seData.total ? seData.total[2] || 0 : 0;
+    const totalExp = seData.totalExp && seData.totalExp.total ? seData.totalExp.total : 0;
+    const totalBalance = totalSanctioned - totalExp;
+    const overheadFundReq = (seData.budgetSanctioned && seData.budgetSanctioned.overhead ? seData.budgetSanctioned.overhead * 0.3 : 0).toFixed(0);
+
+    tableData.push([
+      "8",
+      "Total",
+      totalSanctioned.toString(),
+      totalY1.toString(),
+      totalY2.toString(),
+      totalY3.toString(),
+      totalExp.toString(),
+      totalBalance.toString(),
+      overheadFundReq,
+      ""
+    ]);
+
+    // Add the table to the PDF with automatic page breaks
+    doc.autoTable({
+      head: tableHeaders,
+      body: tableData,
       startY: yPos,
-      theme: 'grid',
-      headStyles: {
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        halign: 'center',
-        valign: 'middle',
-        fontSize: 9
-      },
+      margin: { top: 40, right: margin, bottom: 40, left: margin },
       styles: {
         fontSize: 8,
-        cellPadding: 1,
-        overflow: 'linebreak',
-        lineWidth: 0.1,
-        lineColor: [0, 0, 0]
+        cellPadding: 3,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.2,
+      },
+      headStyles: {
+        fillColor: [220, 230, 245],
+        textColor: [50, 50, 50],
+        fontStyle: 'bold',
+        halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 40 },
-        3: { cellWidth: 40 }
+        0: { halign: 'center', cellWidth: 30 },  // S/No
+        1: { halign: 'left', cellWidth: 90 },    // Sanctioned Heads
+        2: { halign: 'center', cellWidth: 45 },  // Total Funds
+        3: { halign: 'center', cellWidth: 40 },  // Year 1
+        4: { halign: 'center', cellWidth: 40 },  // Year 2
+        5: { halign: 'center', cellWidth: 40 },  // Year 3
+        6: { halign: 'center', cellWidth: 55 },  // Total Expenditure
+        7: { halign: 'center', cellWidth: 55 },  // Balance
+        8: { halign: 'center', cellWidth: 55 },  // Fund Requirement
+        9: { halign: 'left', cellWidth: 70 },    // Remarks
+      },
+      alternateRowStyles: {
+        fillColor: [248, 248, 248]
+      },
+      didDrawPage: (data) => {
+        // Add header to each page except the first
+        if (data.pageNumber > 1) {
+          // Redraw the header on each page
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text("RESEARCHX - STATEMENT OF EXPENDITURE",
+            pageWidth / 2, margin, { align: "center" });
+        }
+
+        // Add page number to each page
+        doc.setFontSize(8);
+        doc.text(`Page ${data.pageNumber} of ${doc.internal.getNumberOfPages()}`,
+          pageWidth - margin, doc.internal.pageSize.getHeight() - 10);
+      },
+      didParseCell: (data) => {
+        // Style for the total row
+        if (data.row.index === tableData.length - 1) {
+          data.cell.styles.fontStyle = 'bold';
+        }
       }
     });
 
-    yPos = pdf.lastAutoTable.finalY + 20;
+    // Move to position after table
+    let finalY = doc.previousAutoTable.finalY + 20;
 
-    // Certification text
-    pdf.setFontSize(10);
-    pdf.text("Certified that the grant of Rs. " + seData.budgetSanctioned.total + " received under the research project entitled", margin, yPos);
-    pdf.text(`"${seData.name}" has been utilized for the purpose for which it was sanctioned in accordance with the`, margin, yPos + 6);
-    pdf.text("terms and conditions laid down by the funding agency.", margin, yPos + 12);
+    // Add a note at the bottom
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "italic");
+    const noteText = "Note:\n1. The audited statement of expenditure incurred under the Heads, and proper utilization\n of funds released during the period, may be sent to the agency immediately after the\n end of the financial year.";
+    const noteLines = doc.splitTextToSize(noteText, contentWidth);
 
-    yPos += 30;
-    pdf.text("Date: " + currentDate, margin, yPos);
-    yPos += 20;
+    // Check if we need a new page for the note and signatures
+    finalY = checkForNewPage(finalY, noteLines.length * 12 + 150); // Space for note + signatures
 
-    // Signature section with actual signatures
-    pdf.text("Signature:", margin, yPos);
+    doc.text(noteLines, margin, finalY);
+    finalY += noteLines.length * 12 + 20;
 
-    // Add PI signature if available
+    // Add current date
+    const currentDate = new Date().toLocaleDateString("en-IN");
+    doc.text(`Date: ${currentDate}`, margin, finalY);
+    finalY += 15;
+
+    // Add signature section
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Signatures", margin, finalY);
+    finalY += 15;
+
+    // Create signature boxes
+    const signatureWidth = (contentWidth) / 3;
+    const signatureHeight = 60;
+
+    // Draw signature section outline
+    doc.rect(margin, finalY, contentWidth, signatureHeight + 30);
+    doc.line(margin + signatureWidth, finalY, margin + signatureWidth, finalY + signatureHeight + 30);
+    doc.line(margin + 2 * signatureWidth, finalY, margin + 2 * signatureWidth, finalY + signatureHeight + 30);
+    doc.line(margin, finalY + signatureHeight, margin + contentWidth, finalY + signatureHeight);
+
+    // PI signature
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Principal Investigator", margin + signatureWidth / 2, finalY + 10, { align: "center" });
+
     if (piSignature) {
-      pdf.addImage(piSignature, 'PNG', margin, yPos + 5, 50, 20);
-      pdf.text("Principal Investigator", margin, yPos + 30);
+      doc.addImage(piSignature, 'PNG', margin + signatureWidth / 4, finalY + 15, signatureWidth / 2, signatureHeight - 20, undefined, 'FAST');
     } else {
-      pdf.text("Principal Investigator: ________________", margin, yPos + 15);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "italic");
+      doc.text("No signature added", margin + signatureWidth / 2, finalY + signatureHeight / 2, { align: "center" });
     }
 
-    // Adding Authority signature if available
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Signature of Principal Investigator`, margin + signatureWidth / 2, finalY + signatureHeight + 10, { align: "center" });
+    doc.text(`Name: ${seData.name || "Niharika"}`, margin + signatureWidth / 2, finalY + signatureHeight + 20, { align: "center" });
+
+    // AO signature
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Accounts Officer", margin + signatureWidth + signatureWidth / 2, finalY + 10, { align: "center" });
+
     if (authSignature) {
-      pdf.addImage(authSignature, 'PNG', margin + 50, yPos, 50, 20);
-      pdf.text("Accounts Officer Signature", margin + 50, yPos + 25);
+      doc.addImage(authSignature, 'PNG', margin + signatureWidth + signatureWidth / 4, finalY + 15, signatureWidth / 2, signatureHeight - 20, undefined, 'FAST');
+    } else {
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "italic");
+      const approvalStatus = sentToAO ? "Awaiting approval" : "Not sent for approval yet";
+      doc.text(approvalStatus, margin + signatureWidth + signatureWidth / 2, finalY + signatureHeight / 2, { align: "center" });
     }
 
-    // Add institute stamp if approved
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Signature of Accounts Officer`, margin + signatureWidth + signatureWidth / 2, finalY + signatureHeight + 10, { align: "center" });
+    doc.text(`Name: ${instituteOfficials?.accountsOfficer || "N/A"}`, margin + signatureWidth + signatureWidth / 2, finalY + signatureHeight + 20, { align: "center" });
+
+    // Institute stamp
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Institute Approval", margin + 2 * signatureWidth + signatureWidth / 2, finalY + 10, { align: "center" });
+
     if (instituteStamp) {
-      pdf.addImage(instituteStamp, 'PNG', pageWidth - margin - 50, yPos + 5, 50, 20);
-      pdf.text("Head of Institution", pageWidth - margin - 30, yPos + 30);
+      doc.addImage(instituteStamp, 'PNG', margin + 2 * signatureWidth + signatureWidth / 4, finalY + 15, signatureWidth / 2, signatureHeight - 20, undefined, 'FAST');
+    } else {
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "italic");
+      const approvalStatus = sentToAO ? "Awaiting approval" : "Not sent for approval yet";
+      doc.text(approvalStatus, margin + 2 * signatureWidth + signatureWidth / 2, finalY + signatureHeight / 2, { align: "center" });
     }
 
-    pdf.save(`SE_${seData.name}_${seData.currentYear}.pdf`);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Signature of Head of Institute`, margin + 2 * signatureWidth + signatureWidth / 2, finalY + signatureHeight + 10, { align: "center" });
+    doc.text(`Name: ${instituteOfficials?.headOfInstitute || "N/A"}`, margin + 2 * signatureWidth + signatureWidth / 2, finalY + signatureHeight + 20, { align: "center" });
+
+    // Add page numbers to all pages
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, doc.internal.pageSize.getHeight() - 10);
+    }
+
+    // Save the PDF with proper filename
+    doc.save(`RESEARCHX_SE_${seData.projectId || "67fe88ea3e8f9cb9ba42a8b6"}_${financialYear}.pdf`);
   };
 
   // Get appropriate page title based on user role
@@ -594,7 +795,6 @@ const ApproveSE = () => {
                 </div>
               ) : (
                 <>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredSe.map((request) => (
                       <div
@@ -663,10 +863,6 @@ const ApproveSE = () => {
                     <span className="px-3 py-1 w-full">: {seData.currentYear}</span>
                     <label className="font-semibold text-gray-700">Total Project Cost </label>
                     <span className="px-3 py-1 w-full">: {seData.TotalCost}</span>
-                    <label className="font-semibold text-gray-700">Start Date of Year</label>
-                    <span className="px-3 py-1 w-full">: {seData.startDate}</span>
-                    <label className="font-semibold text-gray-700">End Date of Year</label>
-                    <span className="px-3 py-1 w-full">: {seData.endDate}</span>
                   </div>
 
                   <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
@@ -818,6 +1014,8 @@ const ApproveSE = () => {
                             <p className="text-gray-500">No signature added</p>
                           </div>
                         )}
+                        <p className="font-medium">Signature of Principal Investigator</p>
+                        <p className="font-medium">Name: {seData.name}</p>
                       </div>
 
                       <div className="border p-4 rounded-lg">
@@ -831,6 +1029,10 @@ const ApproveSE = () => {
                             <p className="text-gray-500">No signature added</p>
                           </div>
                         )}
+                        <div>
+                          <p className="font-medium">Signature of Accounts Officer</p>
+                          <p className="font-medium">Name: {instituteOfficials.accountsOfficer}</p>
+                        </div>
                         {!authSignature && userRole === "Accounts Officer" && (
                           <button
                             onClick={handleAddStamp}
@@ -860,12 +1062,22 @@ const ApproveSE = () => {
                             </p>
                           </div>
                         )}
+                        <div>
+                          <p className="font-medium">Signature of Head Of Institute</p>
+                          <p className="font-medium">Name: {instituteOfficials.headOfInstitute}</p>
+                        </div>
                         {!instituteStamp && userRole === "Head of Institute" && (
                           <button
                             onClick={handleAddStamp}
-                            className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
+                            disabled={loading}
                           >
-                            Add Institute Stamp
+                            <div className="flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Add Institute Stamp
+                            </div>
                           </button>
                         )}
                       </div>
@@ -924,6 +1136,7 @@ const ApproveSE = () => {
         </main>
       </div>
 
+
       {/* Modal for adding stamp/signature */}
       {showStampModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -948,7 +1161,7 @@ const ApproveSE = () => {
                       if (file) {
                         const reader = new FileReader();
                         reader.onload = (event) => {
-                          if (userRole === "CFO") {
+                          if (userRole === "Accounts Officer") {
                             setAuthSignature(event.target.result);
                           } else {
                             setInstituteStamp(event.target.result);

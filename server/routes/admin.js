@@ -34,7 +34,7 @@ router.get("/approvedProposals", fetchAdmin, async (req, res) => {
   try {
     const userId = req.admin.id;
     console.log("User ID from Token:", userId);
-    const Schemes = await Scheme.find({ coordinator: userId });
+    const Schemes = await Schemes.find({ coordinator: userId });
     console.log(Schemes);
     if (!Schemes) {
       return res.status(400).json({ success: false, msg: "No Schemes found" });
@@ -383,6 +383,7 @@ router.get("/ucforms/:id", fetchAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
+
 router.get("/ucforms/approved/:id", fetchAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -676,7 +677,7 @@ router.get("/completed-projects", fetchAdmin, async (req, res) => {
     const userId = req.admin.id;
     console.log("User ID from Token:", userId);
 
-    const schemes = await Scheme.find({ coordinator: userId });
+    const schemes = await Schemes.find({ coordinator: userId });
     console.log("Fetched Schemes:", schemes);
 
     if (!schemes || schemes.length === 0) {
@@ -707,40 +708,91 @@ router.get("/completed-projects", fetchAdmin, async (req, res) => {
   }
 });
 
-router.get('/dashboard-stats', async (req, res) => {
+router.get('/dashboard-stats', verifyToken, async (req, res) => {
   try {
-    const totalProjects = await Project.countDocuments();
-    const activeProjects = await Project.countDocuments({ status: "Ongoing" });
-    const completedProjects = await Project.countDocuments({ status: "Completed" });
-    const approvedProjects = await Project.countDocuments({ status: "Approved" });
+    // The verifyToken middleware should add the admin's ID to req.user
+    const adminId = req.user.id;
 
+    // Find schemes where coordinatorId matches the current admin
+    const adminSchemes = await Schemes.find({ coordinatorId: adminId });
+    const schemeIds = adminSchemes.map(scheme => scheme._id);
+
+    // Count projects based on the admin's schemes
+    const totalProjects = await Project.countDocuments({ Scheme: { $in: schemeIds } });
+    const activeProjects = await Project.countDocuments({
+      Scheme: { $in: schemeIds },
+      status: "Ongoing"
+    });
+    const completedProjects = await Project.countDocuments({
+      Scheme: { $in: schemeIds },
+      status: "Completed"
+    });
+    const approvedProjects = await Project.countDocuments({
+      Scheme: { $in: schemeIds },
+      status: "Approved"
+    });
+
+    // Get project counts per scheme
     const schemes = await Project.aggregate([
+      { $match: { Scheme: { $in: schemeIds } } },
       {
         $group: {
           _id: "$Scheme",
           count: { $sum: 1 }
         }
+      },
+      {
+        $lookup: {
+          from: "schemes", // Assuming your schemes collection is named "schemes"
+          localField: "_id",
+          foreignField: "_id",
+          as: "schemeInfo"
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          count: 1,
+          schemeName: { $arrayElemAt: ["$schemeInfo.name", 0] }
+        }
       }
     ]);
-    console.log(schemes);
-    
 
+    console.log("SCHEMES:", schemes);
+
+    // Calculate funding trend by month for the admin's schemes
     const fundTrend = await Project.aggregate([
+      { $match: { Scheme: { $in: schemeIds } } },
       {
         $group: {
-          _id: { $substr: ["$startDate", 5, 2] }, 
+          _id: { $substr: ["$startDate", 5, 2] },
           funds: { $sum: "$TotalCost" }
         }
       },
       { $sort: { _id: 1 } }
     ]);
 
+    // Calculate total fund approved
+    const totalFunds = await Project.aggregate([
+      { $match: { Scheme: { $in: schemeIds } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$TotalCost" }
+        }
+      }
+    ]);
+
+    const fundApproved = totalFunds.length > 0
+      ? `₹ ${(totalFunds[0].total / 100000).toFixed(2)}L`
+      : "₹ 0L";
+
     res.json({
       summaryCards: {
-        totalSchemes: schemes.length,
+        totalSchemes: adminSchemes.length,
         totalProjects,
         activeProjects,
-        fundApproved: "₹ 48L" 
+        fundApproved
       },
       projectStats: [
         { name: "Ongoing", value: activeProjects },
@@ -748,18 +800,25 @@ router.get('/dashboard-stats', async (req, res) => {
         { name: "Approved", value: approvedProjects }
       ],
       schemeProjects: schemes.map(s => ({
-        scheme: s._id || "Unknown",
+        scheme: s.schemeName || "Unknown",
         projects: s.count
       })),
-      fundTrend: fundTrend.map(entry => ({
-        month: entry._id,
-        funds: entry.funds
-      }))
+      fundTrend: fundTrend.map(entry => {
+        // Convert month number to month name
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthIndex = parseInt(entry._id, 10) - 1;
+        const monthName = monthNames[monthIndex] || entry._id;
+
+        return {
+          month: monthName,
+          funds: entry.funds
+        };
+      })
     });
   } catch (err) {
+    console.error("Dashboard stats error:", err);
     res.status(500).json({ error: err.message });
   }
 });
-
 
 module.exports = router;

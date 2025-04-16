@@ -15,7 +15,7 @@ const SEForm = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);;
     const navigate = useNavigate();
     const [user, setUser] = useState();
-    const { getuser } = useContext(AuthContext);
+    const { getuser, fetchInstituteOfficials } = useContext(AuthContext);
     const [yearlyBudget, setYearly] = useState([]);
     const [budgetSanctioned, setSanctioned] = useState({});
     const [yearlyExp, setYearlyExp] = useState([]);
@@ -44,6 +44,11 @@ const SEForm = () => {
     const [seRequestId, setSeRequestId] = useState(null);
     const sigCanvas = useRef(null);
     const fileInputRef = useRef(null);
+    const [instituteOfficials, setInstituteOfficials] = useState({
+        headOfInstitute: "Loading...",
+        cfo: "Loading...",
+        accountsOfficer: "Loading...",
+    });
 
     const [data, setData] = useState({
         name: "",
@@ -78,6 +83,9 @@ const SEForm = () => {
                     const data = await res.json();
                     if (data.success && data.data) {
                         const se = data.data;
+                        const authData = await fetchInstituteOfficials(se.institute);
+                        // console.log("Auth Data:", authData);
+                        setInstituteOfficials(authData);
                         setSentForApproval(true);
                         setPiSignature(se.piSignature);
                         setInstituteStamp(se.instituteStamp);
@@ -100,6 +108,11 @@ const SEForm = () => {
                         }
                         else {
                             setInstituteApproved(false);
+                            setInstituteOfficials({
+                                headOfInstitute: "pending approval...",
+                                cfo: "pending approval...",
+                                accountsOfficer: "pending approval..."
+                            });
                         }
                     } else {
                         setSentForApproval(false);
@@ -295,6 +308,31 @@ const SEForm = () => {
                         </svg>
                         <span className="font-medium text-gray-800">
                             SE has not been sent for approval yet.
+                        </span>
+                    </div>
+                </div>
+            );
+        }
+        if (sentForApproval && !instituteApproved) {
+            return (
+                <div className="rounded-lg p-4 mb-6 bg-yellow-100">
+                    <div className="flex items-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 text-yellow-500 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span className="font-medium text-yellow-800">
+                            Pending Institute Approval
                         </span>
                     </div>
                 </div>
@@ -611,40 +649,72 @@ const SEForm = () => {
     };
 
     const handleSaveAsPDF = () => {
-        const margin = 10;
-        const doc = new jsPDF({
-            orientation: "l",
-            unit: "mm",
-            format: [400, 300],
-        });
+        const pdf = new jsPDF("p", "mm", "a4"); // Changed to portrait A4
+        const currentDate = new Date().toLocaleDateString("en-IN");
 
+        const pageWidth = 210;
+        const margin = 20;
+        const contentWidth = pageWidth - 2 * margin;
 
-        doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        doc.text("RESEARCHX", 148.5, 10, { align: "center" });
-        doc.setFontSize(14);
-        doc.setFont("helvetica");
-        doc.text("STATEMENT OF EXPENDITURE", 148.5, 15, { align: "center" });
+        // Function to check and add new page if needed
+        const checkForNewPage = (currentY, requiredSpace) => {
+            const maxY = 280; // Maximum Y position before needing a new page (considering margins)
+            if (currentY + requiredSpace > maxY) {
+                pdf.addPage();
+                return margin + 10; // Reset Y position to top of new page with small margin
+            }
+            return currentY;
+        };
 
-        doc.setFontSize(12);
-        doc.text("Request for Annual Installment with Up-to-Date Statement of Expenditure", 148.5, 25, { align: "center" });
-        doc.text(`For Financial Year: ${financialYear}`, 148.5, 30, { align: "center" });
+        // Header section
+        let yPos = 20;
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("RESEARCHX", pageWidth / 2, yPos, { align: "center" });
+        yPos += 5;
+        pdf.setFontSize(12);
+        pdf.text("STATEMENT OF EXPENDITURE", pageWidth / 2, yPos, { align: "center" });
+        yPos += 7;
 
-        doc.setFontSize(10);
-        doc.text(`1. File No.: ${data.projectId || "NA"}`, 10, 35);
-        doc.text(`2. Name of the PI: ${data.name || "NA"}`, 10, 40);
-        doc.text(`3. Name of the grant receiving Organization: ${data.institute || "NA"}`, 10, 45);
-        doc.text(`4. Name of the Scheme: ${data.scheme || "NA"}`, 10, 50);
-        doc.text(`5. Present Year of Project: ${data.currentYear || "NA"}`, 10, 55);
-        doc.text(`6. Total Project Cost: ${data.TotalCost || "NA"}`, 10, 60);
-        doc.text(`7. Start Date of Year: ${data.startDate || "NA"}`, 10, 65);
-        doc.text(`8. End Date of Year: ${data.endDate || "NA"}`, 10, 70);
+        pdf.setFontSize(11);
+        pdf.text("Request for Annual Installment with Up-to-Date Statement of Expenditure", pageWidth / 2, yPos, { align: "center" });
+        yPos += 6;
+        pdf.text(`For Financial Year: ${financialYear}`, pageWidth / 2, yPos, { align: "center" });
+        yPos += 10;
 
-        doc.text("Grant Received in Each Year:", 10, 80);
+        pdf.setFontSize(10);
+        const items = [
+            { label: "File No.", value: data.projectId },
+            { label: "Name of the PI", value: data.name },
+            { label: "Name of the grant receiving Organization", value: data.institute },
+            { label: "Name of the Scheme", value: data.scheme },
+            { label: "Present Year of Project", value: data.currentYear },
+            { label: "Total Project Cost", value: data.TotalCost },
+        ]
+
+        let itemNum = 1;
+
+        items.forEach(item => {
+            pdf.setFont("helvetica", "normal");
+            pdf.text(`${itemNum}`, margin, yPos);
+            pdf.text(item.label, margin + 5, yPos);
+            pdf.text(`: ${item.value}`, margin + 80, yPos);
+            yPos += 7;
+            itemNum++;
+        })
+
+        // Grant received information
+        pdf.text("Grant Received in Each Year:", margin, yPos); yPos += 7;
         yearlyBudget.forEach((amount, index) => {
-            doc.text(`Year ${index + 1}: ${amount}`, 15, 85 + index * 5);
+            pdf.text(`Year ${index + 1}: ${amount}`, margin + 5, yPos);
+            yPos += 5;
         });
+        yPos += 5;
 
+        // Check if we need a new page before the table
+        yPos = checkForNewPage(yPos, 100); // Estimate table might need ~100mm
+
+        // Table headers
         const headers = [
             [
                 { content: "S/No", rowSpan: 2 },
@@ -677,6 +747,7 @@ const SEForm = () => {
             ]
         ];
 
+        // Table data
         const tableData = [
             { id: 1, name: "Manpower Costs", key: "human_resources" },
             { id: 2, name: "Consumables", key: "consumables" },
@@ -709,6 +780,7 @@ const SEForm = () => {
             ];
         });
 
+        // Total row
         const totalExpenditure = yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0);
         const totalBalance = (budgetSanctioned.total || 0) - totalExpenditure;
         const totalRequirementNextYear = (budgetSanctioned.overhead * 0.3 || 0).toFixed(0);
@@ -726,24 +798,25 @@ const SEForm = () => {
             ""
         ]);
 
-        doc.autoTable({
+        // Generate table with page split handling
+        pdf.autoTable({
             head: headers,
             body: tableData,
-            startY: 100,
+            startY: yPos,
             theme: "grid",
-            styles: { fontSize: 8, textColor: [50, 50, 50] },
+            styles: { fontSize: 8, textColor: [50, 50, 50], lineWidth: 0.1, lineColor: [0, 0, 0] },
             headStyles: { fillColor: [220, 230, 241], textColor: [0, 0, 0], fontStyle: 'bold' },
             columnStyles: {
-                0: { cellWidth: 10 },
-                1: { cellWidth: 30 },
-                2: { cellWidth: 20 },
-                3: { cellWidth: 15 },
-                4: { cellWidth: 15 },
-                5: { cellWidth: 15 },
+                0: { cellWidth: 8 },
+                1: { cellWidth: 23 },
+                2: { cellWidth: 18 },
+                3: { cellWidth: 14 },
+                4: { cellWidth: 14 },
+                5: { cellWidth: 14 },
                 6: { cellWidth: 20 },
-                7: { cellWidth: 20 },
+                7: { cellWidth: 22 },
                 8: { cellWidth: 20 },
-                9: { cellWidth: 25 },
+                9: { cellWidth: 17 }
             },
             didParseCell: function (data) {
                 if (data.section === 'head') {
@@ -754,39 +827,106 @@ const SEForm = () => {
                 if (data.section === 'body' && data.row.index === tableData.length - 1) {
                     data.cell.styles.fontStyle = 'bold';
                 }
+            },
+            // Enable automatic page breaks for the table
+            willDrawCell: function (data) {
+                // Optional: custom cell rendering logic
+            },
+            didDrawPage: function (data) {
+                // Optional: add page numbers or headers/footers on new pages
             }
         });
 
-        const note = `
-        Note:
-        1. The audited statement of expenditure incurred under the Heads, and proper utilization of funds released during the period, 
-        may be sent to agency immediately after the end of the financial year.
-        `;
-        doc.setFontSize(10);
-        let yPos = doc.lastAutoTable.finalY + 10;
-        doc.text(note, margin, yPos);
+        // Note section
+        yPos = pdf.lastAutoTable.finalY + 10;
+        const note = "Note:\n1. The audited statement of expenditure incurred under the Heads, and proper utilization of funds released\n during the period, may be sent to agency immediately after the end of the financial year.";
 
-        yPos += 30;
+        // Check if we need a new page before the note
+        yPos = checkForNewPage(yPos, 30); // Space needed for note
 
+        pdf.setFontSize(10);
+        pdf.text(note, margin, yPos);
+        yPos += 20;
+        pdf.text("Date: " + currentDate, margin, yPos);
+        yPos += 10;
+
+        // Check if we need a new page before signatures
+        yPos = checkForNewPage(yPos, 95); // Space needed for signatures section
+
+        // Set up signature section
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Signatures", margin, yPos);
+        yPos += 5;
+
+        // Create signature table
+        const sigWidth = (contentWidth) / 3;
+        const sigHeight = 40;
+        const startX = margin;
+
+        // Draw signature table outline
+        pdf.rect(startX, yPos, contentWidth, sigHeight + 25);
+        pdf.line(startX + sigWidth, yPos, startX + sigWidth, yPos + sigHeight + 25); // First vertical divider
+        pdf.line(startX + sigWidth * 2, yPos, startX + sigWidth * 2, yPos + sigHeight + 25); // Second vertical divider
+        pdf.line(startX, yPos + sigHeight, startX + contentWidth, yPos + sigHeight); // Horizontal divider
+
+        // Add PI signature
         if (piSignature) {
-            doc.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
-            doc.text("Signature of PI", margin, yPos + 25);
+            pdf.addImage(piSignature, 'PNG', startX + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
         } else {
-            doc.text("Signature of PI: ________________", margin, yPos + 10);
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "italic");
+            pdf.text("No signature added", startX + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
         }
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Signature of PI ", startX + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+        pdf.text(`Name: ${data.name}`, startX + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
 
+
+        // Add AO signature
         if (instituteApproved && authSignature) {
-            doc.addImage(authSignature, 'PNG', margin + 40, yPos, 50, 20);
-            doc.text("Accounts Officer Signature", margin + 40, yPos + 25);
+            pdf.addImage(authSignature, 'PNG', startX + sigWidth + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+        } else {
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "italic");
+            pdf.text(sentForApproval ? "Awaiting approval" : "Not sent for approval yet",
+                startX + sigWidth + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
         }
 
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Signature of Institute", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
+        pdf.text("Accounts Officer", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+        pdf.text(`Name: ${instituteOfficials.accountsOfficer}`, startX + sigWidth + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
+
+        // Add Institute Head signature and stamp
         if (instituteApproved && instituteStamp) {
-            doc.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
-            doc.text("Institute Stamp & Signature", margin + 100, yPos + 25);
+            pdf.addImage(instituteStamp, 'PNG', startX + sigWidth * 2 + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+        } else {
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "italic");
+            pdf.text(sentForApproval ? "Awaiting approval" : "Not sent for approval yet",
+                startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
+        }
+
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Signature of Head of Institute", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
+        pdf.text(`Name: ${instituteOfficials.headOfInstitute}`, startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+
+        // Add page numbers if there are multiple pages
+        const totalPages = pdf.internal.getNumberOfPages();
+        if (totalPages > 1) {
+            for (let i = 1; i <= totalPages; i++) {
+                pdf.setPage(i);
+                pdf.setFontSize(8);
+                pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin, 290);
+            }
         }
 
         const currentYear = data?.currentYear || "unknown_year";
-        doc.save(`SE_${id}_${currentYear}.pdf`);
+        pdf.save(`SE_${id}_${currentYear}.pdf`);
     };
 
     const today = new Date();
@@ -829,10 +969,6 @@ const SEForm = () => {
                             <span className="px-3 py-1 w-full">: {data.currentYear}</span>
                             <label className="font-semibold text-gray-700">Total Project Cost </label>
                             <span className="px-3 py-1 w-full">: {data.TotalCost}</span>
-                            <label className="font-semibold text-gray-700">Start Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.startDate}</span>
-                            <label className="font-semibold text-gray-700">End Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.endDate}</span>
                         </div>
 
                         <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
@@ -960,60 +1096,71 @@ const SEForm = () => {
                         <div className="border-t border-gray-200 pt-4 mb-6">
                             <h3 className="text-xl font-semibold mb-4">Signatures</h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="border p-4 rounded-lg">
-                                    <h4 className="font-medium mb-2">Principal Investigator</h4>
-                                    {piSignature ? (
-                                        <div className="border p-2 rounded mb-2">
-                                            <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
-                                        </div>
-                                    ) : (
-                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
-                                            <p className="text-gray-500">No signature added</p>
-                                        </div>
-                                    )}
+                            <div className="border border-gray-300 rounded-lg overflow-hidden">
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="border border-gray-300 p-4 w-1/3">
+                                                <div className="h-24 mb-4">
+                                                    {piSignature ? (
+                                                        <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
+                                                    ) : (
+                                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24">
+                                                            <p className="text-gray-500">No signature added</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="font-medium mb-1">Signature of Principal Investigator</p>
+                                                <p className="font-medium">Name: {data.name}</p>
+                                                {!sentForApproval && (
+                                                    <button
+                                                        onClick={() => setShowSignatureModal(true)}
+                                                        className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        disabled={instituteApproved}
+                                                    >
+                                                        {piSignature ? "Change Signature" : "Add Signature"}
+                                                    </button>
+                                                )}
+                                            </td>
 
-                                    {!sentForApproval && (
-                                        <button
-                                            onClick={() => setShowSignatureModal(true)}
-                                            className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            disabled={instituteApproved}
-                                        >
-                                            {piSignature ? "Change Signature" : "Add Signature"}
-                                        </button>
-                                    )}
-                                </div>
+                                            <td className="border border-gray-300 p-4 w-1/3">
+                                                <div className="h-24 mb-4">
+                                                    {instituteApproved && instituteStamp ? (
+                                                        <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
+                                                    ) : (
+                                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24">
+                                                            <p className="text-gray-500">
+                                                                {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">Signature of Head of Institue</p>
+                                                    <p className="font-medium">Name: {instituteOfficials.headOfInstitute}</p>
+                                                </div>
+                                            </td>
 
-                                <div className="border p-4 rounded-lg">
-
-                                    <h4 className="font-medium  mb-1"> Accounts Officer Signature</h4>
-                                    {instituteApproved && authSignature ? (
-                                        <div className="border p-2 rounded mb-2">
-                                            <img src={authSignature} alt="AO Sign" className="h-24 object-contain" />
-                                        </div>
-                                    ) : (
-                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
-                                            <p className="text-gray-500">
-                                                {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="border p-4 rounded-lg">
-                                    <h4 className="font-medium mb-2">Institute Approval</h4>
-                                    {instituteApproved && instituteStamp ? (
-                                        <div className="border p-2 rounded mb-2">
-                                            <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
-                                        </div>
-                                    ) : (
-                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
-                                            <p className="text-gray-500">
-                                                {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
+                                            <td className="border border-gray-300 p-4 w-1/3">
+                                                <div className="h-24 mb-4">
+                                                    {instituteApproved && authSignature ? (
+                                                        <img src={authSignature} alt="CFO Signature" className="h-24 object-contain" />
+                                                    ) : (
+                                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24">
+                                                            <p className="text-gray-500">
+                                                                {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">Signature of Institute Accounts Officer </p>
+                                                    <p className="font-medium">Name: {instituteOfficials.accountsOfficer}</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
 

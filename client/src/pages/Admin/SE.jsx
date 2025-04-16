@@ -32,7 +32,7 @@ const SEForm = () => {
     });
 
     useEffect(() => {
-       
+
         const fetchSe = async () => {
             const token = localStorage.getItem("token");
             if (!token) {
@@ -85,13 +85,13 @@ const SEForm = () => {
 
     return (
         <div className="flex h-screen bg-gray-100">
-        <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-        <div className="flex-1 p-6 overflow-y-auto">
-            <AdminNavbar activeSection={activeSection} />
+            <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+            <div className="flex-1 p-6 overflow-y-auto">
+                <AdminNavbar activeSection={activeSection} />
                 <div className="p-6 space-y-6 mt-2">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
                         <h1 className="mt-3 text-2xl font-bold text-blue-800">
-                           Up-to-Date Statement of Expenditure
+                            Up-to-Date Statement of Expenditure
                         </h1>
                     </div>
 
@@ -110,11 +110,6 @@ const SEForm = () => {
                             <span className="px-3 py-1 w-full">: {data.scheme}</span>
                             <label className="font-semibold text-gray-700">Present Year of Project</label>
                             <span className="px-3 py-1 w-full">: {data.currentYear}</span>
-                            <label className="font-semibold text-gray-700">Start Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.startDate}</span>
-
-                            <label className="font-semibold text-gray-700">End Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.endDate}</span>
                         </div>
 
                         <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
@@ -139,13 +134,13 @@ const SEForm = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    <tr className="text-center">
+                                        <tr className="text-center">
                                             <th className="border border-gray-400 px-4 py-2" >1</th>
                                             <th className="border border-gray-400 px-4 py-2" >2</th>
                                             {total && total.length > 0 ? (
                                                 total.map((man, index) => (
                                                     <th className="border border-gray-400 px-4 py-2" key={index}>
-                                                       Year {index+1}
+                                                        Year {index + 1}
                                                     </th>
                                                 ))
                                             ) : (
@@ -166,8 +161,8 @@ const SEForm = () => {
                                                 <th className="border border-gray-400 px-4 py-2">0</th>
                                             )}
 
-                                            <th className="border border-gray-400 px-4 py-2">{totalExp?.human_resources||0}</th>
-                                            <th className="border border-gray-400 px-4 py-2">{balance?.human_resources||0}</th>
+                                            <th className="border border-gray-400 px-4 py-2">{totalExp?.human_resources || 0}</th>
+                                            <th className="border border-gray-400 px-4 py-2">{balance?.human_resources || 0}</th>
                                         </tr>
                                         <tr className="text-center">
                                             <th className="border border-gray-400 px-4 py-2" >Consumables</th>
@@ -182,8 +177,8 @@ const SEForm = () => {
                                                 <th className="border border-gray-400 px-4 py-2">0</th>
                                             )}
 
-                                            <th className="border border-gray-400 px-4 py-2">{totalExp?.consumables||0}</th>
-                                            <th className="border border-gray-400 px-4 py-2">{balance?.consumables||0}</th>
+                                            <th className="border border-gray-400 px-4 py-2">{totalExp?.consumables || 0}</th>
+                                            <th className="border border-gray-400 px-4 py-2">{balance?.consumables || 0}</th>
                                         </tr>
                                         <tr className="text-center">
                                             <th className="border border-gray-400 px-4 py-2" >Others</th>
@@ -198,8 +193,8 @@ const SEForm = () => {
                                                 <th className="border border-gray-400 px-4 py-2">0</th>
                                             )}
 
-                                            <th className="border border-gray-400 px-4 py-2">{totalExp?.others||0}</th>
-                                            <th className="border border-gray-400 px-4 py-2">{balance?.others||0}</th>
+                                            <th className="border border-gray-400 px-4 py-2">{totalExp?.others || 0}</th>
+                                            <th className="border border-gray-400 px-4 py-2">{balance?.others || 0}</th>
                                         </tr>
                                         <tr className="text-center">
                                             <th className="border border-gray-400 px-4 py-2" >Equipment</th>
@@ -214,8 +209,8 @@ const SEForm = () => {
                                                 <th className="border border-gray-400 px-4 py-2">0</th>
                                             )}
 
-                                            <th className="border border-gray-400 px-4 py-2">{totalExp?.nonRecurring||0}</th>
-                                            <th className="border border-gray-400 px-4 py-2">{balance?.nonRecurring||0}</th>
+                                            <th className="border border-gray-400 px-4 py-2">{totalExp?.nonRecurring || 0}</th>
+                                            <th className="border border-gray-400 px-4 py-2">{balance?.nonRecurring || 0}</th>
 
                                         </tr>
                                         <tr className="text-center">
@@ -229,8 +224,8 @@ const SEForm = () => {
                                                 ))
                                             ) : (
                                                 <th className="border border-gray-400 px-4 py-2">0</th>
-                                            )} <th className="border border-gray-400 px-4 py-2">{totalExp?.total||0}</th>
-                                            <th className="border border-gray-400 px-4 py-2">{balance?.total||0}</th>
+                                            )} <th className="border border-gray-400 px-4 py-2">{totalExp?.total || 0}</th>
+                                            <th className="border border-gray-400 px-4 py-2">{balance?.total || 0}</th>
                                         </tr>
                                     </tbody>
                                 </table>
