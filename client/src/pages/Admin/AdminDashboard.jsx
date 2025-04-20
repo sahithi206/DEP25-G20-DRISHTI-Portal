@@ -11,7 +11,6 @@ const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
 
-  // Sample data (replace with real data from backend if needed)
   const projectStats = [
     { name: "Ongoing", value: 15 },
     { name: "Completed", value: 8 },
@@ -45,7 +44,7 @@ const AdminDashboard = () => {
       <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
 
       <div className="flex-1 p-6 overflow-y-auto">
-        <AdminNavbar />
+        <AdminNavbar yes={1} />
 
         <div className="mt-6">
           <h2 className="text-2xl font-semibold mb-4">Admin Dashboard Overview</h2>

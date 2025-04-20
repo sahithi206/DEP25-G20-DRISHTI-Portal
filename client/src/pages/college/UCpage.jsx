@@ -230,7 +230,7 @@ const UCPage = () => {
     
       return (
         <div className="flex flex-col min-h-screen">
-        <Navbar />
+        <Navbar yes={1} />
         <div className="flex flex-grow">
           <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
           <div className="p-6 space-y-6 mt-5 mr-9 ml-9 flex-grow">

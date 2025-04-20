@@ -116,7 +116,7 @@ const RegisterInstitute = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      <Navbar  yes={1}/>
       <main className="flex-grow flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white p-6 rounded shadow-md">
           <h1 className="text-2xl font-bold mb-4 text-center">Register Institute</h1>
@@ -226,7 +226,6 @@ const RegisterInstitute = () => {
           </form>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

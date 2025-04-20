@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate} from "react-router-dom";
 import Sidebar from "../../../components/InstituteSidebar";
 import Navbar from "../../../components/Navbar";
 import jsPDF from "jspdf";
@@ -417,7 +417,7 @@ const SEPage = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Navbar />
+            <Navbar yes={1}/>
             <div className="flex flex-grow">
                 <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
                 <div className="p-6 space-y-6 mt-5 mr-9 ml-9 flex-grow">

@@ -69,7 +69,7 @@ const Certificates = () => {
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
-                <AdminNavbar activeSection={activeSection} />
+                <AdminNavbar activeSection={activeSection}  yes={1} />
                 <div className="p-6 space-y-6 mt-3">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
                         <h1 className="mt-3 text-2xl font-bold text-blue-800">{`Final Utilization Certificate of the  Year ${data.currentYear}`}</h1>

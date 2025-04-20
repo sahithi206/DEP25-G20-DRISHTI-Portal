@@ -117,7 +117,7 @@ const AdminProposalReview = () => {
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
-                <AdminNavbar activeSection={activeSection} />
+                <AdminNavbar activeSection={activeSection}  yes={1} />
                 {successMessage && (
                     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4">
                         {successMessage}

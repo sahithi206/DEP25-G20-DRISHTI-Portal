@@ -610,7 +610,7 @@ const ApproveUC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      <Navbar yes={1} />
       <div className="flex flex-grow">
         <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
         <main className="flex-grow container mx-auto p-6">

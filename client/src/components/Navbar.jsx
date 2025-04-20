@@ -4,7 +4,7 @@ import { FaUserCircle, FaFacebook, FaTwitter } from "react-icons/fa";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
-const Navbar = () => {
+const Navbar = ({yes}) => {
   const navigate = useNavigate();
 
   return (
@@ -17,20 +17,22 @@ const Navbar = () => {
           </h1>
         </div>
 
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-8">
           <span className="hover:text-gray-300 cursor-pointer" onClick={() => navigate("/aboutus")}>About Us</span>
-          <span className="hover:text-gray-300 cursor-pointer">Contact Us</span>
-          <span className="hover:text-gray-300 cursor-pointer">Gallery</span>
-
-          <FaUserCircle className="text-2xl" />
-          {<span>Welcome, Institute</span>}
-          <FontAwesomeIcon
-            icon={faPowerOff}
-            className="text-2xl cursor-pointer hover:text-gray-300"
-            onClick={() => navigate("/login")}
-          />
-
+          <FaUserCircle className="text-2xl" onClick={() => navigate("/login")} />
+         {yes && <span className="ml-2">Welcome, Institute</span>} 
+          {yes && (
+            <FontAwesomeIcon
+              icon={faPowerOff}
+              className="text-2xl cursor-pointer hover:text-gray-300 ml-4"
+              onClick={()=>{
+                localStorage.removeItem("token");
+                navigate("/");
+              }}
+            />
+          )}
         </div>
+
       </div>
     </nav>
   );
