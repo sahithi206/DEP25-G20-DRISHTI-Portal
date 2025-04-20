@@ -944,6 +944,42 @@ const AuthProvider = (props) => {
     }
   };
 
+  // Add the fetchInstituteOfficials function
+  const fetchInstituteOfficials = async (instituteName) => {
+    try {
+      console.log("Inside FetchInstOfficials::: clg name is ", instituteName);
+      const response = await fetch(`${url}auth/officials`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accessToken: localStorage.getItem("token"),
+        },
+        body: JSON.stringify({ instituteName })
+      });
+
+      const result = await response.json();
+      console.log("Inside AuthContext::", result);
+      if (result.success) {
+        const headOfInstitute = result.data.find(official => official.role === 'Head of Institute');
+        const cfo = result.data.find(official => official.role === 'CFO');
+        const accountsOfficer = result.data.find(official => official.role === 'Accounts Officer');
+
+        // Return the officials data so components can use it if needed
+        return {
+          headOfInstitute: headOfInstitute ? headOfInstitute.name : "Not available",
+          cfo: cfo ? cfo.name : "Not available",
+          accountsOfficer: accountsOfficer ? accountsOfficer.name : "Not available"
+        };
+      } else {
+        console.error("Failed to fetch institute officials:", result.message);
+        return null;
+      }
+    } catch (err) {
+      console.error("Error fetching institute officials:", err.message);
+      return null;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       sendOtp, verifyOtp, login, unsavedProposal,
@@ -952,7 +988,7 @@ const AuthProvider = (props) => {
       submitPIDetails, submitAcknowledgement, getuser, approvedProjects, fetchInstituteProjects,
       userInstiAcceptedProposals, createInstitute, fetchInstituteUsers, loginInstitute, getProject,
       fetchSanctionedProjects, fetchInstituteGetProject, getSchemes, deleteProposal, adminLogin,
-      adminVerifyOtp, getAdmin, deleteExpense, editExpense, getInstUser
+      adminVerifyOtp, getAdmin, deleteExpense, editExpense, getInstUser, fetchInstituteOfficials
     }}>
       {props.children}
     </AuthContext.Provider>

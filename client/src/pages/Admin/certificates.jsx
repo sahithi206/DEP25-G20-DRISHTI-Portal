@@ -44,8 +44,8 @@ const Certificates = () => {
                     return;
                 }
                 setData(json.grant);
-                console.log("Project",json.project);
-                setUser({name:json?.project?.Name,institute:json?.project?.Institute});
+                console.log("Project", json.project);
+                setUser({ name: json?.project?.Name, institute: json?.project?.Institute });
                 if (type === "nonRecurring") {
                     console.log(data.nonRecurringExp);
                     console.log("nonRecurring", data.total - data.nonRecurringExp)
@@ -92,12 +92,10 @@ const Certificates = () => {
                             <span className="px-3 py-1 w-full">: {data.scheme}</span>
                             <label className="font-semibold text-gray-700">Present Year of Project</label>
                             <span className="px-3 py-1 w-full">: {data.currentYear}</span>
-                            <label className="font-semibold text-gray-700">Start Date of Year</label>
+                            {/* <label className="font-semibold text-gray-700">Start Date of Year</label>
                             <span className="px-3 py-1 w-full">: {data.startDate}</span>
-
                             <label className="font-semibold text-gray-700">End Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.endDate}</span>
-
+                            <span className="px-3 py-1 w-full">: {data.endDate}</span> */}
                         </div>
 
                         <h3 className="text-lg font-semibold text-blue-700 mb-4">Grant Details</h3>

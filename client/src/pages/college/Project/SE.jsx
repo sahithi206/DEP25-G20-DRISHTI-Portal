@@ -28,13 +28,13 @@ const SEPage = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [piSignature, setPiSignature] = useState(null);
     const [loading, setLoading] = useState(false);
-    
-  const [showUploadOption, setShowUploadOption] = useState(false);
-  const navigate = useNavigate();
 
-  const stampCanvas = useRef(null);
-  const fileInputRef = useRef(null);
-    
+    const [showUploadOption, setShowUploadOption] = useState(false);
+    const navigate = useNavigate();
+
+    const stampCanvas = useRef(null);
+    const fileInputRef = useRef(null);
+
     useEffect(() => {
         const fetchComments = async () => {
             try {
@@ -104,7 +104,7 @@ const SEPage = () => {
             if (!result.success) {
                 setError(result.message || "Error fetching SE data");
                 return;
-            } 
+            }
             setSeData(result.data);
             setPiSignature(result.data.piSignature || null);
             setInstituteStamp(result.data.instituteStamp || null);
@@ -312,88 +312,97 @@ const SEPage = () => {
     };
     const SignatureModal = () => {
         if (!showStampModal) return null;
-    
+
         return (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowStampModal(false)}></div>
-            <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
-              <h3 className="text-xl font-bold text-center text-gray-800 mb-4">Sign here</h3>
-              <div className="flex justify-center mb-4">
-                <button
-                  onClick={toggleUploadOption}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mx-2"
-                >
-                  {showUploadOption ? "Draw Signature" : "Upload Signature"}
-                </button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/png, image/jpeg, image/jpg"
-                  onChange={handleFileUpload}
-                />
-              </div>
-    
-              {showUploadOption ? (
-                <div className="flex flex-col items-center">
-                  <button
-                    onClick={triggerFileInput}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 mb-4"
-                  >
-                    Select Image File (PNG, JPG)
-                  </button>
-                  {instituteStamp && (
-                    <div className="mt-2 border border-gray-300 p-2 rounded">
-                      <img src={instituteStamp} alt="Uploaded signature" className="h-24 object-contain" />
+            <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black opacity-30" onClick={() => setShowStampModal(false)}></div>
+                <div className="bg-white rounded-lg shadow-xl p-6 z-10 max-w-md w-full mx-4">
+                    <h3 className="text-xl font-bold text-center text-gray-800 mb-4">Sign here</h3>
+                    <div className="flex justify-center mb-4">
+                        <button
+                            onClick={toggleUploadOption}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mx-2"
+                        >
+                            {showUploadOption ? "Draw Signature" : "Upload Signature"}
+                        </button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/png, image/jpeg, image/jpg"
+                            onChange={handleFileUpload}
+                        />
                     </div>
-                  )}
+
+                    {showUploadOption ? (
+                        <div className="flex flex-col items-center">
+                            <button
+                                onClick={triggerFileInput}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 mb-4"
+                            >
+                                Select Image File (PNG, JPG)
+                            </button>
+                            {instituteStamp && (
+                                <div className="mt-2 border border-gray-300 p-2 rounded">
+                                    <img src={instituteStamp} alt="Uploaded signature" className="h-24 object-contain" />
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="border border-gray-300 rounded-md mb-4">
+                            <SignatureCanvas
+                                ref={stampCanvas}
+                                penColor="black"
+                                canvasProps={{
+                                    width: 500,
+                                    height: 200,
+                                    className: "signature-canvas w-full"
+                                }}
+
+                            />
+                        </div>
+                    )}
+
+                    <div className="flex justify-between">
+                        {!showUploadOption && (
+                            <button
+                                onClick={clearStamp}
+                                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                            >
+                                Clear
+                            </button>
+                        )}
+                        <button
+                            onClick={() => setShowStampModal(false)}
+                            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={saveStamp}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            Save
+                        </button>
+                    </div>
                 </div>
-              ) : (
-                <div className="border border-gray-300 rounded-md mb-4">
-                  <SignatureCanvas
-                    ref={stampCanvas}
-                    penColor="black"
-                    canvasProps={{
-                      width: 500,
-                      height: 200,
-                      className: "signature-canvas w-full"
-                    }}
-    
-                  />
-                </div>
-              )}
-    
-              <div className="flex justify-between">
-                {!showUploadOption && (
-                  <button
-                    onClick={clearStamp}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  >
-                    Clear
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowStampModal(false)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={saveStamp}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Save
-                </button>
-              </div>
             </div>
-          </div>
         );
-      };
+    };
 
     const closeModal = () => {
         setIsModalOpen(false);
         setSeData(null);
     };
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+
+    const financialYear =
+        currentMonth >= 3
+            ? `${currentYear}-${(currentYear + 1).toString().slice(-2)}`
+            : `${currentYear - 1}-${currentYear.toString().slice(-2)}`;
 
     useEffect(() => {
         let filtered = seForms;
@@ -478,10 +487,10 @@ const SEPage = () => {
                                                 {se.startDate} to {se.endDate}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                                {se.status === "approvedByAdmin" ? "Approved By Admin" : 
-                                                 se.status === "approvedByInst" ? "Approved By Institute" :  
-                                                 se.status === "pendingAdminApproval" ? "Pending By Admin" :
-                                                 se.status === "rejectedByAdmin" ? "Rejected By Admin" : "Pending"}
+                                                {se.status === "approvedByAdmin" ? "Approved By Admin" :
+                                                    se.status === "approvedByInst" ? "Approved By Institute" :
+                                                        se.status === "pendingAdminApproval" ? "Pending By Admin" :
+                                                            se.status === "rejectedByAdmin" ? "Rejected By Admin" : "Pending"}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                                 <button
@@ -504,80 +513,168 @@ const SEPage = () => {
 
             {/* SE Details Modal */}
             {isModalOpen && seData && (
-                <div className="fixed inset-0 z-30 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-6 rounded-lg w-11/12 max-w-4xl shadow-2xl max-h-[90vh] overflow-y-auto relative">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg w-[70%] max-h-[90vh] overflow-y-auto p-6">
                         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Statement of Expenditure Details</h2>
 
                         <div id="se-details" className="bg-white rounded-lg p-6 border-t-4 border-blue-800">
                             <h3 className="text-lg font-semibold text-blue-600 mb-4">
                                 Statement of Expenditure Details
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <label className="font-semibold text-gray-700">Name Of PI:</label>
-                                <span className="px-3 py-1 w-full">: {seData.name}</span>
-            
-                                <label className="font-semibold text-gray-700">Name of the Institution:</label>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <label className="font-semibold text-gray-700">File Number</label>
+                                <span className="px-3 py-1 w-full">: {seData.projectId}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <label className="font-semibold text-gray-700">Name of the grant receiving Organization</label>
                                 <span className="px-3 py-1 w-full">: {seData.institute}</span>
-            
-                                <label className="font-semibold text-gray-700">Funding Agency/Scheme:</label>
+                                <label className="font-semibold text-gray-700">Name of Principal Investigator:</label>
+                                <span className="px-3 py-1 w-full">: {seData.name}</span>
+                                <label className="font-semibold text-gray-700">Name of the Scheme</label>
                                 <span className="px-3 py-1 w-full">: {seData.scheme}</span>
-            
-                                <label className="font-semibold text-gray-700">Project Year:</label>
+                                <label className="font-semibold text-gray-700">Present Year of Project</label>
                                 <span className="px-3 py-1 w-full">: {seData.currentYear}</span>
-            
-                                <label className="font-semibold text-gray-700">Period of Statement:</label>
-                                <span className="px-3 py-1 w-full">: {seData.startDate} to {seData.endDate}</span>
-            
-                                <label className="font-semibold text-gray-700">Total Project Cost:</label>
-                                <span className="px-3 py-1 w-full">: Rs. {seData.TotalCost}</span>
+                                <label className="font-semibold text-gray-700">Total Project Cost </label>
+                                <span className="px-3 py-1 w-full">: {seData.TotalCost}</span>
+                                {/* <label className="font-semibold text-gray-700">Start Date of Year</label>
+                                <span className="px-3 py-1 w-full">: {seData.startDate}</span>
+                                <label className="font-semibold text-gray-700">End Date of Year</label>
+                                <span className="px-3 py-1 w-full">: {seData.endDate}</span> */}
                             </div>
-            
-                            <h3 className="text-lg font-semibold text-blue-700 mb-4">Expenditure Summary</h3>
-                            <div className="overflow-x-auto">
-                                <table className="w-full border border-gray-300 rounded-lg">
-                                    <thead>
-                                        <tr className="bg-gray-100 text-gray-700">
-                                            <th className="border border-gray-400 px-4 py-2">Budget Head</th>
-                                            <th className="border border-gray-400 px-4 py-2">Sanctioned Amount (Rs)</th>
-                                            <th className="border border-gray-400 px-4 py-2">Expenditure (Rs)</th>
-                                            <th className="border border-gray-400 px-4 py-2">Balance (Rs)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr className="text-center">
-                                            <td className="border border-gray-400 px-4 py-2">Human Resources</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.budgetSanctioned.human_resources}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.totalExp.human_resources}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.balance.human_resources}</td>
-                                        </tr>
-                                        <tr className="text-center">
-                                            <td className="border border-gray-400 px-4 py-2">Consumables</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.budgetSanctioned.consumables}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.totalExp.consumables}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.balance.consumables}</td>
-                                        </tr>
-                                        <tr className="text-center">
-                                            <td className="border border-gray-400 px-4 py-2">Others</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.budgetSanctioned.others}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.totalExp.others}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.balance.others}</td>
-                                        </tr>
-                                        <tr className="text-center">
-                                            <td className="border border-gray-400 px-4 py-2">Non-Recurring</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.budgetSanctioned.nonRecurring}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.totalExp.nonRecurring}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.balance.nonRecurring}</td>
-                                        </tr>
-                                        <tr className="font-bold text-center bg-gray-50">
-                                            <td className="border border-gray-400 px-4 py-2">Total</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.budgetSanctioned.total}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.totalExp.total}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{seData.balance.total}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+
+                            <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
+                            <ul className="list-disc pl-6 ">
+                                {seData.yearlyBudget && seData.yearlyBudget.map((sanct, index) => (
+                                    <li key={index} className="px-3 py-1 text-gray-700 font-bold w-full">
+                                        <span>Year {index + 1}: {sanct}</span>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
+                                <h2 className="text-center text-2xl font-bold mb-4">STATEMENT OF EXPENDITURE (FY {financialYear})</h2>
+                                <h3 className="text-center text-lg font-semibold mb-4">Statement of Expenditure (to be submitted financial year wise)</h3>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full border border-gray-300 rounded-lg text-sm">
+                                        <thead>
+                                            <tr className="bg-blue-100 text-gray-700">
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">S/No</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Sanctioned Heads</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Total Funds Sanctioned</th>
+                                                <th className="border border-gray-400 px-2 py-1" colSpan="3">Expenditure Incurred</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Total Expenditure (vii=iv+v+vi)</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Balance against sanctioned as on 31.03.{new Date().getFullYear()} (viii=iii-vii)</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Requirement of Funds unto 31st March next year</th>
+                                                <th className="border border-gray-400 px-2 py-1" rowSpan="2">Remarks (if any)</th>
+                                            </tr>
+                                            <tr className="bg-blue-100 text-gray-700">
+                                                <th className="border border-gray-400 px-2 py-1">I Yr.</th>
+                                                <th className="border border-gray-400 px-2 py-1">II Yr.</th>
+                                                <th className="border border-gray-400 px-2 py-1">III Yr.</th>
+                                            </tr>
+                                            <tr className="bg-blue-100 text-gray-700 text-center">
+                                                <th className="border border-gray-400 px-2 py-1">(i)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(ii)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(iii)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(iv)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(v)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(vi)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(vii)</th>
+                                                <th className="border border-gray-400 px-2 py-1">(viii)</th>
+                                                <th className="border border-gray-400 px-2 py-1"></th>
+                                                <th className="border border-gray-400 px-2 py-1"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {[
+                                                { id: 1, name: "Manpower Costs", key: "human_resources" },
+                                                { id: 2, name: "Consumables", key: "consumables" },
+                                                { id: 3, name: "Travel", key: "travel" },
+                                                { id: 4, name: "Contingencies", key: "contingencies" },
+                                                { id: 5, name: "Other Cost, if any", key: "others" },
+                                                { id: 6, name: "Equipments", key: "nonRecurring" },
+                                                { id: 7, name: "Overhead Expenses", key: "overhead" },
+                                            ].map((head) => {
+                                                // Calculate total expenditure for this head
+                                                const year1Value = seData.human_resources && head.key === "human_resources" ? seData.human_resources[0] || 0 :
+                                                    seData[head.key] ? seData[head.key][0] || 0 : 0;
+                                                const year2Value = seData.human_resources && head.key === "human_resources" ? seData.human_resources[1] || 0 :
+                                                    seData[head.key] ? seData[head.key][1] || 0 : 0;
+                                                const year3Value = seData.human_resources && head.key === "human_resources" ? seData.human_resources[2] || 0 :
+                                                    seData[head.key] ? seData[head.key][2] || 0 : 0;
+
+                                                const totalExpValue = seData.totalExp && seData.totalExp[head.key]
+                                                    ? seData.totalExp[head.key]
+                                                    : (year1Value + year2Value + year3Value);
+
+                                                const sanctionedValue = seData.budgetSanctioned && seData.budgetSanctioned[head.key]
+                                                    ? seData.budgetSanctioned[head.key]
+                                                    : 0;
+
+                                                const balance = sanctionedValue - totalExpValue;
+
+                                                // Calculate fund requirement for next year
+                                                let fundRequirement = 0;
+                                                if (head.key === "overhead" && seData.budgetSanctioned && seData.budgetSanctioned.overhead) {
+                                                    fundRequirement = seData.budgetSanctioned.overhead * 0.3;
+                                                }
+
+                                                return (
+                                                    <tr key={head.id} className="text-center">
+                                                        <td className="border border-gray-400 px-2 py-1">{head.id}</td>
+                                                        <td className="border border-gray-400 px-2 py-1 text-left">{head.name}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{sanctionedValue}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{year1Value}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{year2Value}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{year3Value}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{totalExpValue}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">{balance}</td>
+                                                        <td className="border border-gray-400 px-2 py-1">
+                                                            {head.key === "overhead" ? fundRequirement.toFixed(0) : 0}
+                                                        </td>
+                                                        <td className="border border-gray-400 px-2 py-1">
+                                                            {head.key === "nonRecurring" ? "Including of commitments" : ""}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            <tr className="text-center font-bold">
+                                                <td className="border border-gray-400 px-2 py-1">8</td>
+                                                <td className="border border-gray-400 px-2 py-1 text-center">Total</td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {seData.budgetSanctioned && seData.budgetSanctioned.total ? seData.budgetSanctioned.total : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {seData.total ? seData.total[0] || 0 : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {seData.total ? seData.total[1] || 0 : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {seData.total ? seData.total[2] || 0 : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {seData.totalExp && seData.totalExp.total ? seData.totalExp.total : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {((seData.budgetSanctioned && seData.budgetSanctioned.total) || 0) -
+                                                        ((seData.totalExp && seData.totalExp.total) || 0)}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {(seData.budgetSanctioned && seData.budgetSanctioned.overhead ? seData.budgetSanctioned.overhead * 0.3 : 0).toFixed(0)}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div className="mt-6">
+                                    <p className="text-sm text-gray-700">
+                                        <strong>Note:</strong> The audited statement of expenditure incurred under the Heads, and proper utilization of funds released during the period, may be sent to the agency immediately after the end of the financial year.
+                                    </p>
+                                </div>
                             </div>
-            
+
                             <div className="border-t border-gray-200 pt-4 mb-6 mt-6">
                                 <h3 className="text-xl font-semibold mb-4">Signatures</h3>
 
@@ -595,7 +692,7 @@ const SEPage = () => {
                                         )}
                                     </div>
 
-                                    <div className="border p-4 rounded-lg">
+                                    {/* <div className="border p-4 rounded-lg">
                                         <h4 className="font-medium mb-2">Institute Approval</h4>
                                         {instituteStamp ? (
                                             <div className="border p-2 rounded mb-2">
@@ -616,7 +713,7 @@ const SEPage = () => {
                                                 Add Institute Stamp
                                             </button>
                                         )}
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
 
@@ -630,8 +727,14 @@ const SEPage = () => {
                                     </svg>
                                     Save as PDF
                                 </button>
-
                                 <button
+                                    onClick={closeModal}
+                                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                                >
+                                    Close
+                                </button>
+
+                                {/* <button
                                     onClick={() => setShowApproveModal(true)}
                                     disabled={!instituteStamp}
                                     className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${instituteStamp
@@ -643,17 +746,8 @@ const SEPage = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                     Approve SE
-                                </button>
+                                </button> */}
                             </div>
-                        </div>
-
-                        <div className="mt-6 flex justify-end">
-                            <button
-                                onClick={closeModal}
-                                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-                            >
-                                Close
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -664,7 +758,7 @@ const SEPage = () => {
                 <div className="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center">
                     <div className="bg-white p-6 rounded-lg w-96">
                         <h3 className="text-xl font-semibold mb-4">Add Institute Stamp</h3>
-                        
+
                         <div className="mb-4">
                             <input
                                 type="file"
@@ -680,7 +774,7 @@ const SEPage = () => {
                                 Upload Stamp Image
                             </button>
                         </div>
-                        
+
                         <div className="flex justify-end space-x-2">
                             <button
                                 onClick={() => setShowStampModal(false)}

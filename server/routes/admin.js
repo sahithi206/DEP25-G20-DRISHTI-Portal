@@ -21,7 +21,6 @@ const fs = require("fs");
 const nodemailer = require("nodemailer");
 const NonRecurring = require("../Models/NonRecurring");
 const budgetSanctioned = require("../Models/budgetSanctioned.js");
-const Scheme = require("../Models/Scheme");
 const Project = require("../Models/Project.js")
 const { ObjectId } = require("mongodb");
 const RecurringUC = require("../Models/UcRecurring.js");
@@ -31,12 +30,11 @@ const Comment = require("../Models/comment.js");
 const UCRequest = require("../Models/UCRequest.js");
 const ProgressReport = require("../Models/progressReport");
 
-
 router.get("/approvedProposals", fetchAdmin, async (req, res) => {
   try {
     const userId = req.admin.id;
     console.log("User ID from Token:", userId);
-    const Schemes = await Scheme.find({ coordinator: userId });
+    const Schemes = await Schemes.find({ coordinator: userId });
     console.log(Schemes);
     if (!Schemes) {
       return res.status(400).json({ success: false, msg: "No Schemes found" });
@@ -72,8 +70,6 @@ router.get("/approvedProposals", fetchAdmin, async (req, res) => {
     res.status(500).json({ success: false, msg: "Failed to Fetch Projects", error: "Internal Server Error" });
   }
 });
-
-
 
 router.get("/approvedProposal/:id", fetchAdmin, async (req, res) => {
   const { id } = req.params;
@@ -271,8 +267,13 @@ router.post("/createProject/:proposalId", async (req, res) => {
 
 router.get("/get-projects", fetchAdmin, async (req, res) => {
   try {
+    const userId = req.admin.id;
+    console.log("User ID from Token:", userId);
 
     let proposals = await Project.find().populate("Scheme");
+    proposals = proposals.filter(
+      (proj) => proj.Scheme?.coordinator?.toString() === userId
+    );
     console.log("Fetched Projects:", proposals);
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No Projects found" });
@@ -387,6 +388,7 @@ router.get("/ucforms/:id", fetchAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
+
 router.get("/ucforms/approved/:id", fetchAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -660,7 +662,7 @@ router.put("/progress-reports/:id/mark-as-read", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
-// id is the projectId, not object id of progress report
+
 router.get("/progress-reports/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -680,7 +682,7 @@ router.get("/completed-projects", fetchAdmin, async (req, res) => {
     const userId = req.admin.id;
     console.log("User ID from Token:", userId);
 
-    const schemes = await Scheme.find({ coordinator: userId });
+    const schemes = await Schemes.find({ coordinator: userId });
     console.log("Fetched Schemes:", schemes);
 
     if (!schemes || schemes.length === 0) {
@@ -708,6 +710,130 @@ router.get("/completed-projects", fetchAdmin, async (req, res) => {
   } catch (error) {
     console.error("Error fetching completed projects:", error);
     res.status(500).json({ success: false, msg: "Internal server error." });
+  }
+});
+
+router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
+  try {
+    const adminId = req.admin.id;
+    const adminRole = req.admin.role;
+    console.log("Admin ID:", adminId, "Role:", adminRole);
+
+    let schemeIds = [];
+    let adminSchemes = [];
+
+    // Fetch schemes based on role
+    if (adminRole === "Head Coordinator") {
+      // For Head Coordinator, get all schemes
+      adminSchemes = await Schemes.find({});
+      schemeIds = adminSchemes.map(scheme => scheme._id);
+    } else {
+      // For regular Coordinator, get only schemes they coordinate
+      adminSchemes = await Schemes.find({ coordinator: adminId });
+      schemeIds = adminSchemes.map(scheme => scheme._id);
+    }
+
+    // Count projects based on the schemes
+    const totalProjects = await Project.countDocuments({ Scheme: { $in: schemeIds } });
+    const activeProjects = await Project.countDocuments({
+      Scheme: { $in: schemeIds },
+      status: "Ongoing"
+    });
+    const completedProjects = await Project.countDocuments({
+      Scheme: { $in: schemeIds },
+      status: "Completed"
+    });
+    const approvedProjects = await Project.countDocuments({
+      Scheme: { $in: schemeIds },
+      status: "Approved"
+    });
+
+    // Get project counts per scheme
+    const schemes = await Project.aggregate([
+      { $match: { Scheme: { $in: schemeIds } } },
+      {
+        $group: {
+          _id: "$Scheme",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "schemes", // Assuming your schemes collection is named "schemes"
+          localField: "_id",
+          foreignField: "_id",
+          as: "schemeInfo"
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          count: 1,
+          schemeName: { $arrayElemAt: ["$schemeInfo.name", 0] }
+        }
+      }
+    ]);
+
+    console.log("SCHEMES:", schemes);
+
+    // Calculate funding trend by month for the schemes
+    const fundTrend = await Project.aggregate([
+      { $match: { Scheme: { $in: schemeIds } } },
+      {
+        $group: {
+          _id: { $substr: ["$startDate", 5, 2] },
+          funds: { $sum: "$TotalCost" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Calculate total fund approved
+    const totalFunds = await Project.aggregate([
+      { $match: { Scheme: { $in: schemeIds } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$TotalCost" }
+        }
+      }
+    ]);
+
+    const fundApproved = totalFunds.length > 0
+      ? `₹ ${(totalFunds[0].total / 100000).toFixed(2)}L`
+      : "₹ 0L";
+
+    res.json({
+      summaryCards: {
+        totalSchemes: adminSchemes.length,
+        totalProjects,
+        activeProjects,
+        fundApproved
+      },
+      projectStats: [
+        { name: "Ongoing", value: activeProjects },
+        { name: "Completed", value: completedProjects },
+        { name: "Approved", value: approvedProjects }
+      ],
+      schemeProjects: schemes.map(s => ({
+        scheme: s.schemeName || "Unknown",
+        projects: s.count
+      })),
+      fundTrend: fundTrend.map(entry => {
+        // Convert month number to month name
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthIndex = parseInt(entry._id, 10) - 1;
+        const monthName = monthNames[monthIndex] || entry._id;
+
+        return {
+          month: monthName,
+          funds: entry.funds
+        };
+      })
+    });
+  } catch (err) {
+    console.error("Dashboard stats error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -1,11 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUserCircle, FaFacebook, FaTwitter } from "react-icons/fa";
-import { IoMdArrowDropdown } from "react-icons/io";
+import axios from "axios";
+import { FaUserCircle } from "react-icons/fa";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
+const url = import.meta.env.VITE_REACT_APP_URL;
+
 const Navbar = ({yes}) => {
   const navigate = useNavigate();
+
+  const [profile, setProfile] = useState({ name: "" }); 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("Authentication token not found. Please login again.");
+      }
+
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": token,
+        },
+      };
+
+      const res = await axios.get(`${url}institute/profile`, config);
+      setProfile(res.data.institute); 
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      setError("Error fetching profile");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <nav className="bg-gray-100 text-gray-900">

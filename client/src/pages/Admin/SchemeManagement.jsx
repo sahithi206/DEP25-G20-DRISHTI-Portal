@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
-import { PlusCircle, AlertCircle, Check, Calendar, DollarSign, Users, Tag, FileText, Clock } from "lucide-react";
+import { PlusCircle, AlertCircle, Check, Calendar, DollarSign, Users, Tag, FileText, Clock, Search, Filter } from "lucide-react";
 import { FaRupeeSign } from "react-icons/fa";
 const URL = import.meta.env.VITE_REACT_APP_URL;
 
@@ -10,8 +10,17 @@ const SchemeManagement = ({ userRole }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [notification, setNotification] = useState({ show: false, message: "", type: "" });
     const [schemes, setSchemes] = useState([]);
+    const [filteredSchemes, setFilteredSchemes] = useState([]);
     const [users, setUsers] = useState([]);
     const [formErrors, setFormErrors] = useState({});
+
+    // Filter state
+    const [filters, setFilters] = useState({
+        search: "",
+        status: "",
+        category: "",
+        coordinator: ""
+    });
 
     // Form state
     const [formData, setFormData] = useState({
@@ -25,6 +34,9 @@ const SchemeManagement = ({ userRole }) => {
         status: "Active",
         selectedCoordinator: ""
     });
+
+    // Get unique categories for filter dropdown
+    const uniqueCategories = [...new Set(schemes.map(scheme => scheme.category).filter(Boolean))];
 
     // Fetch schemes and users data
     useEffect(() => {
@@ -42,7 +54,30 @@ const SchemeManagement = ({ userRole }) => {
                 const schemesData = await schemesResponse.json();
                 const usersData = await usersResponse.json();
 
-                setSchemes(schemesData);
+                // Update scheme status based on dates
+                const updatedSchemes = schemesData.map(scheme => {
+                    const currentDate = new Date();
+                    const startDate = new Date(scheme.startDate);
+                    const endDate = new Date(scheme.endDate);
+
+                    let calculatedStatus = scheme.status;
+
+                    // If the scheme is not manually set to "Completed" or "Cancelled", calculate based on dates
+                    if (scheme.status !== "Completed" && scheme.status !== "Cancelled") {
+                        if (currentDate < startDate) {
+                            calculatedStatus = "Pending";
+                        } else if (currentDate >= startDate && currentDate <= endDate) {
+                            calculatedStatus = "Active";
+                        } else if (currentDate > endDate) {
+                            calculatedStatus = "Completed";
+                        }
+                    }
+
+                    return { ...scheme, status: calculatedStatus };
+                });
+
+                setSchemes(updatedSchemes);
+                setFilteredSchemes(updatedSchemes);
                 setUsers(usersData);
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -54,6 +89,53 @@ const SchemeManagement = ({ userRole }) => {
 
         fetchData();
     }, []);
+
+    // Filter schemes when filters change
+    useEffect(() => {
+        let result = [...schemes];
+
+        // Text search (case insensitive)
+        if (filters.search) {
+            const searchTerm = filters.search.toLowerCase();
+            result = result.filter(scheme =>
+                scheme.name.toLowerCase().includes(searchTerm) ||
+                scheme.description.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        // Status filter
+        if (filters.status) {
+            result = result.filter(scheme => scheme.status === filters.status);
+        }
+
+        // Category filter
+        if (filters.category) {
+            result = result.filter(scheme => scheme.category === filters.category);
+        }
+
+        // Coordinator filter
+        if (filters.coordinator) {
+            result = result.filter(scheme => scheme.coordinator === filters.coordinator);
+        }
+
+        setFilteredSchemes(result);
+    }, [filters, schemes]);
+
+    // Handle filter changes
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setFilters(prev => ({ ...prev, [name]: value }));
+    };
+
+    // Reset filters
+    const resetFilters = () => {
+        setFilters({
+            search: "",
+            status: "",
+            category: "",
+            coordinator: ""
+        });
+    };
 
     // Show notification helper
     const showNotification = (message, type = "success") => {
@@ -114,6 +196,21 @@ const SchemeManagement = ({ userRole }) => {
 
         setIsLoading(true);
 
+        // Determine initial status based on dates
+        const currentDate = new Date();
+        const startDate = new Date(formData.startDate);
+        const endDate = new Date(formData.endDate);
+
+        let initialStatus = "Active"; // Default value
+
+        if (currentDate < startDate) {
+            initialStatus = "Pending";
+        } else if (currentDate >= startDate && currentDate <= endDate) {
+            initialStatus = "Active";
+        } else if (currentDate > endDate) {
+            initialStatus = "Completed";
+        }
+
         const newScheme = {
             name: formData.schemeName,
             description: formData.description,
@@ -123,7 +220,7 @@ const SchemeManagement = ({ userRole }) => {
             startDate: formData.startDate,
             endDate: formData.endDate,
             coordinator: formData.selectedCoordinator,
-            status: formData.status
+            status: initialStatus
         };
 
         try {
@@ -141,6 +238,7 @@ const SchemeManagement = ({ userRole }) => {
 
             const savedScheme = await response.json();
             setSchemes([...schemes, savedScheme]);
+            setFilteredSchemes([...filteredSchemes, savedScheme]);
 
             // Reset form
             setFormData({
@@ -405,18 +503,108 @@ const SchemeManagement = ({ userRole }) => {
                         </div>
                     </div>
 
-                    {/* Existing Schemes Table */}
+                    {/* Existing Schemes Table with Filters */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                         <div className="p-6 border-b border-gray-200">
                             <h2 className="text-lg font-semibold text-gray-800">Existing Schemes</h2>
                             <p className="text-gray-600 text-sm">Manage and monitor all created schemes</p>
                         </div>
 
+                        {/* Filter Section */}
+                        <div className="p-4 bg-gray-50 border-b border-gray-200">
+                            <div className="flex flex-wrap gap-4 items-center">
+                                {/* Search Filter */}
+                                <div className="flex-1 min-w-[200px]">
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <Search className="h-4 w-4 text-gray-500" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="search"
+                                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Search schemes..."
+                                            value={filters.search}
+                                            onChange={handleFilterChange}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Status Filter */}
+                                <div className="w-40">
+                                    <select
+                                        name="status"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={filters.status}
+                                        onChange={handleFilterChange}
+                                    >
+                                        <option value="">All Status</option>
+                                        <option value="Active">Active</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+
+                                {/* Category Filter */}
+                                <div className="w-40">
+                                    <select
+                                        name="category"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={filters.category}
+                                        onChange={handleFilterChange}
+                                    >
+                                        <option value="">All Categories</option>
+                                        {uniqueCategories.map((category, index) => (
+                                            <option key={index} value={category}>
+                                                {category}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Coordinator Filter */}
+                                <div className="w-40">
+                                    <select
+                                        name="coordinator"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={filters.coordinator}
+                                        onChange={handleFilterChange}
+                                    >
+                                        <option value="">All Coordinators</option>
+                                        {users.map((user) => (
+                                            <option key={user._id} value={user._id}>
+                                                {user.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Reset Filter Button */}
+                                <button
+                                    onClick={resetFilters}
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors flex items-center"
+                                >
+                                    <Filter className="h-4 w-4 mr-1" />
+                                    Reset
+                                </button>
+                            </div>
+
+                            {/* Results Count */}
+                            <div className="mt-2 text-sm text-gray-500">
+                                Showing {filteredSchemes.length} of {schemes.length} schemes
+                            </div>
+                        </div>
+
                         <div className="overflow-x-auto">
                             {isLoading && !schemes.length ? (
                                 <div className="p-8 text-center text-gray-500">Loading schemes...</div>
-                            ) : schemes.length === 0 ? (
-                                <div className="p-8 text-center text-gray-500">No schemes found. Create your first scheme above.</div>
+                            ) : filteredSchemes.length === 0 ? (
+                                <div className="p-8 text-center text-gray-500">
+                                    {schemes.length === 0 ?
+                                        "No schemes found. Create your first scheme above." :
+                                        "No schemes match your filter criteria."}
+                                </div>
                             ) : (
                                 <table className="w-full">
                                     <thead>
@@ -431,7 +619,7 @@ const SchemeManagement = ({ userRole }) => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
-                                        {schemes.map((scheme) => (
+                                        {filteredSchemes.map((scheme) => (
                                             <tr key={scheme._id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4">
                                                     <div className="font-medium text-gray-900">{scheme.name}</div>

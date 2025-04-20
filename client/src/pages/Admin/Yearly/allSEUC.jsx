@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../../Context/Authcontext";
 import AdminSidebar from "../../../components/AdminSidebar";
 import AdminNavbar from "../../../components/AdminNavbar";
 import TermsAndConditions from "../../uc/se/TermsAndConditions";
@@ -6,6 +7,7 @@ import TermsAndConditions from "../../uc/se/TermsAndConditions";
 const url = import.meta.env.VITE_REACT_APP_URL;
 
 const AllSEUC = () => {
+    const { fetchInstituteOfficials } = useContext(AuthContext);
     const [activeSection, setActiveSection] = useState("allRequests");
     const [error, setError] = useState("");
     const [allUCs, setAllUCs] = useState([]);
@@ -28,6 +30,11 @@ const AllSEUC = () => {
     const [sortOrderSE, setSortOrderSE] = useState("asc");
     const [filterUC, setFilterUC] = useState("");
     const [filterSE, setFilterSE] = useState("");
+    const [instituteOfficials, setInstituteOfficials] = useState({
+        headOfInstitute: "Loading...",
+        cfo: "Loading...",
+        accountsOfficer: "Loading...",
+    });
 
     const [isSortFilterOpen, setIsSortFilterOpen] = useState(false);
 
@@ -107,7 +114,8 @@ const AllSEUC = () => {
                 alert("Failed to fetch certificate details.");
                 return;
             }
-
+            const authData = await fetchInstituteOfficials(data.data.ucData.instituteName);
+            setInstituteOfficials(authData);
             setIsUCCertificateOpen(true);
             setPiSignature(data.data.piSignature);
             setInstituteStamp(data.data.instituteStamp);
@@ -136,7 +144,8 @@ const AllSEUC = () => {
                 alert("Failed to fetch SE details.");
                 return;
             }
-
+            const authData = await fetchInstituteOfficials(data.data.institute);
+            setInstituteOfficials(authData);
             setCertificateData(data.data);
             setInstituteStamp(data.data.instituteStamp);
             setPiSignature(data.data.piSignature);
@@ -232,6 +241,7 @@ const AllSEUC = () => {
                 return new Date(b.submissionDate) - new Date(a.submissionDate);
             }
         });
+
     const filteredSEs = allSEs
         .filter((se) => {
             const matchesSearch = searchQuerySE
@@ -469,10 +479,6 @@ const AllSEUC = () => {
                                 <span className="px-3 py-1 w-full">: {certificateData.currentYear}</span>
                                 <label className="font-semibold text-gray-700">Total Project Cost </label>
                                 <span className="px-3 py-1 w-full">: {certificateData.TotalCost}</span>
-                                <label className="font-semibold text-gray-700">Start Date of Year</label>
-                                <span className="px-3 py-1 w-full">: {certificateData.startDate}</span>
-                                <label className="font-semibold text-gray-700">End Date of Year</label>
-                                <span className="px-3 py-1 w-full">: {certificateData.endDate}</span>
                             </div>
 
                             <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
@@ -671,21 +677,31 @@ const AllSEUC = () => {
                             <h3 className="text-lg font-semibold text-blue-700 mb-4">
                                 {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
                             </h3>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <label className="font-semibold text-gray-700">Title of the Project:</label>
-                                <span className="px-3 py-1 w-full">: {ucData.title}</span>
-                                <label className="font-semibold text-gray-700">Name of the Scheme:</label>
-                                <span className="px-3 py-1 w-full">: {ucData.scheme}</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
                                 <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
-                                <label className="font-semibold text-gray-700">Name of the Principal Investigator:</label>
-                                <span className="px-3 py-1 w-full">: {ucData.principalInvestigator}</span>
-                                <label className="font-semibold text-gray-700">Present Year of Project:</label>
-                                <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
-                                <label className="font-semibold text-gray-700">Start Date of Year:</label>
-                                <span className="px-3 py-1 w-full">: {ucData.startDate}</span>
-                                <label className="font-semibold text-gray-700">End Date of Year:</label>
-                                <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
+
+                                <label className="font-semibold text-gray-700">Name of the Principal Investigator(s):</label>
+                                <span className="px-3 py-1 w-full">:{ucData.principalInvestigator?.length > 0 ? (
+                                    <ul className="list-disc pl-5">
+                                        {ucData.principalInvestigator.map((name, idx) => (
+                                            <li key={idx}>{name}</li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    "N/A"
+                                )}
+                                </span>
+
+                                <label className="font-semibold text-gray-700">Title of the Project:</label>
+                                <span className="px-3 py-1 w-full">: {ucData.title}</span>
+
+                                <label className="font-semibold text-gray-700">Name of the Scheme:</label>
+                                <span className="px-3 py-1 w-full">: {ucData.scheme}</span>
+
+                                <label className="font-semibold text-gray-700">Whether recurring or non-recurring:</label>
+                                <span className="px-3 py-1 w-full">: {selectedType}</span>
+
                                 <div className="mb-6">
                                     <h3 className="text-lg font-semibold text-gray-700 mb-4">
                                         Grants position at the beginning of the Financial year
@@ -732,12 +748,16 @@ const AllSEUC = () => {
                                             <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ 0</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ 0</td>
-                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || 'N/A'}</td>
-                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || 'N/A'}</td>
+                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || '23/2017/003478'}</td>
+                                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || '12-03-2025'}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
                                             <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
-                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.recurringExp}</td>
-                                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.total - ucData.recurringExp}</td>
+                                            <td className="border border-gray-400 px-4 py-2">
+                                                ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                                            </td>
+                                            <td className="border border-gray-400 px-4 py-2">
+                                                ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -752,28 +772,55 @@ const AllSEUC = () => {
                                         <table className="w-full border border-gray-300 rounded-lg">
                                             <thead>
                                                 <tr className="bg-blue-100 text-gray-700">
-                                                    <th className="border border-gray-400 px-4 py-2">Component</th>
-                                                    <th className="border border-gray-400 px-4 py-2">Amount</th>
+                                                    <th className="border border-gray-400 px-4 py-2">Grant-in-aid-General</th>
+                                                    <th className="border border-gray-400 px-4 py-2">Total</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr className="text-center">
-                                                    <td className="border border-gray-400 px-4 py-2">Human Resources</td>
-                                                    <td className="border border-gray-400 px-4 py-2">Rs {ucData.human_resources}</td>
+                                                    <td className="border border-gray-400 px-4 py-2">
+                                                        ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                                                    </td>
+                                                    <td className="border border-gray-400 px-4 py-2">
+                                                        ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                                                    </td>
                                                 </tr>
-                                                <tr className="text-center">
-                                                    <td className="border border-gray-400 px-4 py-2">Consumables</td>
-                                                    <td className="border border-gray-400 px-4 py-2">Rs {ucData.consumables}</td>
-                                                </tr>
-                                                <tr className="text-center">
-                                                    <td className="border border-gray-400 px-4 py-2">Others</td>
-                                                    <td className="border border-gray-400 px-4 py-2">Rs {ucData.others}</td>
-                                                </tr>
+
                                             </tbody>
                                         </table>
                                     </div>
                                 </>
                             )}
+                            <div className="mt-6">
+                                <h3 className="text-lg font-semibold text-blue-700 mb-4">
+                                    Details of grants position at the end of the year
+                                </h3>
+                                <div className="pl-5">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex">
+                                            <span className="mr-2">(i)</span>
+                                            <span>Balance available at end of financial year</span>
+                                        </div>
+                                        <span>
+                                            : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                                        </span>
+
+                                        <div className="flex">
+                                            <span className="mr-2">(ii)</span>
+                                            <span>Unspent balance refunded to Funding Agency (if any)</span>
+                                        </div>
+                                        <span>: ₹ 0</span>
+
+                                        <div className="flex">
+                                            <span className="mr-2">(iii)</span>
+                                            <span>Balance (Carry forward to next financial year)</span>
+                                        </div>
+                                        <span>
+                                            : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <TermsAndConditions />
@@ -784,31 +831,35 @@ const AllSEUC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="border p-4 rounded-lg">
                                     <h4 className="font-medium  mb-1">Principal Investigator Signature</h4>
-                                    <p className="text-medium mb-2 text-gray-500">{ucData.principalInvestigator}</p>
                                     <div className="border p-2 rounded mb-2">
                                         <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
                                     </div>
-
+                                    <p className="font-medium">Signature of PI : ...........................</p>
+                                    <p className="font-medium">Name: {ucData.principalInvestigator[0]}</p>
                                 </div>
 
                                 <div className="border p-4 rounded-lg">
                                     <h4 className="font-medium  mb-1">CFO Signature</h4>
-                                    <p className="text-medium mb-2 text-gray-500">Chief Finance Officer</p>
+                                    {/* <p className="text-medium mb-2 text-gray-500">Chief Finance Officer</p> */}
                                     <div className="border p-2 rounded mb-2">
                                         <img src={authSignature} alt="CFO Signature" className="h-24 object-contain" />
                                     </div>
-
+                                    <p className="font-medium">Signature ...............</p>
+                                    <p className="font-medium">Name: {instituteOfficials.cfo}</p>
+                                    <p className="font-medium">Chief Finance Officer</p>
+                                    <p className="font-medium">(Head of Finance)</p>
                                 </div>
 
                                 <div className="border p-4 rounded-lg">
 
                                     <h4 className="font-medium  mb-1">Institute Approval</h4>
-                                    <p className="text-medium mb-2 text-gray-500">{ucData.instituteName}</p>
-
+                                    {/* <p className="text-medium mb-2 text-gray-500">{ucData.instituteName}</p> */}
                                     <div className="border p-2 rounded mb-2">
                                         <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
                                     </div>
-
+                                    <p className="font-medium">Signature.................</p>
+                                    <p className="font-medium">Name: {instituteOfficials.headOfInstitute}</p>
+                                    <p className="font-medium">Head of Organisation</p>
                                 </div>
                             </div>
                         </div>

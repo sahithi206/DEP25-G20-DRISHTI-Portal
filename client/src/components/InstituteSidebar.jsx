@@ -13,7 +13,6 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
     const fetchInstituteUserDetails = async () => {
       try {
         const data = await getInstUser();
-        console.log("SIDEBAR DATA:", data);
         setInstituteUser(data);
       } catch (error) {
         console.error("Error fetching institute user:", error);
@@ -25,7 +24,7 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
 
   if (!instituteUser) {
     return (
-      <div className="w-72 bg-gray-900 text-white flex flex-col p-5 min-h-screen">
+      <div className="w-72 bg-gray-900 text-white flex flex-col p-5 h-full sticky top-0">
         <h2 className="text-2xl font-bold mb-6">Institute Panel</h2>
         <p>Loading...</p>
       </div>
@@ -54,82 +53,98 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
     });
   }
 
-  menuItems.push({
-    label: "Reports",
-    icon: FaBullseye,
-    id: "reports",
-    children: [
+  let reportItems = [];
+
+  if (instituteUser.role === "Head of Institute") {
+    reportItems = [
       { label: "UC", id: "uc", path: "/institute/uc" },
       { label: "SE", id: "se", path: "/institute/se" },
-    ]
-  });
+    ];
+  } else if (instituteUser.role === "CFO") {
+    reportItems = [
+      { label: "UC", id: "uc", path: "/institute/uc" },
+      { label: "SE", id: "se", path: "/institute/se" }    ];
+  } else if (instituteUser.role === "Accounts Officer") {
+    reportItems = [
+      { label: "UC", id: "uc", path: "/institute/uc" },
+      { label: "SE", id: "se", path: "/institute/se" }
+    ];
+  }
+
+  if (reportItems.length > 0) {
+    menuItems.push({
+      label: "Reports",
+      icon: FaBullseye,
+      id: "reports",
+      children: reportItems
+    });
+  }
 
   return (
-    <div className="w-72 bg-gray-900 text-white flex flex-col p-5 h-screen overflow-y-auto">
-    <ul className="space-y-2">
-      {menuItems.map(({ label, icon: Icon, id, path, children }) => (
-        <li key={id}>
-          {children ? (
-            <>
-              <div
-                className={`p-3 flex items-center justify-between cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${
+    <div className="w-72 bg-gray-900 text-white flex flex-col p-5 min-h-screen sticky top-0 overflow-y-auto">
+      <h2 className="text-2xl font-bold mb-6">Institute Panel</h2>
+      <ul className="space-y-2 pb-6">
+        {menuItems.map(({ label, icon: Icon, id, path, children }) => (
+          <li key={id}>
+            {children ? (
+              <>
+                <div
+                  className={`p-3 flex items-center justify-between cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${
+                    activeSection === id
+                      ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400"
+                      : ""
+                  }`}
+                  onClick={() => setOpenDropdown(openDropdown === id ? null : id)}
+                >
+                  <div className="flex items-center">
+                    <Icon className="w-5 h-5 mr-3" />
+                    {label}
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 transform transition-transform ${
+                      openDropdown === id ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+                {openDropdown === id && (
+                  <ul className="ml-6 mt-1 space-y-1">
+                    {children.map(({ label, id: subId, path: subPath }) => (
+                      <li key={subId}>
+                        <Link
+                          to={subPath}
+                          className={`p-2 block rounded-md hover:bg-gray-700 ${
+                            activeSection === subId
+                              ? "bg-gray-700 text-blue-400"
+                              : ""
+                          }`}
+                          onClick={() => setActiveSection(subId)}
+                        >
+                          {label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            ) : (
+              <Link
+                to={path}
+                className={`p-3 flex items-center cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${
                   activeSection === id
-                    ? "bg-gray-700 text-slate-400 border-l-4 border-slate-400"
+                    ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400"
                     : ""
                 }`}
-                onClick={() =>
-                  setOpenDropdown(openDropdown === id ? null : id)
-                }
+                onClick={() => setActiveSection(id)}
               >
-                <div className="flex items-center">
-                  <Icon className="w-5 h-5 mr-3" />
-                  {label}
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 transform transition-transform ${
-                    openDropdown === id ? "rotate-180" : ""
-                  }`}
-                />
-              </div>
-              {openDropdown === id && (
-                <ul className="ml-6 mt-1 space-y-1">
-                  {children.map(({ label, id: subId, path: subPath }) => (
-                    <li key={subId}>
-                      <Link
-                        to={subPath}
-                        className={`p-2 block rounded-md hover:bg-gray-700 ${
-                          activeSection === subId
-                            ? "bg-gray-700 text-slate-400"
-                            : ""
-                        }`}
-                        onClick={() => setActiveSection(subId)}
-                      >
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          ) : (
-            <Link
-              to={path}
-              className={`p-3 flex items-center cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${
-                activeSection === id
-                  ? "bg-gray-700 text-slate-400 border-l-4 border-blue-400"
-                  : ""
-              }`}
-              onClick={() => setActiveSection(id)}
-            >
-              <Icon className="w-5 h-5 mr-3" />
-              {label}
-            </Link>
-          )}
-        </li>
-      ))}
-    </ul>
-  </div>
-);
-};
+                <Icon className="w-5 h-5 mr-3" />
+                {label}
+              </Link>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};  
 
 export default SidebarMenu;

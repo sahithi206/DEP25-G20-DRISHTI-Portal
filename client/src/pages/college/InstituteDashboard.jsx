@@ -711,6 +711,12 @@ const InstituteDashboard = () => {
   });
   const uniqueAgencies = [...new Set(projects.map((project) => project.agency))];
 
+  // Filter states
+  const [projectFilter, setProjectFilter] = useState("");
+  const [projectStatusFilter, setProjectStatusFilter] = useState("");
+  const [userFilter, setUserFilter] = useState("");
+  const [deptFilter, setDeptFilter] = useState("");
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
