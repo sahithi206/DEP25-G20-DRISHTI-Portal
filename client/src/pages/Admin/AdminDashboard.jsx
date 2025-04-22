@@ -16,11 +16,7 @@ const AdminDashboard = () => {
   const [fundTrend, setFundTrend] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [projectStats,setProjectStats] = [
-    { name: "Ongoing", value: 15 },
-    { name: "Completed", value: 8 },
-    { name: "Approved", value: 5 }
-  ];
+  const [projectStats, setProjectStats] = useState([]);
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
