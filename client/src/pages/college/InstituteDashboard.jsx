@@ -55,7 +55,7 @@ const InstituteDashboard = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState("dashboard");
-  const projects=[
+  const projects = [
     {
       id: 1,
       agency: "SERB-CRG",
@@ -638,7 +638,7 @@ const InstituteDashboard = () => {
   const agencyBudgetData = projects.reduce((acc, project) => {
     const existingAgency = acc.find(item => item.name === project.agency);
     const amount = parseFloat(project.amount) || 0;
-    
+
     if (existingAgency) {
       existingAgency.value += amount;
     } else {
@@ -685,26 +685,26 @@ const InstituteDashboard = () => {
     );
   };
   const [filters, setFilters] = useState({
-    searchTerm: "", 
-    selectedAgency: "" 
+    searchTerm: "",
+    selectedAgency: ""
   });
-  
+
   const handleSearchChange = (e) => {
     setFilters({ ...filters, searchTerm: e.target.value });
   };
-  
+
   const handleAgencyChange = (e) => {
     setFilters({ ...filters, selectedAgency: e.target.value });
   };
 
   const filteredProjects = projects.filter((project) => {
-    const searchTermLower = filters.searchTerm.toLowerCase(); 
-    const selectedAgencyLower = filters.selectedAgency.toLowerCase(); 
+    const searchTermLower = filters.searchTerm.toLowerCase();
+    const selectedAgencyLower = filters.selectedAgency.toLowerCase();
     return (
-      (project.agency.toLowerCase().includes(searchTermLower) || 
-       project.name.toLowerCase().includes(searchTermLower) ||
-       project.dept.toLowerCase().includes(searchTermLower) ||
-       project.title.toLowerCase().includes(searchTermLower)) &&
+      (project.agency.toLowerCase().includes(searchTermLower) ||
+        project.name.toLowerCase().includes(searchTermLower) ||
+        project.dept.toLowerCase().includes(searchTermLower) ||
+        project.title.toLowerCase().includes(searchTermLower)) &&
       (filters.selectedAgency === "" || project.agency.toLowerCase().includes(selectedAgencyLower))
     );
   });
@@ -713,7 +713,9 @@ const InstituteDashboard = () => {
   const [projectStatusFilter, setProjectStatusFilter] = useState("");
   const [userFilter, setUserFilter] = useState("");
   const [deptFilter, setDeptFilter] = useState("");
+  const [summaryCards, setSummaryCards] = useState([]);
 
+ 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -728,16 +730,22 @@ const InstituteDashboard = () => {
         setLoading(false);
       }
     };
-  
+    
     fetchData();
-  }, [fetchInstituteProjects, fetchInstituteUsers]);
-  
+    setSummaryCards([
+      { title: "Total Ongoing Projects", value:89, type: "projects" },
+      { title: "Fund Approved in 2023-2024 (Cr)", value:35.89, type: "funds" },
+      { title: "Fund Sanctioned in 2023-2024 (Cr)", value:10.41, type: "funds" }
+
+    ]);
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <div className="fixed w-full h-20 z-40 shadow-md bg-white">
         <HomeNavbar yes={1} />
       </div>
-  
+
       <div className="flex flex-grow pt-20">
         <div className="w-72 h-[calc(100vh-5rem)] sticky top-20 bg-white shadow-md">
           <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
@@ -747,21 +755,31 @@ const InstituteDashboard = () => {
             <p className="text-center text-gray-600">Loading...</p>
           ) : (
             <div className="space-y-8">
-  <h2 className="text-xl font-semibold text-blue-900 border-b pb-2">RESEARCH AND DEVELOPMENT ACTIVITIES</h2>
-  <ul className="list-disc pl-6 space-y-2 text-gray-800">
-    <li><strong>CSR Funds:</strong> With greater emphasis on corporate funding, the Institute has received/sanctioned CSR funding of Rs. 0.87 crore from different industries. In the coming years, the same is going to substantially increase through continuous and rigorous efforts of the R&D team.</li>
-    <li><strong>Research Initiation Support (IRIS):</strong> Institute Research Initiation Support (IRIS) scheme has been announced for supporting newly joined faculty members at {users[0].Institute}. This grant is constituted to give new faculty members a “leg-up” in their future research without waiting for a proposal to be approved by the external funding agencies or the regular Ph.D. intake in the institute to add research personnel to their group.</li>
-    <li><strong>Summer Internship for Noetic Exposure (SINE) Program:</strong> SINE program has been announced for giving an opportunity to exceptionally qualified UG/PG students to execute an innovative R&D project under the guidance of {users[0].Institute} faculty members. The students at different engineering institutes in India or abroad, who are within Top #15 Ranks in their respective program/branch, are eligible to apply.</li>
-    <li>The ICSR-II Board has been renamed as Research and Development Advisory Board.</li>
-  </ul>
-              
-  <h2 className="text-xl font-semibold mb-1 text-center uppercase">
-        Overview of Sponsored Research Projects
-      </h2>
+              <h2 className="text-xl font-semibold text-blue-900 border-b pb-2">RESEARCH AND DEVELOPMENT ACTIVITIES</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {summaryCards.map((card, idx) => (
+              <div
+                key={idx}
+                className="bg-gray-200 p-6 rounded-2xl shadow-md text-center border border-gray-100 hover:shadow-lg hover:border-blue-200 transition duration-300 cursor-pointer"
+              >
+                <h3 className="text-gray-500 text-sm font-medium mb-2">{card.title}</h3>
+                <p className="text-3xl font-bold text-gray-800">{card.value}</p>
+              </div>
+            ))}
+          </div>
+              <ul className="list-disc pl-6 space-y-2 text-gray-800">
+                <li><strong>CSR Funds:</strong> With greater emphasis on corporate funding, the Institute has received/sanctioned CSR funding of Rs. 0.87 crore from different industries. In the coming years, the same is going to substantially increase through continuous and rigorous efforts of the R&D team.</li>
+                <li><strong>Research Initiation Support (IRIS):</strong> Institute Research Initiation Support (IRIS) scheme has been announced for supporting newly joined faculty members at {users[0].Institute}. This grant is constituted to give new faculty members a “leg-up” in their future research without waiting for a proposal to be approved by the external funding agencies or the regular Ph.D. intake in the institute to add research personnel to their group.</li>
+                <li><strong>Summer Internship for Noetic Exposure (SINE) Program:</strong> SINE program has been announced for giving an opportunity to exceptionally qualified UG/PG students to execute an innovative R&D project under the guidance of {users[0].Institute} faculty members. The students at different engineering institutes in India or abroad, who are within Top #15 Ranks in their respective program/branch, are eligible to apply.</li>
+                <li>The ICSR-II Board has been renamed as Research and Development Advisory Board.</li>
+              </ul>
+
+              <h2 className="text-xl font-semibold mb-1 text-center uppercase">
+              SPONSORED RESEARCH PROJECTS SANCTIONED ANNUALLY              </h2>
               <p className="text-sm text-center mb-6 text-gray-600">
                 No. of Projects till 2023-24: 476 with outlay of Rs. 202.91 (Crore)
               </p>
-   
+
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart
                   data={data}
@@ -792,44 +810,44 @@ const InstituteDashboard = () => {
                     name="Total Sanctioned Amount (Cr)"
                   />
                 </BarChart>
-              </ResponsiveContainer>  
+              </ResponsiveContainer>
 
               <h2 className="text-xl font-semibold mb-1 text-center uppercase">
-        Overview of Sponsored Research Projects
-      </h2>
-      <p className="text-sm text-center mb-4">
-        No. of Project till 2023-24 : 615 with outlay of Rs. 35.85 Crore
-      </p>
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart
-          data={sanctionedData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="year" />
-          <YAxis />
-          <Tooltip
-            formatter={(value, name) =>
-              name === "Sanctioned Amount (Cr)"
-                ? [`₹${value} Cr`, name]
-                : [value, name]
-            }
-          />
-          <Legend />
-          <Bar
-            dataKey="projects"
-            fill="#1f77b4"
-            name="No. of Projects Sanctioned"
-          />
-          <Bar
-            dataKey="outlay"
-            fill="#ff7f0e"
-            name="Sanctioned Amount (Cr)"
-          />
-        </BarChart>
-      </ResponsiveContainer>
+              AMOUNT SANCTIONED ANNUALLY (SPONSORED PROJECTS)
+                           </h2>
+              <p className="text-sm text-center mb-4">
+                No. of Project till 2023-24 : 615 with outlay of Rs. 35.85 Crore
+              </p>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart
+                  data={sanctionedData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value, name) =>
+                      name === "Sanctioned Amount (Cr)"
+                        ? [`₹${value} Cr`, name]
+                        : [value, name]
+                    }
+                  />
+                  <Legend />
+                  <Bar
+                    dataKey="projects"
+                    fill="#1f77b4"
+                    name="No. of Projects Sanctioned"
+                  />
+                  <Bar
+                    dataKey="outlay"
+                    fill="#ff7f0e"
+                    name="Sanctioned Amount (Cr)"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
 
-      <section className="bg-white p-6 rounded-lg shadow-md">
+              <section className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-semibold mb-4 text-center">
                   Budget Distribution by Funding Agencies (Top 10)
                 </h2>
@@ -851,28 +869,28 @@ const InstituteDashboard = () => {
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip 
+                        <Tooltip
                           formatter={(value) => [`₹${value.toFixed(2)} Cr`, "Amount"]}
                         />
-                        
+
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="w-full md:w-1/2">
                     <h3 className="text-lg font-medium mb-4">Top Funding Agencies</h3>
                     <div className="space-y-2">
-                    {topAgencies.map((agency, index) => (
-  <div key={agency.name} className="flex items-center">
-    <div 
-      className="w-4 h-4 rounded-full mr-2" 
-      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-    ></div>
-    <span className="text-sm">
-      {agency.name}: <strong>₹{agency.value.toFixed(2)} Cr</strong> 
-      ({((agency.value / agencyBudgetData.reduce((sum, a) => sum + a.value, 0)) * 100).toFixed(2)}%)
-    </span>
-  </div>
-))}
+                      {topAgencies.map((agency, index) => (
+                        <div key={agency.name} className="flex items-center">
+                          <div
+                            className="w-4 h-4 rounded-full mr-2"
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          ></div>
+                          <span className="text-sm">
+                            {agency.name}: <strong>₹{agency.value.toFixed(2)} Cr</strong>
+                            ({((agency.value / agencyBudgetData.reduce((sum, a) => sum + a.value, 0)) * 100).toFixed(2)}%)
+                          </span>
+                        </div>
+                      ))}
 
                     </div>
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
@@ -889,51 +907,51 @@ const InstituteDashboard = () => {
               </section>
 
               <div className="flex items-center space-x-4 mb-6">
-  <div className="relative w-[70%]">
-    <input
-      type="text"
-      name="agency"
-      placeholder="Search by Title, Faculty, Amount"
-      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-      value={filters.searchTerm}
-      onChange={handleSearchChange}
-    />
-    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        role="img"
-        aria-label="Search icon"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-        />
-      </svg>
-    </div>
-  </div>
+                <div className="relative w-[70%]">
+                  <input
+                    type="text"
+                    name="agency"
+                    placeholder="Search by Title, Faculty, Amount"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filters.searchTerm}
+                    onChange={handleSearchChange}
+                  />
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      role="img"
+                      aria-label="Search icon"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                </div>
 
-  <div className="relative w-[30%]">
-    <select
-      name="agency"
-      value={filters.selectedAgency}
-      onChange={(e) => setFilters({ ...filters, selectedAgency: e.target.value })}
-      className="w-full pl-5 pr-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      <option value="">Select Agency</option>
-      {uniqueAgencies.map((agency) => (
-        <option key={agency} value={agency}>
-          {agency}
-        </option>
-      ))}
-    </select>
-  </div>
-</div>
+                <div className="relative w-[30%]">
+                  <select
+                    name="agency"
+                    value={filters.selectedAgency}
+                    onChange={(e) => setFilters({ ...filters, selectedAgency: e.target.value })}
+                    className="w-full pl-5 pr-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Agency</option>
+                    {uniqueAgencies.map((agency) => (
+                      <option key={agency} value={agency}>
+                        {agency}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
 
               <section>
