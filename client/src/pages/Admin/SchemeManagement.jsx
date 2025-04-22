@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
-import { PlusCircle, AlertCircle, Check, Calendar, DollarSign, Users, Tag, FileText, Clock, Search, Filter } from "lucide-react";
+import { PlusCircle, AlertCircle, Check, Calendar, DollarSign, Users, Tag, FileText, Clock, Search, Filter, ChevronUp, ChevronDown } from "lucide-react";
 import { FaRupeeSign } from "react-icons/fa";
 const URL = import.meta.env.VITE_REACT_APP_URL;
 
@@ -13,8 +13,7 @@ const SchemeManagement = ({ userRole }) => {
     const [filteredSchemes, setFilteredSchemes] = useState([]);
     const [users, setUsers] = useState([]);
     const [formErrors, setFormErrors] = useState({});
-
-    // Filter state
+    const [showCreateScheme, setShowCreateScheme] = useState(true); 
     const [filters, setFilters] = useState({
         search: "",
         status: "",
@@ -22,7 +21,6 @@ const SchemeManagement = ({ userRole }) => {
         coordinator: ""
     });
 
-    // Form state
     const [formData, setFormData] = useState({
         schemeName: "",
         description: "",
@@ -35,10 +33,8 @@ const SchemeManagement = ({ userRole }) => {
         selectedCoordinator: ""
     });
 
-    // Get unique categories for filter dropdown
     const uniqueCategories = [...new Set(schemes.map(scheme => scheme.category).filter(Boolean))];
 
-    // Fetch schemes and users data
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
@@ -54,15 +50,12 @@ const SchemeManagement = ({ userRole }) => {
                 const schemesData = await schemesResponse.json();
                 const usersData = await usersResponse.json();
 
-                // Update scheme status based on dates
                 const updatedSchemes = schemesData.map(scheme => {
                     const currentDate = new Date();
                     const startDate = new Date(scheme.startDate);
                     const endDate = new Date(scheme.endDate);
 
                     let calculatedStatus = scheme.status;
-
-                    // If the scheme is not manually set to "Completed" or "Cancelled", calculate based on dates
                     if (scheme.status !== "Completed" && scheme.status !== "Cancelled") {
                         if (currentDate < startDate) {
                             calculatedStatus = "Pending";
@@ -90,11 +83,9 @@ const SchemeManagement = ({ userRole }) => {
         fetchData();
     }, []);
 
-    // Filter schemes when filters change
     useEffect(() => {
         let result = [...schemes];
 
-        // Text search (case insensitive)
         if (filters.search) {
             const searchTerm = filters.search.toLowerCase();
             result = result.filter(scheme =>
@@ -103,17 +94,14 @@ const SchemeManagement = ({ userRole }) => {
             );
         }
 
-        // Status filter
         if (filters.status) {
             result = result.filter(scheme => scheme.status === filters.status);
         }
 
-        // Category filter
         if (filters.category) {
             result = result.filter(scheme => scheme.category === filters.category);
         }
 
-        // Coordinator filter
         if (filters.coordinator) {
             result = result.filter(scheme => scheme.coordinator === filters.coordinator);
         }
@@ -121,13 +109,11 @@ const SchemeManagement = ({ userRole }) => {
         setFilteredSchemes(result);
     }, [filters, schemes]);
 
-    // Handle filter changes
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
     };
 
-    // Reset filters
     const resetFilters = () => {
         setFilters({
             search: "",
@@ -137,24 +123,23 @@ const SchemeManagement = ({ userRole }) => {
         });
     };
 
-    // Show notification helper
     const showNotification = (message, type = "success") => {
         setNotification({ show: true, message, type });
         setTimeout(() => setNotification({ show: false, message: "", type: "" }), 5000);
     };
 
-    // Handle form input changes
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-
-        // Clear error when field is edited
         if (formErrors[name]) {
             setFormErrors({ ...formErrors, [name]: null });
         }
     };
 
-    // Validate form
+    const toggleCreateScheme = () => {
+        setShowCreateScheme(!showCreateScheme);
+    };
+
     const validateForm = () => {
         const errors = {};
         const requiredFields = [
@@ -172,14 +157,12 @@ const SchemeManagement = ({ userRole }) => {
             }
         });
 
-        // Validate dates
         if (formData.startDate && formData.endDate) {
             if (new Date(formData.startDate) > new Date(formData.endDate)) {
                 errors.endDate = "End date cannot be before start date";
             }
         }
 
-        // Validate budget is a number
         if (formData.budget && isNaN(Number(formData.budget))) {
             errors.budget = "Budget must be a number";
         }
@@ -188,7 +171,6 @@ const SchemeManagement = ({ userRole }) => {
         return Object.keys(errors).length === 0;
     };
 
-    // Create scheme
     const handleCreateScheme = async () => {
         if (!validateForm()) {
             return;
@@ -196,12 +178,11 @@ const SchemeManagement = ({ userRole }) => {
 
         setIsLoading(true);
 
-        // Determine initial status based on dates
         const currentDate = new Date();
         const startDate = new Date(formData.startDate);
         const endDate = new Date(formData.endDate);
 
-        let initialStatus = "Active"; // Default value
+        let initialStatus = "Active"; 
 
         if (currentDate < startDate) {
             initialStatus = "Pending";
@@ -240,7 +221,6 @@ const SchemeManagement = ({ userRole }) => {
             setSchemes([...schemes, savedScheme]);
             setFilteredSchemes([...filteredSchemes, savedScheme]);
 
-            // Reset form
             setFormData({
                 schemeName: "",
                 description: "",
@@ -261,14 +241,12 @@ const SchemeManagement = ({ userRole }) => {
         }
     };
 
-    // Format date for display
     const formatDate = (dateString) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
         return date.toLocaleDateString();
     };
 
-    // Find coordinator name
     const getCoordinatorName = (id) => {
         return users.find(u => u._id === id)?.name || "Unknown";
     };
@@ -280,7 +258,6 @@ const SchemeManagement = ({ userRole }) => {
                 <AdminNavbar activeSection={activeSection} />
 
                 <div className="flex-1 overflow-y-auto p-6">
-                    {/* Notification */}
                     {notification.show && (
                         <div className={`mb-4 p-3 rounded-lg flex items-center ${notification.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
                             'bg-green-50 text-green-700 border border-green-200'
@@ -293,227 +270,225 @@ const SchemeManagement = ({ userRole }) => {
                         </div>
                     )}
 
-                    {/* Page Title */}
                     <div className="mb-6">
                         <h1 className="text-2xl font-bold text-gray-800">Scheme Management</h1>
                         <p className="text-gray-600">Create and manage funding schemes</p>
                     </div>
 
-                    {/* Create Scheme Form */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-                        <div className="p-6 border-b border-gray-200">
+                        <div 
+                            onClick={toggleCreateScheme}
+                            className="p-6 border-b border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors"
+                        >
                             <h2 className="text-lg font-semibold text-gray-800 flex items-center">
                                 <PlusCircle className="h-5 w-5 mr-2 text-blue-600" />
                                 Create New Scheme
                             </h2>
-                        </div>
-
-                        <div className="p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Scheme Name */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Scheme Name*
-                                    </label>
-                                    <input
-                                        name="schemeName"
-                                        className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.schemeName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                                            }`}
-                                        placeholder="Enter scheme name"
-                                        value={formData.schemeName}
-                                        onChange={handleInputChange}
-                                    />
-                                    {formErrors.schemeName && (
-                                        <p className="mt-1 text-sm text-red-600">{formErrors.schemeName}</p>
-                                    )}
-                                </div>
-
-                                {/* Budget */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Budget (₹)*
-                                    </label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <FaRupeeSign className="h-4 w-4 text-gray-500" />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            name="budget"
-                                            className={`w-full pl-10 pr-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.budget ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                                                }`}
-                                            placeholder="Enter budget amount"
-                                            value={formData.budget}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-                                    {formErrors.budget && (
-                                        <p className="mt-1 text-sm text-red-600">{formErrors.budget}</p>
-                                    )}
-                                </div>
-
-                                {/* Start Date */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Start Date*
-                                    </label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Calendar className="h-4 w-4 text-gray-500" />
-                                        </div>
-                                        <input
-                                            type="date"
-                                            name="startDate"
-                                            className={`w-full pl-10 pr-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.startDate ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                                                }`}
-                                            value={formData.startDate}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-                                    {formErrors.startDate && (
-                                        <p className="mt-1 text-sm text-red-600">{formErrors.startDate}</p>
-                                    )}
-                                </div>
-
-                                {/* End Date */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        End Date*
-                                    </label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Calendar className="h-4 w-4 text-gray-500" />
-                                        </div>
-                                        <input
-                                            type="date"
-                                            name="endDate"
-                                            className={`w-full pl-10 pr-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.endDate ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                                                }`}
-                                            value={formData.endDate}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-                                    {formErrors.endDate && (
-                                        <p className="mt-1 text-sm text-red-600">{formErrors.endDate}</p>
-                                    )}
-                                </div>
-
-                                {/* Category */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Category
-                                    </label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Tag className="h-4 w-4 text-gray-500" />
-                                        </div>
-                                        <input
-                                            name="category"
-                                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Enter category"
-                                            value={formData.category}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Eligibility */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Eligibility Criteria
-                                    </label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Users className="h-4 w-4 text-gray-500" />
-                                        </div>
-                                        <input
-                                            name="eligibility"
-                                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Enter eligibility criteria"
-                                            value={formData.eligibility}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Coordinator */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Coordinator*
-                                    </label>
-                                    <select
-                                        name="selectedCoordinator"
-                                        className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.selectedCoordinator ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                                            }`}
-                                        value={formData.selectedCoordinator}
-                                        onChange={handleInputChange}
-                                    >
-                                        <option value="" disabled>Select a coordinator</option>
-                                        {users.map((user) => (
-                                            <option key={user._id} value={user._id}>
-                                                {user.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {formErrors.selectedCoordinator && (
-                                        <p className="mt-1 text-sm text-red-600">{formErrors.selectedCoordinator}</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Description */}
-                            <div className="mt-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Description*
-                                </label>
-                                <div className="relative">
-                                    <div className="absolute top-3 left-3 flex items-start pointer-events-none">
-                                        <FileText className="h-4 w-4 text-gray-500" />
-                                    </div>
-                                    <textarea
-                                        name="description"
-                                        className={`w-full pl-10 pr-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-32 ${formErrors.description ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                                            }`}
-                                        placeholder="Enter scheme description"
-                                        value={formData.description}
-                                        onChange={handleInputChange}
-                                        rows={4}
-                                    />
-                                </div>
-                                {formErrors.description && (
-                                    <p className="mt-1 text-sm text-red-600">{formErrors.description}</p>
+                            <div className="text-gray-500">
+                                {showCreateScheme ? (
+                                    <ChevronUp className="h-5 w-5" />
+                                ) : (
+                                    <ChevronDown className="h-5 w-5" />
                                 )}
                             </div>
-
-                            {/* Submit Button */}
-                            <div className="mt-6">
-                                <button
-                                    className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                    onClick={handleCreateScheme}
-                                    disabled={isLoading}
-                                >
-                                    {isLoading ? (
-                                        <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                                    ) : (
-                                        <PlusCircle className="h-4 w-4 mr-2" />
-                                    )}
-                                    Create Scheme
-                                </button>
-                            </div>
                         </div>
+
+                        {showCreateScheme && (
+                            <div className="p-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Scheme Name*
+                                        </label>
+                                        <input
+                                            name="schemeName"
+                                            className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.schemeName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                                }`}
+                                            placeholder="Enter scheme name"
+                                            value={formData.schemeName}
+                                            onChange={handleInputChange}
+                                        />
+                                        {formErrors.schemeName && (
+                                            <p className="mt-1 text-sm text-red-600">{formErrors.schemeName}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Budget (₹)*
+                                        </label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <FaRupeeSign className="h-4 w-4 text-gray-500" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="budget"
+                                                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.budget ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                                    }`}
+                                                placeholder="Enter budget amount"
+                                                value={formData.budget}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        {formErrors.budget && (
+                                            <p className="mt-1 text-sm text-red-600">{formErrors.budget}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Start Date*
+                                        </label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Calendar className="h-4 w-4 text-gray-500" />
+                                            </div>
+                                            <input
+                                                type="date"
+                                                name="startDate"
+                                                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.startDate ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                                    }`}
+                                                value={formData.startDate}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        {formErrors.startDate && (
+                                            <p className="mt-1 text-sm text-red-600">{formErrors.startDate}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            End Date*
+                                        </label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Calendar className="h-4 w-4 text-gray-500" />
+                                            </div>
+                                            <input
+                                                type="date"
+                                                name="endDate"
+                                                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.endDate ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                                    }`}
+                                                value={formData.endDate}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        {formErrors.endDate && (
+                                            <p className="mt-1 text-sm text-red-600">{formErrors.endDate}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Category
+                                        </label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Tag className="h-4 w-4 text-gray-500" />
+                                            </div>
+                                            <input
+                                                name="category"
+                                                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Enter category"
+                                                value={formData.category}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Eligibility Criteria
+                                        </label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Users className="h-4 w-4 text-gray-500" />
+                                            </div>
+                                            <input
+                                                name="eligibility"
+                                                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Enter eligibility criteria"
+                                                value={formData.eligibility}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Coordinator*
+                                        </label>
+                                        <select
+                                            name="selectedCoordinator"
+                                            className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.selectedCoordinator ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                                }`}
+                                            value={formData.selectedCoordinator}
+                                            onChange={handleInputChange}
+                                        >
+                                            <option value="" disabled>Select a coordinator</option>
+                                            {users.map((user) => (
+                                                <option key={user._id} value={user._id}>
+                                                    {user.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {formErrors.selectedCoordinator && (
+                                            <p className="mt-1 text-sm text-red-600">{formErrors.selectedCoordinator}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="mt-6">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Description*
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute top-3 left-3 flex items-start pointer-events-none">
+                                            <FileText className="h-4 w-4 text-gray-500" />
+                                        </div>
+                                        <textarea
+                                            name="description"
+                                            className={`w-full pl-10 pr-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-32 ${formErrors.description ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                                }`}
+                                            placeholder="Enter scheme description"
+                                            value={formData.description}
+                                            onChange={handleInputChange}
+                                            rows={4}
+                                        />
+                                    </div>
+                                    {formErrors.description && (
+                                        <p className="mt-1 text-sm text-red-600">{formErrors.description}</p>
+                                    )}
+                                </div>
+
+                                <div className="mt-6">
+                                    <button
+                                        className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={handleCreateScheme}
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading ? (
+                                            <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                                        ) : (
+                                            <PlusCircle className="h-4 w-4 mr-2" />
+                                        )}
+                                        Create Scheme
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Existing Schemes Table with Filters */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                         <div className="p-6 border-b border-gray-200">
                             <h2 className="text-lg font-semibold text-gray-800">Existing Schemes</h2>
                             <p className="text-gray-600 text-sm">Manage and monitor all created schemes</p>
                         </div>
 
-                        {/* Filter Section */}
                         <div className="p-4 bg-gray-50 border-b border-gray-200">
                             <div className="flex flex-wrap gap-4 items-center">
-                                {/* Search Filter */}
                                 <div className="flex-1 min-w-[200px]">
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -530,7 +505,6 @@ const SchemeManagement = ({ userRole }) => {
                                     </div>
                                 </div>
 
-                                {/* Status Filter */}
                                 <div className="w-40">
                                     <select
                                         name="status"
@@ -546,7 +520,6 @@ const SchemeManagement = ({ userRole }) => {
                                     </select>
                                 </div>
 
-                                {/* Category Filter */}
                                 <div className="w-40">
                                     <select
                                         name="category"
@@ -563,7 +536,6 @@ const SchemeManagement = ({ userRole }) => {
                                     </select>
                                 </div>
 
-                                {/* Coordinator Filter */}
                                 <div className="w-40">
                                     <select
                                         name="coordinator"
@@ -580,7 +552,6 @@ const SchemeManagement = ({ userRole }) => {
                                     </select>
                                 </div>
 
-                                {/* Reset Filter Button */}
                                 <button
                                     onClick={resetFilters}
                                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors flex items-center"
@@ -590,7 +561,6 @@ const SchemeManagement = ({ userRole }) => {
                                 </button>
                             </div>
 
-                            {/* Results Count */}
                             <div className="mt-2 text-sm text-gray-500">
                                 Showing {filteredSchemes.length} of {schemes.length} schemes
                             </div>

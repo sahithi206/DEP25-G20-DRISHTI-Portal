@@ -30,7 +30,6 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Get token from localStorage
         const token = localStorage.getItem('token');
 
         if (!token) {
@@ -38,8 +37,6 @@ const AdminDashboard = () => {
           setLoading(false);
           return;
         }
-
-        // Include token in the request header
         const config = {
           headers: {
             'accessToken': token,
