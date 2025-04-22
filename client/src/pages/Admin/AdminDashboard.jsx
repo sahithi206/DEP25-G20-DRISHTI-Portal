@@ -99,6 +99,8 @@ const AdminDashboard = () => {
         ? `${url}schemes/get-schemes`
         : `${url}schemes/get-allschemes`;
 
+      console.log("endpoint ", endpoint);
+
       const res = await axios.get(endpoint, config);
       console.log("Schemes data:", res.data);
       setSchemes(res.data || []);

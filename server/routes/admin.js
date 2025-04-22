@@ -804,6 +804,7 @@ router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
       : "₹ 0L";
 
     res.json({
+      userRole: adminRole,
       summaryCards: {
         totalSchemes: adminSchemes.length,
         totalProjects,
