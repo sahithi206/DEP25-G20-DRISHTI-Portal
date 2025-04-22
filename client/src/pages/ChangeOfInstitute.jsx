@@ -269,8 +269,8 @@ const ChangeOfInstitute = () => {
                 <div className="p-6 space-y-6 mt-16">
                     <div className="p-6 space-y-6">
                         <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-                            <p className="mt-3 text-2xl font-bold text-blue-800">Change of Institute </p>
+                        <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                        <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>                            <p className="mt-3 text-2xl font-bold text-blue-800">Change of Institute </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">

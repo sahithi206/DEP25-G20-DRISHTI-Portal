@@ -83,8 +83,8 @@ const ProposalInbox = () => {
                 <HomeNavbar isSidebarOpen={isSidebarOpen} />
                 <div className="p-6 space-y-6 mt-16">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700">
-                        <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-                        <h2 className="text-xl font-semibold text-gray-700">Anusandhan National Research Foundation</h2>
+                    <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                    <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>
                         <p className="mt-3 text-2xl font-bold text-blue-800">Proposal Inbox</p>
                     </div>
                     <div className="bg-white shadow-md rounded-xl overflow-hidden">

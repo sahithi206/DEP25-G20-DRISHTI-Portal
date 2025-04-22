@@ -90,7 +90,7 @@ const UserProposalsInsti = () => {
               </select>
             </div>
 
-            {filteredProposals.length > 0 ? (
+            {filteredProposals&&filteredProposals.length > 0 ? (
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-200">
                   <tr>

@@ -129,12 +129,8 @@ const AdminProposalReview = () => {
                         {error}
                     </div>
                 )}
-
-                
-
-                  
-
                 <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+                    
                 <div className="flex space-x-4  mb-4">
                    <div className="relative flex-grow">
                        <input
