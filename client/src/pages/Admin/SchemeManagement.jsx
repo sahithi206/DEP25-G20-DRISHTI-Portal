@@ -13,7 +13,7 @@ const SchemeManagement = ({ userRole }) => {
     const [filteredSchemes, setFilteredSchemes] = useState([]);
     const [users, setUsers] = useState([]);
     const [formErrors, setFormErrors] = useState({});
-    const [showCreateScheme, setShowCreateScheme] = useState(true); 
+    const [showCreateScheme, setShowCreateScheme] = useState(false); 
     const [filters, setFilters] = useState({
         search: "",
         status: "",
