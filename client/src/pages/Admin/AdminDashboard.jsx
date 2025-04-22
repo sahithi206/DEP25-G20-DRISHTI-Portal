@@ -20,18 +20,13 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Get token from localStorage
         const token = localStorage.getItem('token');
         console.log("")
         if (!token) {
-          // Redirect to login if no token
-          // window.location.href = '/admin/login';
           setError("Authentication required. Please login.");
           setLoading(false);
           return;
         }
-
-        // Include token in the request header
         const config = {
           headers: {
             'accessToken': token,
@@ -58,8 +53,6 @@ const AdminDashboard = () => {
         console.error("Dashboard data fetch failed:", err);
         if (err.response?.status === 401) {
           setError("Authentication failed. Please login again.");
-          // Optional: Redirect to login
-          // window.location.href = '/admin/login';
         } else {
           setError("Failed to load dashboard data.");
         }
