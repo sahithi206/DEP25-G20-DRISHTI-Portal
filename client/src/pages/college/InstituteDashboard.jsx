@@ -285,7 +285,7 @@ const InstituteDashboard = () => {
       agency: "National Centre for Mathematics -IIT Bombay",
       name: "Dr. Tapas Chatterjee",
       dept: "Mathematics",
-      title: "Conduct of NOM Annual Foundation School-I at IIT Ropar",
+      title: `Conduct of NOM Annual Foundation School-I at ${users.Institute}`,
       amount: "0.11"
     },
     {
@@ -653,7 +653,6 @@ const InstituteDashboard = () => {
     .sort((a, b) => b.value - a.value)
     .slice(0, 10);
 
-  // Colors for pie chart segments
   const COLORS = [
     '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8',
     '#A4DE6C', '#D0ED57', '#FFC658', '#82CA9D', '#8DD1E1'
@@ -706,12 +705,10 @@ const InstituteDashboard = () => {
        project.name.toLowerCase().includes(searchTermLower) ||
        project.dept.toLowerCase().includes(searchTermLower) ||
        project.title.toLowerCase().includes(searchTermLower)) &&
-      (filters.selectedAgency === "" || project.agency.toLowerCase().includes(selectedAgencyLower)) // Apply agency filter
+      (filters.selectedAgency === "" || project.agency.toLowerCase().includes(selectedAgencyLower))
     );
   });
   const uniqueAgencies = [...new Set(projects.map((project) => project.agency))];
-
-  // Filter states
   const [projectFilter, setProjectFilter] = useState("");
   const [projectStatusFilter, setProjectStatusFilter] = useState("");
   const [userFilter, setUserFilter] = useState("");
@@ -753,8 +750,8 @@ const InstituteDashboard = () => {
   <h2 className="text-xl font-semibold text-blue-900 border-b pb-2">RESEARCH AND DEVELOPMENT ACTIVITIES</h2>
   <ul className="list-disc pl-6 space-y-2 text-gray-800">
     <li><strong>CSR Funds:</strong> With greater emphasis on corporate funding, the Institute has received/sanctioned CSR funding of Rs. 0.87 crore from different industries. In the coming years, the same is going to substantially increase through continuous and rigorous efforts of the R&D team.</li>
-    <li><strong>Research Initiation Support (IRIS):</strong> Institute Research Initiation Support (IRIS) scheme has been announced for supporting newly joined faculty members at Indian Institute of Technology Ropar. This grant is constituted to give new faculty members a “leg-up” in their future research without waiting for a proposal to be approved by the external funding agencies or the regular Ph.D. intake in the institute to add research personnel to their group.</li>
-    <li><strong>Summer Internship for Noetic Exposure (SINE) Program:</strong> SINE program has been announced for giving an opportunity to exceptionally qualified UG/PG students to execute an innovative R&D project under the guidance of IIT Ropar faculty members. The students at different engineering institutes in India or abroad, who are within Top #15 Ranks in their respective program/branch, are eligible to apply.</li>
+    <li><strong>Research Initiation Support (IRIS):</strong> Institute Research Initiation Support (IRIS) scheme has been announced for supporting newly joined faculty members at {users[0].Institute}. This grant is constituted to give new faculty members a “leg-up” in their future research without waiting for a proposal to be approved by the external funding agencies or the regular Ph.D. intake in the institute to add research personnel to their group.</li>
+    <li><strong>Summer Internship for Noetic Exposure (SINE) Program:</strong> SINE program has been announced for giving an opportunity to exceptionally qualified UG/PG students to execute an innovative R&D project under the guidance of {users[0].Institute} faculty members. The students at different engineering institutes in India or abroad, who are within Top #15 Ranks in their respective program/branch, are eligible to apply.</li>
     <li>The ICSR-II Board has been renamed as Research and Development Advisory Board.</li>
   </ul>
               

@@ -82,7 +82,6 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
 
   return (
     <div className="w-72 bg-gray-900 text-white flex flex-col p-5 min-h-screen sticky top-0 overflow-y-auto">
-      <h2 className="text-2xl font-bold mb-6">Institute Panel</h2>
       <ul className="space-y-2 pb-6">
         {menuItems.map(({ label, icon: Icon, id, path, children }) => (
           <li key={id}>

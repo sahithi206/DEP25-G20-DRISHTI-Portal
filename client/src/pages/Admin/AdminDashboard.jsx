@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
@@ -16,8 +16,7 @@ const AdminDashboard = () => {
   const [fundTrend, setFundTrend] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const projectStats = [
+  const [projectStats,setProjectStats] = [
     { name: "Ongoing", value: 15 },
     { name: "Completed", value: 8 },
     { name: "Approved", value: 5 }
@@ -118,7 +117,7 @@ const AdminDashboard = () => {
                     cy="50%"
                     outerRadius={80}
                   >
-                    {projectStats.map((entry, index) => (
+                    {projectStats.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
