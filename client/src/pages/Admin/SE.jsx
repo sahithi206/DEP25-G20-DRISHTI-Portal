@@ -110,11 +110,6 @@ const SEForm = () => {
                             <span className="px-3 py-1 w-full">: {data.scheme}</span>
                             <label className="font-semibold text-gray-700">Present Year of Project</label>
                             <span className="px-3 py-1 w-full">: {data.currentYear}</span>
-                            <label className="font-semibold text-gray-700">Start Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.startDate}</span>
-
-                            <label className="font-semibold text-gray-700">End Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.endDate}</span>
                         </div>
 
                         <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
