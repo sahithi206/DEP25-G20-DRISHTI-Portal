@@ -201,7 +201,7 @@ const AdminDashboard = () => {
           <h2 className="text-2xl font-semibold mb-4">Admin Dashboard Overview</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            {summaryCards.map((card, idx) => (
+            {summaryCards&&summaryCards.length>0&&summaryCards.map((card, idx) => (
               <div
                 key={idx}
                 className="bg-white p-6 rounded-2xl shadow-md text-center border border-gray-100 hover:shadow-lg hover:border-blue-200 transition duration-300 cursor-pointer"
