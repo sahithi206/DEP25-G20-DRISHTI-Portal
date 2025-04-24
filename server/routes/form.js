@@ -1,6 +1,6 @@
 const express = require("express");
-const { fetchUser } = require("../Middlewares/fetchUser.js");
-const { fetchAdmin } = require("../Middlewares/fetchAdmin.js");
+const { fetchUser } = require("../MiddleWares/fetchUser.js");
+const { fetchAdmin } = require("../MiddleWares/fetchAdmin.js");
 const GeneralInfo = require("../Models/General_Info");
 const ResearchDetails = require("../Models/researchDetails");
 const Budget = require("../Models/Budget");
