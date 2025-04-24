@@ -100,11 +100,9 @@ function App() {
   }, []);
 
   return (
-    <Router>
       <AuthProvider>
         <MainLayout />
       </AuthProvider>
-    </Router>
   );
 }
 
