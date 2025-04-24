@@ -122,13 +122,13 @@ const AdminDashboard = () => {
         return;
       }
 
-      const config = {
-        headers: {
-          'accessToken': token,
-        }
-      };
-
-      const res = await axios.get(`${url}schemes/get-scheme/${schemeId}`, config);
+      const res = await fetch(`${url}schemes/get-scheme/${schemeId}`,{
+        method:"GET",
+        
+          headers: {
+            'accessToken': token,
+          }        
+      });
       console.log("Scheme details:", res.data);
       setSelectedScheme(res.data);
       setSchemeDetailsLoading(false);
