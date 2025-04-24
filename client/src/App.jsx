@@ -4,7 +4,6 @@ import Toast from "./utils/toast";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import ProtectedRoute from "./ProtectedRoute.jsx";
 import EditProfile from "./pages/EditUser.jsx";
 import ProposalScheme from "./pages/ProposalScheme";
 import SavedProposals from "./pages/SavedProposals";
@@ -101,7 +100,9 @@ function App() {
 
   return (
       <AuthProvider>
+        <Router>
         <MainLayout />
+        </Router>
       </AuthProvider>
   );
 }
