@@ -98,11 +98,13 @@ function App() {
   }, []);
 
   return (
-    <AuthProvider>
       <Router>
+            <AuthProvider>
+
         <MainLayout />
+        </AuthProvider>
+
       </Router>
-    </AuthProvider>
   );
 }
 
