@@ -5,7 +5,6 @@ const UcNonRecurring = require("../Models/UcNonrecurring");
 const { fetchInstitute } = require("../MiddleWares/fetchInstitute");
 const router = express.Router();
 
-// Submit UC (PI sends for approval)
 router.post("/submit", async (req, res) => {
     try {
         const { projectId, type, ucData, piSignature, submissionDate, status } = req.body;
