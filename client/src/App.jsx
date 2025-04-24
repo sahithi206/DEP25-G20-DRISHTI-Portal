@@ -84,7 +84,7 @@ import ProjDashboard from "./pages/college/ProjectDashboard";
 import InstiQuotations from "./pages/college/Project/Quotations";
 import InstiQuotation from "./pages/college/Project/View.jsx";
 import SEPage from "./pages/college/Project/SE.jsx";
-
+import Completed from "./pages/uc/se/CompletedProjects.jsx";
 function App() {
   const getData = async () => {
     try {
@@ -157,6 +157,7 @@ function MainLayout() {
           <Route path="/admin/progress-reports/:id" element={<ProjectProgressReports />} />
           <Route path="/viewReports/:id" element={<ViewReports />} />
           <Route path="/report/:id" element={<FReport />} />
+          <Route path="/completedprojects" element={<Completed />} />
 
 
           <Route path="/admin" element={<AdminDashboard />} />

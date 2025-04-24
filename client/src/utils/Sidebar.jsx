@@ -22,7 +22,9 @@ const SidebarMenu = [
         dropdown: [
             { name: "Submitted Proposals", path: "/proposalinbox" },
             { name: "Accepted Proposals", path: "/savedproposals" },
-            { name: "Ongoing Projects", path: "/ongoingproposals" }
+            { name: "Ongoing Projects", path: "/ongoingproposals" },
+            { name: "Completed Projects", path: "/ongoingproposals" }
+
         ],
     },
     {
