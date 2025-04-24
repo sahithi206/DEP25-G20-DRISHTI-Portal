@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route,useLocation} from 'react-router-dom';
 import Toast from "./utils/toast";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -101,7 +101,9 @@ function App() {
 
   return (
       <AuthProvider>
+        <Router>
         <MainLayout />
+        </Router>
       </AuthProvider>
   );
 }
