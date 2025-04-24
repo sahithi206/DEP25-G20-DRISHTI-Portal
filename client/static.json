@@ -1,7 +1,9 @@
 {
-    "root": "dist/",
-    "routes": {
-      "/**": "index.html"
-    }
+    "rewrites": [
+      {
+        "source": "/:path*",
+        "destination": "/index.html"
+      }
+    ]
   }
   
