@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Toast from "./utils/toast";
 import Signup from "./pages/Signup";
 import EditProfile from "./pages/EditUser.jsx";
 import ProposalScheme from "./pages/ProposalScheme";
