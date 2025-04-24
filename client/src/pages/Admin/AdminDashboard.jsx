@@ -48,10 +48,10 @@ const AdminDashboard = () => {
         const data = res.data;
 
         setSummaryCards([
-          { title: "Total Schemes", value: data.summaryCards.totalSchemes, type: "schemes" },
-          { title: "Total Projects", value: data.summaryCards.totalProjects, type: "projects" },
-          { title: "Active Projects", value: data.summaryCards.activeProjects, type: "active" },
-          { title: "Fund Approved", value: data.summaryCards.fundApproved, type: "funds" }
+          { title: "Total Schemes", value: data?.summaryCards?.totalSchemes, type: "schemes" },
+          { title: "Total Projects", value: data?.summaryCards?.totalProjects, type: "projects" },
+          { title: "Active Projects", value: data?.summaryCards?.activeProjects, type: "active" },
+          { title: "Fund Approved", value: data?.summaryCards?.fundApproved, type: "funds" }
         ]);
 
         setProjectStats(data.projectStats || []);
