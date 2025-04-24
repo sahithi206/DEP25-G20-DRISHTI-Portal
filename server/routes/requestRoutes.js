@@ -1,10 +1,10 @@
 const express = require("express");
 const Request = require("../Models/Request");
-const { fetchUser } = require("../Middlewares/fetchUser");
+const { fetchUser } = require("../MddleWares/fetchUser");
 const Project = require("../Models/Project");
 const router = express.Router();
-const { fetchInstitute } = require("../Middlewares/fetchInstitute");
-const { fetchAdmin } = require("../Middlewares/fetchAdmin");
+const { fetchInstitute } = require("../MddleWares/fetchInstitute");
+const { fetchAdmin } = require("../MddleWares/fetchAdmin");
 const ChangeInstitute =  require("../Models/Requests/ChangeInstitute");
 const {ObjectId}= require("mongodb");
 router.get("/", async (req, res) => {

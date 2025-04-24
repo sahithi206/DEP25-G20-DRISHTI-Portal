@@ -1,6 +1,6 @@
 const express = require("express");
 const Scheme = require("../Models/Scheme");
-const { fetchAdmin } = require("../MiddleWares/fetchAdmin");
+const { fetchAdmin } = require("../MddleWares/fetchAdmin");
 const router = express.Router();
 const { ObjectId } = require("mongodb");
 
@@ -33,6 +33,19 @@ router.post("/new-scheme", async (req, res) => {
     res.status(201).json(newScheme);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+      const scheme = await Scheme.findById(req.params.id);
+      if (!scheme) {
+          return res.status(404).json({ success: false, msg: "Scheme not found" });
+      }
+      res.status(200).json({ success: true, name: scheme.name });
+  } catch (error) {
+      console.error("Error fetching scheme:", error);
+      res.status(500).json({ success: false, msg: "Internal Server Error" });
   }
 });
 

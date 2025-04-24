@@ -37,10 +37,7 @@ const SEForm = () => {
     const [instituteApproved, setInstituteApproved] = useState(false);
     const [instituteStamp, setInstituteStamp] = useState(null);
     const [showUploadOption, setShowUploadOption] = useState(false);
-    const [sentToAdmin, setSentToAdmin] = useState(false);
-    const [adminApproved, setAdminApproved] = useState(false);
-    const [adminRejected, setAdminRejected] = useState(false);
-    const [seRequestId, setSeRequestId] = useState(null);
+
     const sigCanvas = useRef(null);
     const fileInputRef = useRef(null);
 
@@ -87,33 +84,19 @@ const SEForm = () => {
                 throw new Error(`Failed to fetch SE form: ${response.status} ${response.statusText}`);
             }
 
-            const data = await response.json();
-            if (data.success && data.data) {
-                const se = data.data;
+            const result = await response.json();
+            const se = result.data;
 
+            if (se.status !== "approved") {
+                if (se.piSignature) {
+                    setPiSignature(se.piSignature);
+                }
                 setSentForApproval(true);
-                setPiSignature(se.piSignature);
+            }
+
+            if (se.status === "approvedByInst") {
+                setInstituteApproved(true)
                 setInstituteStamp(se.instituteStamp);
-                setSeRequestId(se._id);
-                if (se.status === "approvedByInst") {
-                    setInstituteApproved(true);
-                }
-                else if (se.status === "pendingAdminApproval") {
-                    setInstituteApproved(true);
-                    setSentToAdmin(true);
-                } else if (se.status === "approvedByAdmin") {
-                    setInstituteApproved(true);
-                    setSentToAdmin(true);
-                    setAdminApproved(true);
-                } else if (se.status === "rejectedByAdmin") {
-                    setInstituteApproved(true);
-                    setSentToAdmin(true);
-                    setAdminRejected(true);
-                }
-            } else {
-                setSentForApproval(false);
-                setPiSignature(null);
-                setInstituteStamp(null);
             }
 
             return se;
@@ -122,60 +105,6 @@ const SEForm = () => {
             return null;
         }
     };
-
-    useEffect(() => {
-        const fetchStatus = async () => {
-            if (id) {
-                try {
-                    const res = await fetch(`${url}se/latest?projectId=${id}`);
-                    if (!res.ok) {
-                        if (res.status === 404) {
-                            console.warn("No SE found for this project");
-                            setSentForApproval(false);
-                            return;
-                        }
-                        throw new Error(`Failed to fetch SE status: ${res.status} ${res.statusText}`);
-                    }
-
-                    const data = await res.json();
-                    if (data.success && data.data) {
-                        const se = data.data;
-                        setSentForApproval(true);
-                        setPiSignature(se.piSignature || null);
-                        setInstituteStamp(se.instituteStamp || null);
-                        setSeRequestId(se._id);
-
-                        if (se.status === "approvedByInst") {
-                            setInstituteApproved(true);
-                        }
-                        else if (seRequestId.status === "pendingAdminApproval") {
-                            setInstituteApproved(true);
-                            setSentToAdmin(true);
-                        } else if (se.status === "approvedByAdmin") {
-                            setInstituteApproved(true);
-                            setSentToAdmin(true);
-                            setAdminApproved(true);
-                        } else if (se.status === "rejectedByAdmin") {
-                            setInstituteApproved(true);
-                            setSentToAdmin(true);
-                            setAdminRejected(true);
-                        }
-                        else {
-                            setInstituteApproved(false);
-                        }
-                    } else {
-                        setSentForApproval(false);
-                        setPiSignature(null);
-                        setInstituteStamp(null);
-                    }
-                } catch (err) {
-                    console.error("Error fetching SE approval status:", err);
-                    setError("Failed to fetch SE approval status. Please try again later.");
-                }
-            }
-        };
-        fetchStatus();
-    }, [id]);
 
     useEffect(() => {
         const fetchProjectDetails = async () => {
@@ -346,134 +275,30 @@ const SEForm = () => {
     };
 
     const ApprovalStatusBanner = () => {
-        if (!sentForApproval) {
-            return (
-                <div className="rounded-lg p-4 mb-6 bg-gray-100">
-                    <div className="flex items-center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-gray-500 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-                        <span className="font-medium text-gray-800">
-                            SE has not been sent for approval yet.
-                        </span>
-                    </div>
-                </div>
-            );
-        }
+        if (!sentForApproval) return null;
 
-        if (instituteApproved && sentToAdmin && !adminApproved && !adminRejected) {
-            return (
-                <div className="rounded-lg p-4 mb-6 bg-blue-100">
-                    <div className="flex items-center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-blue-500 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-                        <span className="font-medium text-blue-800">
-                            SE has been sent to Admin for final approval.
-                        </span>
-                    </div>
+        return (
+            <div className={`rounded-lg p-4 mb-6 ${instituteApproved ? 'bg-green-100' : 'bg-yellow-100'}`}>
+                <div className="flex items-center">
+                    {instituteApproved ? (
+                        <>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="font-medium text-green-800">Approved by Institute on {new Date().toLocaleDateString()}</span>
+                        </>
+                    ) : (
+                        <>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="font-medium text-yellow-800">Pending Institute Approval</span>
+                        </>
+                    )}
                 </div>
-            );
-        }
-
-        if (instituteApproved && !sentToAdmin) {
-            return (
-                <div className="rounded-lg p-4 mb-6 bg-green-100">
-                    <div className="flex items-center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-green-500 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-                        <span className="font-medium text-green-800">
-                            Approved by Institute on {new Date().toLocaleDateString()}.
-                        </span>
-                    </div>
-                </div>
-            );
-        }
-        if (adminRejected) {
-            return (
-                <div className="rounded-lg p-4 mb-6 bg-red-100">
-                    <div className="flex items-center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-red-500 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-                        <span className="font-medium text-red-800">
-                            Rejected by Admin on {new Date().toLocaleDateString()}.
-                        </span>
-                    </div>
-                </div>
-            );
-        }
-        if (adminApproved) {
-            return (
-                <div className="rounded-lg p-4 mb-6 bg-green-100">
-                    <div className="flex items-center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-green-500 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-                        <span className="font-medium text-green-800">
-                            Approved by Admin on {new Date().toLocaleDateString()}.
-                        </span>
-                    </div>
-                </div>
-            );
-        }
-    }
+            </div>
+        );
+    };
 
     const SignatureModal = () => {
         if (!showSignatureModal) return null;
@@ -586,31 +411,6 @@ const SEForm = () => {
         );
     };
 
-    const sendSEToAdmin = async () => {
-        try {
-            const response = await fetch(`${url}se/send-to-admin/${seRequestId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    accessToken: localStorage.getItem("token"),
-                },
-            });
-
-            const result = await response.json();
-
-            if (!result.success) {
-                alert(result.message || "Failed to send SE to admin");
-                return;
-            }
-
-            alert("SE sent to admin for approval");
-            setSentToAdmin(true);
-        } catch (err) {
-            console.error("Error sending SE to admin:", err.message);
-            alert("Failed to send SE to admin");
-        }
-    };
-
     const handleChange = (e) => {
         setData((prevData) => ({ ...prevData, [e.target.name]: e.target.value }));
     };
@@ -652,15 +452,6 @@ const SEForm = () => {
                     piSignature: piSignature
                 }),
             });
-
-            const result = await response.json();
-            if (!result.success) {
-                setError(result.message || "Failed to send for approval");
-                return;
-            }
-
-            setSeRequestId(result.id);
-
 
             const responseText = await response.text();
 
@@ -989,18 +780,6 @@ const SEForm = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                     Send for Approval
-                                </button>
-
-                            )}
-
-                            {instituteApproved && !sentToAdmin && seRequestId && (
-                                <button
-                                    onClick={sendSEToAdmin}
-                                    className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${piSignature
-                                        ? "bg-green-600 text-white hover:bg-green-700"
-                                        : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
-                                >
-                                    Send to Admin
                                 </button>
                             )}
                         </div>

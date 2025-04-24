@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types;
 const router = express.Router();
 const UCComment = require("../Models/UCComment");
-const { fetchUser } = require("../Middlewares/fetchUser");
-const { fetchInstitute } = require("../Middlewares/fetchInstitute");
+const { fetchUser } = require("../MddleWares/fetchUser");
+const { fetchInstitute } = require("../MddleWares/fetchInstitute");
 
 router.post("/add", async (req, res, next) => {
   try {

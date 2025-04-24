@@ -1,8 +1,8 @@
 const express = require("express");
 const SE = require("../Models/se/SE");
-const { fetchInstitute } = require("../Middlewares/fetchInstitute");
+const { fetchInstitute } = require("../MddleWares/fetchInstitute");
 const router = express.Router();
-const { fetchAdmin } = require("../Middlewares/fetchAdmin.js");
+const { fetchAdmin } = require("../MddleWares/fetchAdmin.js");
 
 
 // Submit SE (PI sends for approval)
@@ -24,11 +24,13 @@ router.post("/submit", async (req, res) => {
         } = req.body;
 
         console.log("Incoming SE data:", req.body);
+        const schemeDetails = await Scheme.findById(scheme);
+        const schemeName = schemeDetails ? schemeDetails.name : "Unknown Scheme";
 
         const newSE = new SE({
             projectId,
             name,
-            scheme,
+            scheme : schemeName,
             currentYear,
             startDate,
             endDate,

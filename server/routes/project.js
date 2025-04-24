@@ -1,5 +1,5 @@
 const express = require("express");
-const { fetchUser } = require("../Middlewares/fetchUser");
+const { fetchUser } = require("../MddleWares/fetchUser");
 const GeneralInfo = require("../Models/General_Info");
 const ResearchDetails = require("../Models/researchDetails");
 const User = require("../Models/user");
@@ -138,37 +138,41 @@ router.get("/get-projects", fetchUser, async (req, res) => {
   try {
     let proj = await Project.find({ userId: req.user._id });
     if (proj.length <= 0) {
-      return res.status(200).json({ success: false, msg: "No Sanctioned Projects" })
+      return res.status(200).json({ success: false, msg: "No Sanctioned Projects" });
     }
-    let projects= await Promise.all(
-        proj.map(async (proj,idx)=>{
-          const start = new Date(project.startDate);
-    const end = new Date(project.endDate);
-    
-    let status = "";
-    if (new Date() < start) {
-      status = "Approved";
-    } else if (new Date() >= start && new Date() <= end) {
-      status = "Ongoing";
-    } else {
-      status = "Completed";
-    }
-    if(status!=proj.status){
-      let project = await Project.findByIdAndUpdate(proj._id,{status:status},{new:true});
-       proj=project;
-    }
-      return proj;
-        })
-    )
+
+    let projects = await Promise.all(
+      proj.map(async (proj, idx) => {
+        const start = new Date(proj.startDate); 
+        const end = new Date(proj.endDate); 
+
+        let status = "";
+        if (new Date() < start) {
+          status = "Approved";
+        } else if (new Date() >= start && new Date() <= end) {
+          status = "Ongoing";
+        } else {
+          status = "Completed";
+        }
+
+        if (status != proj.status) {
+          let project = await Project.findByIdAndUpdate(proj._id, { status: status }, { new: true });
+          proj = project;
+        }
+        return proj;
+      })
+    );
+
     return res.status(200).json({
-      success: true, msg: "Sanctioned Projects Fetched Successfully",
-      projects
-    })
+      success: true,
+      msg: "Sanctioned Projects Fetched Successfully",
+      projects,
+    });
   } catch (e) {
     console.log(e);
     return res.status(500).json({ success: false, msg: "Failed to Fetch Project", error: "Internal Server Error" });
   }
-})
+});
 
 router.get("/get-project/:projectid", fetchUser, async (req, res) => {
   try {

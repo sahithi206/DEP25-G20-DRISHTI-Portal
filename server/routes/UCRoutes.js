@@ -1,6 +1,6 @@
 const express = require("express");
 const UCRequest = require("../Models/UCRequest");
-const { fetchInstitute } = require("../Middlewares/fetchInstitute");
+const { fetchInstitute } = require("../MddleWares/fetchInstitute");
 const router = express.Router();
 
 // Submit UC (PI sends for approval)
