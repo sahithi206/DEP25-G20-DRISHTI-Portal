@@ -932,9 +932,8 @@ const AuthProvider = (props) => {
       });
 
       const json = await response.json();
-      // console.log("ghdfjvvfbvhjdyfhukfh:", json)
-      if (!json.success) {
-        console.error(json.msg);
+       console.log(json);
+             if (!json.success) {
         return;
       }
 

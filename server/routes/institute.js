@@ -52,7 +52,62 @@ router.get("/users", fetchInstitute, async (req, res) => {
     res.status(500).json({ success: false, msg: "Failed to fetch users", error: error.message });
   }
 });
+router.get('/profile', fetchInstitute, async (req, res) => {
+  try {
 
+    // console.log("Inst Details:", req.institute);
+    // req.institute contains the institute ID from the JWT token
+    console.log("Inst Details:", req.institute);
+    const instituteId = req.institute._id;
+
+    // Fetch institute details including user role
+    const institute = await Institute.findById(instituteId).select("-password");
+
+    if (!institute) {
+      return res.status(404).json({ error: "Institute not found" });
+    }
+
+    res.status(200).json({ success: true, institute });
+  } catch (error) {
+    console.error("Error fetching institute profile:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+router.put('/profile', fetchInstitute, async (req, res) => {
+  const { name, email, college, role } = req.body;
+  
+  const profileFields = {};
+  if (name) profileFields.name = name;
+  if (email) profileFields.email = email;
+  if (college) profileFields.college = college;
+  if (role) profileFields.role = role;
+  
+  try {
+    let admin = await Institute.findById(req.user.id);
+    
+    if (!admin) {
+      return res.status(404).json({ msg: 'Admin profile not found' });
+    }
+    
+    if (email && email !== admin.email) {
+      const emailExists = await Institute.findOne({ email });
+      if (emailExists) {
+        return res.status(400).json({ msg: 'Email already in use' });
+      }
+    }
+    
+    admin = await Institute.findByIdAndUpdate(
+      req.user.id,
+      { $set: profileFields },
+      { new: true }
+    ).select('-password');
+    
+    res.json(admin);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 router.get("/:userId/accepted-proposals", fetchInstitute, async (req, res) => {
   try {
     let proj = await Project.find({ userId: req.params.userId });
