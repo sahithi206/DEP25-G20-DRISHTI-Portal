@@ -1,7 +1,5 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation} from 'react-router-dom';
-import Toast from "./utils/toast";
-import Home from "./pages/Home";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import EditProfile from "./pages/EditUser.jsx";
@@ -99,11 +97,11 @@ function App() {
   }, []);
 
   return (
+    <Router>
       <AuthProvider>
-        <Router>
         <MainLayout />
-        </Router>
       </AuthProvider>
+    </Router>
   );
 }
 
