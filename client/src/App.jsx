@@ -97,11 +97,11 @@ function App() {
   }, []);
 
   return (
-    <Router>
       <AuthProvider>
+            <Router>
         <MainLayout />
+        </Router>
       </AuthProvider>
-    </Router>
   );
 }
 
