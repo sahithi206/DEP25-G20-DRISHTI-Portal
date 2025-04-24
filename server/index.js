@@ -19,7 +19,6 @@ const UCComment = require("./routes/ucComments.js");
 const UCRoutes = require("./routes/UCRoutes.js");
 const SERoutes = require("./routes/SERoutes.js");
 const ExpenseComment = require("./routes/expenseComments.js");
-const serverless = require('serverless-http');
 
 
 
@@ -57,13 +56,10 @@ app.use("/fundCycles", fundCycleRoutes);
 app.use("/expense-comments", ExpenseComment);
 
 
-// app.listen(PORT, () => {
-//   console.log(`Server is running on PORT : ${PORT}`);
-// });
+app.listen(PORT, () => {
+  console.log(`Server is running on PORT : ${PORT}`);
+});
 
 mongoose.connect(process.env.URL)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log("MongoDB Connection Error:", err));
-
-
-  module.exports.handler = serverless(app);
