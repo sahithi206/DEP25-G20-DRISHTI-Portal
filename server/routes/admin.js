@@ -675,5 +675,128 @@ router.get("/completed-projects", fetchAdmin, async (req, res) => {
     }
 });
 
-  
+router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
+  try {
+    const adminId = req.admin.id;
+    const adminRole = req.admin.role;
+    console.log("Admin ID:", adminId, "Role:", adminRole);
+
+    let schemeIds = [];
+    let adminSchemes = [];
+
+    // Fetch schemes based on role
+    if (adminRole === "Head Coordinator") {
+      // For Head Coordinator, get all schemes
+      adminSchemes = await Schemes.find({});
+      schemeIds = adminSchemes.map(scheme => scheme._id);
+    } else {
+      // For regular Coordinator, get only schemes they coordinate
+      adminSchemes = await Schemes.find({ coordinator: adminId });
+      schemeIds = adminSchemes.map(scheme => scheme._id);
+    }
+
+    // Count projects based on the schemes
+    const totalProjects = await Project.countDocuments({ Scheme: { $in: schemeIds } });
+    const activeProjects = await Project.countDocuments({
+      Scheme: { $in: schemeIds },
+      status: "Ongoing"
+    });
+    const completedProjects = await Project.countDocuments({
+      Scheme: { $in: schemeIds },
+      status: "Completed"
+    });
+    const approvedProjects = await Project.countDocuments({
+      Scheme: { $in: schemeIds },
+      status: "Approved"
+    });
+
+    // Get project counts per scheme
+    const schemes = await Project.aggregate([
+      { $match: { Scheme: { $in: schemeIds } } },
+      {
+        $group: {
+          _id: "$Scheme",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "schemes", // Assuming your schemes collection is named "schemes"
+          localField: "_id",
+          foreignField: "_id",
+          as: "schemeInfo"
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          count: 1,
+          schemeName: { $arrayElemAt: ["$schemeInfo.name", 0] }
+        }
+      }
+    ]);
+
+    console.log("SCHEMES:", schemes);
+
+    // Calculate funding trend by month for the schemes
+    const fundTrend = await Project.aggregate([
+      { $match: { Scheme: { $in: schemeIds } } },
+      {
+        $group: {
+          _id: { $substr: ["$startDate", 5, 2] },
+          funds: { $sum: "$TotalCost" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Calculate total fund approved
+    const totalFunds = await Project.aggregate([
+      { $match: { Scheme: { $in: schemeIds } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$TotalCost" }
+        }
+      }
+    ]);
+
+    const fundApproved = totalFunds.length > 0
+      ? `₹ ${(totalFunds[0].total / 100000).toFixed(2)}L`
+      : "₹ 0L";
+
+    res.json({
+      userRole: adminRole,
+      summaryCards: {
+        totalSchemes: adminSchemes.length,
+        totalProjects,
+        activeProjects,
+        fundApproved
+      },
+      projectStats: [
+        { name: "Ongoing", value: activeProjects },
+        { name: "Completed", value: completedProjects },
+        { name: "Approved", value: approvedProjects }
+      ],
+      schemeProjects: schemes.map(s => ({
+        scheme: s.schemeName || "Unknown",
+        projects: s.count
+      })),
+      fundTrend: fundTrend.map(entry => {
+        // Convert month number to month name
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthIndex = parseInt(entry._id, 10) - 1;
+        const monthName = monthNames[monthIndex] || entry._id;
+
+        return {
+          month: monthName,
+          funds: entry.funds
+        };
+      })
+    });
+  } catch (err) {
+    console.error("Dashboard stats error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

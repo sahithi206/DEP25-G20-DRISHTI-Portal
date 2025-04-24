@@ -37,13 +37,13 @@ const AdminDashboard = () => {
           setLoading(false);
           return;
         }
-        const config = {
+        const res = await fetch(`${url}admin/dashboard-stats`, {
+          method:"GET",
           headers: {
+            "Content-Type":"application/json",
             'accessToken': token,
           }
-        };
-
-        const res = await axios.get(`${url}admin/dashboard-stats`, config);
+        });
         console.log("Dashboard API response:", res.data);
         const data = res.data;
 
