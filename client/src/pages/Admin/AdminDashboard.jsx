@@ -54,12 +54,12 @@ const AdminDashboard = () => {
           { title: "Fund Approved", value: data?.summaryCards?.fundApproved, type: "funds" }
         ]);
 
-        setProjectStats(data.projectStats || []);
-        setSchemeProjects(data.schemeProjects || []);
-        setFundTrend(data.fundTrend || []);
+        setProjectStats(data?.projectStats || []);
+        setSchemeProjects(data?.schemeProjects || []);
+        setFundTrend(data?.fundTrend || []);
 
         // Get user role from response or localStorage
-        const role = data.userRole || localStorage.getItem('userRole');
+        const role = data?.userRole || localStorage.getItem('userRole');
         setUserRole(role);
 
         setLoading(false);

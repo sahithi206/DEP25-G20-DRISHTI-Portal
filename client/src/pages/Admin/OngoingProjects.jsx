@@ -198,23 +198,23 @@ const AdminProposalReview = () => {
                             </thead>
                             <tbody>
                                 {filteredProjects.map((project) => (
-                                    <tr key={project.project?._id} className="border-b">
-                                        <td className="p-2 text-sm text-blue-500 hover:underline" onClick={() => navigate(`/admin/project/${project.project?._id}`)}>{project.project?._id || "N/A"}</td>
-                                        <td className="p-2 text-sm" onClick={() => navigate(`/admin/project/${project.project?._id}`)}>{project.project?.Title || "N/A"}</td>
-                                        <td className="p-2 text-sm" onClick={() => navigate(`/admin/project/${project.project?._id}`)}>
+                                    <tr key={project.proposal?._id} className="border-b">
+                                        <td className="p-2 text-sm text-blue-500 hover:underline" onClick={() => navigate(`/admin/project/${project.proposal?._id}`)}>{project.proposal?._id || "N/A"}</td>
+                                        <td className="p-2 text-sm" onClick={() => navigate(`/admin/project/${project.proposal?._id}`)}>{project.proposal?.Title || "N/A"}</td>
+                                        <td className="p-2 text-sm" onClick={() => navigate(`/admin/project/${project.proposal?._id}`)}>
                                             <ul className="list-disc pl-5">
-                                                {project.project.PI?.length > 0
-                                                    ? project.project.PI.map((member, index) => (
+                                                {project?.proposal.PI?.length > 0
+                                                    ? project?.proposal?.PI.map((member, index) => (
                                                         <li key={index}>{member}</li>
                                                     ))
                                                     : <li>N/A</li>}
                                             </ul>
                                         </td>
 
-                                        <td className="p-2 text-sm" onClick={() => navigate(`/admin/project/${project.project?._id}`)}>{project.generalInfo?.instituteName || "N/A"}</td>
-                                        <td className="p-2 text-sm" onClick={() => navigate(`/admin/project/${project.project?._id}`)}>
+                                        <td className="p-2 text-sm" onClick={() => navigate(`/admin/project/${project.proposal?._id}`)}>{project.generalInfo?.instituteName || "N/A"}</td>
+                                        <td className="p-2 text-sm" onClick={() => navigate(`/admin/project/${project.proposal?._id}`)}>
                                             {(() => {
-                                                const endDate = new Date(project.project?.endDate);
+                                                const endDate = new Date(project.proposal?.endDate);
                                                 const timeLeft = endDate - new Date();
                                                 if (timeLeft > 0) {
                                                     const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
