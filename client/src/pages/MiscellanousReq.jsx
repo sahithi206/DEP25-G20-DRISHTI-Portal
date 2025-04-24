@@ -93,12 +93,8 @@ const MiscRequest = () => {
                 <HomeNavbar isSidebarOpen={isSidebarOpen} />
                 <div className="p-6 mt-16">
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold text-gray-900">
-                             ResearchX
-                        </h1>
-                        <h2 className="text-lg font-semibold text-gray-700">
-                            Anusandhan National Research Foundation
-                        </h2>
+                    <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                    <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>
                         <h3 className="mt-3 text-xl font-semibold text-gray-900 border-t-2 pt-2">
                             Miscellaneous Requests
                         </h3>

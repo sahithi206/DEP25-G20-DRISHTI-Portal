@@ -33,12 +33,12 @@ const ProjectDashboard = () => {
                         "accessToken": ` ${token}`,
                     },
                 });
-                console.log(response);
                 if (!response.ok) {
                     throw new Error("Failed to fetch project details");
                 }
 
                 const data = await response.json();
+                console.log(data);
                 setProject(data.project);
                 setGeneral(data.generalInfo);
                 setResearch(data.researchDetails);
@@ -121,11 +121,6 @@ const ProjectDashboard = () => {
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700">
                         <h1 className="text-3xl font-black text-gray-900 mb-2">Project Dashboard</h1>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <button onClick={() => { navigate(`/admin/view-uc/se/${id}`) }} className="bg-green-500 text-white rounded-lg hover:bg-green-600" >View SE/UC</button>
-                        <button onClick={() => {navigate(`/admin/progress-reports/${id}`)}} className="bg-blue-500 text-white rounded-lg hover:bg-blue-600" >View Progress Reports</button>
-                        <HoverDropdownButton label="Upload Progress Report" options={[{ label: "Yearly Report", onClick: () => navigate(`/progress-report/${id}`) }, { label: "Final Report", onClick: () => navigate(`/final-report/${id}`) }]} className="bg-red-500 text-white" />
-                    </div>
                     {loading ? (
                         <p className="text-center text-lg font-semibold text-gray-700">Loading project details...</p>
                     ) : error ? (
@@ -142,7 +137,7 @@ const ProjectDashboard = () => {
                                     <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Reserch Institute</span> : {generalInfo.instituteName}</label>
                                     <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of Principal Investigator</span> : {generalInfo.name}</label>
                                     <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Title of the Project</span> : {project.Title}</label>
-                                    <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Scheme</span> : {project.Scheme}</label>
+                                    <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Name of the Scheme</span> : {project.Scheme.name}</label>
                                     <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Start Date</span> : {new Date(project.startDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</label>
                                     <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">End Date</span> : {new Date(project.endDate).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</label>
                                     <label className="font-medium text-gray-700 text-sm"><span className="font-semibold">Duration of Project</span> : {project.years.toFixed(1) > 1 ? ` ${project.years.toFixed(1)} years` : `${project.years.toFixed(1)} year`} </label>
@@ -216,7 +211,7 @@ const ProjectDashboard = () => {
 
 
                                     </div>
-                                    <div className="w-full h-84 relative">
+                                    <div className="w-full h-50 relative">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <PieChart>
                                                 <Pie data={pieData} cx="50%" cy="50%" outerRadius="90%" dataKey="value">
@@ -323,10 +318,30 @@ const ProjectDashboard = () => {
                                         ) : ([])}
                                 </div>
                             </div>
+                            <div className="flex  gap-8 justify-center items-center mt-6">
+                                <button 
+                                    onClick={() => { navigate(`/admin/view-uc/se/${id}`) }} 
+                                    className="px-4 mr-10 py-2 w-52 rounded-md transition-transform transform hover:scale-105 shadow-md bg-blue-500 text-white text-sm"
+                                >
+                                    View SE/UC
+                                </button>
+                                <button 
+                                    onClick={() => { navigate(`/admin/progress-reports/${id}`) }} 
+                                    className="px-4 py-2 ml-10 w-52 rounded-md transition-transform transform hover:scale-105 shadow-md bg-blue-500 text-white text-sm"
+                                >
+                                    View Progress Reports
+                                </button>
+                            </div>
                         </div>
+                        
                     )}
+
+
+
                 </div>
+                
             </div>
+            
         </div>
     );
 };

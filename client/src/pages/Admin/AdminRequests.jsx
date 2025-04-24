@@ -29,20 +29,18 @@ const AdminRequests = () => {
             .catch((error) => console.error("Error fetching requests:", error));
     }, []);
 
-    // Function to update request status and append comments
     const updateRequest = async (id, status = null, newComment = null) => {
         try {
             const request = requests.find(req => req._id === id);
             if (!request) return;
 
-            // Append new comment while preserving old ones
             const updatedComments = newComment ? [...(request.comments || []), newComment] : request.comments;
 
             const response = await fetch(`${URL}requests/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    status: status || request.status, // Retain current status if no new status
+                    status: status || request.status, 
                     comments: Array.isArray(updatedComments) ? updatedComments : []
                 }),
             });
@@ -66,7 +64,7 @@ const AdminRequests = () => {
         <div className="flex">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6">
-                <AdminNavbar activeSection={activeSection} />
+                <AdminNavbar activeSection={activeSection}  yes={1} />
                 <table className="w-full border">
                     <thead>
                         <tr className="bg-gray-200">

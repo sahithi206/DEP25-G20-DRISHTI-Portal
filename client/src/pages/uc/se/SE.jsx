@@ -15,7 +15,7 @@ const SEForm = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);;
     const navigate = useNavigate();
     const [user, setUser] = useState();
-    const { getuser } = useContext(AuthContext);
+    const { getuser, fetchInstituteOfficials } = useContext(AuthContext);
     const [yearlyBudget, setYearly] = useState([]);
     const [budgetSanctioned, setSanctioned] = useState({});
     const [yearlyExp, setYearlyExp] = useState([]);
@@ -36,10 +36,16 @@ const SEForm = () => {
     const [sentForApproval, setSentForApproval] = useState(false);
     const [instituteApproved, setInstituteApproved] = useState(false);
     const [instituteStamp, setInstituteStamp] = useState(null);
+    const [authSignature, setauthSignature] = useState(null);
     const [showUploadOption, setShowUploadOption] = useState(false);
 
     const sigCanvas = useRef(null);
     const fileInputRef = useRef(null);
+    const [instituteOfficials, setInstituteOfficials] = useState({
+        headOfInstitute: "Loading...",
+        cfo: "Loading...",
+        accountsOfficer: "Loading...",
+    });
 
     const [data, setData] = useState({
         name: "",
@@ -53,66 +59,77 @@ const SEForm = () => {
         TotalCost: 0
     });
     const { id } = useParams();
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
     const { getProject } = useContext(AuthContext);
+    useEffect(() => {
+        const fetchStatus = async () => {
+            if (id) {
+                try {
+                    const res = await fetch(`${url}se/latest?projectId=${id}`);
+                    console.log("RESSSS:", res);
+                    if (!res.ok) {
+                        if (res.status === 404) {
+                            console.warn("No SE found for this project");
+                            setSentForApproval(false);
+                            return;
+                        }
+                        throw new Error(`Failed to fetch SE status: ${res.status} ${res.statusText}`);
+                    }
 
-    const fetchExistingSEForm = async (projectId) => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                console.error("No authentication token found");
-                return;
-            }
-
-            const response = await fetch(`${url}se/${projectId}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "accessToken": `${token}`,
-                },
-            });
-
-            if (response.status === 404) {
-                console.log("No existing SE form found for this project");
-                return null;
-            }
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch SE form: ${response.status} ${response.statusText}`);
-            }
-
-            const result = await response.json();
-            const se = result.data;
-
-            if (se.status !== "approved") {
-                if (se.piSignature) {
-                    setPiSignature(se.piSignature);
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        const se = data.data;
+                        const authData = await fetchInstituteOfficials(se.institute);
+                        // console.log("Auth Data:", authData);
+                        setInstituteOfficials(authData);
+                        setSentForApproval(true);
+                        setPiSignature(se.piSignature);
+                        setInstituteStamp(se.instituteStamp);
+                        setauthSignature(se.authSignature);
+                        setSeRequestId(se._id);
+                        if (se.status === "approvedByInst") {
+                            setInstituteApproved(true);
+                        }
+                        else if (se.status === "pendingAdminApproval") {
+                            setInstituteApproved(true);
+                            setSentToAdmin(true);
+                        } else if (se.status === "approvedByAdmin") {
+                            setInstituteApproved(true);
+                            setSentToAdmin(true);
+                            setAdminApproved(true);
+                        } else if (se.status === "rejectedByAdmin") {
+                            setInstituteApproved(true);
+                            setSentToAdmin(true);
+                            setAdminRejected(true);
+                        }
+                        else {
+                            setInstituteApproved(false);
+                            setInstituteOfficials({
+                                headOfInstitute: "pending approval...",
+                                cfo: "pending approval...",
+                                accountsOfficer: "pending approval..."
+                            });
+                        }
+                    } else {
+                        setSentForApproval(false);
+                        setPiSignature(null);
+                        setInstituteStamp(null);
+                    }
+                } catch (err) {
+                    console.error("Error fetching SE approval status:", err);
+                    setError("Failed to fetch SE approval status. Please try again later.");
                 }
-                setSentForApproval(true);
             }
-
-            if (se.status === "approvedByInst") {
-                setInstituteApproved(true)
-                setInstituteStamp(se.instituteStamp);
-            }
-
-            return se;
-        } catch (error) {
-            console.error("Error fetching existing SE form:", error);
-            return null;
-        }
-    };
+        };
+        fetchStatus();
+    }, [id]);
 
     useEffect(() => {
         const fetchProjectDetails = async () => {
             try {
                 const json = await getProject(id);
                 const info = json?.data || {};
-                console.log(info);
-
                 setYearlyExp(info.yearlyExp || []);
 
                 const today = new Date().toISOString().split("T")[0];
@@ -129,7 +146,7 @@ const SEForm = () => {
                     name: info.generalInfo?.name || "NA",
                     institute: info.generalInfo?.instituteName || "NA",
                     title: info.project?.Title || "NA",
-                    scheme: info.project?.Scheme || "NA",
+                    scheme: info.project?.Scheme.name || "NA",
                     currentYear: info.project?.currentYear || "NA",
                     TotalCost: info.project?.TotalCost || 0,
                     startDate: formattedStartDate,
@@ -148,8 +165,6 @@ const SEForm = () => {
 
                 }
                 setYearly(info.yearlySanct || []);
-                console.log("Yearly Budget", info.yearlySanct);
-                console.log("Yearly Budget", yearly);
                 setBudget(info.yearlyExp || []);
             } catch (error) {
                 setError(error.message);
@@ -159,7 +174,6 @@ const SEForm = () => {
         };
 
         fetchProjectDetails();
-        fetchExistingSEForm(id);
     }, [id]);
 
     useEffect(() => {
@@ -168,14 +182,10 @@ const SEForm = () => {
         let manpowerExp = 0, consumablesExp = 0, othersExp = 0, equipmentExp = 0, totalExp = 0;
         let manpowerArray = [], consumablesArray = [], othersArray = [], equipmentArray = [], totalArray = [], travelArray = [], overheadArray = [];
         let travelExp = 0, overheadExp = 0;
-
-        console.log("wjnfewf", yearlyExp)
         yearlyExp.forEach((yearData, index) => {
-            console.log("Year Data", yearData);
             if (yearData?.recurring?.human_resources !== undefined) {
                 manpowerExp += yearData.recurring.human_resources;
                 manpowerArray.push(yearData.recurring.human_resources);
-                console.log("Manpower weiuf", manpowerArray);
             }
             if (yearData?.recurring?.consumables !== undefined) {
                 consumablesExp += yearData.recurring.consumables;
@@ -275,7 +285,56 @@ const SEForm = () => {
     };
 
     const ApprovalStatusBanner = () => {
-        if (!sentForApproval) return null;
+        if (!sentForApproval) {
+            return (
+                <div className="rounded-lg p-4 mb-6 bg-gray-100">
+                    <div className="flex items-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 text-gray-500 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span className="font-medium text-gray-800">
+                            SE has not been sent for approval yet.
+                        </span>
+                    </div>
+                </div>
+            );
+        }
+        if (sentForApproval && !instituteApproved) {
+            return (
+                <div className="rounded-lg p-4 mb-6 bg-yellow-100">
+                    <div className="flex items-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 text-yellow-500 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span className="font-medium text-yellow-800">
+                            Pending Institute Approval
+                        </span>
+                    </div>
+                </div>
+            );
+        }
 
         return (
             <div className={`rounded-lg p-4 mb-6 ${instituteApproved ? 'bg-green-100' : 'bg-yellow-100'}`}>
@@ -429,7 +488,7 @@ const SEForm = () => {
 
             console.log("Sending SE Payload:", {
                 data, yearlyBudget, budgetSanctioned, manpower, consumables,
-                others, equipment, total, totalExp, balance
+                others, equipment, total, totalExp, balance, travel, overhead
             });
 
             const response = await fetch(`${url}projects/se`, {
@@ -449,33 +508,32 @@ const SEForm = () => {
                     total: total,
                     totalExp: totalExp,
                     balance: balance,
-                    piSignature: piSignature
+                    piSignature: piSignature,
+                    travel: travel,
+                    overhead: overhead
                 }),
             });
 
-            const responseText = await response.text();
+            const result = await response.json();
 
             if (!response.ok) {
-                console.error("Server response:", responseText);
+                console.error("Server response:", result);
                 throw new Error(`Submission failed: ${response.status} ${response.statusText}`);
             }
 
-            try {
-                const json = JSON.parse(responseText);
-                if (json.success) {
-                    setShowSuccessPopup(true);
-                    setSentForApproval(true);
-
-                    setTimeout(() => {
-                        setShowSuccessPopup(false);
-                    }, 3000);
-                } else {
-                    alert(`Error in submitting form: ${json.message || 'Unknown error'}`);
-                }
-            } catch (e) {
-                console.error("Error parsing JSON:", e);
-                alert("Error in response format");
+            if (!result.success) {
+                setError(result.message || "Failed to send for approval");
+                return;
             }
+
+            setSeRequestId(result.id);
+            setShowSuccessPopup(true);
+            setSentForApproval(true);
+
+            setTimeout(() => {
+                setShowSuccessPopup(false);
+            }, 3000);
+
         } catch (error) {
             console.error("Error:", error);
             alert(`Error in submitting data: ${error.message}`);
@@ -483,97 +541,284 @@ const SEForm = () => {
     };
 
     const handleSaveAsPDF = () => {
+        const pdf = new jsPDF("p", "mm", "a4"); // Changed to portrait A4
+        const currentDate = new Date().toLocaleDateString("en-IN");
+
+        const pageWidth = 210;
         const margin = 20;
-        const doc = new jsPDF("l", "mm", "a4");
+        const contentWidth = pageWidth - 2 * margin;
 
-        doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        doc.text("RESEARCHX", 148.5, 10, { align: "center" });
-        doc.setFontSize(14);
-        doc.setFont("helvetica");
-        doc.text("Statement of Expenditure", 148.5, 15, { align: "center" });
+        // Function to check and add new page if needed
+        const checkForNewPage = (currentY, requiredSpace) => {
+            const maxY = 280; // Maximum Y position before needing a new page (considering margins)
+            if (currentY + requiredSpace > maxY) {
+                pdf.addPage();
+                return margin + 10; // Reset Y position to top of new page with small margin
+            }
+            return currentY;
+        };
 
-        doc.setFontSize(12);
-        doc.text("Request for Annual Installment with Up-to-Date Statement of Expenditure", 148.5, 25, { align: "center" });
-        doc.text(`For Financial Year: ${financialYear}`, 148.5, 30, { align: "center" });
+        // Header section
+        let yPos = 20;
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("RESEARCHX", pageWidth / 2, yPos, { align: "center" });
+        yPos += 5;
+        pdf.setFontSize(12);
+        pdf.text("STATEMENT OF EXPENDITURE", pageWidth / 2, yPos, { align: "center" });
+        yPos += 7;
 
-        doc.setFontSize(10);
-        doc.text(`1.File No.: ${data.projectId || "NA"}`, 10, 35);
-        doc.text(`2. Name of the PI: ${data.name || "NA"}`, 10, 40);
-        doc.text(`3. Total Project Cost: ${data.TotalCost || "NA"}`, 10, 45);
-        doc.text(`4. Date of Commencement: ${data.startDate || "NA"}`, 10, 50);
-        doc.text("5. Statement of Expenditure: (Enclosed)", 10, 55);
+        pdf.setFontSize(11);
+        pdf.text("Request for Annual Installment with Up-to-Date Statement of Expenditure", pageWidth / 2, yPos, { align: "center" });
+        yPos += 6;
+        pdf.text(`For Financial Year: ${financialYear}`, pageWidth / 2, yPos, { align: "center" });
+        yPos += 10;
 
-        doc.text("Grant Received in Each Year:", 10, 65);
+        pdf.setFontSize(10);
+        const items = [
+            { label: "File No.", value: data.projectId },
+            { label: "Name of the PI", value: data.name },
+            { label: "Name of the grant receiving Organization", value: data.institute },
+            { label: "Name of the Scheme", value: data.scheme },
+            { label: "Present Year of Project", value: data.currentYear },
+            { label: "Total Project Cost", value: data.TotalCost },
+        ]
+
+        let itemNum = 1;
+
+        items.forEach(item => {
+            pdf.setFont("helvetica", "normal");
+            pdf.text(`${itemNum}`, margin, yPos);
+            pdf.text(item.label, margin + 5, yPos);
+            pdf.text(`: ${item.value}`, margin + 80, yPos);
+            yPos += 7;
+            itemNum++;
+        })
+
+        // Grant received information
+        pdf.text("Grant Received in Each Year:", margin, yPos); yPos += 7;
         yearlyBudget.forEach((amount, index) => {
-            doc.text(`Year ${index + 1}: ${amount}`, 15, 70 + index * 5);
+            pdf.text(`Year ${index + 1}: ${amount}`, margin + 5, yPos);
+            yPos += 5;
         });
+        yPos += 5;
 
+        // Check if we need a new page before the table
+        yPos = checkForNewPage(yPos, 100); // Estimate table might need ~100mm
+
+        // Table headers
         const headers = [
-            ["S/N", "Sanctioned Heads", "Total Funds Sanctioned", "Expenditure Incurred", "Balance"],
+            [
+                { content: "S/No", rowSpan: 2 },
+                { content: "Sanctioned Heads", rowSpan: 2 },
+                { content: "Total Funds Sanctioned", rowSpan: 2 },
+                { content: "Expenditure Incurred", colSpan: 3 },
+                { content: "Total Expenditure (vii=iv+v+vi)", rowSpan: 2 },
+                { content: `Balance against sanctioned as on 31.03.${new Date().getFullYear()} (viii=iii-vii)`, rowSpan: 2 },
+                { content: "Requirement of Funds unto 31st March next year", rowSpan: 2 },
+                { content: "Remarks (if any)", rowSpan: 2 }
+            ],
+            [
+                "", "", "",
+                { content: "I Yr." },
+                { content: "II Yr." },
+                { content: "III Yr." },
+                "", "", "", ""
+            ],
+            [
+                { content: "(i)" },
+                { content: "(ii)" },
+                { content: "(iii)" },
+                { content: "(iv)" },
+                { content: "(v)" },
+                { content: "(vi)" },
+                { content: "(vii)" },
+                { content: "(viii)" },
+                { content: "" },
+                { content: "" }
+            ]
         ];
 
+        // Table data
         const tableData = [
-            { name: "Manpower Costs", key: "human_resources" },
-            { name: "Consumables", key: "consumables" },
-            { name: "Travel", key: "travel" },
-            { name: "Other Costs", key: "others" },
-            { name: "Equipment", key: "nonRecurring" },
-            { name: "Overhead Expenses", key: "overhead" },
-        ].map((head, index) => [
-            index + 1,
-            head.name,
-            budgetSanctioned[head.key] || 0,
-            ...yearlyExp.map((yearData) => yearData?.recurring?.[head.key] || yearData?.[head.key] || 0),
-            yearlyExp.reduce((acc, val) => acc + (val?.recurring?.[head.key] || val?.[head.key] || 0), 0),
-            (budgetSanctioned[head.key] || 0) -
-            yearlyExp.reduce((acc, val) => acc + (val?.recurring?.[head.key] || val?.[head.key] || 0), 0),
-        ]);
+            { id: 1, name: "Manpower Costs", key: "human_resources" },
+            { id: 2, name: "Consumables", key: "consumables" },
+            { id: 3, name: "Travel", key: "travel" },
+            { id: 4, name: "Contingencies", key: "contingencies" },
+            { id: 5, name: "Other Cost, if any", key: "others" },
+            { id: 6, name: "Equipments", key: "nonRecurring" },
+            { id: 7, name: "Overhead Expenses", key: "overhead" },
+        ].map((head) => {
+            const totalExpenditure = yearlyExp.reduce(
+                (acc, val) => acc + (val?.recurring?.[head.key] || val?.[head.key] || 0),
+                0
+            );
+            const balance = (budgetSanctioned[head.key] || 0) - totalExpenditure;
+            const requirementNextYear = head.key === "overhead" ?
+                (budgetSanctioned[head.key] * 0.3 || 0).toFixed(0) : 0;
+            const remarks = head.key === "nonRecurring" ? "Including of commitments" : "";
 
-        tableData.push([
-            yearlyExp.length + 1,
-            "Total",
-            budgetSanctioned.total || 0,
-            ...yearlyExp.map((yearData) => yearData?.yearTotal || 0),
-            yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0),
-            (budgetSanctioned.total || 0) - yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0),
-        ]);
-
-        doc.autoTable({
-            head: headers,
-            body: tableData,
-            startY: 80,
-            theme: "grid",
-            styles: { fontSize: 8, textColor: [50, 50, 50] },
-            headStyles: { fillColor: [50, 50, 50], textColor: [255, 255, 255] },
+            return [
+                head.id,
+                head.name,
+                budgetSanctioned[head.key] || 0,
+                yearlyExp[0]?.recurring?.[head.key] || yearlyExp[0]?.[head.key] || 0,
+                yearlyExp[1]?.recurring?.[head.key] || yearlyExp[1]?.[head.key] || 0,
+                yearlyExp[2]?.recurring?.[head.key] || yearlyExp[2]?.[head.key] || 0,
+                totalExpenditure,
+                balance,
+                requirementNextYear,
+                remarks
+            ];
         });
 
-        // Add note
-        const note = `
-    Note:
-    1. The audited statement of expenditure incurred under the Heads, and proper utilization of funds released during the period, 
-    may be sent to agency immediately after the end of the financial year.
-    `;
-        doc.setFontSize(10);
-        let yPos = doc.lastAutoTable.finalY + 10;
-        doc.text(note, margin, yPos);
+        // Total row
+        const totalExpenditure = yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0);
+        const totalBalance = (budgetSanctioned.total || 0) - totalExpenditure;
+        const totalRequirementNextYear = (budgetSanctioned.overhead * 0.3 || 0).toFixed(0);
 
-        yPos += 30;
+        tableData.push([
+            8,
+            "Total",
+            budgetSanctioned.total || 0,
+            yearlyExp[0]?.yearTotal || 0,
+            yearlyExp[1]?.yearTotal || 0,
+            yearlyExp[2]?.yearTotal || 0,
+            totalExpenditure,
+            totalBalance,
+            totalRequirementNextYear,
+            ""
+        ]);
 
+        // Generate table with page split handling
+        pdf.autoTable({
+            head: headers,
+            body: tableData,
+            startY: yPos,
+            theme: "grid",
+            styles: { fontSize: 8, textColor: [50, 50, 50], lineWidth: 0.1, lineColor: [0, 0, 0] },
+            headStyles: { fillColor: [220, 230, 241], textColor: [0, 0, 0], fontStyle: 'bold' },
+            columnStyles: {
+                0: { cellWidth: 8 },
+                1: { cellWidth: 23 },
+                2: { cellWidth: 18 },
+                3: { cellWidth: 14 },
+                4: { cellWidth: 14 },
+                5: { cellWidth: 14 },
+                6: { cellWidth: 20 },
+                7: { cellWidth: 22 },
+                8: { cellWidth: 20 },
+                9: { cellWidth: 17 }
+            },
+            didParseCell: function (data) {
+                if (data.section === 'head') {
+                    data.cell.styles.fillColor = [220, 230, 241];
+                    data.cell.styles.textColor = [0, 0, 0];
+                    data.cell.styles.fontStyle = 'bold';
+                }
+                if (data.section === 'body' && data.row.index === tableData.length - 1) {
+                    data.cell.styles.fontStyle = 'bold';
+                }
+            },
+            // Enable automatic page breaks for the table
+            willDrawCell: function (data) {
+                // Optional: custom cell rendering logic
+            },
+            didDrawPage: function (data) {
+                // Optional: add page numbers or headers/footers on new pages
+            }
+        });
+
+        // Note section
+        yPos = pdf.lastAutoTable.finalY + 10;
+        const note = "Note:\n1. The audited statement of expenditure incurred under the Heads, and proper utilization of funds released\n during the period, may be sent to agency immediately after the end of the financial year.";
+
+        // Check if we need a new page before the note
+        yPos = checkForNewPage(yPos, 30); // Space needed for note
+
+        pdf.setFontSize(10);
+        pdf.text(note, margin, yPos);
+        yPos += 20;
+        pdf.text("Date: " + currentDate, margin, yPos);
+        yPos += 10;
+
+        // Check if we need a new page before signatures
+        yPos = checkForNewPage(yPos, 95); // Space needed for signatures section
+
+        // Set up signature section
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Signatures", margin, yPos);
+        yPos += 5;
+
+        // Create signature table
+        const sigWidth = (contentWidth) / 3;
+        const sigHeight = 40;
+        const startX = margin;
+
+        // Draw signature table outline
+        pdf.rect(startX, yPos, contentWidth, sigHeight + 25);
+        pdf.line(startX + sigWidth, yPos, startX + sigWidth, yPos + sigHeight + 25); // First vertical divider
+        pdf.line(startX + sigWidth * 2, yPos, startX + sigWidth * 2, yPos + sigHeight + 25); // Second vertical divider
+        pdf.line(startX, yPos + sigHeight, startX + contentWidth, yPos + sigHeight); // Horizontal divider
+
+        // Add PI signature
         if (piSignature) {
-            doc.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
-            doc.text("Signature of PI", margin, yPos + 25);
+            pdf.addImage(piSignature, 'PNG', startX + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
         } else {
-            doc.text("Signature of PI: ________________", margin, yPos + 10);
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "italic");
+            pdf.text("No signature added", startX + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
+        }
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Signature of PI ", startX + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+        pdf.text(`Name: ${data.name}`, startX + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
+
+
+        // Add AO signature
+        if (instituteApproved && authSignature) {
+            pdf.addImage(authSignature, 'PNG', startX + sigWidth + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+        } else {
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "italic");
+            pdf.text(sentForApproval ? "Awaiting approval" : "Not sent for approval yet",
+                startX + sigWidth + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
         }
 
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Signature of Institute", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
+        pdf.text("Accounts Officer", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+        pdf.text(`Name: ${instituteOfficials.accountsOfficer}`, startX + sigWidth + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
+
+        // Add Institute Head signature and stamp
         if (instituteApproved && instituteStamp) {
-            doc.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
-            doc.text("Institute Stamp & Signature", margin + 100, yPos + 25);
+            pdf.addImage(instituteStamp, 'PNG', startX + sigWidth * 2 + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+        } else {
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "italic");
+            pdf.text(sentForApproval ? "Awaiting approval" : "Not sent for approval yet",
+                startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
+        }
+
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.text("Signature of Head of Institute", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
+        pdf.text(`Name: ${instituteOfficials.headOfInstitute}`, startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+
+        // Add page numbers if there are multiple pages
+        const totalPages = pdf.internal.getNumberOfPages();
+        if (totalPages > 1) {
+            for (let i = 1; i <= totalPages; i++) {
+                pdf.setPage(i);
+                pdf.setFontSize(8);
+                pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin, 290);
+            }
         }
 
         const currentYear = data?.currentYear || "unknown_year";
-        doc.save(`SE_${id}_${currentYear}.pdf`);
+        pdf.save(`SE_${id}_${currentYear}.pdf`);
     };
 
     const today = new Date();
@@ -616,10 +861,6 @@ const SEForm = () => {
                             <span className="px-3 py-1 w-full">: {data.currentYear}</span>
                             <label className="font-semibold text-gray-700">Total Project Cost </label>
                             <span className="px-3 py-1 w-full">: {data.TotalCost}</span>
-                            <label className="font-semibold text-gray-700">Start Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.startDate}</span>
-                            <label className="font-semibold text-gray-700">End Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.endDate}</span>
                         </div>
 
                         <label className="font-semibold text-gray-700">Grant Received in Each Year:</label>
@@ -633,75 +874,107 @@ const SEForm = () => {
 
 
                         <div className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
-                            <h2 className="text-center text-2xl font-bold mb-4">Statement of Expenditure for FY {financialYear}</h2>
-                            <h3 className="text-center text-lg font-semibold mb-4">Statement of Expenditure to be submitted financial year wise.</h3>
+                            <h2 className="text-center text-2xl font-bold mb-4">STATEMENT OF EXPENDITURE (FY {financialYear})</h2>
+                            <h3 className="text-center text-lg font-semibold mb-4">Statement of Expenditure (to be submitted financial year wise )</h3>
                             <div className="overflow-x-auto">
                                 <table className="w-full border border-gray-300 rounded-lg text-sm">
                                     <thead>
                                         <tr className="bg-blue-100 text-gray-700">
-                                            <th className="border border-gray-400 px-4 py-2" rowSpan="2">S/N</th>
-                                            <th className="border border-gray-400 px-4 py-2" rowSpan="2">Sanctioned Heads</th>
-                                            <th className="border border-gray-400 px-4 py-2" rowSpan="2">Total Funds Sanctioned</th>
-                                            <th className="border border-gray-400 px-4 py-2" colSpan={yearlyExp.length}>Expenditure Incurred</th>
-                                            <th className="border border-gray-400 px-4 py-2" rowSpan="2">Total Expenditure</th>
-                                            <th className="border border-gray-400 px-4 py-2" rowSpan="2">Balance</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">S/No</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Sanctioned Heads</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Total Funds Sanctioned</th>
+                                            <th className="border border-gray-400 px-2 py-1" colSpan="3">Expenditure Incurred</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Total Expenditure (vii=iv+v+vi)</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Balance against sanctioned as on 31.03.{new Date().getFullYear()} (viii=iii-vii)</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Requirement of Funds unto 31st March next year</th>
+                                            <th className="border border-gray-400 px-2 py-1" rowSpan="2">Remarks (if any)</th>
                                         </tr>
                                         <tr className="bg-blue-100 text-gray-700">
-                                            {yearlyExp.map((_, index) => (
-                                                <th key={index} className="border border-gray-400 px-4 py-2">Year {index + 1}</th>
-                                            ))}
+                                            <th className="border border-gray-400 px-2 py-1">I Yr.</th>
+                                            <th className="border border-gray-400 px-2 py-1">II Yr.</th>
+                                            <th className="border border-gray-400 px-2 py-1">III Yr.</th>
+                                        </tr>
+                                        <tr className="bg-blue-100 text-gray-700 text-center">
+                                            <th className="border border-gray-400 px-2 py-1">(i)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(ii)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(iii)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(iv)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(v)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(vi)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(vii)</th>
+                                            <th className="border border-gray-400 px-2 py-1">(viii)</th>
+                                            <th className="border border-gray-400 px-2 py-1"></th>
+                                            <th className="border border-gray-400 px-2 py-1"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {[
-                                            { name: "Manpower Costs", key: "human_resources" },
-                                            { name: "Consumables", key: "consumables" },
-                                            { name: "Travel", key: "travel" },
-                                            { name: "Other Costs", key: "others" },
-                                            { name: "Equipment", key: "nonRecurring" },
-                                            { name: "Overhead Expenses", key: "overhead" },
-                                        ].map((head, index) => (
-                                            <tr key={index} className="text-center">
-                                                <td className="border border-gray-400 px-4 py-2">{index + 1}</td>
-                                                <td className="border border-gray-400 px-4 py-2">{head.name}</td>
-                                                <td className="border border-gray-400 px-4 py-2">
+                                            { id: 1, name: "Manpower Costs", key: "human_resources" },
+                                            { id: 2, name: "Consumables", key: "consumables" },
+                                            { id: 3, name: "Travel", key: "travel" },
+                                            { id: 4, name: "Contingencies", key: "contingencies" },
+                                            { id: 5, name: "Other Cost, if any", key: "others" },
+                                            { id: 6, name: "Equipments", key: "nonRecurring" },
+                                            { id: 7, name: "Overhead Expenses", key: "overhead" },
+                                        ].map((head) => (
+                                            <tr key={head.id} className="text-center">
+                                                <td className="border border-gray-400 px-2 py-1">{head.id}</td>
+                                                <td className="border border-gray-400 px-2 py-1 text-left">{head.name}</td>
+                                                <td className="border border-gray-400 px-2 py-1">
                                                     {budgetSanctioned[head.key] || 0}
                                                 </td>
-                                                {yearlyExp.map((yearData, yearIndex) => (
-                                                    <td key={yearIndex} className="border border-gray-400 px-4 py-2">
-                                                        {yearData?.recurring?.[head.key] || yearData?.[head.key] || 0}
-                                                    </td>
-                                                ))}
-                                                <td className="border border-gray-400 px-4 py-2">
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {yearlyExp[0]?.recurring?.[head.key] || yearlyExp[0]?.[head.key] || 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {yearlyExp[1]?.recurring?.[head.key] || yearlyExp[1]?.[head.key] || 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {yearlyExp[2]?.recurring?.[head.key] || yearlyExp[2]?.[head.key] || 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
                                                     {yearlyExp.reduce((acc, val) => acc + (val?.recurring?.[head.key] || val?.[head.key] || 0), 0)}
                                                 </td>
-                                                <td className="border border-gray-400 px-4 py-2">
+                                                <td className="border border-gray-400 px-2 py-1">
                                                     {(budgetSanctioned[head.key] || 0) -
                                                         yearlyExp.reduce((acc, val) => acc + (val?.recurring?.[head.key] || val?.[head.key] || 0), 0)}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {head.key === "overhead" ? (budgetSanctioned[head.key] * 0.3 || 0).toFixed(0) : 0}
+                                                </td>
+                                                <td className="border border-gray-400 px-2 py-1">
+                                                    {head.key === "nonRecurring" ? "Including of commitments" : ""}
                                                 </td>
                                             </tr>
                                         ))}
                                         <tr className="text-center font-bold">
-                                            <td className="border border-gray-400 px-4 py-2">{yearlyExp.length + 1}</td>
-                                            <td className="border border-gray-400 px-4 py-2">Total</td>
-                                            <td className="border border-gray-400 px-4 py-2">
+                                            <td className="border border-gray-400 px-2 py-1">8</td>
+                                            <td className="border border-gray-400 px-2 py-1 text-center">Total</td>
+                                            <td className="border border-gray-400 px-2 py-1">
                                                 {budgetSanctioned.total || 0}
                                             </td>
-                                            {yearlyExp.map((yearData, yearIndex) => (
-                                                <td key={yearIndex} className="border border-gray-400 px-4 py-2">
-                                                    {yearData?.yearTotal || 0}
-                                                </td>
-                                            ))}
-                                            <td className="border border-gray-400 px-4 py-2">
+                                            <td className="border border-gray-400 px-2 py-1">
+                                                {yearlyExp[0]?.yearTotal || 0}
+                                            </td>
+                                            <td className="border border-gray-400 px-2 py-1">
+                                                {yearlyExp[1]?.yearTotal || 0}
+                                            </td>
+                                            <td className="border border-gray-400 px-2 py-1">
+                                                {yearlyExp[2]?.yearTotal || 0}
+                                            </td>
+                                            <td className="border border-gray-400 px-2 py-1">
                                                 {yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0)}
                                             </td>
-                                            <td className="border border-gray-400 px-4 py-2">
+                                            <td className="border border-gray-400 px-2 py-1">
                                                 {(budgetSanctioned.total || 0) -
                                                     yearlyExp.reduce((acc, val) => acc + (val?.yearTotal || 0), 0)}
                                             </td>
+                                            <td className="border border-gray-400 px-2 py-1">
+                                                {(budgetSanctioned.overhead * 0.3 || 0).toFixed(0)}
+                                            </td>
+                                            <td className="border border-gray-400 px-2 py-1"></td>
                                         </tr>
                                     </tbody>
-
                                 </table>
                             </div>
                             <div className="mt-6">
@@ -715,44 +988,71 @@ const SEForm = () => {
                         <div className="border-t border-gray-200 pt-4 mb-6">
                             <h3 className="text-xl font-semibold mb-4">Signatures</h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="border p-4 rounded-lg">
-                                    <h4 className="font-medium mb-2">Principal Investigator</h4>
-                                    {piSignature ? (
-                                        <div className="border p-2 rounded mb-2">
-                                            <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
-                                        </div>
-                                    ) : (
-                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
-                                            <p className="text-gray-500">No signature added</p>
-                                        </div>
-                                    )}
+                            <div className="border border-gray-300 rounded-lg overflow-hidden">
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className="border border-gray-300 p-4 w-1/3">
+                                                <div className="h-24 mb-4">
+                                                    {piSignature ? (
+                                                        <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
+                                                    ) : (
+                                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24">
+                                                            <p className="text-gray-500">No signature added</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="font-medium mb-1">Signature of Principal Investigator</p>
+                                                <p className="font-medium">Name: {data.name}</p>
+                                                {!sentForApproval && (
+                                                    <button
+                                                        onClick={() => setShowSignatureModal(true)}
+                                                        className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        disabled={instituteApproved}
+                                                    >
+                                                        {piSignature ? "Change Signature" : "Add Signature"}
+                                                    </button>
+                                                )}
+                                            </td>
 
-                                    {!sentForApproval && (
-                                        <button
-                                            onClick={() => setShowSignatureModal(true)}
-                                            className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            disabled={instituteApproved}
-                                        >
-                                            {piSignature ? "Change Signature" : "Add Signature"}
-                                        </button>
-                                    )}
-                                </div>
+                                            <td className="border border-gray-300 p-4 w-1/3">
+                                                <div className="h-24 mb-4">
+                                                    {instituteApproved && instituteStamp ? (
+                                                        <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
+                                                    ) : (
+                                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24">
+                                                            <p className="text-gray-500">
+                                                                {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">Signature of Head of Institue</p>
+                                                    <p className="font-medium">Name: {instituteOfficials.headOfInstitute}</p>
+                                                </div>
+                                            </td>
 
-                                <div className="border p-4 rounded-lg">
-                                    <h4 className="font-medium mb-2">Institute Approval</h4>
-                                    {instituteApproved && instituteStamp ? (
-                                        <div className="border p-2 rounded mb-2">
-                                            <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
-                                        </div>
-                                    ) : (
-                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
-                                            <p className="text-gray-500">
-                                                {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
+                                            <td className="border border-gray-300 p-4 w-1/3">
+                                                <div className="h-24 mb-4">
+                                                    {instituteApproved && authSignature ? (
+                                                        <img src={authSignature} alt="CFO Signature" className="h-24 object-contain" />
+                                                    ) : (
+                                                        <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24">
+                                                            <p className="text-gray-500">
+                                                                {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">Signature of Institute Accounts Officer </p>
+                                                    <p className="font-medium">Name: {instituteOfficials.accountsOfficer}</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
 

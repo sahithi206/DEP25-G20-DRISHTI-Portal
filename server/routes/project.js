@@ -1,5 +1,5 @@
 const express = require("express");
-const { fetchUser } = require("../MddleWares/fetchUser");
+const { fetchUser } = require("../MiddleWares/fetchUser");
 const GeneralInfo = require("../Models/General_Info");
 const ResearchDetails = require("../Models/researchDetails");
 const User = require("../Models/user");
@@ -12,20 +12,11 @@ const RecurringUC = require("../Models/UcRecurring.js");
 const NonRecurringUC = require("../Models/UcNonrecurring.js");
 const SE = require("../Models/se/SE.js");
 const ProgressReport = require("../Models/progressReport.js");
-
 const Scheme = require("../Models/Scheme.js")
-const Proposal = require("../Models/Proposal");
-const bankDetails = require("../Models/bankDetails.js");
-const budgetSanctioned = require("../Models/budgetSanctioned.js");
-const Budget = require("../Models/Budget");
-const Recurring = require("../Models/Recurring");
-const NonRecurring = require("../Models/NonRecurring");
-const Bank = require("../Models/bankDetails.js");
-const Acknowledgement = require("../Models/acknowledgement");
 const Auth = require("./auth.js");
 const nodemailer = require("nodemailer");
-const UcNonrecurring = require("../Models/UcNonrecurring.js");
-
+const UCRequest = require("../Models/UCRequest.js");
+const Report = require("../Models/progressReport.js");
 const handleSaveAsPDF = () => {
   const pdf = new jsPDF("p", "mm", "a4");
 
@@ -136,15 +127,14 @@ const handleSaveAsPDF = () => {
 
 router.get("/get-projects", fetchUser, async (req, res) => {
   try {
-    let proj = await Project.find({ userId: req.user._id });
+    let proj = await Project.find({ userId: req.user._id }).populate("Scheme");
     if (proj.length <= 0) {
       return res.status(200).json({ success: false, msg: "No Sanctioned Projects" });
     }
-
     let projects = await Promise.all(
-      proj.map(async (proj, idx) => {
-        const start = new Date(proj.startDate); 
-        const end = new Date(proj.endDate); 
+      proj.map(async (proj) => {
+        const start = new Date(proj.startDate);
+        const end = new Date(proj.endDate);
 
         let status = "";
         if (new Date() < start) {
@@ -154,15 +144,13 @@ router.get("/get-projects", fetchUser, async (req, res) => {
         } else {
           status = "Completed";
         }
-
         if (status != proj.status) {
-          let project = await Project.findByIdAndUpdate(proj._id, { status: status }, { new: true });
+          let project = await Project.findByIdAndUpdate(proj._id, { status: status }, { new: true }).populate("Scheme");
           proj = project;
         }
         return proj;
       })
-    );
-
+    )
     return res.status(200).json({
       success: true,
       msg: "Sanctioned Projects Fetched Successfully",
@@ -180,7 +168,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
     console.log(projectid);
 
     if (!ObjectId.isValid(projectid)) {
-        return res.status(400).json({ success: false, msg: "Invalid Project ID" });
+      return res.status(400).json({ success: false, msg: "Invalid Project ID" });
     }
 
     let id = new ObjectId(projectid);
@@ -193,7 +181,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
     console.log(project);
     const start = new Date(project.startDate);
     const end = new Date(project.endDate);
-    
+
     let status = "";
     if (new Date() < start) {
       status = "Approved";
@@ -202,7 +190,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
     } else {
       status = "Completed";
     }
-    project = await Project.findByIdAndUpdate(id,{status:status},{new:true});
+    project = await Project.findByIdAndUpdate(id, { status: status }, { new: true }).populate("Scheme");
     const ids = await Project.findById(id)
       .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
 
@@ -232,7 +220,7 @@ router.get("/get-project/:projectid", fetchUser, async (req, res) => {
       success: true,
       msg: "Fetched Project's Details Successfully",
       project,
-      scheme:scheme.name,
+      scheme: scheme.name,
       generalInfo,
       researchDetails,
       PIDetails,
@@ -254,11 +242,11 @@ router.post("/uc/recurring/:id", fetchUser, async (req, res) => {
     if (!data) {
       return res.status(400).json({ success: false, msg: "Missing data in request body" });
     }
-    const prev = await RecurringUC.findOne({ projectId: req.params.id, scheme: data.scheme, currentYear: data.currentYear });
+    const prev = await UCRequest.findOne({ projectId: req.params.id, scheme: data.scheme, currentYear: data.currentYear });
     if (prev) {
       return res.status(400).json({ success: false, msg: "Already Submitted for Current Financial Year" });
     }
-    const newGrant = new RecurringUC({
+    const newGrant = new UCRequest({
       projectId: req.params.id,
       title: data.title,
       scheme: data.scheme,
@@ -317,15 +305,15 @@ router.post("/uc/nonRecurring/:id", fetchUser, async (req, res) => {
 });
 router.get("/ucforms/:id", fetchUser, async (req, res) => {
   try {
-    const recurringgrant = await RecurringUC.find({ projectId: req.params.id });
-    const grant = await NonRecurringUC.find({ projectId: req.params.id });
+    const grant = await UCRequest.find({ projectId: req.params.id }).populate("projectId").populate("scheme");
     const se = await SE.find({ projectId: req.params.id });
 
     if (grant.length <= 0 && recurringgrant.length <= 0 && se.length <= 0) {
       return res.status(404).json({ succes: false, msg: "Certificates not found" });
     }
 
-    res.status(200).json({ success: true, grant, se, recurringgrant, msg: "Certificates Fetched" });
+
+    res.status(200).json({ success: true, grant, se, msg: "Certificates Fetched" });
   } catch (error) {
     console.error("Error fetching Certificates:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -334,7 +322,7 @@ router.get("/ucforms/:id", fetchUser, async (req, res) => {
 
 router.get("/ucforms/recurring/:id", fetchUser, async (req, res) => {
   try {
-    const grant = await RecurringUC.findById(req.params.id);
+    const grant = await UCRequest.findById(req.params.id);
 
     if (!grant) {
       return res.status(404).json({ succes: false, msg: "Utilization Certificate not found" });
@@ -349,7 +337,7 @@ router.get("/ucforms/nonRecurring/:id", fetchUser, async (req, res) => {
   try {
     console.log(req.params.id);
     const { id } = req.params
-    const grant = await NonRecurringUC.findById(id);
+    const grant = await UCRequest.findById(id);
     console.log(grant);
     if (!grant) {
       return res.status(400).json({ succes: false, msg: "Utilization Certificate not found" });
@@ -362,8 +350,8 @@ router.get("/ucforms/nonRecurring/:id", fetchUser, async (req, res) => {
 });
 router.post("/se", fetchUser, async (req, res) => {
   try {
-    const { data, yearlyBudget, budgetSanctioned, manpower, consumables, others, equipment, total, totalExp, balance, piSignature } = req.body;
-    if (!data || !yearlyBudget || !budgetSanctioned || !manpower || !consumables || !others || !equipment || !total || !totalExp || !balance || !piSignature) {
+    const { data, yearlyBudget, budgetSanctioned, manpower, consumables, travel, overhead, others, equipment, total, totalExp, balance, piSignature } = req.body;
+    if (!data || !yearlyBudget || !budgetSanctioned || !manpower || !consumables || !travel || !overhead || !others || !equipment || !total || !totalExp || !balance || !piSignature) {
       return res.status(400).json({ success: false, msg: "Fill all the Details" });
     }
     const seCheck = await SE.findOne({ projectId: data.projectId, scheme: data.scheme, currentYear: data.currentYear });
@@ -371,7 +359,7 @@ router.post("/se", fetchUser, async (req, res) => {
     if (seCheck) {
       return res.status(400).json({ success: false, msg: "Statement for Current Financial Year was already Submitted" })
     }
-    const se = new SE({
+    let se = new SE({
       projectId: data.projectId,
       name: data.name,
       institute: data.institute,
@@ -384,6 +372,8 @@ router.post("/se", fetchUser, async (req, res) => {
       budgetSanctioned: budgetSanctioned,
       human_resources: manpower,
       consumables: consumables,
+      travel: travel,
+      overhead: overhead,
       others: others,
       nonRecurring: equipment,
       total: total,
@@ -392,6 +382,7 @@ router.post("/se", fetchUser, async (req, res) => {
       piSignature: piSignature,
     });
     await se.save();
+    se = await SE.findById(se._id).populate("scheme");
 
     res.status(200).json({ success: true, msg: "Statement of Expenditure not Submitted", se });
   }
@@ -563,17 +554,16 @@ router.get("/generate-uc/nonRecurring/:id", fetchUser, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 });
- 
+
 router.get("/view-uc/se/:id", fetchUser, async (req, res) => {
   try {
     const { id } = req.params;
-    const se = await SE.find({projectId:id});
-    const grant = await NonRecurringUC.find({projectId:id});
-    const recurringgrant= await RecurringUC.find({projectId:id});
+    const se = await SE.find({ projectId: id });
+    const grant = await UCRequest.find({ projectId: id });
     if (!se) {
       return res.status(400).json({ success: false, msg: "Statement of Expenditure Not Found" })
     }
-    res.status(200).json({ success: true, msg: "Statement of Expenditure not Submitted", se,grant,recurringgrant });
+    res.status(200).json({ success: true, msg: "Statement of Expenditure not Submitted", se, grant });
   }
   catch (e) {
     console.error("Error Fetching SE:", e);

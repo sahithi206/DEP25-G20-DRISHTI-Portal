@@ -64,7 +64,7 @@ const UserProposalsInsti = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      <Navbar yes={1} />
       <div className="flex flex-grow">
         <InstituteSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
         <main className="flex-grow container mx-auto p-6">
@@ -90,7 +90,7 @@ const UserProposalsInsti = () => {
               </select>
             </div>
 
-            {filteredProposals.length > 0 ? (
+            {filteredProposals&&filteredProposals.length > 0 ? (
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-200">
                   <tr>

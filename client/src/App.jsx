@@ -60,6 +60,7 @@ import ViewSE from "./pages/Admin/SE.jsx";
 import CommentsPage from "./pages/uc/CommentsPage.jsx";
 import Quotations from "./pages/Qutations/Quotations.jsx"
 import ProjectProgressReports from "./pages/Admin/ProjectProgressReport.jsx";
+import InstituteProfile from "./pages/college/InstituteProfile.jsx";
 
 import ProjectExpenses from "./pages/ProjectExpenses.jsx";
 import UCPage from "./pages/college/UCpage.jsx";
@@ -82,6 +83,7 @@ import FReport from "./pages/uc/se/Report";
 import ProjDashboard from "./pages/college/ProjectDashboard";
 import InstiQuotations from "./pages/college/Project/Quotations";
 import InstiQuotation from "./pages/college/Project/View.jsx";
+import SEPage from "./pages/college/Project/SE.jsx";
 
 function App() {
   const getData = async () => {
@@ -193,13 +195,14 @@ function MainLayout() {
           <Route path="/view-expenses/:projectId" element={<ViewExpenses />} />
           <Route path="/comments/:projectId/:ucType" element={<CommentsPage />} />
           <Route path="/ucInsti/:projectId" element={<UCPage />} />
+          <Route path="/seInsti/:projectId" element={<SEPage />} />
           <Route path="/institute/uc" element={<ApproveUC />} />
           <Route path="/institute/se" element={<ApproveSE />} />
           <Route path="/institute/requests" element={<ChangeInsti />} />
           <Route path="/institute/project-dashboard/:id" element={<ProjDashboard />} />
-          <Route path="/institute/viewQuotations/:id" element={<InstiQuotations/>}/>
-          <Route path="/institute/Quotation/:id" element={<InstiQuotation/>}/>
-
+          <Route path="/institute/viewQuotations/:id" element={<InstiQuotations/>} />
+          <Route path="/institute/Quotation/:id" element={<InstiQuotation/>} />
+          <Route path="/institute/profile" element={<InstituteProfile />} />
           </Route>
       </Routes>
     </div>

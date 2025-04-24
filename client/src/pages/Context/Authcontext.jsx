@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext } from "react";
 import { useNavigate } from "react-router-dom";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 const AuthContext = createContext();
 const url = import.meta.env.VITE_REACT_APP_URL;
 console.log(url);
@@ -499,6 +499,7 @@ const AuthProvider = (props) => {
       }
       const json = await response.json();
       toast.success(json.msg);
+      console.log(json.data);
       console.log(json.msg);
       return json.data;
     } catch (error) {
@@ -649,12 +650,15 @@ const AuthProvider = (props) => {
   // to be used when institute verification done 
   //  alright its done
 
-  const createInstitute = async (email, password, instituteName, otp) => {
+  const createInstitute = async (data) => {
     try {
+
+      console.log("Verifying OTP with data:", JSON.stringify(data));
+
       const response = await fetch(`${url}auth/create-institute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, college: instituteName, otp }),
+        body: JSON.stringify(data),
       });
 
       const json = await response.json();
@@ -911,6 +915,70 @@ const AuthProvider = (props) => {
     }
   };
 
+  const getInstUser = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("Token not found. Please log in.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${url}institute/profile`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": token,
+        },
+      });
+
+      const json = await response.json();
+      // console.log("ghdfjvvfbvhjdyfhukfh:", json)
+      if (!json.success) {
+        console.error(json.msg);
+        return;
+      }
+
+      return json.institute;
+    } catch (error) {
+      console.error("Error fetching User:", error);
+    }
+  };
+
+  // Add the fetchInstituteOfficials function
+  const fetchInstituteOfficials = async (instituteName) => {
+    try {
+      console.log("Inside FetchInstOfficials::: clg name is ", instituteName);
+      const response = await fetch(`${url}auth/officials`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accessToken: localStorage.getItem("token"),
+        },
+        body: JSON.stringify({ instituteName })
+      });
+
+      const result = await response.json();
+      console.log("Inside AuthContext::", result);
+      if (result.success) {
+        const headOfInstitute = result.data.find(official => official.role === 'Head of Institute');
+        const cfo = result.data.find(official => official.role === 'CFO');
+        const accountsOfficer = result.data.find(official => official.role === 'Accounts Officer');
+
+        // Return the officials data so components can use it if needed
+        return {
+          headOfInstitute: headOfInstitute ? headOfInstitute.name : "Not available",
+          cfo: cfo ? cfo.name : "Not available",
+          accountsOfficer: accountsOfficer ? accountsOfficer.name : "Not available"
+        };
+      } else {
+        console.error("Failed to fetch institute officials:", result.message);
+        return null;
+      }
+    } catch (err) {
+      console.error("Error fetching institute officials:", err.message);
+      return null;
+    }
+  };
 
   return (
     <AuthContext.Provider value={{
@@ -920,7 +988,7 @@ const AuthProvider = (props) => {
       submitPIDetails, submitAcknowledgement, getuser, approvedProjects, fetchInstituteProjects,
       userInstiAcceptedProposals, createInstitute, fetchInstituteUsers, loginInstitute, getProject,
       fetchSanctionedProjects, fetchInstituteGetProject, getSchemes, deleteProposal, adminLogin,
-      adminVerifyOtp, getAdmin, deleteExpense, editExpense
+      adminVerifyOtp, getAdmin, deleteExpense, editExpense, getInstUser, fetchInstituteOfficials
     }}>
       {props.children}
     </AuthContext.Provider>

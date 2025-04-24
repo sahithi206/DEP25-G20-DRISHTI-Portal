@@ -70,7 +70,10 @@ Sample Title,12,Sample Summary,"Objective 1\nObjective 2",Sample Output,Sample O
                 Title: data.proposalTitle,
                 Duration: data.projectDuration,
                 Summary: data.projectSummary,
-                objectives: data.objectives.split("\n"),
+                objectives: data.objectives
+                    .split("\n")
+                    .map((obj) => obj.trim())
+                    .filter((obj) => obj !== ""),
                 Output: data.expectedOutput,
                 other: data.otherDetails
             });
@@ -85,31 +88,31 @@ Sample Title,12,Sample Summary,"Objective 1\nObjective 2",Sample Output,Sample O
 
     return (
         <div className="container mx-auto p-6">
-                <div className="flex justify-between items-center mb-4">
-    <h1 className="text-2xl font-bold mb-4">Technical Details</h1>
-    <input
-        type="file"
-        accept=".json"
-        className="hidden"
-        id="fileInput"
-        onChange={handleFileUpload}
-    />
-    <label
-        htmlFor="fileInput"
-        className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
-    >
-        Import CSV
-    </label>
-</div>
-<div className="mb-4">
-    <a
-        href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvTemplate)}`}
-        download="template.csv"
-        className="text-blue-600 hover:underline"
-    >
-        Download CSV Template
-    </a>
-</div>
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl font-bold mb-4">Technical Details</h1>
+                <input
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    id="fileInput"
+                    onChange={handleFileUpload}
+                />
+                <label
+                    htmlFor="fileInput"
+                    className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
+                >
+                    Import CSV
+                </label>
+            </div>
+            <div className="mb-4">
+                <a
+                    href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvTemplate)}`}
+                    download="template.csv"
+                    className="text-blue-600 hover:underline"
+                >
+                    Download CSV Template
+                </a>
+            </div>
 
 
             <form className="bg-white p-6 rounded-lg shadow-md" onSubmit={handleSubmit}>

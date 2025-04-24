@@ -1,57 +1,55 @@
 const express = require("express");
 const SE = require("../Models/se/SE");
-const { fetchInstitute } = require("../MddleWares/fetchInstitute");
+const { fetchInstitute } = require("../MiddleWares/fetchInstitute");
 const router = express.Router();
-const { fetchAdmin } = require("../MddleWares/fetchAdmin.js");
+const { fetchAdmin } = require("../MiddleWares/fetchAdmin.js");
 
 
-// Submit SE (PI sends for approval)
-router.post("/submit", async (req, res) => {
-    try {
-        const {
-            projectId,
-            name,
-            scheme,
-            currentYear,
-            startDate,
-            endDate,
-            TotalCost,
-            budgetSanctioned,
-            totalExp,
-            balance,
-            piSignature,
-            institute
-        } = req.body;
+// // Submit SE (PI sends for approval)
+// router.post("/submit", async (req, res) => {
+//     try {
+//         const {
+//             projectId,
+//             name,
+//             scheme,
+//             currentYear,
+//             startDate,
+//             endDate,
+//             TotalCost,
+//             budgetSanctioned,
+//             totalExp,
+//             balance,
+//             piSignature,
+//             institute
+//         } = req.body;
 
-        console.log("Incoming SE data:", req.body);
-        const schemeDetails = await Scheme.findById(scheme);
-        const schemeName = schemeDetails ? schemeDetails.name : "Unknown Scheme";
+//         console.log("Incoming SE data:", req.body);
 
-        const newSE = new SE({
-            projectId,
-            name,
-            scheme : schemeName,
-            currentYear,
-            startDate,
-            endDate,
-            TotalCost,
-            budgetSanctioned,
-            totalExp,
-            balance,
-            piSignature,
-            institute,
-            status: "pending", // Use the status field from schema
-            submissionDate: new Date()
-        });
+//         const newSE = new SE({
+//             projectId,
+//             name,
+//             scheme,
+//             currentYear,
+//             startDate,
+//             endDate,
+//             TotalCost,
+//             budgetSanctioned,
+//             totalExp,
+//             balance,
+//             piSignature,
+//             institute,
+//             status: "pending", // Use the status field from schema
+//             submissionDate: new Date()
+//         });
 
-        await newSE.save();
-        console.log("SE saved successfully");
-        res.status(201).json({ success: true, data: newSE });
-    } catch (err) {
-        console.error("Error saving SE:", err);
-        res.status(500).json({ success: false, message: err.message, id: newSe._id });
-    }
-});
+//         await newSE.save();
+//         console.log("SE saved successfully");
+//         res.status(201).json({ success: true, data: newSE });
+//     } catch (err) {
+//         console.error("Error saving SE:", err);
+//         res.status(500).json({ success: false, message: err.message, id: newSe._id });
+//     }
+// });
 
 // Get all pending SEs for institute approval
 router.get("/pending", fetchInstitute, async (req, res) => {
@@ -60,13 +58,33 @@ router.get("/pending", fetchInstitute, async (req, res) => {
         console.log("INSTITUTE:", instituteName);
 
         const pendingSE = await SE.find({
-            status: "pending",
+            status: { $in: ["pending", "pendingAuthSign", "approvedByAuth"] },
             institute: instituteName
         });
 
         res.json({ success: true, data: pendingSE });
     } catch (err) {
         console.error("Error fetching pending SEs:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+//Get all pendingAuthSign SEs
+router.get("/pendingAuthSign", fetchInstitute, async (req, res) => {
+    try {
+        const instituteName = req.institute.college; // or req.institute.name if nested
+        console.log("INSTITUTE AO:", instituteName);
+
+        const pendingAuthSign = await SE.find({
+            status: "pendingAuthSign",
+            institute: instituteName
+        });
+
+        console.log("Pending AO Sign:", pendingAuthSign);
+
+        res.json({ success: true, data: pendingAuthSign });
+    } catch (err) {
+        console.error("Error fetching pendingAuthSign SEs:", err);
         res.status(500).json({ success: false, message: err.message });
     }
 });
@@ -102,10 +120,111 @@ router.put("/approve/:id", async (req, res) => {
     }
 });
 
+router.get("/latest", async (req, res) => {
+    try {
+        const { projectId } = req.query;
+
+        console.log("Incoming projectId:", projectId);
+
+        if (!projectId) {
+            return res.status(400).json({ success: false, message: "Project ID is required" });
+        }
+
+        const se = await SE.findOne({ projectId })
+
+        if (!se) {
+            return res.status(404).json({ success: false, message: "No SE found for this project" });
+        }
+
+        res.status(200).json({ success: true, data: se });
+    } catch (error) {
+        console.error("Error fetching latest SE:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+});
+
+router.put("/send-to-auth/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { instituteStamp } = req.body;
+
+        if (!instituteStamp) {
+            return res.status(400).json({ success: false, message: "Institute stamp is required" });
+        }
+
+        const updatedSE = await SE.findByIdAndUpdate(
+            id,
+            {
+                status: "pendingAuthSign",
+                instituteStamp,
+                approvalDate: new Date()
+            },
+            { new: true }
+        );
+
+        if (!updatedSE) {
+            return res.status(404).json({ success: false, message: "UC Request not found" });
+        }
+        res.json({ success: true, data: updatedSE });
+    } catch (err) {
+        console.error("Error approving UC:", err);
+        res.status(500).json({ success: false, message: "Server error during approval" });
+    }
+});
+
+router.put("/auth-approval/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { authSignature } = req.body;
+
+        if (!authSignature) {
+            return res.status(400).json({ success: false, message: "Institute stamp is required" });
+        }
+
+        const updatedSE = await SE.findByIdAndUpdate(
+            id,
+            {
+                status: "approvedByAuth",
+                authSignature,
+                approvalDate: new Date()
+            },
+            { new: true }
+        );
+
+        if (!updatedSE) {
+            return res.status(404).json({ success: false, message: "UC Request not found" });
+        }
+
+        res.json({ success: true, data: updatedSE });
+    } catch (err) {
+        console.error("Error approving UC:", err);
+        res.status(500).json({ success: false, message: "Server error during approval" });
+    }
+});
+
 // Get SE by projectId
 router.get("/:projectId", async (req, res) => {
     try {
-        const se = await SE.findOne({ projectId: req.params.projectId });
+        const se = await SE.find({ projectId: req.params.projectId });
+
+        if (!se) {
+            return res.status(404).json({ success: false, message: "No SE record found for this projectId" });
+        }
+
+        console.log("SE DATA:", se);
+        res.json({ success: true, data: se });
+    } catch (err) {
+        console.error("Error fetching SE by projectId:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+router.get("/get-se/:Id", fetchInstitute, async (req, res) => {
+    try {
+
+        const se = await SE.findById(req.params.Id);
+        console.log(req.params.Id);
+        console.log(se);
 
         if (!se) {
             return res.status(404).json({ success: false, message: "No SE record found for this projectId" });
@@ -137,31 +256,6 @@ router.get("/project/:name", async (req, res) => {
     }
 });
 
-// Get latest SE for a project (either pending or approved)
-router.get("/latest", async (req, res) => {
-    try {
-        const { projectId } = req.query;
-
-        // Validate projectId
-        if (!projectId) {
-            return res.status(400).json({ success: false, message: "Project ID is required" });
-        }
-
-        // Fetch the latest SE document for the given projectId
-        const se = await SE.findOne({ projectId }).sort({ createdAt: -1 });
-
-        if (!se) {
-            return res.status(404).json({ success: false, message: "No SE found for this project" });
-        }
-
-        res.status(200).json({ success: true, data: se });
-    } catch (error) {
-        console.error("Error fetching latest SE:", error);
-        res.status(500).json({ success: false, message: "Internal Server Error" });
-    }
-});
-
-// Get all SEs by institute
 router.get("/institute/:institute", async (req, res) => {
     try {
         const { institute } = req.params;

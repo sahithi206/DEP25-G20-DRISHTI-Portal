@@ -12,8 +12,7 @@ const SanctionedProposals = () => {
     const { approvedProjects } = useContext(AuthContext);
     const [acceptedProjects, setProjects] = useState([]);
     const [filteredProjects, setFilteredProjects] = useState([]);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [sortOrder, setSortOrder] = useState("newest");
+
 
     useEffect(() => {
         const fetchProjects = async () => {
@@ -32,46 +31,58 @@ const SanctionedProposals = () => {
                     throw new Error("Failed to fetch projects");
                 }
                 const json = await response.json();
-                const projects = json.projects?.map(project => ({
-                    id: project._id,
-                    title: project.Title,
-                    endDate: project.endDate,
-                    createdAt: project.createdAt
-                })) || [];
-                
-                setProjects(projects);
-                setFilteredProjects(projects);
+                console.log(json.projects);
+                setProjects(json.projects);
+                console.log(acceptedProjects);
+                if (acceptedProjects) {
+                    if (acceptedProjects && Array.isArray(acceptedProjects)) {
+                        const schemesArray = acceptedProjects.map(project => project.Scheme?.name || "");
+                        setSchemes(schemesArray);
+                    }
+                }
+                setFilteredProjects(json.projects);
             } catch (error) {
                 console.error("Error fetching projects:", error);
             }
         };
         fetchProjects();
     }, [url]);
+    const [schemes, setSchemes] = useState([]);
 
+
+    const [schemeFilter, setFilter] = useState("");
+    const [sortOrder, setSortOrder] = useState("desc");
+    const [searchTitle, setSearchTitle] = useState("");
     useEffect(() => {
-        const filterAndSortProjects = () => {
-            let results = [...acceptedProjects];
-            
-            // Apply search filter
-            if (searchTerm) {
-                results = results.filter(project =>
-                    project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    project.id.toLowerCase().includes(searchTerm.toLowerCase())
-                );
+        const filteredProjects = async () => {
+            let filtered = acceptedProjects;
+
+            if (searchTitle) {
+                const searchTerm = searchTitle.toLowerCase();
+                filtered = filtered.filter((project) => {
+                    if (project?.Title.toLowerCase().includes(searchTerm)) return true;
+
+                    return false;
+                });
             }
-            
-            // Apply sorting
-            results.sort((a, b) => {
-                const dateA = new Date(a.createdAt);
-                const dateB = new Date(b.createdAt);
-                return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
-            });
-            
-            setFilteredProjects(results);
+
+            if (schemeFilter) {
+                filtered = filtered.filter(project => project.project.Scheme.name === schemeFilter);
+            }
+
+            if (sortOrder) {
+                filtered = filtered.sort((a, b) => {
+                    const dateA = new Date(a.project.date);
+                    const dateB = new Date(b.project.date);
+                    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+                });
+            }
+
+            setFilteredProjects(filtered);
         };
-        
-        filterAndSortProjects();
-    }, [searchTerm, sortOrder, acceptedProjects]);
+
+        filteredProjects();
+    }, [searchTitle, sortOrder, acceptedProjects, schemeFilter]);
 
     return (
         <div className="flex bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900">
@@ -82,61 +93,58 @@ const SanctionedProposals = () => {
                 <div className="p-6 space-y-6 mt-16">
                     <div className="p-6 space-y-6">
                         <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700">
-                            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-                            <p className="mt-3 text-3xl font-bold text-blue-800">Ongoing Projects</p>
-                        </div>
-                        
-                        {/* Search and Filter Controls */}
-                        <div className="bg-white p-4 rounded-lg shadow-sm">
-                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                                {/* Search Input */}
-                                <div className="relative flex-1 w-full">
-                                    <div className="flex items-center rounded-lg px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 focus-within:bg-white focus-within:ring-1 focus-within:ring-blue-200">
-                                        <FaSearch className="text-gray-500 mr-2" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search by ID or Title"
-                                            className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-500 text-sm pr-8"
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                        {searchTerm && (
-                                            <button
-                                                onClick={() => setSearchTerm('')}
-                                                className="absolute right-3 text-gray-400 hover:text-gray-600 transition-colors"
-                                                aria-label="Clear search"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                                
-                                {/* Sort Dropdown */}
-                                <div className="flex items-center gap-2 w-full sm:w-auto">
-                                    <div className="flex items-center text-sm text-gray-600">
-                                        <FaFilter className="mr-1" />
-                                        <span>Sort:</span>
-                                    </div>
-                                    <div className="relative w-full sm:w-40">
-                                        <select
-                                            className="appearance-none w-full bg-white border border-gray-300 rounded-md pl-3 pr-8 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                            value={sortOrder}
-                                            onChange={(e) => setSortOrder(e.target.value)}
-                                        >
-                                            <option value="newest">Newest First</option>
-                                            <option value="oldest">Oldest First</option>
-                                        </select>
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                            <FaChevronDown className="text-xs" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                        <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>                            <p className="mt-3 text-3xl font-bold text-blue-800">Ongoing Projects</p>
                         </div>
 
+                        <div className="flex space-x-4  mb-4">
+                            <div className="relative flex-grow">
+                                <input
+                                    type="text"
+                                    placeholder="Search projects by PI name ..."
+                                    value={searchTitle}
+                                    onChange={(e) => setSearchTitle(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-5 w-5"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        role="img"
+                                        aria-label="Search icon"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
+                            <select
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value)}
+                                className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="newest">Newest</option>
+                                <option value="oldest">Oldest</option>
+                            </select>
+                            <select
+                                value={schemeFilter}
+                                onChange={(e) => setFilter(e.target.value)}
+                                className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">All</option>
+                                {schemes && schemes.length > 0 && schemes.map((val, index) => (
+                                    <option value={val} key={val._id}>{val}</option>
+                                ))}
+
+                            </select>
+                        </div>
                         {/* Projects Table */}
                         <div className="bg-white shadow-md rounded-xl overflow-hidden">
                             <div className="overflow-x-auto">
@@ -145,7 +153,8 @@ const SanctionedProposals = () => {
                                         <tr>
                                             <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">File No.</th>
                                             <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Project Title</th>
-                                            <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Time Left</th>
+                                            <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Scheme</th>
+                                            <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Days Left</th>
                                             <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">Action</th>
                                         </tr>
                                     </thead>
@@ -153,15 +162,16 @@ const SanctionedProposals = () => {
                                         {filteredProjects && filteredProjects.length > 0 ? (
                                             filteredProjects.map((project) => (
                                                 <tr key={project.id} className="group hover:bg-blue-50 transition-colors border-b last:border-b-0">
-                                                    <td className="p-4 text-center font-semibold text-xs">{project.id}</td>
-                                                    <td className="p-4 text-center font-semibold text-xs">{project.title}</td>
+                                                    <td className="p-4 text-center font-semibold text-xs">{project._id}</td>
+                                                    <td className="p-4 text-center font-semibold text-xs">{project.Title}</td>
+                                                    <td className="p-4 text-center font-semibold text-xs">{project.Scheme.name}</td>
                                                     <td className="p-4 text-center font-semibold text-xs">
                                                         {(() => {
                                                             const endDate = new Date(project.endDate);
                                                             const timeLeft = endDate - new Date();
                                                             if (timeLeft > 0) {
                                                                 const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
-                                                                return `${daysLeft} days left`;
+                                                                return `${daysLeft} `;
                                                             } else {
                                                                 return "Time expired";
                                                             }
@@ -170,7 +180,7 @@ const SanctionedProposals = () => {
                                                     <td className="p-4 text-center font-semibold text-xs">
                                                         <button
                                                             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                                                            onClick={() => navigate(`/project-dashboard/${project.id}`)}
+                                                            onClick={() => navigate(`/project-dashboard/${project._id}`)}
                                                         >
                                                             View Dashboard
                                                         </button>
@@ -180,7 +190,7 @@ const SanctionedProposals = () => {
                                         ) : (
                                             <tr className="bg-gray-100">
                                                 <td className="p-4 text-center font-semibold text-xs border-b border-blue-200" colSpan="4">
-                                                    {searchTerm ? "No projects match your search" : "No Sanctioned Projects"}
+                                                    {searchTitle ? "No projects match your search" : "No Sanctioned Projects"}
                                                 </td>
                                             </tr>
                                         )}

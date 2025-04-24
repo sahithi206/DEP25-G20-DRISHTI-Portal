@@ -6,6 +6,7 @@ const RequestSchema = new mongoose.Schema({
         ref: "Project",
         required: true
     }],
+    requestType:String,
     FormData: {
         piName: String,
         projectTitle: String,
@@ -35,7 +36,7 @@ const RequestSchema = new mongoose.Schema({
         ref: "users",
         required: true
     },
-    submittedAt: {
+    date: {
         type: Date,
         default: Date.now
     }

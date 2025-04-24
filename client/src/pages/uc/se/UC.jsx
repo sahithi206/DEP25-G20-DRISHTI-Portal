@@ -1,16 +1,18 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../Context/Authcontext";
 import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import SignatureCanvas from 'react-signature-canvas';
+import TermsAndConditions from "./TermsAndConditions";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
-
 const UCForm = () => {
   const { id: projectId } = useParams();
+  const { fetchInstituteOfficials } = useContext(AuthContext);
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -25,11 +27,17 @@ const UCForm = () => {
   const [sentForApproval, setSentForApproval] = useState(false);
   const [instituteApproved, setInstituteApproved] = useState(false);
   const [instituteStamp, setInstituteStamp] = useState(null);
+  const [authSignature, setauthSignature] = useState(null);
   const [showUploadOption, setShowUploadOption] = useState(false);
   const [sentToAdmin, setSentToAdmin] = useState(false);
   const [adminApproved, setAdminApproved] = useState(false);
   const [adminRejected, setAdminRejected] = useState(false);
   const [ucRequestId, setUcRequestId] = useState(null);
+  const [instituteOfficials, setInstituteOfficials] = useState({
+    headOfInstitute: "Loading...",
+    cfo: "Loading...",
+    accountsOfficer: "Loading...",
+  });
 
   const sigCanvas = useRef(null);
   const fileInputRef = useRef(null);
@@ -42,9 +50,13 @@ const UCForm = () => {
           const data = await res.json();
           if (data.success && data.data) {
             const uc = data.data;
+            const authData = await fetchInstituteOfficials(uc.ucData.instituteName);
+            console.log("Auth Data:", authData);
+            setInstituteOfficials(authData);
             setSentForApproval(true);
             setPiSignature(uc.piSignature);
             setInstituteStamp(uc.instituteStamp);
+            setauthSignature(uc.authSignature);
             setUcRequestId(uc._id);
             if (uc.status === "approvedByInst") {
               setInstituteApproved(true);
@@ -63,6 +75,11 @@ const UCForm = () => {
             }
             else {
               setInstituteApproved(false);
+              setInstituteOfficials({
+                headOfInstitute: "pending approval...",
+                cfo: "pending approval...",
+                accountsOfficer: "pending approval..."
+              });
             }
           } else {
             setSentForApproval(false);
@@ -76,7 +93,6 @@ const UCForm = () => {
     };
     fetchStatus();
   }, [projectId, selectedType]);
-
 
   useEffect(() => {
     let checkApprovalInterval;
@@ -178,9 +194,8 @@ const UCForm = () => {
         setError(result.message || `Error fetching ${type} UC data`);
         return;
       }
-
       setUCData(result.data);
-      console.log(result.data);
+      console.log("UC.jsx FetchUcData:", result.data);
     } catch (err) {
       console.error(`Error fetching ${type} UC data:`, err.message);
       setError(`Failed to fetch ${type} UC data`);
@@ -400,6 +415,7 @@ const UCForm = () => {
       );
     }
   }
+
   const handleSaveAsPDF = () => {
     const pdf = new jsPDF("p", "mm", "a4");
     const currentDate = new Date().toLocaleDateString("en-IN");
@@ -424,9 +440,14 @@ const UCForm = () => {
 
     const items = [
       { label: "Name of the grant receiving Organization", value: ucData.instituteName },
-      { label: "Name of Principal Investigator (PI)", value: ucData.principalInvestigator },
+      {
+        label: "Name of Principal Investigator (PI)", value: Array.isArray(ucData.principalInvestigator)
+          ? ucData.principalInvestigator.join(", ")
+          : ucData.principalInvestigator
+      },
       { label: "Title of the Project", value: ucData.title },
-      { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" }
+      { label: "Name of the Scheme", value: ucData.scheme || "N/A" },
+      { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" },
     ];
 
     let yPos = 60;
@@ -447,7 +468,7 @@ const UCForm = () => {
     yPos += 7;
 
     pdf.text("Carry forward from previous financial year", margin + 20, yPos);
-    pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
     yPos += 7;
 
     pdf.text("Others, If any", margin + 20, yPos);
@@ -455,7 +476,7 @@ const UCForm = () => {
     yPos += 7;
 
     pdf.text("Total", margin + 20, yPos);
-    pdf.text(`Rs ${ucData.CarryForward}`, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
     yPos += 10;
 
     pdf.text(`${itemNum + 1}`, margin, yPos);
@@ -464,21 +485,44 @@ const UCForm = () => {
 
     const headers = [
       [
-        { content: "Unspent Balance of Grants\nreceived years", colSpan: 1 },
-        { content: "Grant received\nduring the year", colSpan: 1 },
-        { content: "Total", colSpan: 1 },
+        { content: "Unspent Balances of\nGrants received years", colSpan: 1 },
+        { content: "Interest Earned\nthereon", colSpan: 1 },
+        { content: "Interest deposited\nback to Funding Agency", colSpan: 1 },
+        { content: "Grant received during the year", colSpan: 3 },
+        { content: "Total\n(1+2-3+4)", colSpan: 1 },
         { content: "Expenditure\nincurred", colSpan: 1 },
-        { content: "Closing\nBalance (5 - 6)", colSpan: 1 }
+        { content: "Closing Balance\n(5-6)", colSpan: 1 }
+      ],
+      [
+        { content: "1", colSpan: 1 },
+        { content: "2", colSpan: 1 },
+        { content: "3", colSpan: 1 },
+        { content: "Sanction No.", colSpan: 1 },
+        { content: "Date", colSpan: 1 },
+        { content: "Amount", colSpan: 1 },
+        { content: "5", colSpan: 1 },
+        { content: "6", colSpan: 1 },
+        { content: "7", colSpan: 1 }
       ]
     ];
 
+    const recurringExp = ucData.recurringExp || 0;
+    const nonRecurringExp = ucData.nonRecurringExp || 0;
+
+    const isRecurring = selectedType === "recurring";
+    const usedExp = isRecurring ? recurringExp : nonRecurringExp;
+
     const data = [
       [
-        `Rs ${ucData.CarryForward}`,
-        `Rs ${ucData.yearTotal}`,
-        `Rs ${ucData.total}`,
-        `Rs ${ucData.recurringExp}`,
-        `Rs ${ucData.total - ucData.recurringExp}`
+        `Rs ${ucData.CarryForward.toLocaleString()}`,
+        "Rs 0",
+        "Rs 0",
+        ucData.sanctionNumber || "N/A",
+        ucData.sanctionDate || "N/A",
+        `Rs ${ucData.yearTotal.toLocaleString()}`,
+        `Rs ${ucData.total.toLocaleString()}`,
+        `Rs ${usedExp.toLocaleString()}`,
+        `Rs ${(ucData.total - usedExp).toLocaleString()}`
       ]
     ];
 
@@ -492,7 +536,7 @@ const UCForm = () => {
         textColor: [0, 0, 0],
         halign: 'center',
         valign: 'middle',
-        fontSize: 9
+        fontSize: 8
       },
       styles: {
         fontSize: 8,
@@ -502,66 +546,48 @@ const UCForm = () => {
         lineColor: [0, 0, 0]
       },
       columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 40 },
-        4: { cellWidth: 40 }
+        0: { cellWidth: 25 },
+        1: { cellWidth: 20 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 20 },
+        7: { cellWidth: 20 },
+        8: { cellWidth: 25 }
       }
     });
 
     yPos = pdf.lastAutoTable.finalY + 10;
 
-    if (selectedType === "recurring") {
-      pdf.text("Component wise utilization of grants:", margin, yPos);
-      yPos += 5;
+    const amount = isRecurring ? recurringExp : nonRecurringExp;
 
-      const componentHeaders = [["Component", "Total"]];
-      const componentData = [
-        ["Human Resources", `Rs ${ucData.human_resources}`],
-        ["Consumables", `Rs ${ucData.consumables}`],
-        ["Others", `Rs ${ucData.others}`],
-        ["Total", `Rs ${ucData.recurringExp}`]
-      ];
+    pdf.text("Component wise utilization of grants:", margin, yPos);
+    yPos += 5;
 
-      pdf.autoTable({
-        head: componentHeaders,
-        body: componentData,
-        startY: yPos,
-        theme: 'grid',
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
-        styles: { fontSize: 10, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] }
-      });
+    const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
+    const formattedAmount = `Rs ${amount.toLocaleString()}`;
+    const componentData = [[formattedAmount, formattedAmount]];
 
-      yPos = pdf.lastAutoTable.finalY + 10;
-    } else {
-      pdf.text("Component wise utilization of grants:", margin, yPos);
-      yPos += 5;
+    pdf.autoTable({
+      head: componentHeaders,
+      body: componentData,
+      startY: yPos,
+      theme: 'grid',
+      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
+      styles: { fontSize: 10, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] }
+    });
 
-      const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
-      const componentData = [[`Rs ${ucData.recurringExp}`, `Rs ${ucData.recurringExp}`]];
+    yPos = pdf.lastAutoTable.finalY + 10;
 
-      pdf.autoTable({
-        head: componentHeaders,
-        body: componentData,
-        startY: yPos,
-        theme: 'grid',
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
-        styles: { fontSize: 10, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] }
-      });
-
-      yPos = pdf.lastAutoTable.finalY + 10;
-    }
-
-    // Details of grants position at end of year
     pdf.text("Details of grants position at the end of the year", margin, yPos);
     yPos += 7;
 
-    const closingBalance = ucData.total - ucData.recurringExp;
+    const closingBalance = isRecurring ? (ucData.total - recurringExp) : (ucData.total - nonRecurringExp);
 
     pdf.text("(i)", margin, yPos);
     pdf.text("Balance available at end of financial year", margin + 10, yPos);
-    pdf.text(`Rs ${closingBalance}`, margin + 100, yPos);
+    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
     yPos += 7;
 
     pdf.text("(ii)", margin, yPos);
@@ -571,16 +597,17 @@ const UCForm = () => {
 
     pdf.text("(iii)", margin, yPos);
     pdf.text("Balance (Carry forward to next financial year)", margin + 10, yPos);
-    pdf.text(`Rs ${closingBalance}`, margin + 100, yPos);
+    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
     yPos += 15;
 
     pdf.addPage();
     yPos = 20;
 
     pdf.setFontSize(10);
-    pdf.text("Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly fulfilled/are being fulfilled and that I", margin, yPos);
-    pdf.text("have exercised following checks to see that the money has been actually utilized for the purpose which it was sanctioned:", margin, yPos + 5);
-    yPos += 15;
+    pdf.text("Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly ", margin, yPos);
+    pdf.text("fulfilled/are being fulfilled and that I have exercised following checks to see that the money has ", margin, yPos + 5);
+    pdf.text("been utilized for the purpose for which it was sanctioned.", margin, yPos + 10);
+    yPos += 20;
 
     const certItems = [
       "The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.",
@@ -589,9 +616,6 @@ const UCForm = () => {
       "The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.",
       "The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.",
       "The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.",
-      "It has been ensured that the physical and financial performance under ECRA has been according to the requirements, as prescribed in the guidelines issued by Govt. of India and the performance/targets achieved statement for the year to which the utilization of the fund resulted in outcomes given at Annexure-I duly enclosed.",
-      "The utilization of the fund resulted in outcomes given at Annexure-II duly enclosed (to be formulated by the Ministry/Department concerned as per their requirements/specifications)",
-      "Details of various schemes executed by the agency through grants-in-aid received from the same Ministry or from other Ministries is enclosed at Annexure-II (to be formulated by the Ministry/Department concerned as per their requirements/specifications)"
     ];
 
     certItems.forEach((item, index) => {
@@ -606,28 +630,69 @@ const UCForm = () => {
 
     yPos += 10;
     pdf.text("Date: " + new Date().toLocaleDateString("en-IN"), margin, yPos);
+    yPos += 10;
+
+    // Set up signature section
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Signatures", margin, yPos);
     yPos += 5;
 
+    // Create signature table
+    const sigWidth = (contentWidth) / 3;
+    const sigHeight = 40;
+    const startX = margin;
+
+    // Draw signature table outline
+    pdf.rect(startX, yPos, contentWidth, sigHeight + 25);
+    pdf.line(startX + sigWidth, yPos, startX + sigWidth, yPos + sigHeight + 25); // First vertical divider
+    pdf.line(startX + sigWidth * 2, yPos, startX + sigWidth * 2, yPos + sigHeight + 25); // Second vertical divider
+    pdf.line(startX, yPos + sigHeight, startX + contentWidth, yPos + sigHeight); // Horizontal divider
+
+    // Add PI signature
     if (piSignature) {
-      pdf.addImage(piSignature, 'PNG', margin, yPos, 50, 20);
-      pdf.text("Signature of PI", margin, yPos + 25);
+      pdf.addImage(piSignature, 'PNG', startX + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
     } else {
-      pdf.text("Signature of PI: ________________", margin, yPos + 10);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "italic");
+      pdf.text("No signature added", startX + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
+    }
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("Signature of PI : ...........................", startX + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+
+    // Add CFO signature
+    if (instituteApproved && authSignature) {
+      pdf.addImage(authSignature, 'PNG', startX + sigWidth + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+    } else {
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "italic");
+      pdf.text(sentForApproval ? "Awaiting approval" : "Not sent for approval yet",
+        startX + sigWidth + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
     }
 
-    // Add institute stamp if approved (only for recurring type)
-    if (instituteApproved && instituteStamp && selectedType === "recurring") {
-      pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
-      pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("Signature ...............", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
+    pdf.text(`Name: ${instituteOfficials.cfo}`, startX + sigWidth + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+    pdf.text("Chief Finance Officer", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
+    pdf.text("(Head of Finance)", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 20, { align: "center" });
+
+    // Add Institute Head signature and stamp
+    if (instituteApproved && instituteStamp) {
+      pdf.addImage(instituteStamp, 'PNG', startX + sigWidth * 2 + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+    } else {
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "italic");
+      pdf.text(sentForApproval ? "Awaiting approval" : "Not sent for approval yet",
+        startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
     }
 
-    if (instituteApproved && instituteStamp && selectedType === "nonRecurring") {
-      pdf.addImage(instituteStamp, 'PNG', margin + 100, yPos, 50, 20);
-      pdf.text("Institute Stamp & Signature", margin + 100, yPos + 25);
-    }
-
-    yPos += 35;
-
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("Signature.................", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
+    pdf.text(`Name: ${instituteOfficials.headOfInstitute}`, startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+    pdf.text("Head of Organisation", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
     pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
   };
 
@@ -642,6 +707,7 @@ const UCForm = () => {
       });
 
       const result = await response.json();
+
 
       if (!result.success) {
         setError(result.message || "Failed to send UC to admin");
@@ -832,74 +898,102 @@ const UCForm = () => {
                   <h3 className="text-lg font-semibold text-blue-700 mb-4">
                     {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
                   </h3>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
+                    <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
+
+                    <label className="font-semibold text-gray-700">Name of the Principal Investigator(s):</label>
+                    <span className="px-3 py-1 w-full">:{ucData.principalInvestigator?.length > 0 ? (
+                      <ul className="list-disc pl-5">
+                        {ucData.principalInvestigator.map((name, idx) => (
+                          <li key={idx}>{name}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "N/A"
+                    )}
+                    </span>
+
                     <label className="font-semibold text-gray-700">Title of the Project:</label>
                     <span className="px-3 py-1 w-full">: {ucData.title}</span>
 
                     <label className="font-semibold text-gray-700">Name of the Scheme:</label>
                     <span className="px-3 py-1 w-full">: {ucData.scheme}</span>
 
-                    <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
-
-                    <label className="font-semibold text-gray-700">Name of the Principal Investigator(s):</label>
-                    <ul className="px-3 py-1 w-full list-disc list-inside">
-                      {ucData.principalInvestigator.map((pi, index) => (
-                        <li key={index}>{pi}</li>
-                      ))}
-                    </ul>
+                    <label className="font-semibold text-gray-700">Whether recurring or non-recurring:</label>
+                    <span className="px-3 py-1 w-full">: {selectedType}</span>
 
                     <label className="font-semibold text-gray-700">Present Year of Project:</label>
                     <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
 
-                    <label className="font-semibold text-gray-700">Start Date of Year:</label>
+                    {/* <label className="font-semibold text-gray-700">Start Date of Year:</label>
                     <span className="px-3 py-1 w-full">: {ucData.startDate}</span>
 
                     <label className="font-semibold text-gray-700">End Date of Year:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.endDate}</span>
+                    <span className="px-3 py-1 w-full">: {ucData.endDate}</span> */}
                     <div className="mb-6">
-    <h3 className="text-lg font-semibold text-gray-700 mb-4">
-        Grants position at the beginning of the Financial year
-    </h3>
-    <div className="pl-11 grid grid-cols-2 gap-4">
-        <label className="text-gray-700">Carry forward from previous financial year</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                        Grants position at the beginning of the Financial year
+                      </h3>
+                      <div className="pl-11 grid grid-cols-2 gap-4">
+                        <label className="text-gray-700">Carry forward from previous financial year</label>
+                        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
 
-        <label className="text-gray-700">Others, If any</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
+                        <label className="text-gray-700">Others, If any</label>
+                        <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
 
-        <label className="text-gray-700">Total</label>
-        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
-    </div>
-</div>
+                        <label className="text-gray-700">Total</label>
+                        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+                      </div>
+                    </div>
                   </div>
                   <h3 className="text-lg font-semibold text-blue-700 mb-4">Financial Summary</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full border border-gray-300 rounded-lg">
                       <thead>
                         <tr className="bg-blue-100 text-gray-700">
-                          <th className="border border-gray-400 px-4 py-2">UnSpent Balances from Previous Years</th>
-                          <th className="border border-gray-400 px-4 py-2">Grant Received</th>
-                          <th className="border border-gray-400 px-4 py-2">Total</th>
-                          <th className="border border-gray-400 px-4 py-2">Recurring Expenditure</th>
-                          <th className="border border-gray-400 px-4 py-2">Closing Balance</th>
+                          <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
+                          <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
+                          <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
+                          <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
+                          <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
+                          <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
+                          <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
+                        </tr>
+                        <tr className="bg-blue-50 text-gray-700">
+                          <th className="border border-gray-400 px-4 py-2">1</th>
+                          <th className="border border-gray-400 px-4 py-2">2</th>
+                          <th className="border border-gray-400 px-4 py-2">3</th>
+                          <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
+                          <th className="border border-gray-400 px-4 py-2">Date</th>
+                          <th className="border border-gray-400 px-4 py-2">Amount</th>
+                          <th className="border border-gray-400 px-4 py-2">5</th>
+                          <th className="border border-gray-400 px-4 py-2">6</th>
+                          <th className="border border-gray-400 px-4 py-2">7</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr className="text-center">
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.CarryForward}</td>
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.yearTotal}</td>
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.total}</td>
-                          <td className="border border-gray-400 px-4 py-2">Rs {ucData.recurringExp}</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                          <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || '23/2017/003478'}</td>
+                          <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || '12-03-2025'}</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
+                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
                           <td className="border border-gray-400 px-4 py-2">
-                            Rs {ucData.total - ucData.recurringExp}
+                            ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
                           </td>
+                          <td className="border border-gray-400 px-4 py-2">
+                            ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                          </td>
+
                         </tr>
                       </tbody>
                     </table>
                   </div>
 
-                  {selectedType === "recurring" && (
+                  {(selectedType === "recurring" || selectedType !== "recurring") && (
                     <>
                       <h3 className="text-lg font-semibold text-blue-700 mt-6 mb-4">
                         Component-wise Utilization of Grants
@@ -908,94 +1002,131 @@ const UCForm = () => {
                         <table className="w-full border border-gray-300 rounded-lg">
                           <thead>
                             <tr className="bg-blue-100 text-gray-700">
-                              <th className="border border-gray-400 px-4 py-2">Component</th>
-                              <th className="border border-gray-400 px-4 py-2">Amount</th>
+                              <th className="border border-gray-400 px-4 py-2">Grant-in-aid-General</th>
+                              <th className="border border-gray-400 px-4 py-2">Total</th>
                             </tr>
                           </thead>
                           <tbody>
                             <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">Human Resources</td>
-                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.human_resources}</td>
+                              <td className="border border-gray-400 px-4 py-2">
+                                ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                              </td>
+                              <td className="border border-gray-400 px-4 py-2">
+                                ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                              </td>
                             </tr>
-                            <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">Consumables</td>
-                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.consumables}</td>
-                            </tr>
-                            <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">Others</td>
-                              <td className="border border-gray-400 px-4 py-2">Rs {ucData.others}</td>
-                            </tr>
+
                           </tbody>
                         </table>
                       </div>
                     </>
                   )}
 
-                  <div className="mb-6">
-                    <div className="font-semibold text-gray-700 mb-2">Certification</div>
-                    <p className="text-sm mb-2">
-                      Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly fulfilled/are being fulfilled and that I
-                      have exercised following checks to see that the money has been actually utilized for the purpose which it was sanctioned:
-                    </p>
-                    <ol className="list-roman pl-6 text-sm space-y-2">
-                      <li>The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.</li>
-                      <li>There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.</li>
-                      <li>To the best of our knowledge and belief, no transactions have been entered that are in violation of relevant Act/Rules/standing instructions and scheme guidelines.</li>
-                      <li>The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms an</li>
-                      <li>The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.</li>
-                      <li>The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.</li>
-                      <li>The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.</li>
-                      <li>It has been ensured that the physical and financial performance under ECRA has been according to the requirements, as prescribed in the guidelines issued by Govt. of India and the performance/targets achieved statement for the year to which the utilization of the fund resulted in outcomes given at Annexure-I duly enclosed.</li>
-                      <li>The utilization of the fund resulted in outcomes given at Annexure-II duly enclosed (to be formulated by the Ministry/Department concerned as per their requirements/specifications)</li>
-                      <li>Details of various schemes executed by the agency through grants-in-aid received from the same Ministry or from other Ministries is enclosed at Annexure-II (to be formulated by the Ministry/Department concerned as per their requirements/specifications)</li>
-                    </ol>
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-blue-700 mb-4">
+                      Details of grants position at the end of the year
+                    </h3>
+                    <div className="pl-5">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex">
+                          <span className="mr-2">(i)</span>
+                          <span>Balance available at end of financial year</span>
+                        </div>
+                        <span>
+                          : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                        </span>
+
+                        <div className="flex">
+                          <span className="mr-2">(ii)</span>
+                          <span>Unspent balance refunded to Funding Agency (if any)</span>
+                        </div>
+                        <span>: ₹ 0</span>
+
+                        <div className="flex">
+                          <span className="mr-2">(iii)</span>
+                          <span>Balance (Carry forward to next financial year)</span>
+                        </div>
+                        <span>
+                          : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
+
+                  <TermsAndConditions />
 
                   {/* Signature Section */}
                   <div className="border-t border-gray-200 pt-4 mb-6">
                     <h3 className="text-xl font-semibold mb-4">Signatures</h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="border p-4 rounded-lg">
-                        <h4 className="font-medium  mb-1">Principal Investigator Signature</h4>
-                        <p className="text-medium mb-2 text-gray-500">{ucData.principalInvestigator}</p>                        {piSignature ? (
-                          <div className="border p-2 rounded mb-2">
-                            <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
-                          </div>
-                        ) : (
-                          <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
-                            <p className="text-gray-500">No signature added</p>
-                          </div>
-                        )}
+                    <div className="border border-gray-300 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <tbody>
+                          <tr>
+                            <td className="border border-gray-300 p-4 w-1/3">
+                              <div className="h-24 mb-4">
+                                {piSignature ? (
+                                  <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
+                                ) : (
+                                  <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24">
+                                    <p className="text-gray-500">No signature added</p>
+                                  </div>
+                                )}
+                              </div>
+                              <p className="font-medium">Signature of PI : ...........................</p>
+                              <p className="font-medium">Name: {ucData.principalInvestigator[0]}</p>
+                              {!sentForApproval && (
+                                <button
+                                  onClick={() => setShowSignatureModal(true)}
+                                  className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  disabled={instituteApproved}
+                                >
+                                  {piSignature ? "Change Signature" : "Add Signature"}
+                                </button>
+                              )}
+                            </td>
 
-                        {!sentForApproval && (
-                          <button
-                            onClick={() => setShowSignatureModal(true)}
-                            className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            disabled={instituteApproved}
-                          >
-                            {piSignature ? "Change Signature" : "Add Signature"}
-                          </button>
-                        )}
-                      </div>
+                            <td className="border border-gray-300 p-4 w-1/3">
+                              <div className="h-24 mb-4">
+                                {instituteApproved && authSignature ? (
+                                  <img src={authSignature} alt="CFO Signature" className="h-24 object-contain" />
+                                ) : (
+                                  <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24">
+                                    <p className="text-gray-500">
+                                      {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-medium">Signature ...............</p>
+                                <p className="font-medium">Name: {instituteOfficials.cfo}</p>
+                                <p className="font-medium">Chief Finance Officer</p>
+                                <p className="font-medium">(Head of Finance)</p>
+                              </div>
+                            </td>
 
-                      <div className="border p-4 rounded-lg">
-
-                        <h4 className="font-medium  mb-1">Institute Approval</h4>
-                        <p className="text-medium mb-2 text-gray-500">{ucData.instituteName}</p>
-
-                        {instituteApproved && instituteStamp ? (
-                          <div className="border p-2 rounded mb-2">
-                            <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
-                          </div>
-                        ) : (
-                          <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
-                            <p className="text-gray-500">
-                              {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                            <td className="border border-gray-300 p-4 w-1/3">
+                              <div className="h-24 mb-4">
+                                {instituteApproved && instituteStamp ? (
+                                  <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
+                                ) : (
+                                  <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24">
+                                    <p className="text-gray-500">
+                                      {sentForApproval ? "Awaiting approval" : "Not sent for approval yet"}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-medium">Signature.................</p>
+                                <p className="font-medium">Name: {instituteOfficials.headOfInstitute}</p>
+                                <p className="font-medium">Head of Organisation</p>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 

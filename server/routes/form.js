@@ -596,7 +596,7 @@ router.get("/acceptedproposals", fetchUser, async (req, res) => {
   try {
     const userId = req.user._id;
     console.log("User ID from Token:", userId);
-    const proposals = await Proposal.find({ userId: userId, status: "Approved" });
+    const proposals = await Proposal.find({ userId: userId, status: "Approved" }).populate("Scheme");
     console.log("Fetched Proposals:", proposals);
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No proposals found" });
@@ -607,9 +607,10 @@ router.get("/acceptedproposals", fetchUser, async (req, res) => {
       const proposalId = proposal._id;
       const researchDetails = await ResearchDetails.findOne({ proposalId: proposal._id })
         .select("Title Duration");
+      const Scheme = await proposal.Scheme;
       console.log("Research Details:", researchDetails);
 
-      return { proposalId, researchDetails };
+      return { proposalId, researchDetails,proposal };
     }));
 
     console.log("Final Data:", data);

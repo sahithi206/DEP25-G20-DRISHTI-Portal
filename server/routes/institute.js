@@ -1,22 +1,13 @@
-
 const express = require("express");
 const router = express.Router();
 const Proposal = require("../Models/Proposal");
 const User = require("../Models/user");
 const GeneralInfo = require("../Models/General_Info");
 const ResearchDetails = require("../Models/researchDetails");
-const Budget = require("../Models/Budget");
-const Recurring = require("../Models/Recurring");
-const NonRecurring = require("../Models/NonRecurring");
-const Bank = require("../Models/bankDetails.js");
-const Acknowledgement = require("../Models/acknowledgement");
 const Institute = require("../Models/instituteID");
 const Project = require("../Models/Project.js");
 const PI = require("../Models/PI");
 const Expense = require("../Models/expense.js");
-const bankDetails = require("../Models/bankDetails.js");
-const budgetSanctioned = require("../Models/budgetSanctioned.js");
-const YearlyData = require("../Models/YearlyData.js");
 const csv = require("csv-parser");
 const { fetchInstitute } = require("../Middlewares/fetchInstitute.js");
 const { ObjectId } = require("mongodb");
@@ -24,16 +15,19 @@ const mongoose = require("mongoose");
 const moment = require("moment");
 const ExcelJS = require('exceljs');
 const Scheme = require("../Models/Scheme.js");
-
+const UCRequest = require("../Models/UCRequest.js");
+const SE = require("../Models/se/SE.js");
+const YearlyData = require("../Models/YearlyData");
 router.get("/institute-projects", fetchInstitute, async (req, res) => {
   try {
     const institute = req.institute.college;
-
     const users = await User.find({ Institute: institute });
     const userIds = users.map(user => user._id);
 
-    const projects = await Proposal.find({ userId: { $in: userIds }, status: "Accepted" }).populate('userId', 'Name');
-
+    const projects = await Project.find({ userId: { $in: userIds }, status: "Ongoing" })
+      .populate({ path: 'userId', select: 'Name' })
+      .populate({ path: 'Scheme', select: 'name' });
+    console.log("Fetched Projects:", projects);
     res.status(200).json({ success: true, projects });
   } catch (error) {
     console.error("Error fetching projects:", error.message);
@@ -59,24 +53,24 @@ router.get("/:userId/accepted-proposals", fetchInstitute, async (req, res) => {
     if (proj.length <= 0) {
       return res.status(200).json({ success: false, msg: "No Sanctioned Projects" })
     }
-    let projects= await Promise.all(
-        proj.map(async (proj,idx)=>{
-          const start = new Date(proj.startDate);
-    const end = new Date(proj.endDate);
-    let status = "";
-    if (new Date() < start) {
-      status = "Approved";
-    } else if (new Date() >= start && new Date() <= end) {
-      status = "Ongoing";
-    } else {
-      status = "Completed";
-    }
-    if(status!=proj.status){
-      let project = await Project.findByIdAndUpdate(proj._id,{status:status},{new:true});
-       proj=project;
-    }
-      return proj;
-        })
+    let projects = await Promise.all(
+      proj.map(async (proj, idx) => {
+        const start = new Date(proj.startDate);
+        const end = new Date(proj.endDate);
+        let status = "";
+        if (new Date() < start) {
+          status = "Approved";
+        } else if (new Date() >= start && new Date() <= end) {
+          status = "Ongoing";
+        } else {
+          status = "Completed";
+        }
+        if (status != proj.status) {
+          let project = await Project.findByIdAndUpdate(proj._id, { status: status }, { new: true });
+          proj = project;
+        }
+        return proj;
+      })
     )
     console.log(projects);
     return res.status(200).json({
@@ -95,7 +89,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
     console.log(projectid);
 
     if (!ObjectId.isValid(projectid)) {
-        return res.status(400).json({ success: false, msg: "Invalid Project ID" });
+      return res.status(400).json({ success: false, msg: "Invalid Project ID" });
     }
 
     let id = new ObjectId(projectid);
@@ -108,7 +102,8 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
     console.log(project);
     const start = new Date(project.startDate);
     const end = new Date(project.endDate);
-    
+
+
     let status = "";
     if (new Date() < start) {
       status = "Approved";
@@ -117,7 +112,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
     } else {
       status = "Completed";
     }
-    project = await Project.findByIdAndUpdate(id,{status:status},{new:true});
+    project = await Project.findByIdAndUpdate(id, { status: status }, { new: true });
     const ids = await Project.findById(id)
       .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
 
@@ -147,7 +142,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
       success: true,
       msg: "Fetched Project's Details Successfully",
       project,
-      scheme:scheme.name,
+      scheme: scheme.name,
       generalInfo,
       researchDetails,
       PIDetails,
@@ -163,6 +158,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
     return res.status(500).json({ success: false, msg: "Failed to Fetch Project Details", error: "Internal Server Error" });
   }
 });
+
 router.get("/sanctioned-projects", fetchInstitute, async (req, res) => {
   try {
     const institute = req.institute.college;
@@ -170,7 +166,7 @@ router.get("/sanctioned-projects", fetchInstitute, async (req, res) => {
     const users = await User.find({ Institute: institute }).select("_id");
     const userIds = users.map(user => user._id);
     console.log("Projects", users, userIds);
-    const projects = await Project.find({ userId: { $in: userIds } });
+    const projects = await Project.find({ userId: { $in: userIds }, status: "Ongoing" }).populate('Scheme');
     console.log("Projects", projects);
     if (!projects.length) {
       return res.status(404).json({ success: false, msg: "No sanctioned projects found" });
@@ -655,11 +651,9 @@ router.post('/upload-expenses', async (req, res) => {
       return res.status(400).json({ message: 'CSV data is empty or invalid' });
     }
 
-    // Parse CSV rows
     const rows = csvData.split('\n');
     const headers = rows[0].split(',');
 
-    // Check for required headers (adjusted for new column order)
     const requiredHeaders = ['Date', 'CommittedDate', 'Description', 'Amount', 'Type'];
     const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
 
@@ -669,7 +663,6 @@ router.post('/upload-expenses', async (req, res) => {
       });
     }
 
-    // Process each row and map to the database column names
     const expenses = [];
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i].split(',');
@@ -706,6 +699,113 @@ router.post('/upload-expenses', async (req, res) => {
     res.status(500).json({ message: 'Failed to upload expenses', error: error.message });
   }
 });
+
+router.get("/ucforms/:id", fetchInstitute, async (req, res) => {
+  try {
+    const recurringgrant = await UCRequest.find({ projectId: req.params.id });
+    const grant = await UCRequest.find({ projectId: req.params.id });
+    const se = await SE.find({ projectId: req.params.id });
+
+    if (grant.length <= 0 && recurringgrant.length <= 0 && se.length <= 0) {
+      return res.status(404).json({ succes: false, msg: "Certificates not found" });
+    }
+
+    res.status(200).json({ success: true, grant, se, recurringgrant, msg: "Certificates Fetched" });
+  } catch (error) {
+    console.error("Error fetching Certificates:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get('/profile', fetchInstitute, async (req, res) => {
+  try {
+
+    console.log("Inst Details:", req.institute);
+    const instituteId = req.institute._id;
+    const institute = await Institute.findById(instituteId).select("-password");
+
+    if (!institute) {
+      return res.status(404).json({ error: "Institute not found" });
+    }
+
+    res.status(200).json({ success: true, institute });
+  } catch (error) {
+    console.error("Error fetching institute profile:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+router.put('/profile', fetchInstitute, async (req, res) => {
+  const { name, email, college, role } = req.body;
+  
+  const profileFields = {};
+  if (name) profileFields.name = name;
+  if (email) profileFields.email = email;
+  if (college) profileFields.college = college;
+  if (role) profileFields.role = role;
+  
+  try {
+    let admin = await Institute.findById(req.user.id);
+    
+    if (!admin) {
+      return res.status(404).json({ msg: 'Admin profile not found' });
+    }
+    
+    if (email && email !== admin.email) {
+      const emailExists = await Institute.findOne({ email });
+      if (emailExists) {
+        return res.status(400).json({ msg: 'Email already in use' });
+      }
+    }
+    
+    admin = await Institute.findByIdAndUpdate(
+      req.user.id,
+      { $set: profileFields },
+      { new: true }
+    ).select('-password');
+    
+    res.json(admin);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// router.put('/password', fetchInstitute, async (req, res) => {
+//   const { currentPassword, newPassword } = req.body;
+
+//   if (!currentPassword || !newPassword) {
+//     return res.status(400).json({ msg: 'Both current and new passwords are required' });
+//   }
+
+//   try {
+//     const institute = await Institute.findById(req.user.id);
+
+//     if (!institute) {
+//       return res.status(404).json({ msg: 'Institute profile not found' });
+//     }
+
+//     const isMatch = await bcrypt.compare(currentPassword, institute.password);
+//     if (!isMatch) {
+//       return res.status(400).json({ msg: 'Current password is incorrect' });
+//     }
+
+//     const isSamePassword = await bcrypt.compare(newPassword, institute.password);
+//     if (isSamePassword) {
+//       return res.status(400).json({ msg: 'New password must be different from the current password' });
+//     }
+
+//     const salt = await bcrypt.genSalt(10);
+//     institute.password = await bcrypt.hash(newPassword, salt);
+//     await institute.save();
+
+//     return res.json({ msg: 'Password updated successfully' });
+//   } catch (err) {
+//     console.error('Password update error:', err.message);
+//     return res.status(500).json({ msg: 'Internal server error' });
+//   }
+// });
 
 
 module.exports = router;

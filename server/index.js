@@ -21,13 +21,11 @@ const SERoutes = require("./routes/SERoutes.js");
 const ExpenseComment = require("./routes/expenseComments.js");
 
 
-app.use(cors())
+app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-// app.use(express.json());
 
 
-// Add this to your Express server setup
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
@@ -35,6 +33,7 @@ app.use((req, res, next) => {
   );
   next();
 });
+
 
 app.get("/", (req, res) => {
   res.send("Backend Connected!!!");

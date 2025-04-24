@@ -262,7 +262,7 @@ const BudgetAllocationForm = () => {
     <div className="flex h-screen bg-gray-100">
       <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
-        <AdminNavbar activeSection={activeSection} />
+        <AdminNavbar activeSection={activeSection}  yes={1} />
         <div className="p-8">
           <div className="p-8 border rounded-lg bg-gray-50 shadow-sm">
 

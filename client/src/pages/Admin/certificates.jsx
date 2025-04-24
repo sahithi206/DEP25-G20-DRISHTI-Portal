@@ -44,8 +44,8 @@ const Certificates = () => {
                     return;
                 }
                 setData(json.grant);
-                console.log("Project",json.project);
-                setUser({name:json?.project?.Name,institute:json?.project?.Institute});
+                console.log("Project", json.project);
+                setUser({ name: json?.project?.Name, institute: json?.project?.Institute });
                 if (type === "nonRecurring") {
                     console.log(data.nonRecurringExp);
                     console.log("nonRecurring", data.total - data.nonRecurringExp)
@@ -69,7 +69,7 @@ const Certificates = () => {
         <div className="flex h-screen bg-gray-100">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
-                <AdminNavbar activeSection={activeSection} />
+                <AdminNavbar activeSection={activeSection}  yes={1} />
                 <div className="p-6 space-y-6 mt-3">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
                         <h1 className="mt-3 text-2xl font-bold text-blue-800">{`Final Utilization Certificate of the  Year ${data.currentYear}`}</h1>
@@ -92,12 +92,10 @@ const Certificates = () => {
                             <span className="px-3 py-1 w-full">: {data.scheme}</span>
                             <label className="font-semibold text-gray-700">Present Year of Project</label>
                             <span className="px-3 py-1 w-full">: {data.currentYear}</span>
-                            <label className="font-semibold text-gray-700">Start Date of Year</label>
+                            {/* <label className="font-semibold text-gray-700">Start Date of Year</label>
                             <span className="px-3 py-1 w-full">: {data.startDate}</span>
-
                             <label className="font-semibold text-gray-700">End Date of Year</label>
-                            <span className="px-3 py-1 w-full">: {data.endDate}</span>
-
+                            <span className="px-3 py-1 w-full">: {data.endDate}</span> */}
                         </div>
 
                         <h3 className="text-lg font-semibold text-blue-700 mb-4">Grant Details</h3>

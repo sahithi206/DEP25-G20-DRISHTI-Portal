@@ -5,8 +5,8 @@ const ExpenseComment = require("../Models/ExpenseComment");
 const Expense = require("../Models/expense");
 const User = require("../Models/user");
 const institute = require("../Models/instituteID");
-const { fetchUser } = require("../Middlewares/fetchUser");
-const { fetchInstitute } = require("../Middlewares/fetchInstitute");
+const { fetchUser } = require("../MiddleWares/fetchUser");
+const { fetchInstitute } = require("../MiddleWares/fetchInstitute");
 
 // ✅ Add an Expense Comment
 router.post("/add", async (req, res) => {

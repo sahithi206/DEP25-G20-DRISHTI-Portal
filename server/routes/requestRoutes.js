@@ -1,10 +1,10 @@
 const express = require("express");
 const Request = require("../Models/Request");
-const { fetchUser } = require("../MddleWares/fetchUser");
+const { fetchUser } = require("../MiddleWares/fetchUser");
 const Project = require("../Models/Project");
 const router = express.Router();
-const { fetchInstitute } = require("../MddleWares/fetchInstitute");
-const { fetchAdmin } = require("../MddleWares/fetchAdmin");
+const { fetchInstitute } = require("../MiddleWares/fetchInstitute");
+const { fetchAdmin } = require("../MiddleWares/fetchAdmin");
 const ChangeInstitute =  require("../Models/Requests/ChangeInstitute");
 const {ObjectId}= require("mongodb");
 router.get("/", async (req, res) => {
@@ -43,6 +43,21 @@ router.get("/user-requests", fetchUser, async (req, res) => {
         const userId = req.user._id;
         const requests = await Request.find({ userId });
         res.status(200).json({ success: true, requests });
+    } catch (error) {
+        console.error("Error fetching requests:", error);
+        res.status(500).json({ success: false, msg: "Failed to fetch requests", error });
+    }
+});
+router.get("/requests", fetchInstitute, async (req, res) => {
+    try {
+        const college = req.institute.college;
+        const requests = await Request.find().populate("userId");
+        if(!requests){
+            return res.status(400).json({success:false,msg:"No requests Found"});
+        }
+        const request = requests.filter(requ=>requ.userId.Institute===college);
+    
+        res.status(200).json({ success: true, request });
     } catch (error) {
         console.error("Error fetching requests:", error);
         res.status(500).json({ success: false, msg: "Failed to fetch requests", error });
@@ -100,6 +115,7 @@ router.post("/submit-cirequest", fetchUser, async (req, res) => {
             FormData:requestPayload.description,
             userId:req.user._id,
             status:"Pending",
+            requestType:"Change Institute"
 
         })
         await request.save();
@@ -125,12 +141,18 @@ router.get("/get-ci",fetchAdmin, async (req, res) => {
 });
 router.get("/get-instituteci",fetchInstitute, async (req, res) => {
     try {
-        const requests = await ChangeInstitute.find()
+        console.log("user",req.institute);
+        let request = await ChangeInstitute.find()
         .populate("projects userId")
         .lean();
-    
+        console.log(request);
+        if (!req.institute || !req.institute.college) {
+            return res.status(400).json({ success: false, msg: "Institute details are missing" });
+        }
+        console.log(req.institute.college);
+        let requests = request.filter(reque => reque.userId?.Institute === req.institute.college);
         console.log(requests);
-        res.status(200).json({success:"true",requests});
+        res.status(200).json({ success: "true", requests });
     } catch (error) {
         console.log(error.msg);
         res.status(500).json({ msg: "Server error", error });
@@ -172,6 +194,21 @@ router.put('/:id/update-status',fetchInstitute, async (req, res) => {
     console.log(id);
     id=new ObjectId(id);
     const { status } = req.body;
+    console.log("req",status);
+    try {
+      let request = await ChangeInstitute.findById(id);
+      if (!request) {
+        return res.status(404).json({ success: false, message: "Request not found" });
+      }
+       request = await ChangeInstitute.findByIdAndUpdate(id,{status},{new:true});
+        return   res.json({ success: true, message: `Request ${status} successfully.` });
+    } catch (error) {
+      console.error(error.message);
+     return   res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  });
+  router.put('/requests',fetchInstitute, async (req, res) => {
+    let { id } = req.params;
     console.log("req",status);
     try {
       let request = await ChangeInstitute.findById(id);
