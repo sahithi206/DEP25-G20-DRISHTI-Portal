@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";import Home from "./pages/Home";
-import Login from "./pages/Login";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Toast from "./utils/toast";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ProtectedRoute from "./ProtectedRoute.jsx";
 import EditProfile from "./pages/EditUser.jsx";
 import ProposalScheme from "./pages/ProposalScheme";
 import SavedProposals from "./pages/SavedProposals";
@@ -98,13 +100,11 @@ function App() {
   }, []);
 
   return (
-      <Router>
-            <AuthProvider>
-
+    <Router>
+      <AuthProvider>
         <MainLayout />
-        </AuthProvider>
-
-      </Router>
+      </AuthProvider>
+    </Router>
   );
 }
 
@@ -122,6 +122,7 @@ function MainLayout() {
         <Route path="/adminLogin" element={<AdminLogin />} />
         <Route path="/adminSignup" element={<AdminSignup />} />
         <Route path="/institute-login" element={<InstituteLogin />} />
+        <Route element={<ProtectedRoute />}>
           <Route path="/menupage" element={<MenuPage />} />
           <Route path="/formsubmission" element={<ProposalScheme />} />
           <Route path="/savedproposals" element={<SavedProposals />} />
@@ -202,6 +203,7 @@ function MainLayout() {
           <Route path="/institute/viewQuotations/:id" element={<InstiQuotations/>} />
           <Route path="/institute/Quotation/:id" element={<InstiQuotation/>} />
           <Route path="/institute/profile" element={<InstituteProfile />} />
+          </Route>
       </Routes>
     </div>
   );
