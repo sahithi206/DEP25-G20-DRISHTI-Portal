@@ -86,7 +86,7 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
     }
 
     return (
-        <div className="w-72 bg-gray-900 text-white flex flex-col p-5 h-screen overflow-y-auto">
+        <div className="w-72 bg-gray-900 text-white flex flex-col p-5 min-h-screen sticky top-0 overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6">Admin Panel</h2>
             <ul className="space-y-2">
                 {menuItems.map(({ label, icon: Icon, id, path, children }) => (
