@@ -32,77 +32,107 @@ router.post("/send-otp", async (req, res) => {
   console.log(email);
 
   try {
-    let user = await User.findOne({ email: req.body.email });
-    if (user) {
-      return res.status(400).json({ success: false, msg: "A User with this email already exists" });
+    // Check if email exists in User, Admin, or Institute collections
+    const user = await User.findOne({ email });
+    const admin = await Admin.findOne({ email });
+    const institute = await Institute.findOne({ email });
+
+    if (user || admin || institute) {
+      return res.status(400).json({ success: false, msg: "A user with this email already exists" });
     }
 
+    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
     await OTPModel.create({ email, otp, createdAt: new Date() });
     console.log(otp);
-    transporter.sendMail(
-      {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Your Login OTP",
-        text: `Your OTP for login is: ${otp}. It is valid for 5 minutes.`,
-      },
-    );
+
+    // Send OTP email
+    transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your Login OTP",
+      text: `Your OTP for login is: ${otp}. It is valid for 5 minutes.`,
+    });
+
     res.status(200).json({ success: true, msg: "OTP sent successfully" });
   } catch (e) {
     console.log(e);
-    res.status(404).send({ success: false, msg: 'Failed to send OTP' });
+    res.status(500).send({ success: false, msg: 'Failed to send OTP' });
   }
-})
+});
+
 router.post("/forgot-passwordotp", async (req, res) => {
   const { email } = req.body;
   try {
-    let user = await User.findOne({ email: req.body.email });
-    if (!user) {
-      return res.status(400).json({ success: false, msg: "No user with this email exists" });
+    // Check in User, Admin, and Institute collections
+    const user = await User.findOne({ email });
+    const admin = await Admin.findOne({ email });
+    const institute = await Institute.findOne({ email });
+
+    if (!user && !admin && !institute) {
+      return res.status(400).json({ success: false, msg: "No account with this email exists" });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000);
     await OTPModel.create({ email, otp, createdAt: new Date() });
     console.log(otp);
-    transporter.sendMail(
-      {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Password Recovery",
-        text: `Your OTP for Password Recovery is: ${otp}. It is valid for 5 minutes.`,
-      },
-    );
+
+    transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Recovery",
+      text: `Your OTP for Password Recovery is: ${otp}. It is valid for 5 minutes.`,
+    });
+
     res.status(200).json({ success: true, msg: "OTP sent successfully" });
   } catch (e) {
     console.log(e);
     res.status(500).json({ success: false, e, msg: "Couldn't Send OTP" });
   }
-})
+});
+
 router.post("/forgot-password", async (req, res) => {
   const { email, password, otp } = req.body;
+
   try {
     if (!email || !otp || !password) {
-      return res.status(400).json({ success: true, msg: "All fields are required" });
+      return res.status(400).json({ success: false, msg: "All fields are required" });
     }
-    console.log(otp);
-    const uer = await User.findOne({ email });
-    if (!uer) return res.status(400).json({ success: false, msg: "User doesn't exists with this email" });
 
+    // Check OTP
     const validOtp = await OTPModel.findOne({ email, otp });
     if (!validOtp || new Date() - new Date(validOtp.createdAt) > 5 * 60 * 1000) {
       return res.status(400).json({ success: false, msg: "Invalid or expired OTP" });
     }
+
+    // Delete OTP after checking
     await OTPModel.deleteOne({ _id: validOtp._id });
+
+    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const isUser = await User.findOneAndUpdate({ email }, { password: hashedPassword }, { new: true });
-    res.status(200).json({ success: true, msg: "Password is Successfully Changed!!" });
+
+    // Check which model the user belongs to and update accordingly
+    let updatedUser = await User.findOneAndUpdate({ email }, { password: hashedPassword }, { new: true });
+    if (!updatedUser) {
+      updatedUser = await Admin.findOneAndUpdate({ email }, { password: hashedPassword }, { new: true });
+    }
+    if (!updatedUser) {
+      updatedUser = await Institute.findOneAndUpdate({ email }, { password: hashedPassword }, { new: true });
+    }
+
+    if (!updatedUser) {
+      return res.status(400).json({ success: false, msg: "No account with this email found" });
+    }
+
+    res.status(200).json({ success: true, msg: "Password changed successfully!" });
+
   } catch (e) {
     console.log(e);
-    res.status(500).json({ success: false, e, msg: "Couldn't Change Password" });
+    res.status(500).json({ success: false, msg: "Couldn't change password", error: e });
   }
-})
+});
+
 router.post("/verify-otp", async (req, res) => {
   const { email, password, Name, Institute, DOB, Mobile, Gender, role, idType, idNumber, otp, address, Dept } = req.body;
   try {
@@ -151,6 +181,7 @@ router.post("/verify-otp", async (req, res) => {
     res.status(500).json({ success: false, e, msg: "Couldn't verify OTP" });
   }
 });
+
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -175,6 +206,7 @@ router.post("/login", async (req, res) => {
     res.status(500).send({ success: "false", msg: 'Failed to save user' });
   }
 });
+
 router.get("/get-user", fetchUser, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -187,6 +219,7 @@ router.get("/get-user", fetchUser, async (req, res) => {
     res.status(500).json({ success: false, e, msg: "Unable to fetch users details" });
   }
 });
+
 router.post("/get-pi", async (req, res) => {
   const { email } = req.body
   try {

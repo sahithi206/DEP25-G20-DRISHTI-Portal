@@ -16,8 +16,8 @@ const Signup = () => {
     idType: "",
     idNumber: "",
     institute: "",
-    address:"",
-    Dept:"",
+    address: "",
+    Dept: "",
   });
 
   const [error, setError] = useState("");
@@ -60,20 +60,26 @@ const Signup = () => {
       setError("Please enter an email to receive OTP.");
       return;
     }
+
     try {
       setLoading(true);
-      console.log("Sending OTP to:", data.email); 
-      await sendOtp(data.email);
+      const response = await sendOtp(data.email);
+
+      // Check if sendOtp returned an error
+      if (response && !response.success) {
+        setError(response.msg || "Failed to send OTP.");
+        return;
+      }
+
       setShowOtpField(true);
       setError("");
     } catch (error) {
       console.error("Error sending OTP:", error);
-      setError("Failed to send OTP.");
+      setError(error.response?.data?.msg || error.message || "Failed to send OTP.");
     } finally {
       setLoading(false);
     }
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -91,17 +97,19 @@ const Signup = () => {
         idNumber: data.idNumber,
         role: "PI",
         otp: String(data.otp),
-        address:data.address,
-        Dept:data.Dept,
+        address: data.address,
+        Dept: data.Dept,
       });
-      if (response.data.success) {
+
+      if (response && response.data && response.data.success) {
         setError("");
         setCurrentStep(3);
       } else {
-        setError(response.data.msg || "OTP verification failed.");
+        setError((response && response.data && response.data.msg) || "OTP verification failed.");
       }
     } catch (error) {
-      setError(error.response?.data?.msg || "Registration failed.");
+      console.error("Verification error:", error);
+      setError(error.response?.data?.msg || error.message || "Registration failed.");
     } finally {
       setLoading(false);
     }
@@ -129,22 +137,22 @@ const Signup = () => {
     }),
     option: (provided, state) => ({
       ...provided,
-      backgroundColor: state.isSelected ? '#4f46e5' : state.isFocused ? '#eef2ff' : 'white',
+      backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#f0f9ff' : 'white',
       color: state.isSelected ? 'white' : '#1e293b',
     }),
   };
 
   const renderStepIndicator = () => (
-    <div className="flex items-center justify-center mb-8">
+    <div className="flex items-center justify-center mb-6">
       <div className="flex items-center">
         <div className={`rounded-full h-10 w-10 flex items-center justify-center border-2 ${currentStep >= 1 ? "bg-blue-600 border-blue-600 text-white" : "border-gray-300 text-gray-500"}`}>
           1
         </div>
-        <div className={`h-1 w-12 ${currentStep >= 2 ? "bg-blue-600" : "bg-gray-300"}`}></div>
+        <div className={`h-1 w-10 ${currentStep >= 2 ? "bg-blue-600" : "bg-gray-300"}`}></div>
         <div className={`rounded-full h-10 w-10 flex items-center justify-center border-2 ${currentStep >= 2 ? "bg-blue-600 border-blue-600 text-white" : "border-gray-300 text-gray-500"}`}>
           2
         </div>
-        <div className={`h-1 w-12 ${currentStep >= 3 ? "bg-blue-600" : "bg-gray-300"}`}></div>
+        <div className={`h-1 w-10 ${currentStep >= 3 ? "bg-blue-600" : "bg-gray-300"}`}></div>
         <div className={`rounded-full h-10 w-10 flex items-center justify-center border-2 ${currentStep >= 3 ? "bg-green-600 border-green-600 text-white" : "border-gray-300 text-gray-500"}`}>
           <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${currentStep >= 3 ? "text-white" : "text-gray-300"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -163,10 +171,10 @@ const Signup = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Registration Successful!</h2>
-          <p className="text-gray-600 mb-6 text-center">Your account has been created successfully.<br />You can now log in using your credentials.</p>
-          <button 
-            onClick={() => window.location.href = '/login'} 
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Registration Successful!</h2>
+          <p className="text-gray-600 mb-6 text-center">Your account has been created successfully.<br />You can now log in to access the ResearchX platform.</p>
+          <button
+            onClick={() => window.location.href = '/login'}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition duration-200"
           >
             Proceed to Login
@@ -176,31 +184,31 @@ const Signup = () => {
     }
 
     return (
-      <form onSubmit={showOtpField ? handleSubmit : handleSendOtp} className="space-y-6">
+      <form onSubmit={showOtpField ? handleSubmit : handleSendOtp} className="space-y-5">
         {currentStep === 1 && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                 <input
                   type="text"
                   name="name"
                   value={data.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
                   placeholder="Enter your full name"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                 <input
                   type="email"
                   name="email"
                   value={data.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
                   placeholder="your.email@example.com"
                 />
               </div>
@@ -208,7 +216,7 @@ const Signup = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <div className="relative">
                   <input
                     type="password"
@@ -216,45 +224,46 @@ const Signup = () => {
                     value={data.password}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
                     placeholder="Create a strong password"
                   />
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Use at least 8 characters with numbers and symbols</p>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Date of Birth</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
                 <input
                   type="date"
                   name="dob"
                   value={data.dob}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Mobile Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
                 <input
                   type="text"
                   name="mobile"
                   value={data.mobile}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
                   placeholder="Enter your mobile number"
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Gender</label>
-                <select 
-                  name="gender" 
-                  value={data.gender} 
-                  onChange={handleChange} 
-                  required 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm appearance-none bg-white"
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <select
+                  name="gender"
+                  value={data.gender}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm appearance-none bg-white"
                 >
                   <option value="">Select Gender</option>
                   {["male", "female", "other"].map((option) => (
@@ -263,28 +272,26 @@ const Signup = () => {
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-1">
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Address</label>
-                <input
-                  type="text"
-                  name="address"
-                  value={data.address}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
-                  placeholder="Enter your Address"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+              <textarea
+                name="address"
+                value={data.address}
+                onChange={handleChange}
+                required
+                rows="2"
+                className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
+                placeholder="Enter your complete address"
+              ></textarea>
             </div>
 
-            <div className="flex justify-end">
-              <button 
-                type="button" 
-                onClick={nextStep} 
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center"
+            <div className="flex justify-end mt-6">
+              <button
+                type="button"
+                onClick={nextStep}
+                className="px-6 py-3 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition flex items-center font-medium"
               >
-                Next
+                Next Step
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
@@ -297,96 +304,106 @@ const Signup = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">ID Type</label>
-                <select 
-                  name="idType" 
-                  value={data.idType} 
-                  onChange={handleChange} 
-                  required 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm appearance-none bg-white"
+                <label className="block text-sm font-medium text-gray-700 mb-1">ID Type</label>
+                <select
+                  name="idType"
+                  value={data.idType}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm appearance-none bg-white"
                 >
                   <option value="">Select ID Type</option>
-                  {["aadhaar", "passport"].map((option) => (
+                  {["aadhaar", "passport", "pan", "driving license"].map((option) => (
                     <option key={option} value={option}>{option.charAt(0).toUpperCase() + option.slice(1)}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">ID Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ID Number</label>
                 <input
                   type="text"
                   name="idNumber"
                   value={data.idNumber}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
                   placeholder={`Enter your ${data.idType ? data.idType : 'ID'} number`}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-gray-700 font-medium mb-2">Institute</label>
-              <Select 
-                options={colleges} 
-                value={selectedOption} 
-                onChange={handleSelectChange} 
-                placeholder="Search for your institute" 
+              <label className="block text-sm font-medium text-gray-700 mb-1">Institute</label>
+              <Select
+                options={colleges}
+                value={selectedOption}
+                onChange={handleSelectChange}
+                placeholder="Search for your institute"
                 styles={customSelectStyles}
-                className="react-select-container" 
+                className="react-select-container"
                 classNamePrefix="react-select"
               />
+              <p className="text-xs text-gray-500 mt-1">Type to search for your institution</p>
             </div>
-            <div className="grid grid-cols-1">
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Department</label>
-                <input
-                  type="text"
-                  name="Dept"
-                  value={data.Dept}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
-                  placeholder="Enter your Department"
-                />
-              </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+              <input
+                type="text"
+                name="Dept"
+                value={data.Dept}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
+                placeholder="E.g., Psychology, Computer Science, Medicine"
+              />
             </div>
+
             {showOtpField ? (
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Enter OTP</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Enter OTP</label>
                 <div className="flex">
-                  <input 
-                    type="text" 
-                    name="otp" 
-                    value={data.otp} 
-                    onChange={handleChange} 
-                    required 
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 shadow-sm"
+                  <input
+                    type="text"
+                    name="otp"
+                    value={data.otp}
+                    onChange={handleChange}
+                    required
+                    className="flex-1 px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
                     placeholder="Enter OTP sent to your email"
                   />
                 </div>
-                <p className="text-sm text-gray-500 mt-1">Please check your email for the OTP</p>
+                <p className="text-xs text-gray-500 mt-1">Please check your email for the verification code</p>
               </div>
             ) : (
-              <div>
-                <p className="text-sm text-gray-600 mb-2">We'll send an OTP to verify your email address</p>
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-blue-700">We'll send a verification code to your email address</p>
+                  </div>
+                </div>
               </div>
             )}
 
-            <div className="flex justify-between">
-              <button 
-                type="button" 
-                onClick={prevStep} 
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 flex items-center"
+            <div className="flex justify-between mt-6">
+              <button
+                type="button"
+                onClick={prevStep}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition flex items-center"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                Back
+                Previous
               </button>
-              <button 
-                type="submit" 
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center"
+              <button
+                type="submit"
+                className="px-6 py-3 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition flex items-center font-medium"
                 disabled={loading}
               >
                 {loading ? (
@@ -398,7 +415,7 @@ const Signup = () => {
                     Processing...
                   </>
                 ) : (
-                  showOtpField ? "Complete Registration" : "Send OTP"
+                  showOtpField ? "Complete Registration" : "Send Verification Code"
                 )}
               </button>
             </div>
@@ -409,16 +426,25 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-2xl">
-        {renderStepIndicator()}
-        
-        <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Register</h2>
+    <div className="min-h-screen flex justify-center items-center bg-gradient-to-b from-blue-50 to-slate-100 p-4">
+      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-2xl border border-gray-100">
+        <div className="flex justify-center mb-6">
+          <div className="h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
         </div>
-        
+
+        <div className="mb-6 text-center">
+          <h2 className="text-2xl font-semibold text-gray-800">Create ResearchX Account</h2>
+          <p className="text-gray-500 mt-1">Join our research community</p>
+        </div>
+
+        {renderStepIndicator()}
+
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-5 rounded">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -431,12 +457,19 @@ const Signup = () => {
             </div>
           </div>
         )}
-        
+
         {renderForm()}
+
+        {currentStep !== 3 && (
+          <div className="mt-8 pt-5 border-t border-gray-200">
+            <p className="text-xs text-center text-gray-500">
+              Already have an account? <a href="/login" className="text-blue-600 hover:underline">Sign in</a> instead.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default Signup;
-

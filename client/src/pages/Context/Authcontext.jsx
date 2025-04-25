@@ -119,13 +119,22 @@ const AuthProvider = (props) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
+
       const json = await response.json();
-      if (!response.ok) throw new Error(json.message || "Failed to send OTP");
+
+      if (!response.ok) {
+        console.error("Failed to send OTP:", json.msg || json.message);
+        toast.error(json.msg || json.message || "Failed to send OTP");
+        return json; // Return error response to be handled by caller
+      }
 
       console.log("OTP Sent:", json);
+      toast.success(json.msg || "OTP sent successfully");
+      return json; // Return success response
     } catch (e) {
       console.error("Cannot send OTP:", e.message);
-      toast.error(e.message);
+      toast.error(e.message || "Network error while sending OTP");
+      return { success: false, msg: e.message || "Network error" };
     }
   };
 
@@ -932,8 +941,8 @@ const AuthProvider = (props) => {
       });
 
       const json = await response.json();
-       console.log(json);
-             if (!json.success) {
+      console.log(json);
+      if (!json.success) {
         return;
       }
 
