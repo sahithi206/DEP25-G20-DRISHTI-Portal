@@ -64,6 +64,7 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
                 { label: "Sanction Projects", id: "sanction", path: "/admin/sanction-projects" },
                 { label: "Ongoing Projects", id: "ongoing", path: "/admin/ongoing-projects" },
                 { label: "Completed Projects", id: "completed", path: "/admin/completed-projects" },
+                { label: "Budget Allocation", id: "progress", path: "/admin/budgetalloc" }
             ]
         };
 
@@ -74,8 +75,8 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
             children: [
                 { label: "Quotations", id: "quotations", path: "/admin/quotations" },
                 { label: "UC/SE", id: "uc", path: "/admin/uc_se" },
-                { label: "Progress Report", id: "progress", path: "/admin/progress-report" }
-             
+                { label: "Progress Report", id: "progress", path: "/admin/progress-report" },
+                
             ]
         };
         

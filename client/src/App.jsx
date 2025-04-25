@@ -61,6 +61,7 @@ import CommentsPage from "./pages/uc/CommentsPage.jsx";
 import Quotations from "./pages/Qutations/Quotations.jsx"
 import ProjectProgressReports from "./pages/Admin/ProjectProgressReport.jsx";
 import InstituteProfile from "./pages/college/InstituteProfile.jsx";
+import BudgetAlloc from "./pages/Admin/BudgetAlloc";
 
 import ProjectExpenses from "./pages/ProjectExpenses.jsx";
 import UCPage from "./pages/college/UCpage.jsx";
@@ -179,6 +180,7 @@ function MainLayout() {
           <Route path="/admin/uc_se" element={<AllSEUC />} />
           <Route path="/admin/progress-report" element={<Progress />} />
           <Route path="/admin/completed-projects" element={<CompletedProjects />} />
+          <Route path="/admin/budgetalloc" element= {<BudgetAlloc />} />
 
           <Route path="/requests/change-institute" element={<ChangeInstitute />} />
 
