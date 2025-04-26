@@ -267,7 +267,9 @@ router.post("/createProject/:proposalId", async (req, res) => {
 router.get("/get-projects", fetchAdmin, async (req, res) => {
   try {
 
-    const proposals = await Project.find().populate("YearlyDataId");
+    const schemes = await Scheme.find({ coordinator: req.admin._id }).select("_id");
+    const schemeIds = schemes.map(scheme => scheme._id);
+    const proposals = await Project.find({ Scheme: { $in: schemeIds } }).populate("Scheme");
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No Projects found" });
     }

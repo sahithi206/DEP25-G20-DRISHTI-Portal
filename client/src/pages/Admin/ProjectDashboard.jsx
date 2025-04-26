@@ -11,6 +11,7 @@ const ProjectDashboard = () => {
     const [project, setProject] = useState({});
     const [generalInfo, setGeneral] = useState({});
     const [researchDetails, setResearch] = useState({});
+    const [yearlyData,setData]=useState([]);
     const [budget, setBudget] = useState({});
     const [budgetused, setbudget] = useState({});
     const [loading, setLoading] = useState(true);
