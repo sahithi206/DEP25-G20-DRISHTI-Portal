@@ -89,26 +89,31 @@ const ProposalInbox = () => {
                     </div>
                     <div className="bg-white shadow-md rounded-xl overflow-hidden">
                         <div className="flex flex-col sm:flex-row gap-4 items-start p-4 sm rounded-lg:items-center">
-                            <div className="flex items-center rounded-lg px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 focus-within:bg-white focus-within:ring-1 focus-within">
-                               
-                                <FaSearch className="text-gray-500 mr-2" />
-                                <input
-                                    type="text"
-                                    placeholder="Search by Institute, Specialization, or Title"
-                                    className="w-full flex-grow bg-transparent outline-none text-gray-800 placeholder-gray-500 text-sm"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                                {searchTerm && (
-                                    <button
-                                        onClick={() => setSearchTerm('')}
-                                        className="ml-2 text-gray-400 hover:text-gray-600"
-                                        aria-label="Clear search"
-                                    >
-                                        <FaTimes className="h-4 w-4" />
-                                    </button>
-                                )}
-                            </div>
+                        <div className="flex items-center rounded-lg px-2 py-2 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 focus-within:bg-white focus-within:ring-1 focus-within">
+    {/* Left side */}
+    <div className="flex items-center flex-grow">
+        <FaSearch className="text-gray-500 mr-2" />
+        <input
+            type="text"
+            placeholder="Search by Institute, Specialization, or Title"
+            className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-500 text-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+        />
+    </div>
+
+    {/* Right side - Clear button */}
+    {searchTerm && (
+        <button
+            onClick={() => setSearchTerm('')}
+            className="ml-2 text-gray-400 mr-2 hover:text-gray-600"
+            aria-label="Clear search"
+        >
+            <FaTimes className="h-4 w-4" />
+        </button>
+    )}
+</div>
+
 
                             <div className="flex items-center gap-3 w-full sm:w-auto">
 
