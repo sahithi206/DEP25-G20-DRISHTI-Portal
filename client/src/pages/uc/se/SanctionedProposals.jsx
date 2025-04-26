@@ -189,7 +189,7 @@ const SanctionedProposals = () => {
                                             ))
                                         ) : (
                                             <tr className="bg-gray-100">
-                                                <td className="p-4 text-center font-semibold text-xs border-b border-blue-200" colSpan="5">
+                                                <td className="p-4 text-center font-semibold text-xs border-b border-blue-200" colSpan={5}>
                                                     {searchTitle ? "No projects match your search" : "No Sanctioned Projects"}
                                                 </td>
                                             </tr>
