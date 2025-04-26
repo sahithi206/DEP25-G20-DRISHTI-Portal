@@ -1,4 +1,5 @@
 const express = require("express");
+const fetch = require("node-fetch");
 const { fetchUser } = require("../MiddleWares/fetchUser.js");
 const { fetchAdmin } = require("../MiddleWares/fetchAdmin.js");
 const GeneralInfo = require("../Models/General_Info");
@@ -130,12 +131,6 @@ router.post("/allocate-budget/:id", fetchAdmin, async (req, res) => {
     });
     console.log(4);
     await newBudget.save();
-
-    console.log("Budget:", newBudget);
-    const response = await fetch(`${process.env.local}admin/createProject/${id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
     console.log(5);
     const projectData = await response.json();
     console.log("Project:", projectData);
@@ -266,12 +261,20 @@ router.post("/createProject/:proposalId", async (req, res) => {
 
 router.get("/get-projects", fetchAdmin, async (req, res) => {
   try {
+    if (!req.admin || !req.admin.id) {
+      return res.status(400).json({ success: false, msg: "Admin ID is missing or invalid" });
+    }
+    const schemes = await Scheme.find({ coordinator: req.admin.id }).select("_id");
+    if (!schemes || schemes.length === 0) {
+      return res.status(404).json({ success: false, msg: "No schemes found for this admin" });
+    }
 
-    const schemes = await Scheme.find({ coordinator: req.admin._id }).select("_id");
     const schemeIds = schemes.map(scheme => scheme._id);
+    console.log(schemeIds);
+
     const proposals = await Project.find({ Scheme: { $in: schemeIds } }).populate("Scheme");
-    if (!proposals.length) {
-      return res.status(400).json({ success: false, msg: "No Projects found" });
+    if (!proposals || proposals.length === 0) {
+      return res.status(404).json({ success: false, msg: "No Projects found" });
     }
 
     const data = await Promise.all(
