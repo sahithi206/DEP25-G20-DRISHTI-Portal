@@ -17,8 +17,7 @@ const MenuPage = () => {
                 <HomeNavbar yes={0} />
                 <div className="p-6 space-y-6">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                        <h1 className="text-3xl font-black text-gray-900 mb-2">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
-                        <h2 className="text-xl font-semibold text-gray-700">Anusandhan National Research Foundation</h2>
+                        <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
                     </div>
                     <section className="mt-6 bg-white shadow-md p-6 rounded-lg">
                         <h3 className="text-lg font-semibold">User Guidelines</h3>

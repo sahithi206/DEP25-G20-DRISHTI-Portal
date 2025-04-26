@@ -1,68 +1,148 @@
-import React, { useState, useContext } from "react";
-import { Link } from "react-router-dom";
-import { AuthContext } from "../Context/Authcontext";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
+import React, { useState, useContext, useEffect } from 'react';
+import { AuthContext } from '../Context/Authcontext';
+import { useNavigate } from "react-router-dom";
 
 const InstituteLogin = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { loginInstitute } = useContext(AuthContext);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function () {
+      window.history.go(1);
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!email || !password) {
+      setError('All fields are required');
+      return;
+    }
+
     try {
+      setIsLoading(true);
+      setError('');
       await loginInstitute(email, password);
-    } catch (error) {
-      console.error("Error logging in institute:", error);
-      alert("Failed to log in institute");
+      navigate('/institute-dashboard');
+    } catch (err) {
+      setError(err.response?.data?.msg || 'Login failed. Please check your credentials.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow container mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-4 text-center">Institute Login</h1>
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded shadow-md">
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-gray-700">Email</label>
+    <div className="min-h-screen flex justify-center items-center bg-gradient-to-b from-blue-50 to-slate-100 p-4">
+      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md border border-gray-100">
+        <div className="mb-8 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-800">ResearchX Institute Portal</h2>
+          <p className="text-gray-500 mt-1">Sign in to access your institute account</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
             <input
               type="email"
               id="email"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded mt-1"
+              placeholder="Enter your email"
               required
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-gray-700">Password</label>
+
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+              <a href="/forgot-password" className="text-xs text-blue-600 hover:text-blue-800 hover:underline">Forgot password?</a>
+            </div>
             <input
               type="password"
               id="password"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded mt-1"
+              placeholder="Enter your password"
               required
             />
           </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white p-2 rounded mt-4"
-            disabled={loading}
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
+
+          <div className="flex items-center">
+            <input
+              id="remember-me"
+              name="remember-me"
+              type="checkbox"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+              Remember me
+            </label>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing In
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </button>
+          </div>
+
+          <div className="flex items-center justify-center space-x-4 text-sm text-gray-600 pt-2">
+            <a href="/login" className="hover:text-blue-600 hover:underline transition">User login</a>
+            <span className="text-gray-300">|</span>
+            <a href="/adminLogin" className="hover:text-blue-600 hover:underline transition">Admin login</a>
+            <span className="text-gray-300">|</span>
+            <a href="/register-institute" className="hover:text-blue-600 hover:underline transition">Register Institute</a>
+          </div>
         </form>
-        <div className="text-center mt-4">
-          <p className="text-gray-700">New user? <Link to="/register-institute" className="text-blue-500 hover:underline">Register here</Link></p>
+
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <p className="text-xs text-center text-gray-500">
+            By signing in, you agree to ResearchX's <a href="/terms" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a>
+          </p>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

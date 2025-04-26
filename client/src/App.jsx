@@ -61,6 +61,7 @@ import CommentsPage from "./pages/uc/CommentsPage.jsx";
 import Quotations from "./pages/Qutations/Quotations.jsx"
 import ProjectProgressReports from "./pages/Admin/ProjectProgressReport.jsx";
 import InstituteProfile from "./pages/college/InstituteProfile.jsx";
+import BudgetAlloc from "./pages/Admin/BudgetAlloc";
 
 import ProjectExpenses from "./pages/ProjectExpenses.jsx";
 import UCPage from "./pages/college/UCpage.jsx";
@@ -122,6 +123,8 @@ function MainLayout() {
         <Route path="/adminLogin" element={<AdminLogin />} />
         <Route path="/adminSignup" element={<AdminSignup />} />
         <Route path="/institute-login" element={<InstituteLogin />} />
+        <Route path="/register-institute" element={<RegisterInstitute />} />
+        <Route path="/forgot-password" element={<Forgotpassword />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/menupage" element={<MenuPage />} />
           <Route path="/formsubmission" element={<ProposalScheme />} />
@@ -139,7 +142,6 @@ function MainLayout() {
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/progress-report/:id" element={<ProgressReportForm />} />
           <Route path="/final-report/:id" element={<FinalReport />} />
-          <Route path="/forgot-password" element={<Forgotpassword />} />
           <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/uc/:id" element={<UC />} />
           <Route path="/se/:id" element={<SE />} />
@@ -179,6 +181,7 @@ function MainLayout() {
           <Route path="/admin/uc_se" element={<AllSEUC />} />
           <Route path="/admin/progress-report" element={<Progress />} />
           <Route path="/admin/completed-projects" element={<CompletedProjects />} />
+          <Route path="/admin/budgetalloc" element= {<BudgetAlloc />} />
 
           <Route path="/requests/change-institute" element={<ChangeInstitute />} />
 
@@ -186,7 +189,6 @@ function MainLayout() {
           <Route path="/schemes" element={<SchemeManagement />} />
           <Route path="/running-projects" element={<RunningProjects />} />
           <Route path="/institute-users" element={<InstituteUsers />} />
-          <Route path="/register-institute" element={<RegisterInstitute />} />
           <Route path="/institute-dashboard" element={<InstituteDashboard />} />
           <Route path="/running-projects" element={<RunningProjects />} />
           <Route path="/institute/user-proposals/:userId" element={<UserProposalsInsti />} />
@@ -201,10 +203,10 @@ function MainLayout() {
           <Route path="/institute/se" element={<ApproveSE />} />
           <Route path="/institute/requests" element={<ChangeInsti />} />
           <Route path="/institute/project-dashboard/:id" element={<ProjDashboard />} />
-          <Route path="/institute/viewQuotations/:id" element={<InstiQuotations/>} />
-          <Route path="/institute/Quotation/:id" element={<InstiQuotation/>} />
+          <Route path="/institute/viewQuotations/:id" element={<InstiQuotations />} />
+          <Route path="/institute/Quotation/:id" element={<InstiQuotation />} />
           <Route path="/institute/profile" element={<InstituteProfile />} />
-          </Route>
+        </Route>
       </Routes>
     </div>
   );

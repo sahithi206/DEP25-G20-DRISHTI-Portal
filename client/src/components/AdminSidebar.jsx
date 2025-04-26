@@ -64,6 +64,7 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
                 { label: "Sanction Projects", id: "sanction", path: "/admin/sanction-projects" },
                 { label: "Ongoing Projects", id: "ongoing", path: "/admin/ongoing-projects" },
                 { label: "Completed Projects", id: "completed", path: "/admin/completed-projects" },
+                { label: "Budget Allocation", id: "progress", path: "/admin/budgetalloc" }
             ]
         };
 
@@ -74,8 +75,8 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
             children: [
                 { label: "Quotations", id: "quotations", path: "/admin/quotations" },
                 { label: "UC/SE", id: "uc", path: "/admin/uc_se" },
-                { label: "Progress Report", id: "progress", path: "/admin/progress-report" }
-             
+                { label: "Progress Report", id: "progress", path: "/admin/progress-report" },
+                
             ]
         };
         
@@ -85,7 +86,7 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
     }
 
     return (
-        <div className="w-72 bg-gray-900 text-white flex flex-col p-5 h-screen overflow-y-auto">
+        <div className="w-72 bg-gray-900 text-white flex flex-col p-5 min-h-screen sticky top-0 overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6">Admin Panel</h2>
             <ul className="space-y-2">
                 {menuItems.map(({ label, icon: Icon, id, path, children }) => (
