@@ -344,7 +344,7 @@ const AllSEUC = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="4" className="p-6 text-center text-gray-500">
+                                        <td colSpan="6" className="p-6 text-center text-gray-500">
                                             No UCs Found
                                         </td>
                                     </tr>
@@ -418,7 +418,7 @@ const AllSEUC = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="4" className="p-6 text-center text-gray-500">
+                                        <td colSpan="6" className="p-6 text-center text-gray-500">
                                             No SEs Found
                                         </td>
                                     </tr>
