@@ -32,8 +32,8 @@ const SanctionedProposals = () => {
                 }
                 const json = await response.json();
                 console.log(json.projects);
-                let projects = Array.isArray(json.projects) 
-                    ? json.projects.filter(project => project.status === "Completed") 
+                let projects = Array.isArray(json.projects)
+                    ? json.projects.filter(project => project.status === "Completed")
                     : [];
                 setProjects(projects);
                 if (acceptedProjects) {
@@ -43,12 +43,12 @@ const SanctionedProposals = () => {
                     }
                 }
                 setFilteredProjects(json.projects);
-              
+
             } catch (error) {
                 console.error("Error fetching projects:", error);
             }
         };
-       
+
         fetchProjects();
     }, [url]);
     const [schemes, setSchemes] = useState([]);
@@ -95,65 +95,67 @@ const SanctionedProposals = () => {
             <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
                 <HomeNavbar isSidebarOpen={isSidebarOpen} />
                 <div className="p-6 space-y-6 mt-16">
-                    <div className="p-6 space-y-6">
-                        <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700">
+                    <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
                         <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-                        <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>                            
-                        <p className="mt-3 text-3xl font-bold text-blue-800">Completed Projects</p>
-                        </div>
+                        <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>
+                        <p className="mt-3 text-2xl font-bold text-blue-800">Ongoing Projects</p>
+                    </div>
+                    <div className="bg-white shadow-md rounded-xl overflow-hidden">
+                        <div className="flex flex-col sm:flex-row gap-4">                            <div className="w-full sm:flex-1 min-w-[200px]">
+                            <div className="relative flex items-center flex-grow p-3">
 
-                        <div className="flex space-x-4  mb-4">
-                            <div className="relative flex-grow">
-                                <input
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4 text-gray-500 mr-2 flex-shrink-0"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                </svg>                                    <input
                                     type="text"
-                                    placeholder="Search projects by PI name ..."
+                                    placeholder="Search Projects by Project Title ..."
                                     value={searchTitle}
                                     onChange={(e) => setSearchTitle(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-500 text-sm pr-8"
                                 />
-                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-5 w-5"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        role="img"
-                                        aria-label="Search icon"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                        />
-                                    </svg>
+
+                                <div className="flex gap-3">
+                                    <div className="relative w-full sm:w-40">
+                                        <select
+                                            className="w-full bg-white rounded-md pl-3 pr-8 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 border border-gray-300"
+                                            value={sortOrder}
+                                            onChange={(e) => setSortOrder(e.target.value)}
+                                        >
+                                            <option value="desc">Newest First</option>
+                                            <option value="asc">Oldest First</option>
+                                        </select>
+
+                                    </div>
+
+                                    <div className="relative w-full sm:w-40">
+                                        <select
+                                            value={schemeFilter}
+                                            onChange={(e) => setFilter(e.target.value)}
+                                            className="w-full bg-white rounded-md pl-3 pr-8 py-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 border border-gray-300"
+                                        >
+                                            <option value="">All Schemes</option>
+                                            {schemes?.map((val) => (
+                                                <option value={val.name} key={val._id}>{val.name}</option>
+                                            ))}
+                                        </select>
+
+                                    </div>
                                 </div>
                             </div>
-                            <select
-                                value={sortOrder}
-                                onChange={(e) => setSortOrder(e.target.value)}
-                                className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="newest">Newest</option>
-                                <option value="oldest">Oldest</option>
-                            </select>
-                            <select
-                                value={schemeFilter}
-                                onChange={(e) => setFilter(e.target.value)}
-                                className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">All</option>
-                                {schemes && schemes.length > 0 && schemes.map((val, index) => (
-                                    <option value={val} key={val._id}>{val}</option>
-                                ))}
 
-                            </select>
-                        </div>
-                        {/* Projects Table */}
-                        <div className="bg-white shadow-md rounded-xl overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
+                            <div className="overflow-x-auto w-full">
+                                <table className="min-w-full text-sm">
                                     <thead className="bg-blue-700 text-white">
                                         <tr>
                                             <th className="p-4 text-center font-semibold text-xs border-b border-blue-600">File No.</th>
@@ -165,14 +167,14 @@ const SanctionedProposals = () => {
                                         {filteredProjects && filteredProjects.length > 0 ? (
                                             filteredProjects.map((project) => (
                                                 <tr key={project._id} className="group hover:bg-blue-50 transition-colors border-b last:border-b-0">
-                                                    <td className="p-4 text-center font-semibold text-xs text-blue-500 underline"                                                             onClick={() => navigate(`/project-dashboard/${project._id}`)}
+                                                    <td className="p-4 text-center font-semibold text-xs text-blue-500 underline" onClick={() => navigate(`/project-dashboard/${project._id}`)}
                                                     >{project._id}</td>
-                                                    <td className="p-4 text-center font-semibold text-xs"                                                             onClick={() => navigate(`/project-dashboard/${project._id}`)}
+                                                    <td className="p-4 text-center font-semibold text-xs" onClick={() => navigate(`/project-dashboard/${project._id}`)}
                                                     >{project.Title}</td>
-                                                    <td className="p-4 text-center font-semibold text-xs"                                                             onClick={() => navigate(`/project-dashboard/${project._id}`)}
+                                                    <td className="p-4 text-center font-semibold text-xs" onClick={() => navigate(`/project-dashboard/${project._id}`)}
                                                     >{project.Scheme.name}</td>
-                                          
-                                                   
+
+
                                                 </tr>
                                             ))
                                         ) : (
@@ -186,10 +188,12 @@ const SanctionedProposals = () => {
                                 </table>
                             </div>
                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
     );
 };
 

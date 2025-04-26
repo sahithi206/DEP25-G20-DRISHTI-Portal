@@ -1,18 +1,11 @@
-import React, { useState, useContext, useEffect } from "react";
-import { Bell, Settings, LogOut, FileText, DollarSign, Check, Search } from "lucide-react";
-import { AuthContext } from "../../pages/Context/Authcontext";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDollarSign, faFileAlt, faCheck, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
-
-const MOCK_PROJECTS = [
-  { id: "PRJ-2025-001", title: "Smart Agriculture IoT System", institute: "IIT Delhi", pi: "Dr. Sharma", sanctionedBudget: 450000 },
-  { id: "PRJ-2025-002", title: "Renewable Energy Storage Solutions", institute: "IIT Bombay", pi: "Dr. Patel", sanctionedBudget: 620000 },
-  { id: "PRJ-2025-003", title: "AI for Healthcare Diagnostics", institute: "AIIMS", pi: "Dr. Gupta", sanctionedBudget: 780000 },
-  { id: "PRJ-2025-004", title: "Quantum Computing Applications", institute: "IISc Bangalore", pi: "Dr. Reddy", sanctionedBudget: 950000 },
-  { id: "PRJ-2025-005", title: "Sustainable Urban Planning", institute: "CEPT University", pi: "Dr. Mehta", sanctionedBudget: 520000 }
-];
+import { AuthContext } from "../Context/Authcontext";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
@@ -25,8 +18,8 @@ const BudgetAllocation = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [showFileSelector, setShowFileSelector] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  
-  const [sanctionedBudget, setSanctionedBudget] = useState({
+
+  const initialBudgetState = {
     overhead: 0,
     nonRecurring: 0,
     recurring: {
@@ -37,106 +30,131 @@ const BudgetAllocation = () => {
       total: 0
     },
     total: 0
-  });
-  
+  };
+
+  const [totalUsed, setTotalUsed] = useState(initialBudgetState);
+  const [sanctionedBudget, setSanctionedBudget] = useState(initialBudgetState);
+  const [remainingBudget, setRemainingBudget] = useState(initialBudgetState);
+
   const [budgetData, setBudgetData] = useState({
-    overhead: 0,
-    nonRecurring: 0,
-    recurring: {
-      travel: 0,
-      human_resources: 0,
-      consumables: 0,
-      others: 0,
-      total: 0
-    },
-    total: 0,
+    ...initialBudgetState,
     comments: ""
-  });
-  
-  const [remainingBudget, setRemainingBudget] = useState({
-    overhead: 0,
-    nonRecurring: 0,
-    recurring: {
-      travel: 0,
-      human_resources: 0,
-      consumables: 0,
-      others: 0,
-      total: 0
-    },
-    total: 0
   });
 
   useEffect(() => {
-    // Use mock data instead of fetching
-    setProjects(MOCK_PROJECTS);
-    setLoading(false);
-    
-    // Simulate authentication check
-    const checkAuth = async () => {
+    const fetchPendingProposals = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Assuming authentication is successful for demo purposes
-        console.log("Authentication successful");
-      } catch (error) {
-        console.error("Auth error:", error);
+        setLoading(true);
+        const response = await fetch(`${url}admin/get-projects`, {
+          method: "GET",
+          headers: { "accessToken": token },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+
+        const data = await response.json();
+        setProjects(data.data || []);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to load projects');
+      } finally {
+        setLoading(false);
       }
     };
-    
-    checkAuth();
-  }, []);
+
+    fetchPendingProposals();
+  }, [navigate]);
 
   const handleFileNumberClick = () => {
     setShowFileSelector(true);
   };
-  
+
+  const calculateRemainingBudget = (sanctioned, used) => {
+    return {
+      overhead: sanctioned.overhead - used.overhead,
+      nonRecurring: sanctioned.nonRecurring - used.nonRecurring,
+      recurring: {
+        travel: sanctioned.recurring.travel - used.recurring.travel,
+        human_resources: sanctioned.recurring.human_resources - used.recurring.human_resources,
+        consumables: sanctioned.recurring.consumables - used.recurring.consumables,
+        others: sanctioned.recurring.others - used.recurring.others,
+        total: sanctioned.recurring.total - used.recurring.total
+      },
+      total: sanctioned.total - used.total
+    };
+  };
+
   const handleProjectSelect = (project) => {
+    if (!project || !project.proposal) return;
+
     setSelectedProject(project);
     setShowFileSelector(false);
-    
-    // Generate budget details based on the selected project
-    const mockSanctionedBudget = {
-      overhead: project.sanctionedBudget * 0.1,
-      nonRecurring: project.sanctionedBudget * 0.4,
+
+    const proposalBudget = project.proposal.budgetTotal || initialBudgetState;
+
+    const newSanctionedBudget = {
+      overhead: proposalBudget.overhead || 0,
+      nonRecurring: proposalBudget.nonRecurring || 0,
       recurring: {
-        travel: project.sanctionedBudget * 0.1,
-        human_resources: project.sanctionedBudget * 0.2,
-        consumables: project.sanctionedBudget * 0.15,
-        others: project.sanctionedBudget * 0.05,
-        total: project.sanctionedBudget * 0.5
+        travel: proposalBudget.recurring?.travel || 0,
+        human_resources: proposalBudget.recurring?.human_resources || 0,
+        consumables: proposalBudget.recurring?.consumables || 0,
+        others: proposalBudget.recurring?.others || 0,
+        total: proposalBudget.recurring?.total || 0
       },
-      total: project.sanctionedBudget
+      total: proposalBudget.total || 0
     };
-    
-    setSanctionedBudget(mockSanctionedBudget);
-    setRemainingBudget(mockSanctionedBudget);
-    
-    // Reset allocation form
+
+    setSanctionedBudget(newSanctionedBudget);
+
+    let totalUsedCalc = JSON.parse(JSON.stringify(initialBudgetState));
+
+    if (project.proposal.YearlyDataId && Array.isArray(project.proposal.YearlyDataId)) {
+      project.proposal.YearlyDataId.forEach(yearData => {
+        if (yearData.budgetUsed) {
+          totalUsedCalc.overhead += yearData.budgetUsed.overhead || 0;
+          totalUsedCalc.nonRecurring += yearData.budgetUsed.nonRecurring || 0;
+
+          totalUsedCalc.recurring.travel += yearData.budgetUsed.recurring?.travel || 0;
+          totalUsedCalc.recurring.human_resources += yearData.budgetUsed.recurring?.human_resources || 0;
+          totalUsedCalc.recurring.consumables += yearData.budgetUsed.recurring?.consumables || 0;
+          totalUsedCalc.recurring.others += yearData.budgetUsed.recurring?.others || 0;
+          totalUsedCalc.recurring.total += yearData.budgetUsed.recurring?.total || 0;
+
+          totalUsedCalc.total += yearData.budgetUsed.yearTotal || 0;
+        }
+      });
+    }
+
+    setTotalUsed(totalUsedCalc);
+    setRemainingBudget(calculateRemainingBudget(newSanctionedBudget, totalUsedCalc));
+
     setBudgetData({
-      overhead: 0,
-      nonRecurring: 0,
-      recurring: {
-        travel: 0,
-        human_resources: 0,
-        consumables: 0,
-        others: 0,
-        total: 0
-      },
-      total: 0,
+      ...initialBudgetState,
       comments: ""
     });
   };
 
   const calculateTotals = (data) => {
-    const recurringTotal = 
-      parseFloat(data.recurring.travel) +
-      parseFloat(data.recurring.human_resources) +
-      parseFloat(data.recurring.consumables) +
-      parseFloat(data.recurring.others);
-      
-    const total = 
-      parseFloat(data.overhead) +
-      parseFloat(data.nonRecurring) +
+    const recurringTotal =
+      (parseFloat(data.recurring.travel) || 0) +
+      (parseFloat(data.recurring.human_resources) || 0) +
+      (parseFloat(data.recurring.consumables) || 0) +
+      (parseFloat(data.recurring.others) || 0);
+
+    const total =
+      (parseFloat(data.overhead) || 0) +
+      (parseFloat(data.nonRecurring) || 0) +
       recurringTotal;
-      
+
     return {
       ...data,
       recurring: {
@@ -150,9 +168,9 @@ const BudgetAllocation = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const numValue = parseFloat(value) || 0;
-    
+
     let updatedBudgetData = { ...budgetData };
-    
+
     if (name === "comments") {
       updatedBudgetData.comments = value;
     } else if (name === "overhead" || name === "nonRecurring") {
@@ -160,136 +178,118 @@ const BudgetAllocation = () => {
     } else if (["travel", "human_resources", "consumables", "others"].includes(name)) {
       updatedBudgetData.recurring[name] = numValue;
     }
-    
+
     updatedBudgetData = calculateTotals(updatedBudgetData);
     setBudgetData(updatedBudgetData);
-    
-    // Update remaining budget
-    const updatedRemainingBudget = {
-      overhead: sanctionedBudget.overhead - updatedBudgetData.overhead,
-      nonRecurring: sanctionedBudget.nonRecurring - updatedBudgetData.nonRecurring,
-      recurring: {
-        travel: sanctionedBudget.recurring.travel - updatedBudgetData.recurring.travel,
-        human_resources: sanctionedBudget.recurring.human_resources - updatedBudgetData.recurring.human_resources,
-        consumables: sanctionedBudget.recurring.consumables - updatedBudgetData.recurring.consumables,
-        others: sanctionedBudget.recurring.others - updatedBudgetData.recurring.others,
-        total: sanctionedBudget.recurring.total - updatedBudgetData.recurring.total
-      },
-      total: sanctionedBudget.total - updatedBudgetData.total
-    };
-    
-    setRemainingBudget(updatedRemainingBudget);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+  const handleSubmit = async () => {
+
     if (!selectedProject) {
       toast.error("Please select a project first");
+      console.log("Please select a project first");
       return;
     }
-    
-    if (budgetData.total > sanctionedBudget.total) {
-      toast.error("Allocation exceeds sanctioned budget");
+
+    if (budgetData.total > remainingBudget.total) {
+      toast.error("Allocation exceeds remaining budget");
+      console.log("Allocation exceeds remaining budget");
       return;
     }
-    
-    // For demo: Show successful toast without actual API call
-    toast.success("Budget allocated successfully!");
-    
-    // Reset the form
-    setSelectedProject(null);
-    setBudgetData({
-      overhead: 0,
-      nonRecurring: 0,
-      recurring: {
-        travel: 0,
-        human_resources: 0,
-        consumables: 0,
-        others: 0,
-        total: 0
-      },
-      total: 0,
-      comments: ""
-    });
-    setSanctionedBudget({
-      overhead: 0,
-      nonRecurring: 0,
-      recurring: {
-        travel: 0,
-        human_resources: 0,
-        consumables: 0,
-        others: 0,
-        total: 0
-      },
-      total: 0
-    });
-    setRemainingBudget({
-      overhead: 0,
-      nonRecurring: 0,
-      recurring: {
-        travel: 0,
-        human_resources: 0,
-        consumables: 0,
-        others: 0,
-        total: 0
-      },
-      total: 0
-    });
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return;
+      }
+      console.log(budgetData);
+      console.log(selectedProject);
+      const response = await fetch(`${url}admin/allocateBudget`, {
+        method: "POST",
+        headers: {
+          "accessToken": token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          budgetData,
+          projectId: selectedProject?.proposal?._id || null
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Budget allocation failed");
+      }
+
+      if (data.success) {
+        toast.success("Budget allocated successfully!");
+        const updatedProjects = projects.map(proj =>
+          proj._id === selectedProject.proposal._id ? data.updatedProject : proj
+        );
+        setProjects(updatedProjects);
+        navigate("/admin");
+      } else {
+        throw new Error(data.message || "Budget allocation was unsuccessful");
+      }
+    } catch (error) {
+      console.error("Error allocating budget:", error);
+      toast.error(error.message || "An error occurred while allocating the budget.");
+    }
   };
 
   const filteredProjects = searchTerm
-    ? projects.filter(project => 
-        project.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.pi.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    ? projects.filter(project =>
+      project?.proposal?._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project?.proposal?.Title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project?.proposal?.PI?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : projects;
 
   return (
     <div className="flex">
       <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-      
+
       <div className="flex-1 bg-gray-100 min-h-screen">
         <div className="p-4">
           <AdminNavbar activeSection={activeSection} />
         </div>
-        
+
         <div className="p-6">
           <h1 className="text-3xl font-bold mb-6">Budget Allocation</h1>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center text-blue-600 mb-4">
-                <DollarSign className="w-6 h-6 mr-2" />
+                <FontAwesomeIcon icon={faDollarSign} className="w-6 h-6 mr-2" />
                 <h2 className="text-xl font-semibold">Budget Allocation</h2>
               </div>
               <p className="text-gray-600">Allocate budgets for sanctioned project proposals.</p>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center text-green-600 mb-4">
-                <FileText className="w-6 h-6 mr-2" />
+                <FontAwesomeIcon icon={faFileAlt} className="w-6 h-6 mr-2" />
                 <h2 className="text-xl font-semibold">Project Details</h2>
               </div>
               <p className="text-gray-600">View sanctioned project details and remaining budget.</p>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center text-purple-600 mb-4">
-                <Check className="w-6 h-6 mr-2" />
+                <FontAwesomeIcon icon={faCheck} className="w-6 h-6 mr-2" />
                 <h2 className="text-xl font-semibold">Approval</h2>
               </div>
               <p className="text-gray-600">Review and approve budget allocations for projects.</p>
             </div>
           </div>
-          
+
           <div className="mb-6">
             <div className="flex items-center">
               <div className="relative flex-1 mr-4">
                 <input
                   type="text"
-                  value={selectedProject ? `${selectedProject.id} - ${selectedProject.title}` : ""}
+                  value={selectedProject ? `${selectedProject.proposal._id} - ${selectedProject.proposal.Title}` : ""}
                   readOnly
                   className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Project File Number"
@@ -298,37 +298,17 @@ const BudgetAllocation = () => {
                   onClick={handleFileNumberClick}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-1 rounded"
                 >
-                  <Search className="w-5 h-5" />
+                  <FontAwesomeIcon icon={faSearch} className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <button
                 onClick={() => {
                   if (selectedProject) {
                     setSelectedProject(null);
-                    setSanctionedBudget({
-                      overhead: 0,
-                      nonRecurring: 0,
-                      recurring: {
-                        travel: 0,
-                        human_resources: 0,
-                        consumables: 0,
-                        others: 0,
-                        total: 0
-                      },
-                      total: 0
-                    });
+                    setSanctionedBudget(initialBudgetState);
                     setBudgetData({
-                      overhead: 0,
-                      nonRecurring: 0,
-                      recurring: {
-                        travel: 0,
-                        human_resources: 0,
-                        consumables: 0,
-                        others: 0,
-                        total: 0
-                      },
-                      total: 0,
+                      ...initialBudgetState,
                       comments: ""
                     });
                   } else {
@@ -341,12 +321,12 @@ const BudgetAllocation = () => {
               </button>
             </div>
           </div>
-          
+
           {showFileSelector && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-auto">
                 <h2 className="text-xl font-bold mb-4">Select Project</h2>
-                
+
                 <div className="mb-4">
                   <input
                     type="text"
@@ -356,7 +336,7 @@ const BudgetAllocation = () => {
                     className="w-full p-2 border rounded"
                   />
                 </div>
-                
+
                 {loading ? (
                   <p className="text-center py-4">Loading projects...</p>
                 ) : (
@@ -365,16 +345,16 @@ const BudgetAllocation = () => {
                       <ul className="divide-y">
                         {filteredProjects.map((project) => (
                           <li
-                            key={project.id}
-                            className="p-3 hover:bg-blue-50 cursor-pointer"
+                            key={project.proposal._id}
+                            className="p-3 hover:bg-blue-50 cursor-pointer border border-blue-100 rounded"
                             onClick={() => handleProjectSelect(project)}
                           >
-                            <div className="font-medium">{project.id} - {project.title}</div>
+                            <div className="font-medium">{project.proposal._id} | {project.proposal.Title}</div>
                             <div className="text-sm text-gray-600">
-                              {project.institute} | PI: {project.pi}
+                              {project.generalInfo?.instituteName} | PI: {project.proposal.PI}
                             </div>
                             <div className="text-sm font-semibold mt-1">
-                              Sanctioned Budget: ₹{project.sanctionedBudget.toLocaleString()}
+                              Sanctioned Budget: ₹{(project.proposal.budgetTotal?.total || 0).toLocaleString()}
                             </div>
                           </li>
                         ))}
@@ -384,7 +364,7 @@ const BudgetAllocation = () => {
                     )}
                   </div>
                 )}
-                
+
                 <div className="mt-4 flex justify-end">
                   <button
                     onClick={() => setShowFileSelector(false)}
@@ -396,7 +376,7 @@ const BudgetAllocation = () => {
               </div>
             </div>
           )}
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {selectedProject && (
               <>
@@ -405,103 +385,108 @@ const BudgetAllocation = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="border rounded-lg p-4 bg-blue-50">
                       <h3 className="font-medium text-blue-700 mb-2">Project Information</h3>
-                      <p className="text-sm mb-1"><strong>ID:</strong> {selectedProject.id}</p>
-                      <p className="text-sm mb-1"><strong>Title:</strong> {selectedProject.title}</p>
-                      <p className="text-sm mb-1"><strong>Institute:</strong> {selectedProject.institute}</p>
-                      <p className="text-sm mb-1"><strong>PI:</strong> {selectedProject.pi}</p>
+                      <p className="text-sm mb-1"><strong>ID:</strong> {selectedProject.proposal._id}</p>
+                      <p className="text-sm mb-1"><strong>Title:</strong> {selectedProject.proposal.Title}</p>
+                      <p className="text-sm mb-1"><strong>Institute:</strong> {selectedProject.generalInfo?.instituteName}</p>
+                      <p className="text-sm mb-1"><strong>PI:</strong> {selectedProject.proposal.PI}</p>
                       <p className="text-sm font-semibold mt-2">
-                        <strong>Total Sanctioned:</strong> ₹{selectedProject.sanctionedBudget.toLocaleString()}
+                        <strong>Total Sanctioned:</strong> ₹{(selectedProject.proposal.budgetTotal?.total || 0).toLocaleString()}
                       </p>
                     </div>
-                    
+
                     <div className="border rounded-lg p-4 bg-green-50">
                       <h3 className="font-medium text-green-700 mb-2">Sanctioned Budget</h3>
                       <div className="space-y-1">
                         <div className="flex justify-between text-sm">
                           <span>Overhead:</span>
-                          <span>₹{sanctionedBudget.overhead.toLocaleString()}</span>
+                          <span>₹{(sanctionedBudget.overhead || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Non-Recurring:</span>
-                          <span>₹{sanctionedBudget.nonRecurring.toLocaleString()}</span>
+                          <span>₹{(sanctionedBudget.nonRecurring || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Human Resources:</span>
-                          <span>₹{sanctionedBudget.recurring.human_resources.toLocaleString()}</span>
+                          <span>₹{(sanctionedBudget.recurring.human_resources || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Travel:</span>
-                          <span>₹{sanctionedBudget.recurring.travel.toLocaleString()}</span>
+                          <span>₹{(sanctionedBudget.recurring.travel || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Consumables:</span>
-                          <span>₹{sanctionedBudget.recurring.consumables.toLocaleString()}</span>
+                          <span>₹{(sanctionedBudget.recurring.consumables || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Others:</span>
-                          <span>₹{sanctionedBudget.recurring.others.toLocaleString()}</span>
+                          <span>₹{(sanctionedBudget.recurring.others || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm font-semibold pt-1 border-t mt-1">
                           <span>Total:</span>
-                          <span>₹{sanctionedBudget.total.toLocaleString()}</span>
+                          <span>₹{(sanctionedBudget.total || 0).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="border rounded-lg p-4 bg-purple-50">
                       <h3 className="font-medium text-purple-700 mb-2">Remaining Budget</h3>
                       <div className="space-y-1">
                         <div className="flex justify-between text-sm">
                           <span>Overhead:</span>
                           <span className={remainingBudget.overhead < 0 ? "text-red-600 font-bold" : ""}>
-                            ₹{remainingBudget.overhead.toLocaleString()}
+                            ₹{(remainingBudget.overhead || 0).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Non-Recurring:</span>
                           <span className={remainingBudget.nonRecurring < 0 ? "text-red-600 font-bold" : ""}>
-                            ₹{remainingBudget.nonRecurring.toLocaleString()}
+                            ₹{(remainingBudget.nonRecurring || 0).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Human Resources:</span>
                           <span className={remainingBudget.recurring.human_resources < 0 ? "text-red-600 font-bold" : ""}>
-                            ₹{remainingBudget.recurring.human_resources.toLocaleString()}
+                            ₹{(remainingBudget.recurring.human_resources || 0).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Travel:</span>
                           <span className={remainingBudget.recurring.travel < 0 ? "text-red-600 font-bold" : ""}>
-                            ₹{remainingBudget.recurring.travel.toLocaleString()}
+                            ₹{(remainingBudget.recurring.travel || 0).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Consumables:</span>
                           <span className={remainingBudget.recurring.consumables < 0 ? "text-red-600 font-bold" : ""}>
-                            ₹{remainingBudget.recurring.consumables.toLocaleString()}
+                            ₹{(remainingBudget.recurring.consumables || 0).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Others:</span>
                           <span className={remainingBudget.recurring.others < 0 ? "text-red-600 font-bold" : ""}>
-                            ₹{remainingBudget.recurring.others.toLocaleString()}
+                            ₹{(remainingBudget.recurring.others || 0).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm font-semibold pt-1 border-t mt-1">
                           <span>Total Remaining:</span>
                           <span className={remainingBudget.total < 0 ? "text-red-600 font-bold" : ""}>
-                            ₹{remainingBudget.total.toLocaleString()}
+                            ₹{(remainingBudget.total || 0).toLocaleString()}
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              
+
                 <div className="bg-white rounded-lg shadow p-6 md:col-span-3">
                   <h2 className="text-xl font-semibold mb-4">Budget Allocation Form</h2>
-                  
-                  <form onSubmit={handleSubmit}>
+
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSubmit();
+                    }}
+                  >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -515,11 +500,11 @@ const BudgetAllocation = () => {
                           className="w-full p-2 border border-gray-300 rounded-md"
                           required
                           min="0"
-                          max={sanctionedBudget.overhead}
+                          max={remainingBudget.overhead}
                         />
                         <p className="text-xs text-gray-500 mt-1">Includes institutional overheads</p>
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Non-Recurring Amount (₹)
@@ -532,11 +517,11 @@ const BudgetAllocation = () => {
                           className="w-full p-2 border border-gray-300 rounded-md"
                           required
                           min="0"
-                          max={sanctionedBudget.nonRecurring}
+                          max={remainingBudget.nonRecurring}
                         />
                         <p className="text-xs text-gray-500 mt-1">Equipment, setup costs, etc.</p>
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Human Resources (₹)
@@ -549,11 +534,11 @@ const BudgetAllocation = () => {
                           className="w-full p-2 border border-gray-300 rounded-md"
                           required
                           min="0"
-                          max={sanctionedBudget.recurring.human_resources}
+                          max={remainingBudget.recurring.human_resources}
                         />
                         <p className="text-xs text-gray-500 mt-1">Salaries, stipends, etc.</p>
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Travel (₹)
@@ -566,11 +551,11 @@ const BudgetAllocation = () => {
                           className="w-full p-2 border border-gray-300 rounded-md"
                           required
                           min="0"
-                          max={sanctionedBudget.recurring.travel}
+                          max={remainingBudget.recurring.travel}
                         />
                         <p className="text-xs text-gray-500 mt-1">Travel expenses for research</p>
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Consumables (₹)
@@ -583,11 +568,11 @@ const BudgetAllocation = () => {
                           className="w-full p-2 border border-gray-300 rounded-md"
                           required
                           min="0"
-                          max={sanctionedBudget.recurring.consumables}
+                          max={remainingBudget.recurring.consumables}
                         />
                         <p className="text-xs text-gray-500 mt-1">Lab supplies, materials, etc.</p>
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Others (₹)
@@ -600,12 +585,12 @@ const BudgetAllocation = () => {
                           className="w-full p-2 border border-gray-300 rounded-md"
                           required
                           min="0"
-                          max={sanctionedBudget.recurring.others}
+                          max={remainingBudget.recurring.others}
                         />
                         <p className="text-xs text-gray-500 mt-1">Miscellaneous expenses</p>
                       </div>
                     </div>
-                    
+
                     <div className="mb-6">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Comments
@@ -619,78 +604,71 @@ const BudgetAllocation = () => {
                         placeholder="Add any comments regarding budget allocation..."
                       ></textarea>
                     </div>
-                    
+
                     <div className="bg-gray-50 p-4 rounded-lg mb-6">
                       <h3 className="font-medium mb-2">Allocation Summary</h3>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="text-sm">Overhead:</div>
-                        <div className="text-sm font-medium">₹{budgetData.overhead.toLocaleString()}</div>
-                        
+                        <div className="text-sm font-medium">₹{(budgetData.overhead || 0).toLocaleString()}</div>
+
                         <div className="text-sm">Non-Recurring:</div>
-                        <div className="text-sm font-medium">₹{budgetData.nonRecurring.toLocaleString()}</div>
-                        
+                        <div className="text-sm font-medium">₹{(budgetData.nonRecurring || 0).toLocaleString()}</div>
+
                         <div className="text-sm">Recurring Total:</div>
-                        <div className="text-sm font-medium">₹{budgetData.recurring.total.toLocaleString()}</div>
-                        
+                        <div className="text-sm font-medium">₹{(budgetData.recurring.total || 0).toLocaleString()}</div>
+
                         <div className="text-sm font-semibold">Total Allocated:</div>
-                        <div className="text-sm font-semibold">₹{budgetData.total.toLocaleString()}</div>
-                        
+                        <div className="text-sm font-semibold">₹{(budgetData.total || 0).toLocaleString()}</div>
+
+
+
+
+
                         <div className="col-span-2 mt-2 pt-2 border-t">
-                          <div className={`text-${budgetData.total > sanctionedBudget.total ? 'red' : 'green'}-600 font-bold text-sm`}>
-                            {budgetData.total > sanctionedBudget.total 
-                              ? 'Warning: Allocation exceeds sanctioned budget!'
-                              : 'Allocation is within sanctioned budget.'}
+                          <div className={`text-${budgetData.total > remainingBudget.total ? 'red' : 'green'}-600 font-bold text-sm`}>
+                            {budgetData.total > remainingBudget.total
+                              ? 'Warning: Allocation exceeds remaining budget!'
+                              : 'Allocation is within remaining budget.'}
                           </div>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex justify-end space-x-4">
                       <button
-                        type="button"
-                        onClick={() => {
-                          setBudgetData({
-                            overhead: 0,
-                            nonRecurring: 0,
-                            recurring: {
-                              travel: 0,
-                              human_resources: 0,
-                              consumables: 0,
-                              others: 0,
-                              total: 0
-                            },
-                            total: 0,
-                            comments: ""
-                          });
-                          setRemainingBudget(sanctionedBudget);
-                        }}
-                        className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
-                      >
-                        Reset
-                      </button>
-                      
-                      <button
                         type="submit"
-                        disabled={budgetData.total > sanctionedBudget.total || budgetData.total === 0}
-                        className={`flex items-center px-4 py-2 rounded-md transition ${
-                          budgetData.total > sanctionedBudget.total || budgetData.total === 0
+                        disabled={budgetData.total > remainingBudget.total || budgetData.total === 0 || loading}
+                        className={`flex items-center px-4 py-2 rounded-md transition ${budgetData.total > remainingBudget.total || budgetData.total === 0 || loading
                             ? 'bg-gray-400 cursor-not-allowed'
                             : 'bg-green-600 text-white hover:bg-green-700'
-                        }`}
+                          }`}
                       >
-                        <Check className="w-4 h-4 mr-2" />
-                        Approve Allocation
+                        {loading ? (
+                          <span className="flex items-center">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </span>
+                        ) : (
+                          <>
+                            <FontAwesomeIcon icon={faCheck} className="w-4 h-4 mr-2" />
+                            Approve Allocation
+                          </>
+                        )}
                       </button>
+
                     </div>
                   </form>
                 </div>
               </>
             )}
-            
+
             {!selectedProject && (
               <div className="bg-white rounded-lg shadow p-6 md:col-span-3">
                 <div className="text-center py-12">
-                  <DollarSign className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                  <FontAwesomeIcon icon={faDollarSign} className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                   <h3 className="text-xl font-medium text-gray-700 mb-2">No Project Selected</h3>
                   <p className="text-gray-500 mb-6">Please select a project to allocate budget.</p>
                   <button

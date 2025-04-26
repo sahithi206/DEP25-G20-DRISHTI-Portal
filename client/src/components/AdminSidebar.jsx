@@ -64,7 +64,6 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
                 { label: "Sanction Projects", id: "sanction", path: "/admin/sanction-projects" },
                 { label: "Ongoing Projects", id: "ongoing", path: "/admin/ongoing-projects" },
                 { label: "Completed Projects", id: "completed", path: "/admin/completed-projects" },
-                { label: "Budget Allocation", id: "progress", path: "/admin/budgetalloc" }
             ]
         };
 
@@ -82,7 +81,12 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
         
         menuItems.splice(1, 0, projectSubMenu);
         menuItems.splice(2, 0, quotations);
-
+        menuItems.splice(4, 0, {
+            label: "Budget Allocation",
+            icon: ClipboardList,
+            id: "budget",
+            path: "/admin/budgetalloc"
+        });
     }
 
     return (

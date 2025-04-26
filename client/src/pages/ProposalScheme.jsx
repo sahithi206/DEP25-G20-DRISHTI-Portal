@@ -18,7 +18,7 @@ const ProposalScheme = () => {
         key: "date",
         direction: "desc"
     });
-    
+
     const navigate = useNavigate();
     const { submitProposal, incompleteProposals, getSchemes, deleteProposal } = useContext(AuthContext);
     const [incompProposals, setProposals] = useState([]);
@@ -39,7 +39,7 @@ const ProposalScheme = () => {
     }, []);
 
     useEffect(() => {
-        const filterAndSortProposals = async() => {
+        const filterAndSortProposals = async () => {
             let incompProposals = await incompleteProposals();
             let filtered = [...incompProposals];
             console.log(incompProposals);
@@ -50,12 +50,12 @@ const ProposalScheme = () => {
             }
 
             if (dateRange.start) {
-                filtered = filtered.filter(proposal => 
+                filtered = filtered.filter(proposal =>
                     new Date(proposal.date) >= new Date(dateRange.start)
                 );
             }
             if (dateRange.end) {
-                filtered = filtered.filter(proposal => 
+                filtered = filtered.filter(proposal =>
                     new Date(proposal.date) <= new Date(dateRange.end)
                 );
             }
@@ -139,26 +139,6 @@ const ProposalScheme = () => {
                         <p className="mt-3 text-2xl font-bold text-blue-800">Submission Form</p>
                     </div>
 
-                    <div className="mt-6 mx-auto max-w-2xl bg-blue-100 p-6 rounded-md border">
-                        <div className="flex justify-between items-center">
-                            <label className="font-semibold text-white-600">
-                                Scheme: <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                className="p-2 border rounded bg-white w-2/3"
-                                value={selectedProposal}
-                                onChange={(e) => setSelectedProposal(e.target.value)}
-                            >
-                                <option value="">Select scheme</option>
-                                {schemes.map((scheme) => (
-                                    <option key={scheme._id} value={scheme._id}>
-                                        {scheme.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
-                    </div>
 
                     <div className="text-right text-sm font-semibold text-red-700 mt-2 pr-2">
                         * Mandatory Fields
@@ -173,31 +153,36 @@ const ProposalScheme = () => {
                         </button>
                     </div>
 
-                    <div className="mt-6 bg-white p-4 rounded-md shadow-md">
-                        <div className="flex flex-wrap gap-4 mb-4">
-                            <input
-                                type="text"
-                                placeholder="Search by Scheme Name"
-                                className="p-2 border rounded flex-grow"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            
-                            <button
-                                onClick={toggleSortDirection}
-                                className="flex items-center gap-1 bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded"
-                            >
-                                Sort: {sortConfig.direction === "asc" ? "Oldest First" : "Newest First"}
-                                {sortConfig.direction === "asc" ? "↑" : "↓"}
-                            </button>
-                            
-                            <button
-                                onClick={clearFilters}
-                                className="text-blue-600 hover:text-blue-800 px-3 py-2"
-                            >
-                                Clear Filters
-                            </button>
-                        </div>
+                    <div className=" bg-white p-4  rounded-md shadow-md">
+                            <div className=" flex  items-center justify-between bg-white hover">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4 text-gray-500 mr-2 flex-shrink-0"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                </svg>
+                                <input
+                                    type="text"
+                                    placeholder="Search by Scheme"
+                                    className="w-full outline-none  text-gray-800 placeholder-gray-500 text-sm pr-9"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                                 <button
+                                    onClick={toggleSortDirection}
+                                    className="flex items-center mb-2 bg-gray-200 hover:bg-gray-300 px-5  rounded text-sm"
+                                >
+                                    Sort: {sortConfig.direction === "asc" ? "Oldest ↑" : "Newest ↓"}
+                                </button>
+                            </div>
 
                         <div className="overflow-x-auto">
                             <table className="min-w-full bg-white">
@@ -207,7 +192,7 @@ const ProposalScheme = () => {
                                         <th className="py-2 px-4 text-left">
                                             <div className="flex items-center gap-1">
                                                 Date
-                                                <button 
+                                                <button
                                                     onClick={toggleSortDirection}
                                                     className="focus:outline-none"
                                                 >

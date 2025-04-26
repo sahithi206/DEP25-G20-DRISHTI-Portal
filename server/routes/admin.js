@@ -30,7 +30,7 @@ const SE = require("../Models/se/SE.js");
 const Comment = require("../Models/comment.js");
 const UCRequest = require("../Models/UCRequest.js");
 const ProgressReport = require("../Models/progressReport");
-
+const sendEmail = require("./sendEmail.js");
 
 router.get("/approvedProposals", fetchAdmin, async (req, res) => {
   try {
@@ -267,8 +267,7 @@ router.post("/createProject/:proposalId", async (req, res) => {
 router.get("/get-projects", fetchAdmin, async (req, res) => {
   try {
 
-    const proposals = await Project.find();
-    console.log("Fetched Projects:", proposals);
+    const proposals = await Project.find().populate("YearlyDataId");
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No Projects found" });
     }
@@ -684,18 +683,14 @@ router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
     let schemeIds = [];
     let adminSchemes = [];
 
-    // Fetch schemes based on role
     if (adminRole === "Head Coordinator") {
-      // For Head Coordinator, get all schemes
       adminSchemes = await Schemes.find({});
       schemeIds = adminSchemes.map(scheme => scheme._id);
     } else {
-      // For regular Coordinator, get only schemes they coordinate
       adminSchemes = await Schemes.find({ coordinator: adminId });
       schemeIds = adminSchemes.map(scheme => scheme._id);
     }
 
-    // Count projects based on the schemes
     const totalProjects = await Project.countDocuments({ Scheme: { $in: schemeIds } });
     const activeProjects = await Project.countDocuments({
       Scheme: { $in: schemeIds },
@@ -710,7 +705,6 @@ router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
       status: "Approved"
     });
 
-    // Get project counts per scheme
     const schemes = await Project.aggregate([
       { $match: { Scheme: { $in: schemeIds } } },
       {
@@ -721,7 +715,7 @@ router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
       },
       {
         $lookup: {
-          from: "schemes", // Assuming your schemes collection is named "schemes"
+          from: "schemes", 
           localField: "_id",
           foreignField: "_id",
           as: "schemeInfo"
@@ -738,7 +732,6 @@ router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
 
     console.log("SCHEMES:", schemes);
 
-    // Calculate funding trend by month for the schemes
     const fundTrend = await Project.aggregate([
       { $match: { Scheme: { $in: schemeIds } } },
       {
@@ -750,7 +743,6 @@ router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
       { $sort: { _id: 1 } }
     ]);
 
-    // Calculate total fund approved
     const totalFunds = await Project.aggregate([
       { $match: { Scheme: { $in: schemeIds } } },
       {
@@ -783,7 +775,6 @@ router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
         projects: s.count
       })),
       fundTrend: fundTrend.map(entry => {
-        // Convert month number to month name
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const monthIndex = parseInt(entry._id, 10) - 1;
         const monthName = monthNames[monthIndex] || entry._id;
@@ -797,6 +788,122 @@ router.get('/dashboard-stats', fetchAdmin, async (req, res) => {
   } catch (err) {
     console.error("Dashboard stats error:", err);
     res.status(500).json({ error: err.message });
+  }
+});
+router.post('/allocateBudget', fetchAdmin, async (req, res) => {
+  try {
+    if (!req.body || !req.body.budgetData || !req.body.projectId) {
+        return res.status(400).json({ success: false, message: "Invalid request body. 'budgetData' and 'projectId' are required." });
+    }
+    const budgetData = req.body.budgetData;
+    const projectId = req.body.projectId;
+    console.log(budgetData);
+    if (!budgetData || !projectId) {
+      return res.status(400).json({
+        success: false,
+        message: "Budget data and project ID are required"
+      });
+    }
+
+    const requiredFields = [
+      'overhead', 'nonRecurring', 'total', 
+      'recurring.travel', 'recurring.consumables',
+      'recurring.human_resources', 'recurring.total'
+    ];
+
+    for (const field of requiredFields) {
+      const value = field.split('.').reduce((obj, key) => obj?.[key], budgetData);
+      if (value === undefined || value === null) {
+        return res.status(400).json({
+          success: false,
+          message: `Missing required field: ${field}`
+        });
+      }
+    }
+
+    const project = await Project.findById(projectId).populate("userId");
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found"
+      });
+    }
+    if(project.YearlyDataId.length>=project.currentYear){
+      return res.status(400).json({
+        success: false,
+        message: "Budget For current Year Already Allocated!!"
+      });    }
+    const yearData = new YearlyData({
+      budgetUnspent: budgetData.total,
+      projectId: projectId,
+      budgetSanctioned: {
+        nonRecurring: budgetData.nonRecurring,
+        overhead: budgetData.overhead,
+        recurring: {
+          travel: budgetData.recurring.travel,
+          consumables: budgetData.recurring.consumables,
+          human_resources: budgetData.recurring.human_resources,
+          others: budgetData.recurring.others,
+          total: budgetData.recurring.total,
+        },
+        yearTotal: budgetData.total
+      },
+      budgetUsed: {  
+        nonRecurring: 0,
+        overhead: 0,
+        recurring: {
+          travel: 0,
+          consumables: 0,
+          human_resources: 0,
+          others: 0,
+          total: 0,
+        },
+        yearTotal: 0
+      }
+    });
+
+    await yearData.save();
+
+    project.YearlyDataId = [...(project.YearlyDataId || []), yearData._id];
+    await project.save();
+
+    try {
+      await sendEmail(
+        req.admin.email,
+        project.userId.email,
+        `Information on Budget Allocation - ${projectId}`,
+        `Dear ${project.userId.Name},\n\nWe are pleased to inform you that the budget for your project (ID: ${projectId}) has been successfully allocated.\n\nAllocated Budget Details:
+        - Total: ₹${budgetData.total}
+        - Overhead: ₹${budgetData.overhead}
+        - Non-Recurring: ₹${budgetData.nonRecurring}
+        - Recurring Total: ₹${budgetData.recurring.total}
+          - Human Resources: ₹${budgetData.recurring.human_resources}
+          - Travel: ₹${budgetData.recurring.travel}
+          - Consumables: ₹${budgetData.recurring.consumables}
+          - Others: ₹${budgetData.recurring.others}
+        
+        Please check the project dashboard for detailed information.\n\nBest regards,\nResearchX Team`
+      );
+    } catch (emailError) {
+      console.error("Email sending failed:", emailError);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Budget allocated successfully",
+      data: {
+        yearData,
+        updatedProject: project
+      }
+    });
+
+  } catch (err) {
+    console.error("Budget Allocation error:", err);
+    res.status(500).json({ 
+      success: false,
+      message: "Internal server error",
+      error: err.message 
+    });
   }
 });
 module.exports = router;
