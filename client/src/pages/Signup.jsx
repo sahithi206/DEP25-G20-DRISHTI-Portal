@@ -31,7 +31,7 @@ const Signup = () => {
     const fetchColleges = async () => {
       try {
         const response = await axios.get(
-          "http://universities.hipolabs.com/search?country=India"
+          "https://universities.hipolabs.com/search?country=India"
         );
         const collegeOptions = response.data.map((college) => ({
           label: college.name,
