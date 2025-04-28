@@ -371,43 +371,6 @@ const ChangeOfInstitute = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-4">
                                     <div>
                                         <label className="block font-semibold text-gray-700 mb-1">
-                                            State <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            className="border border-gray-400 rounded px-3 py-2 w-full"
-                                            name="state"
-                                            value={formData.state}
-                                            onChange={handleInputChange}
-                                            required
-                                        >
-                                            <option value="">Select State</option>
-                                            {states.map(state => (
-                                                <option key={state._id} value={state._id}>{state.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label className="block font-semibold text-gray-700 mb-1">
-                                            District <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            className="border border-gray-400 rounded px-3 py-2 w-full"
-                                            name="district"
-                                            value={formData.district}
-                                            onChange={handleInputChange}
-                                            required
-                                            disabled={!formData.state}
-                                        >
-                                            <option value="">Select District</option>
-                                            {filteredDistricts.map(district => (
-                                                <option key={district._id} value={district._id}>{district.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label className="block font-semibold text-gray-700 mb-1">
                                             Institute Name <span className="text-red-500">*</span>
                                         </label>
                                         <select
