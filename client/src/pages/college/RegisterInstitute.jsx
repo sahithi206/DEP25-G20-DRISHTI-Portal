@@ -28,7 +28,7 @@ const RegisterInstitute = () => {
   useEffect(() => {
     const fetchColleges = async () => {
       try {
-        const URL = 'https://colleges-and-universities.p.rapidapi.com/api/getByCountries';
+        const URL = 'https://colleges-and-universities.p.rapidapi.com/422d8e5f45msh97eeec9a0c1f539p12e539jsndab51d2383fe/getByCountries';
         const options = {
           method: 'GET',
           headers: {
