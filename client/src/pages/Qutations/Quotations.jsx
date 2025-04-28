@@ -515,13 +515,21 @@ const UploadDocuments = () => {
                             <tr key={rowIndex} className="border">
                               <td className="border p-2">
                               
-                                <select type="text"
+                                <select
+                                  type="text"
                                   className="border p-1 w-full"
                                   value={row.designation}
                                   onChange={(e) => {
-                                    const newRows = [...salaryRows];
-                                    newRows[rowIndex].designation = e.target.value;
-                                    setSalaryRows(newRows);}}>
+                                    setSalaryRows((prevRows) => {
+                                      const newRows = [...prevRows];
+                                      newRows[rowIndex] = {
+                                        ...newRows[rowIndex],
+                                        designation: e.target.value,
+                                      };
+                                      return newRows;
+                                    });
+                                  }}
+                                >
                                   <option value="">Select Designation </option>
                                   <option value="Junior Research Fellow">Junior Research Fellow </option>
                                   <option value="Lab Assistant">Lab Assistant </option>
