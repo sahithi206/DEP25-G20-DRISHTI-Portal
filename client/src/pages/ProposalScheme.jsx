@@ -139,6 +139,26 @@ const ProposalScheme = () => {
                         <p className="mt-3 text-2xl font-bold text-blue-800">Submission Form</p>
                     </div>
 
+                    <div className="mt-6 mx-auto max-w-2xl bg-blue-100 p-6 rounded-md border">
+                        <div className="flex justify-between items-center">
+                            <label className="font-semibold text-white-600">
+                                Scheme: <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                className="p-2 border rounded bg-white w-2/3"
+                                value={selectedProposal}
+                                onChange={(e) => setSelectedProposal(e.target.value)}
+                            >
+                                <option value="">Select scheme</option>
+                                {schemes.map((scheme) => (
+                                    <option key={scheme._id} value={scheme._id}>
+                                        {scheme.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
+                    </div>
 
                     <div className="text-right text-sm font-semibold text-red-700 mt-2 pr-2">
                         * Mandatory Fields
