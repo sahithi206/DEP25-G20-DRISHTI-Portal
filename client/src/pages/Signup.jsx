@@ -29,11 +29,20 @@ const Signup = () => {
 
   useEffect(() => {
     const fetchColleges = async () => {
+     
       try {
-        const response = await axios.get(
-          "http://universities.hipolabs.com/search?country=India"
-        );
-        const collegeOptions = response.data.map((college) => ({
+        const URL ="https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json";
+        const options = {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-key': '422d8e5f45msh97eeec9a0c1f539p12e539jsndab51d2383fe',
+            'x-rapidapi-host': 'colleges-and-universities.p.rapidapi.com'
+          }
+        };
+        const response = await fetch(URL);
+      	const result = await response.json();
+      	const result = await response.text();
+        const collegeOptions = result.data.map((college) => ({
           label: college.name,
           value: college.name,
         }));
@@ -42,6 +51,7 @@ const Signup = () => {
         console.error("Error fetching college list:", error);
       }
     };
+    console.log(colleges);
     fetchColleges();
   }, []);
 

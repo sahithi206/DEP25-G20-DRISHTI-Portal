@@ -28,10 +28,17 @@ const RegisterInstitute = () => {
   useEffect(() => {
     const fetchColleges = async () => {
       try {
-        const response = await axios.get(
-          "http://universities.hipolabs.com/search?country=India"
-        );
-        const collegeOptions = response.data.map((college) => ({
+        const URL ="https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json";
+        const options = {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-key': '422d8e5f45msh97eeec9a0c1f539p12e539jsndab51d2383fe',
+            'x-rapidapi-host': 'colleges-and-universities.p.rapidapi.com'
+          }
+        };
+        const response = await fetch(URL);
+      	const result = await response.json();
+        const collegeOptions = result.data.map((college) => ({
           label: college.name,
           value: college.name,
         }));
@@ -40,6 +47,7 @@ const RegisterInstitute = () => {
         console.error("Error fetching college list:", error);
       }
     };
+    console.log(colleges);
     fetchColleges();
 
     // Add event listener to handle clicks outside the dropdown
@@ -255,15 +263,20 @@ const RegisterInstitute = () => {
 
             <div className="relative" ref={dropdownRef}>
               <label className="block text-sm font-medium text-gray-700 mb-1">Institute Name</label>
-              <input
-                type="text"
-                name="instituteName"
-                value={data.instituteName}
-                onChange={handleChange}
-                onFocus={handleInputFocus}
-                className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
-                placeholder="Enter institute name"
-              />
+              <select
+               type="text"
+               name="instituteName"
+               value={data.instituteName}
+               onChange={handleChange}
+               onFocus={handleInputFocus}
+               className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
+               placeholder="Select Institute"
+              >
+              <option value="">Select Institute</option>
+              {colleges && colleges.length > 0 && colleges.map((val, idx) => (
+                 <option key={idx} value={val.value}>{val.value}</option>
+              ))}
+              </select>
               {isDropdownVisible && filteredColleges.length > 0 && (
                 <ul className="absolute w-full bg-white border rounded-lg mt-1 max-h-60 overflow-y-auto z-10 shadow-md">
                   {filteredColleges.map((college) => (
