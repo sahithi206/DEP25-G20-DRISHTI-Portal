@@ -35,10 +35,12 @@ const Signup = () => {
         const response = await fetch(URL);
       	const result = await response.json();
         console.log(result);
-        const collegeOptions = result.data.map((college) => ({
-          label: college.name,
-          value: college.name,
-        }));
+        const collegeOptions = result
+          .filter((college) => college.country === "India" || college.alpha_two_code === "IN")
+          .map((college) => ({
+            label: college.name,
+            value: college.name,
+          }));
         setColleges(collegeOptions);
       } catch (error) {
         console.error("Error fetching college list:", error);

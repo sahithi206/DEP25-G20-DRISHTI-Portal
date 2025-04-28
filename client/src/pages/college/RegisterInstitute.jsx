@@ -30,11 +30,14 @@ const RegisterInstitute = () => {
       try {
         const URL ="https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json";
         const response = await fetch(URL);
-      	const result = await response.json();
-        const collegeOptions = result.data.map((college) => ({
-          label: college.name,
-          value: college.name,
-        }));
+      	let result = await response.json();
+         
+        const collegeOptions = result
+          .filter((college) => college.country === "India" || college.alpha_two_code === "IN")
+          .map((college) => ({
+            label: college.name,
+            value: college.name,
+          }));
         setColleges(collegeOptions);
       } catch (error) {
         console.error("Error fetching college list:", error);
