@@ -43,7 +43,6 @@ const RegisterInstitute = () => {
         console.error("Error fetching college list:", error);
       }
     };
-    console.log(colleges);
     fetchColleges();
 
     // Add event listener to handle clicks outside the dropdown

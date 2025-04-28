@@ -8,6 +8,7 @@ const URL = import.meta.env.VITE_REACT_APP_URL;
 
 const ChangeOfInstitute = () => {
     const navigate = useNavigate();
+      const [colleges, setColleges] = useState([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [loading, setLoading] = useState(false);
     const [statusFilter, setStatusFilter] = useState("");
@@ -25,6 +26,24 @@ const ChangeOfInstitute = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortOrder, setSortOrder] = useState("asc");
     useEffect(() => {
+        const fetchColleges = async () => {
+            try {
+              const URL ="https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json";
+              const response = await fetch(URL);
+                let result = await response.json();
+               
+              const collegeOptions = result
+                .filter((college) => college.country === "India" || college.alpha_two_code === "IN")
+                .map((college) => ({
+                  label: college.name,
+                  value: college.name,
+                }));
+              setColleges(collegeOptions);
+            } catch (error) {
+              console.error("Error fetching college list:", error);
+            }
+          };
+          fetchColleges();
         const fetchPreviousRequests = async () => {
             try {
                 const response = await fetch(`${URL}requests/pi/getcirequests`, {
@@ -392,18 +411,18 @@ const ChangeOfInstitute = () => {
                                             Institute Name <span className="text-red-500">*</span>
                                         </label>
                                         <select
-                                            className="border border-gray-400 rounded px-3 py-2 w-full"
-                                            name="newInstitute"
-                                            value={formData.newInstitute}
-                                            onChange={handleInputChange}
-                                            required
-                                            disabled={!formData.district}
-                                        >
-                                            <option value="">Select Institute</option>
-                                            {filteredInstitutions.map(inst => (
-                                                <option key={inst._id} value={inst._id}>{inst.name}</option>
-                                            ))}
-                                        </select>
+               type="text"
+               name="newInstitute"
+               value={formData.newInstitute}
+               onChange={handleInputChange}
+               className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
+               placeholder="Select Institute"
+              >
+              <option value="">Select Institute</option>
+              {colleges && colleges.length > 0 && colleges.map((val, idx) => (
+                 <option key={idx} value={val.value}>{val.value}</option>
+              ))}
+              </select>
                                     </div>
                                 </div>
 

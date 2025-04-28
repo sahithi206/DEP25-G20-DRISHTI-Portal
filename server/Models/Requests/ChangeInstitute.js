@@ -12,8 +12,7 @@ const RequestSchema = new mongoose.Schema({
         projectTitle: String,
         currentInstitute: String,
         currentInstituteAddress: String,
-        state: String,
-        district: String,
+       
         newInstitute: String,
         department: String,
         designation: String,
