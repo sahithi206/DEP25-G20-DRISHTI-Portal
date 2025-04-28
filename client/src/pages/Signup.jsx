@@ -31,7 +31,7 @@ const Signup = () => {
     const fetchColleges = async () => {
      
       try {
-        const URL = 'https://colleges-and-universities.p.rapidapi.com/api/getByCountries';
+        const URL ="https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json";
         const options = {
           method: 'GET',
           headers: {
@@ -39,7 +39,8 @@ const Signup = () => {
             'x-rapidapi-host': 'colleges-and-universities.p.rapidapi.com'
           }
         };
-        const response = await fetch(URL, options);
+        const response = await fetch(URL);
+      	const result = await response.json();
       	const result = await response.text();
         const collegeOptions = result.data.map((college) => ({
           label: college.name,
