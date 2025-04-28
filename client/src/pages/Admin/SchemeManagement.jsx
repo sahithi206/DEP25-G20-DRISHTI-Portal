@@ -13,7 +13,7 @@ const SchemeManagement = ({ userRole }) => {
     const [filteredSchemes, setFilteredSchemes] = useState([]);
     const [users, setUsers] = useState([]);
     const [formErrors, setFormErrors] = useState({});
-    const [showCreateScheme, setShowCreateScheme] = useState(false); 
+    const [showCreateScheme, setShowCreateScheme] = useState(false);
     const [filters, setFilters] = useState({
         search: "",
         status: "",
@@ -182,7 +182,7 @@ const SchemeManagement = ({ userRole }) => {
         const startDate = new Date(formData.startDate);
         const endDate = new Date(formData.endDate);
 
-        let initialStatus = "Active"; 
+        let initialStatus = "Active";
 
         if (currentDate < startDate) {
             initialStatus = "Pending";
@@ -254,7 +254,7 @@ const SchemeManagement = ({ userRole }) => {
     return (
         <div className="flex h-screen bg-gray-50">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 p-6 overflow-y-auto">
                 <AdminNavbar activeSection={activeSection} />
 
                 <div className="flex-1 overflow-y-auto p-6">
@@ -270,13 +270,8 @@ const SchemeManagement = ({ userRole }) => {
                         </div>
                     )}
 
-                    <div className="mb-6">
-                        <h1 className="text-2xl font-bold text-gray-800">Scheme Management</h1>
-                        <p className="text-gray-600">Create and manage funding schemes</p>
-                    </div>
-
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-                        <div 
+                        <div
                             onClick={toggleCreateScheme}
                             className="p-6 border-b border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors"
                         >

@@ -98,7 +98,7 @@ const SanctionedProposals = () => {
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
                         <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
                         <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>
-                        <p className="mt-3 text-2xl font-bold text-blue-800">Ongoing Projects</p>
+                        <p className="mt-3 text-2xl font-bold text-blue-800">Completed Projects</p>
                     </div>
                     <div className="bg-white shadow-md rounded-xl overflow-hidden">
                         <div className="flex flex-col sm:flex-row gap-4">                            <div className="w-full sm:flex-1 min-w-[200px]">
