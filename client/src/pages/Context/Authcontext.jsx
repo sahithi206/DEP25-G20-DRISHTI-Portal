@@ -201,13 +201,16 @@ const AuthProvider = (props) => {
         },
         body: JSON.stringify({ Scheme: scheme }),
       });
-
+        
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || "Failed to create proposal");
       }
 
       const json = await response.json();
+      if(!json.success){
+        toast.error(json.msg);
+      }
       console.log("Proposal Submitted Successfully:", json);
       return json;
     } catch (e) {
