@@ -92,26 +92,26 @@ const ChangeOfInstitute = () => {
     const handleStatusFilter = (e) => {
         setStatusFilter(e.target.value);
     };
-    
+
     const handleSort = () => {
         setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
     };
 
     const filteredAndSortedRequests = previousRequests
-    .filter((req) => {
-        const matchesSearch = 
-            req.FormData?.piName?.toLowerCase().includes(searchQuery) ||
-            req.FormData?.currentInstitute?.toLowerCase().includes(searchQuery) ||
-            req.FormData?.newInstitute?.toLowerCase().includes(searchQuery);
-                const matchesStatus = statusFilter ? req.status === statusFilter : true;
-        
-        return matchesSearch && matchesStatus;
-    })
-    .sort((a, b) => {
-        const dateA = new Date(a.submittedAt);
-        const dateB = new Date(b.submittedAt);
-        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-    });
+        .filter((req) => {
+            const matchesSearch =
+                req.FormData?.piName?.toLowerCase().includes(searchQuery) ||
+                req.FormData?.currentInstitute?.toLowerCase().includes(searchQuery) ||
+                req.FormData?.newInstitute?.toLowerCase().includes(searchQuery);
+            const matchesStatus = statusFilter ? req.status === statusFilter : true;
+
+            return matchesSearch && matchesStatus;
+        })
+        .sort((a, b) => {
+            const dateA = new Date(a.submittedAt);
+            const dateB = new Date(b.submittedAt);
+            return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+        });
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -269,8 +269,9 @@ const ChangeOfInstitute = () => {
                 <div className="p-6 space-y-6 mt-16">
                     <div className="p-6 space-y-6">
                         <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                        <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-                        <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>                            <p className="mt-3 text-2xl font-bold text-blue-800">Change of Institute </p>
+                            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                            <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>
+                            <p className="mt-3 text-2xl font-bold text-blue-800">Change of Institute </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
@@ -508,98 +509,97 @@ const ChangeOfInstitute = () => {
                 </div>
                 <div className="bg-white shadow-md rounded-lg p-8 mt-2  border-blue-800 mb-4 mx-12">
 
-                <div className="flex justify-between items-center mb-4">
-    <div className="w-1/2 mr-4">
-        <input
-            type="text"
-            placeholder="Search by PI Name, Current Institute, or New Institute"
-            className="px-3 py-2 w-full"
-            value={searchQuery}
-            onChange={handleSearch}
-        />
-        <div className="h-px bg-gray-300 mt-1 w-full"></div>
-    </div>
+                    <div className="flex justify-between items-center mb-4">
+                        <div className="w-1/2 mr-4">
+                            <input
+                                type="text"
+                                placeholder="Search by PI Name, Current Institute, or New Institute"
+                                className="px-3 py-2 w-full"
+                                value={searchQuery}
+                                onChange={handleSearch}
+                            />
+                            <div className="h-px bg-gray-300 mt-1 w-full"></div>
+                        </div>
 
-    <div className="mr-4">
-        <select
-            value={statusFilter}
-            onChange={handleStatusFilter}
-            className="border border-gray-400 rounded px-3 py-2"
-        >
-            <option value="">All Status</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Rejected">Sent</option>
-            <option value="Pending">Pending</option>
-        </select>
-    </div>
-    <button
-        onClick={handleSort}
-        className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition"
-    >
-        Sort by Date
-    </button>
-</div>
+                        <div className="mr-4">
+                            <select
+                                value={statusFilter}
+                                onChange={handleStatusFilter}
+                                className="border border-gray-400 rounded px-3 py-2"
+                            >
+                                <option value="">All Status</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                                <option value="Rejected">Sent</option>
+                                <option value="Pending">Pending</option>
+                            </select>
+                        </div>
+                        <button
+                            onClick={handleSort}
+                            className="bg-blue-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-800 transition"
+                        >
+                            Sort by Date
+                        </button>
+                    </div>
 
 
 
-    {filteredAndSortedRequests.length > 0 ? (
-           <>
-            <table className="w-full text-sm border border-gray-300:w-[80px] text-sm border border-gray-300::w-[30px] text-sm border border-gray-300">
-                <thead className="bg-gray-100">
-                    <tr>
-                        <th className="border p-2">Request ID</th>
-                        <th className="border p-2">PI Name</th>
-                        <th className="border p-2">Current Institute</th>
-                        <th className="border p-2">New Institute</th>
-                        <th className="border p-2">Status</th>
-                        <th className="border p-2">Date</th>
-                        <th className="border p-2">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filteredAndSortedRequests.map((req) => (
-                        <tr key={req._id}>
-                            <td className="border p-2 text-center">{req._id}</td>
-                            <td className="border p-2 text-center">{req.FormData?.piName || "-"}</td>
-                            <td className="border p-2 text-center">{req.FormData?.currentInstitute || "-"}</td>
-                            <td className="border p-2 text-center">{req.FormData?.newInstitute || "-"}</td>
-                            <td className="border p-2 text-center">
-                                <span className={`px-2 py-1 rounded-full text-white text-xs ${
-                                    req.status === "Approved"
-                                        ? "bg-green-600"
-                                        : req.status === "Rejected"
-                                            ? "bg-red-600"
-                                            : "bg-yellow-400"
-                                }`}>
-                                    {req.status || "Pending"}
-                                </span>
-                            </td>
-                            <td className="border p-2 text-center">{new Date(req.submittedAt).toLocaleDateString()}</td>
-                            {req.status === "Pending For Admin's Approval" && (
-                                <td className="border p-2 text-center">
-                                    <button
-                                        className="bg-green-500 text-white px-5 py-2 rounded-md shadow-md hover:bg-blue-800 transition font-medium disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
-                                        onClick={async () => {
-                                            setID(req._id);
-                                            await ChangeStatus("Sent");
-                                        }}
-                                    >
-                                        Submit
-                                    </button>
-                                </td>
-                            )}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            </>
-    ) : (
-        <p className="text-center text-gray-500">No matching requests found.</p>
-    )}
-</div>
+                    {filteredAndSortedRequests.length > 0 ? (
+                        <>
+                            <table className="w-full text-sm border border-gray-300:w-[80px] text-sm border border-gray-300::w-[30px] text-sm border border-gray-300">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="border p-2">Request ID</th>
+                                        <th className="border p-2">PI Name</th>
+                                        <th className="border p-2">Current Institute</th>
+                                        <th className="border p-2">New Institute</th>
+                                        <th className="border p-2">Status</th>
+                                        <th className="border p-2">Date</th>
+                                        <th className="border p-2">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredAndSortedRequests.map((req) => (
+                                        <tr key={req._id}>
+                                            <td className="border p-2 text-center">{req._id}</td>
+                                            <td className="border p-2 text-center">{req.FormData?.piName || "-"}</td>
+                                            <td className="border p-2 text-center">{req.FormData?.currentInstitute || "-"}</td>
+                                            <td className="border p-2 text-center">{req.FormData?.newInstitute || "-"}</td>
+                                            <td className="border p-2 text-center">
+                                                <span className={`px-2 py-1 rounded-full text-white text-xs ${req.status === "Approved"
+                                                        ? "bg-green-600"
+                                                        : req.status === "Rejected"
+                                                            ? "bg-red-600"
+                                                            : "bg-yellow-400"
+                                                    }`}>
+                                                    {req.status || "Pending"}
+                                                </span>
+                                            </td>
+                                            <td className="border p-2 text-center">{new Date(req.submittedAt).toLocaleDateString()}</td>
+                                            {req.status === "Pending For Admin's Approval" && (
+                                                <td className="border p-2 text-center">
+                                                    <button
+                                                        className="bg-green-500 text-white px-5 py-2 rounded-md shadow-md hover:bg-blue-800 transition font-medium disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+                                                        onClick={async () => {
+                                                            setID(req._id);
+                                                            await ChangeStatus("Sent");
+                                                        }}
+                                                    >
+                                                        Submit
+                                                    </button>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </>
+                    ) : (
+                        <p className="text-center text-gray-500">No matching requests found.</p>
+                    )}
+                </div>
 
-        </div>
+            </div>
         </div>
     )
 }

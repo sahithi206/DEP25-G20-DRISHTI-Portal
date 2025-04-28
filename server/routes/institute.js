@@ -52,7 +52,7 @@ router.get("/users", fetchInstitute, async (req, res) => {
     res.status(500).json({ success: false, msg: "Failed to fetch users", error: error.message });
   }
 });
-router.get('/profile', fetchInstitute, async (req, res) => {
+router.get('', fetchInstitute, async (req, res) => {
   try {
 
     // console.log("Inst Details:", req.institute);
@@ -75,33 +75,33 @@ router.get('/profile', fetchInstitute, async (req, res) => {
 });
 router.put('/profile', fetchInstitute, async (req, res) => {
   const { name, email, college, role } = req.body;
-  
+
   const profileFields = {};
   if (name) profileFields.name = name;
   if (email) profileFields.email = email;
   if (college) profileFields.college = college;
   if (role) profileFields.role = role;
-  
+
   try {
     let admin = await Institute.findById(req.user.id);
-    
+
     if (!admin) {
       return res.status(404).json({ msg: 'Admin profile not found' });
     }
-    
+
     if (email && email !== admin.email) {
       const emailExists = await Institute.findOne({ email });
       if (emailExists) {
         return res.status(400).json({ msg: 'Email already in use' });
       }
     }
-    
+
     admin = await Institute.findByIdAndUpdate(
       req.user.id,
       { $set: profileFields },
       { new: true }
     ).select('-password');
-    
+
     res.json(admin);
   } catch (err) {
     console.error(err.message);
@@ -114,24 +114,24 @@ router.get("/:userId/accepted-proposals", fetchInstitute, async (req, res) => {
     if (proj.length <= 0) {
       return res.status(200).json({ success: false, msg: "No Sanctioned Projects" })
     }
-    let projects= await Promise.all(
-        proj.map(async (proj,idx)=>{
-          const start = new Date(proj.startDate);
-    const end = new Date(proj.endDate);
-    let status = "";
-    if (new Date() < start) {
-      status = "Approved";
-    } else if (new Date() >= start && new Date() <= end) {
-      status = "Ongoing";
-    } else {
-      status = "Completed";
-    }
-    if(status!=proj.status){
-      let project = await Project.findByIdAndUpdate(proj._id,{status:status},{new:true});
-       proj=project;
-    }
-      return proj;
-        })
+    let projects = await Promise.all(
+      proj.map(async (proj, idx) => {
+        const start = new Date(proj.startDate);
+        const end = new Date(proj.endDate);
+        let status = "";
+        if (new Date() < start) {
+          status = "Approved";
+        } else if (new Date() >= start && new Date() <= end) {
+          status = "Ongoing";
+        } else {
+          status = "Completed";
+        }
+        if (status != proj.status) {
+          let project = await Project.findByIdAndUpdate(proj._id, { status: status }, { new: true });
+          proj = project;
+        }
+        return proj;
+      })
     )
     console.log(projects);
     return res.status(200).json({
@@ -150,7 +150,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
     console.log(projectid);
 
     if (!ObjectId.isValid(projectid)) {
-        return res.status(400).json({ success: false, msg: "Invalid Project ID" });
+      return res.status(400).json({ success: false, msg: "Invalid Project ID" });
     }
 
     let id = new ObjectId(projectid);
@@ -163,7 +163,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
     console.log(project);
     const start = new Date(project.startDate);
     const end = new Date(project.endDate);
-    
+
     let status = "";
     if (new Date() < start) {
       status = "Approved";
@@ -172,7 +172,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
     } else {
       status = "Completed";
     }
-    project = await Project.findByIdAndUpdate(id,{status:status},{new:true});
+    project = await Project.findByIdAndUpdate(id, { status: status }, { new: true });
     const ids = await Project.findById(id)
       .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
 
@@ -202,7 +202,7 @@ router.get("/get-project/:projectid", fetchInstitute, async (req, res) => {
       success: true,
       msg: "Fetched Project's Details Successfully",
       project,
-      scheme:scheme.name,
+      scheme: scheme.name,
       generalInfo,
       researchDetails,
       PIDetails,
