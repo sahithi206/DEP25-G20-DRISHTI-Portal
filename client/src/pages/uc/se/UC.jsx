@@ -196,6 +196,9 @@ const UCForm = () => {
       }
       setUCData(result.data);
       console.log("UC.jsx FetchUcData:", result.data);
+      const authData = await fetchInstituteOfficials(result.data.instituteName);
+      console.log("Auth Data:", authData);
+      setInstituteOfficials(authData);
     } catch (err) {
       console.error(`Error fetching ${type} UC data:`, err.message);
       setError(`Failed to fetch ${type} UC data`);
