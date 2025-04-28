@@ -202,7 +202,7 @@ const ProjectExpenses = () => {
             <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
             <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-                <HomeNavbar isSidebarOpen={isSidebarOpen} path={"/sanctionedproposals"} />
+                <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/project-dashboard/${projectId}`} />
 
                 <div className="p-6 md:p-8 pt-16 md:pt-20">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-4 border-b border-blue-100">
