@@ -514,17 +514,26 @@ const UploadDocuments = () => {
                           {salaryRows.map((row, rowIndex) => (
                             <tr key={rowIndex} className="border">
                               <td className="border p-2">
-                                <input
+                              
+                                <select
                                   type="text"
                                   className="border p-1 w-full"
                                   value={row.designation}
                                   onChange={(e) => {
-                                    const newRows = [...salaryRows];
-                                    newRows[rowIndex].designation = e.target.value;
-                                    setSalaryRows(newRows);
+                                    setSalaryRows((prevRows) => {
+                                      const newRows = [...prevRows];
+                                      newRows[rowIndex] = {
+                                        ...newRows[rowIndex],
+                                        designation: e.target.value,
+                                      };
+                                      return newRows;
+                                    });
                                   }}
-                                  placeholder="Enter designation"
-                                />
+                                >
+                                  <option value="">Select Designation </option>
+                                  <option value="Junior Research Fellow">Junior Research Fellow </option>
+                                  <option value="Lab Assistant">Lab Assistant </option>
+                                </select>
                               </td>
                               {yearColumns.map((y, i) => (
                                 <td
