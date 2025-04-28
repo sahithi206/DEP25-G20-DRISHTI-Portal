@@ -276,7 +276,25 @@ router.get("/get-projects", fetchAdmin, async (req, res) => {
     if (!proposals || proposals.length === 0) {
       return res.status(404).json({ success: false, msg: "No Projects found" });
     }
-
+    let projects = await Promise.all(
+      proposals.map(async (proj, idx) => {
+        const start = new Date(proj.startDate);
+        const end = new Date(proj.endDate);
+        let status = "";
+        if (new Date() < start) {
+          status = "Approved";
+        } else if (new Date() >= start && new Date() <= end) {
+          status = "Ongoing";
+        } else {
+          status = "Completed";
+        }
+        if (status != proj.status) {
+          let project = await Project.findByIdAndUpdate(proj._id, { status: status }, { new: true });
+          proj = project;
+        }
+        return proj;
+      })
+    )
     const data = await Promise.all(
       proposals.map(async (proposal) => {
         const generalInfo = await GeneralInfo.findById(proposal.generalInfoId);

@@ -761,6 +761,39 @@ router.post('/upload-expenses', async (req, res) => {
     res.status(500).json({ message: 'Failed to upload expenses', error: error.message });
   }
 });
+router.get("/ucforms/:id", fetchInstitute, async (req, res) => {
+  try {
+    const recurringgrant = await UCRequest.find({ projectId: req.params.id });
+    const grant = await UCRequest.find({ projectId: req.params.id });
+    const se = await SE.find({ projectId: req.params.id });
 
+    if (grant.length <= 0 && recurringgrant.length <= 0 && se.length <= 0) {
+      return res.status(404).json({ succes: false, msg: "Certificates not found" });
+    }
+
+    res.status(200).json({ success: true, grant, se, recurringgrant, msg: "Certificates Fetched" });
+  } catch (error) {
+    console.error("Error fetching Certificates:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get('/profile', fetchInstitute, async (req, res) => {
+  try {
+
+    console.log("Inst Details:", req.institute);
+    const instituteId = req.institute._id;
+    const institute = await Institute.findById(instituteId).select("-password");
+
+    if (!institute) {
+      return res.status(404).json({ error: "Institute not found" });
+    }
+
+    res.status(200).json({ success: true, institute });
+  } catch (error) {
+    console.error("Error fetching institute profile:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 module.exports = router;
