@@ -567,10 +567,10 @@ const ChangeOfInstitute = () => {
                                             <td className="border p-2 text-center">{req.FormData?.newInstitute || "-"}</td>
                                             <td className="border p-2 text-center">
                                                 <span className={`px-2 py-1 rounded-full text-white text-xs ${req.status === "Approved"
-                                                        ? "bg-green-600"
-                                                        : req.status === "Rejected"
-                                                            ? "bg-red-600"
-                                                            : "bg-yellow-400"
+                                                    ? "bg-green-600"
+                                                    : req.status === "Rejected"
+                                                        ? "bg-red-600"
+                                                        : "bg-yellow-400"
                                                     }`}>
                                                     {req.status || "Pending"}
                                                 </span>
