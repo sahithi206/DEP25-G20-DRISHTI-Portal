@@ -203,9 +203,6 @@ const AuthProvider = (props) => {
       });
 
       const json = await response.json();
-      if(!json.success){
-        toast.error(json.msg);
-      }
       console.log("Proposal Submitted Successfully:", json);
       return json;
     } catch (e) {
