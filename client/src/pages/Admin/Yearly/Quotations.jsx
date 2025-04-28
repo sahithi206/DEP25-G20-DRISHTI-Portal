@@ -109,26 +109,25 @@ const AdminProposalReview = () => {
                                     <th className="p-3 text-left border border-gray-200">File. No</th>
                                     <th className="p-3 text-left border border-gray-200">Scheme</th>
                                     <th className="p-3 text-left border border-gray-200">Title</th>
-                                    <th className="p-3 text-center border border-gray-200" colSpan={2}>Actions</th>
+                                    <th className="p-3 text-center border border-gray-200" colSpan={1}>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredQuotations.map((q) => (
                                     <tr key={q._id} className="hover:bg-gray-50">
-                                        <td className="p-3 border border-gray-200">{q._id}</td>
-                                        <td className="p-3 border border-gray-200">{q.scheme || "N/A"}</td>
-                                        <td className="p-3 border border-gray-200">{q?.Title || "N/A"}</td>
-                                        <td className="p-3 text-center border border-gray-200">
-                                            <button
-                                                onClick={() => {
+                                        <td className="p-3 border border-gray-200" onClick={() => {
                                                     setSelectedQuotation(q);
                                                     navigate(`/admin/quotations/${q._id}`);
-                                                }}
-                                                className="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            >
-                                                View Quotation
-                                            </button>
-                                        </td>
+                                                }}>{q._id}</td>
+                                        <td className="p-3 border border-gray-200" onClick={() => {
+                                                    setSelectedQuotation(q);
+                                                    navigate(`/admin/quotations/${q._id}`);
+                                                }}>{q.scheme || "N/A"}</td>
+                                        <td className="p-3 border border-gray-200" onClick={() => {
+                                                    setSelectedQuotation(q);
+                                                    navigate(`/admin/quotations/${q._id}`);
+                                                }}>{q?.Title || "N/A"}</td>
+                                        
                                         <td className="p-3 text-center border border-gray-200">
                                             <button
                                                 onClick={() => {
