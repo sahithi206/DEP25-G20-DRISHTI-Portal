@@ -225,7 +225,7 @@ router.get("/sanctioned-projects", fetchInstitute, async (req, res) => {
     const users = await User.find({ Institute: institute }).select("_id");
     const userIds = users.map(user => user._id);
     console.log("Projects", users, userIds);
-    const projects = await Project.find({ userId: { $in: userIds } });
+    const projects = await Project.find({ userId: { $in: userIds } }).populate("Scheme");
     console.log("Projects", projects);
     if (!projects.length) {
       return res.status(404).json({ success: false, msg: "No sanctioned projects found" });
