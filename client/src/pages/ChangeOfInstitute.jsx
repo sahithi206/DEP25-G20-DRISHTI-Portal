@@ -305,11 +305,11 @@ const ChangeOfInstitute = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded mb-6">
+                            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded mb-6 : bg-green-50 border-l-4 border-green-500 p-4 rounded mb-6 ">
                                 <h3 className="text-lg font-semibold text-green-700 mb-2">Projects</h3>
                                 <p className="text-sm text-gray-600 mb-4">Please select the projects you wish to be transferred</p>
 
-                                <table className="w-full text-sm border border-gray-300">
+                                <table className="w-full text-sm border border-gray-300:w-[92px] text-sm border border-gray-300:w-[30px] text-sm border border-gray-300">
                                     <thead className="bg-green-100">
                                         <tr>
                                             <th className="border p-2">Select</th>
@@ -545,7 +545,7 @@ const ChangeOfInstitute = () => {
 
     {filteredAndSortedRequests.length > 0 ? (
            <>
-            <table className="w-full text-sm border border-gray-300">
+            <table className="w-full text-sm border border-gray-300:w-[80px] text-sm border border-gray-300::w-[30px] text-sm border border-gray-300">
                 <thead className="bg-gray-100">
                     <tr>
                         <th className="border p-2">Request ID</th>

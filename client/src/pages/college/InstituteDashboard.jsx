@@ -2,6 +2,8 @@ import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../Context/Authcontext";
 import HomeNavbar from "../../components/Navbar";
 import Sidebar from "../../components/InstituteSidebar";
+import axios from "axios";
+const url = import.meta.env.VITE_REACT_APP_URL;
 import {
   BarChart,
   Bar,
@@ -634,7 +636,34 @@ const InstituteDashboard = () => {
     }
   ];
 
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+  const [profile,setProfile]=useState("");
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
 
+      if (!token) {
+        throw new Error("Authentication token not found. Please login again.");
+      }
+
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          "accessToken": token,
+        },
+      };
+
+      const res = await axios.get(`${url}institute/profile`, config);
+      setProfile(res.data.institute); 
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   const agencyBudgetData = projects.reduce((acc, project) => {
     const existingAgency = acc.find(item => item.name === project.agency);
     const amount = parseFloat(project.amount) || 0;
@@ -769,8 +798,8 @@ const InstituteDashboard = () => {
           </div>
               <ul className="list-disc pl-6 space-y-2 text-gray-800">
                 <li><strong>CSR Funds:</strong> With greater emphasis on corporate funding, the Institute has received/sanctioned CSR funding of Rs. 0.87 crore from different industries. In the coming years, the same is going to substantially increase through continuous and rigorous efforts of the R&D team.</li>
-                <li><strong>Research Initiation Support (IRIS):</strong> Institute Research Initiation Support (IRIS) scheme has been announced for supporting newly joined faculty members at {users[0].Institute}. This grant is constituted to give new faculty members a “leg-up” in their future research without waiting for a proposal to be approved by the external funding agencies or the regular Ph.D. intake in the institute to add research personnel to their group.</li>
-                <li><strong>Summer Internship for Noetic Exposure (SINE) Program:</strong> SINE program has been announced for giving an opportunity to exceptionally qualified UG/PG students to execute an innovative R&D project under the guidance of {users[0].Institute} faculty members. The students at different engineering institutes in India or abroad, who are within Top #15 Ranks in their respective program/branch, are eligible to apply.</li>
+                <li><strong>Research Initiation Support (IRIS):</strong> Institute Research Initiation Support (IRIS) scheme has been announced for supporting newly joined faculty members at {profile.college}. This grant is constituted to give new faculty members a “leg-up” in their future research without waiting for a proposal to be approved by the external funding agencies or the regular Ph.D. intake in the institute to add research personnel to their group.</li>
+                <li><strong>Summer Internship for Noetic Exposure (SINE) Program:</strong> SINE program has been announced for giving an opportunity to exceptionally qualified UG/PG students to execute an innovative R&D project under the guidance of {profile.college} faculty members. The students at different engineering institutes in India or abroad, who are within Top #15 Ranks in their respective program/branch, are eligible to apply.</li>
                 <li>The ICSR-II Board has been renamed as Research and Development Advisory Board.</li>
               </ul>
 
