@@ -87,7 +87,7 @@ const SEForm = () => {
                         setPiSignature(se.piSignature);
                         setInstituteStamp(se.instituteStamp);
                         setauthSignature(se.authSignature);
-                        setSeRequestId(se._id);
+                        // setSeRequestId(se._id);
                         if (se.status === "approvedByInst") {
                             setInstituteApproved(true);
                         }
@@ -526,7 +526,7 @@ const SEForm = () => {
                 return;
             }
 
-            setSeRequestId(result.id);
+            // setSeRequestId(result.id);
             setShowSuccessPopup(true);
             setSentForApproval(true);
 
