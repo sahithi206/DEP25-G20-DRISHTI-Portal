@@ -29,13 +29,13 @@ const RegisterInstitute = () => {
     const fetchColleges = async () => {
       try {
         const response = await axios.get(
-          "http://universities.hipolabs.com/search?country=India"
+          "https://universities.hipolabs.com/search?country=India"
         );
         const collegeOptions = response.data.map((college) => ({
           label: college.name,
           value: college.name,
         }));
-        setColleges(collegeOptions);
+        setColleges([...collegeOptions]);
       } catch (error) {
         console.error("Error fetching college list:", error);
       }
@@ -255,15 +255,20 @@ const RegisterInstitute = () => {
 
             <div className="relative" ref={dropdownRef}>
               <label className="block text-sm font-medium text-gray-700 mb-1">Institute Name</label>
-              <input
-                type="text"
-                name="instituteName"
-                value={data.instituteName}
-                onChange={handleChange}
-                onFocus={handleInputFocus}
-                className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
-                placeholder="Enter institute name"
-              />
+              <select
+               type="text"
+               name="instituteName"
+               value={data.instituteName}
+               onChange={handleChange}
+               onFocus={handleInputFocus}
+               className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
+               placeholder="Select Institute"
+              >
+              <option value="">Select Institute</option>
+              {colleges && colleges.length > 0 && colleges.map((val, idx) => (
+                 <option key={idx} value={val.value}>{val.value}</option>
+              ))}
+              </select>
               {isDropdownVisible && filteredColleges.length > 0 && (
                 <ul className="absolute w-full bg-white border rounded-lg mt-1 max-h-60 overflow-y-auto z-10 shadow-md">
                   {filteredColleges.map((college) => (
