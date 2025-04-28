@@ -33,18 +33,17 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
 
   const menuItems = [
     { label: "Dashboard", icon: Home, id: "dashboard", path: "/institute-dashboard" },
-    { label: "Projects", icon: Folder, id: "sanctioned-projects", path: "/institute-users"}
-  ];
-
-  if (instituteUser.role === "Head of Institute") {
-    menuItems.push({
+    {
       label: "Institute Users",
       icon: Users,
       id: "users",
       path: "/institute-users"
-    });
+    },
+    { label: "Projects", icon: Folder, id: "sanctioned-projects", path: "/sanctioned-projects"}
+  ];
 
-   
+  if (instituteUser.role === "Head of Institute") {
+
     menuItems.push({
       label: "Requests",
       icon: ClipboardList,
@@ -62,11 +61,9 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
     ];
   } else if (instituteUser.role === "CFO") {
     reportItems = [
-      { label: "UC", id: "uc", path: "/institute/uc" },
-      { label: "SE", id: "se", path: "/institute/se" }    ];
+      { label: "UC", id: "uc", path: "/institute/uc" }  ];
   } else if (instituteUser.role === "Accounts Officer") {
     reportItems = [
-      { label: "UC", id: "uc", path: "/institute/uc" },
       { label: "SE", id: "se", path: "/institute/se" }
     ];
   }
