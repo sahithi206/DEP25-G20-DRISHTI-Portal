@@ -61,7 +61,7 @@ const SEForm = () => {
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { getProject } = useContext(AuthContext);
+    const { getProject, getpi } = useContext(AuthContext);
     useEffect(() => {
         const fetchStatus = async () => {
             if (id) {
@@ -80,14 +80,12 @@ const SEForm = () => {
                     const data = await res.json();
                     if (data.success && data.data) {
                         const se = data.data;
-                        const authData = await fetchInstituteOfficials(se.institute);
                         // console.log("Auth Data:", authData);
-                        setInstituteOfficials(authData);
                         setSentForApproval(true);
                         setPiSignature(se.piSignature);
                         setInstituteStamp(se.instituteStamp);
                         setauthSignature(se.authSignature);
-                        setSeRequestId(se._id);
+                        // setSeRequestId(se._id);
                         if (se.status === "approvedByInst") {
                             setInstituteApproved(true);
                         }
@@ -164,6 +162,8 @@ const SEForm = () => {
                     });
 
                 }
+                const authData = await fetchInstituteOfficials(info.generalInfo?.instituteName);
+                setInstituteOfficials(authData);
                 setYearly(info.yearlySanct || []);
                 setBudget(info.yearlyExp || []);
             } catch (error) {
@@ -526,7 +526,7 @@ const SEForm = () => {
                 return;
             }
 
-            setSeRequestId(result.id);
+            // setSeRequestId(result.id);
             setShowSuccessPopup(true);
             setSentForApproval(true);
 
