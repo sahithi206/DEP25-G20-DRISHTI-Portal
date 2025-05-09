@@ -557,7 +557,7 @@ const ChangeOfInstitute = () => {
                                                     {req.status || "Pending"}
                                                 </span>
                                             </td>
-                                            <td className="border p-2 text-center">{new Date(req.submittedAt).toLocaleDateString()}</td>
+                                            <td className="border p-2 text-center">{new Date(req.date).toLocaleDateString()}</td>
                                             {req.status === "Pending For Admin's Approval" && (
                                                 <td className="border p-2 text-center">
                                                     <button
