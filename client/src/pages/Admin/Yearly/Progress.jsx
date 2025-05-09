@@ -175,18 +175,10 @@ const Progress = () => {
             <AdminSidebar activeSection="progressReports" />
             <div className="flex-1 p-6 overflow-y-auto">
                 <AdminNavbar activeSection="Progress Reports" />
-                <div className="p-6 bg-white rounded-lg shadow-md">
+                <div className="mt-6 bg-white p-6 rounded-lg shadow-md w-full">
                     <div className="flex items-center justify-between mb-6">
                         <h1 className="text-2xl font-bold text-gray-800">Progress Reports</h1>
-                        <button
-                            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-                            onClick={() => setIsFilterOpen(!isFilterOpen)}
-                        >
-                            Sort & Filter
-                        </button>
                     </div>
-
-
                     {isFilterOpen && (
                         <div className="absolute bg-white border border-gray-300 rounded-lg shadow-lg p-4 mt-2 w-80 z-10 right-0">
                             <h2 className="text-lg font-bold mb-2 text-gray-800">Sort & Filter Options</h2>

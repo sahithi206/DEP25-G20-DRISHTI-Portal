@@ -38,17 +38,16 @@ router.get("/approvedProposals", fetchAdmin, async (req, res) => {
     const userId = req.admin.id;
     console.log("User ID from Token:", userId);
     const Schemes = await Scheme.find({ coordinator: userId });
-    console.log(Schemes);
     if (!Schemes) {
       return res.status(400).json({ success: false, msg: "No Schemes found" });
     }
     const schemeIds = Schemes.map(scheme => scheme._id);
-    const proposals = await Proposal.find({ Scheme: { $in: schemeIds }, status: "Approved" });
-    console.log("Fetched Proposals:", proposals);
+    const proposals = await Proposal.find({ Scheme: { $in: schemeIds }, status: "Approved" }).populate("Scheme");
+
     if (!proposals.length) {
       return res.status(400).json({ success: false, msg: "No proposals found" });
     }
-
+    console.log("Final Data:", data);
     const data = await Promise.all(
       proposals.map(async (proposal) => {
         const generalInfo = await GeneralInfo.findOne({ proposalId: proposal._id });
@@ -62,7 +61,6 @@ router.get("/approvedProposals", fetchAdmin, async (req, res) => {
       })
     );
 
-    console.log("Final Data:", data);
     res.json({ success: true, msg: "Projects Fetched", data });
 
   } catch (error) {
@@ -76,8 +74,7 @@ router.get("/approvedProposal/:id", fetchAdmin, async (req, res) => {
   try {
     const userId = req.admin.id;
     console.log("User ID from Token:", userId);
-    const proposals = await Proposal.findById(id);
-    console.log("Fetched Proposals:", proposals);
+    const proposal = await Proposal.findById(id).populate("Scheme");
     if (!proposals) {
       return res.status(400).json({ success: false, msg: "Proposal Not found" });
     }

@@ -76,8 +76,8 @@ const AdminProposalReview = () => {
                         {error}
                     </div>
                 )}
-
-                <div className="grid grid-cols-2 gap-8 p-4">
+ <div className="mt-6 bg-white p-6 rounded-lg shadow-md w-full">
+                <div className="grid grid-cols-2 gap-8 mb-4">
                     <input
                         type="text"
                         placeholder="Filter by Title"
@@ -97,7 +97,6 @@ const AdminProposalReview = () => {
                     </select>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-md">
                     {loading ? (
                         <p className="text-gray-500 text-center">Loading Quotations...</p>
                     ) : filteredQuotations.length === 0 ? (
@@ -109,7 +108,6 @@ const AdminProposalReview = () => {
                                     <th className="p-3 text-left border border-gray-200">File. No</th>
                                     <th className="p-3 text-left border border-gray-200">Scheme</th>
                                     <th className="p-3 text-left border border-gray-200">Title</th>
-                                    <th className="p-3 text-center border border-gray-200" colSpan={1}>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -128,17 +126,7 @@ const AdminProposalReview = () => {
                                                     navigate(`/admin/quotations/${q._id}`);
                                                 }}>{q?.Title || "N/A"}</td>
                                         
-                                        <td className="p-3 text-center border border-gray-200">
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedQuotation(q);
-                                                    navigate(`/admin/project/${q.projectId}`);
-                                                }}
-                                                className="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                            >
-                                                Go to Project Dashboard
-                                            </button>
-                                        </td>
+                                        
                                     </tr>
                                 ))}
                             </tbody>
