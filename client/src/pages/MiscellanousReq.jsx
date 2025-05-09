@@ -86,7 +86,6 @@ const MiscRequest = () => {
         }
     };
 
-    // Get status badge color
     const getStatusBadgeColor = (status) => {
         switch (status) {
             case "Approved":
@@ -101,7 +100,6 @@ const MiscRequest = () => {
         }
     };
 
-    // Format date nicely
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return new Intl.DateTimeFormat('en-US', {
@@ -144,58 +142,60 @@ const MiscRequest = () => {
                             <p className="mt-3 text-2xl font-bold text-blue-800">Miscellaneous Requests</p>
                         </div>
 
-                        {/* Request Form */}
-                        <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200 mb-6">
-                            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                                </svg>
-                                New Request
-                            </h2>
+                                                <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200 mb-6">
+                                                    <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                                                        </svg>
+                                                        New Request
+                                                    </h2>
+                                                    <h3 className="border-b pb-2 mt-3 mb-6"></h3>
 
-                            <div className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
-                                <form onSubmit={handleSubmit}>
-                                    <div className="mb-4">
-                                        <label className="block text-gray-700 font-semibold">Request Type</label>
-                                        <select
-                                            name="requestType"
-                                            value={formData.requestType}
-                                            onChange={handleChange}
-                                            className="w-full border border-gray-300 rounded p-2"
-                                            required
-                                        >
-                                            <option value="">Select Request Type</option>
-                                            <option value="Technical Support">Technical Support</option>
-                                            <option value="Document Request">Document Request</option>
-                                            <option value="Budget Revision">Budget Revision</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                    </div>
+                                                        <form onSubmit={handleSubmit}>
+                                                            <div className="mb-4">
+                                                                <label className="block text-gray-700 font-semibold mb-2">Request Type</label>
+                                                                <select
+                                                                    name="requestType"
+                                                                    value={formData.requestType}
+                                                                    onChange={handleChange}
+                                                                    className="w-full border border-gray-300 rounded p-2"
+                                                                    required
+                                                                >
+                                                                    <option value="">Select Request Type</option>
+                                                                    <option value="Technical Support">Technical Support</option>
+                                                                    <option value="Document Request">Document Request</option>
+                                                                    <option value="Budget Revision">Budget Revision</option>
+                                                                    <option value="Other">Other</option>
+                                                                </select>
+                                                            </div>
 
-                                    <div className="mb-4">
-                                        <label className="block text-gray-700 font-semibold">Description</label>
-                                        <textarea
-                                            name="description"
-                                            value={formData.description}
-                                            onChange={handleChange}
-                                            className="w-full border border-gray-300 rounded p-2"
-                                            rows="3"
-                                            placeholder="Describe your request..."
-                                            required
-                                        ></textarea>
-                                    </div>
+                                                            <div className="mb-4">
+                                                                <label className="block text-gray-700 font-semibold mb-2" >Description</label>
+                                                                <textarea
+                                                                    name="description"
+                                                                    value={formData.description}
+                                                                    onChange={handleChange}
+                                                                    className="w-full border border-gray-300 rounded p-2"
+                                                                    rows="3"
+                                                                    placeholder="Describe your request..."
+                                                                    required
+                                                                ></textarea>
+                                                                                                                        <p className="text-sm text-gray-500 mb-6">* Please ensure all fields are filled before submitting.</p>
 
-                                    <button
-                                        type="submit"
-                                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
-                                    >
-                                        Submit
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+                                                            </div>
 
-                        {/* Requests Table */}
+                                                            <button
+                                                                type="submit"
+                                                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
+                                                            >
+                                                                Submit
+                                                            </button>
+                                                        </form>
+
+                                                </div>
+
+
+                                                {/* Requests Table */}
                         <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
                             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
                                 <h2 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0 flex items-center">

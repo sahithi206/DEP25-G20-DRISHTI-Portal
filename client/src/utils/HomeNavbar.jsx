@@ -18,9 +18,9 @@ const Navbar = ({ isSidebarOpen, path }) => {
   }, [getuser]);
 
   return (
-    <header className={`bg-blue-900 text-white p-4 flex justify-ends fixed shadow-md z-50 transition-all duration-300 ${isSidebarOpen ? " w-[calc(100%-16rem)]" : " w-[calc(100%-4rem)]"}`}>
-      <div className="flex items-center space-x-4">
-        <FaChevronLeft className="text-2xl cursor-pointer" onClick={() => { navigate(path) }} />
+    <header className={`bg-blue-900 text-white p-4 flex justify-between items-center fixed shadow-md z-50 transition-all duration-300 ${isSidebarOpen ? " w-[calc(100%-16rem)]" : " w-[calc(100%-4rem)]"}`}>
+      <div className="ml-auto flex items-center space-x-4">
+      <FaChevronLeft  onClick={() => { navigate(path) }} />
         <FaUserCircle className="text-2xl" />
         {user && <span>Welcome, {user.Name || "PI"}</span>}
         <FaPowerOff className="text-xl cursor-pointer text-red-500" onClick={logout} />
