@@ -52,15 +52,14 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
     return (
         <div className={`h-screen bg-gray-900 text-white fixed transition-all duration-300 ${isSidebarOpen ? "w-64" : "w-16"} overflow-y-auto`}>
-            {/* Sidebar Header */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-gray-700">
+
                 {isSidebarOpen && <h1 className="text-xl font-bold cursor-pointer" onClick={() => navigate("/menupage")}>ResearchX</h1>}
                 <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-xl">
                     {isSidebarOpen ? <FaTimes /> : <FaBars />}
                 </button>
             </div>
 
-            {/* Sidebar Menu */}
             <ul className="mt-4">
                 {SidebarMenu.map((menu, index) => (
                     <li key={index} className="px-4 py-2 hover:bg-gray-800 cursor-pointer">
@@ -75,7 +74,6 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                 <IoMdArrowDropdown className={`transform transition-transform ${openDropdown === index ? "rotate-180" : ""}`} />
                             )}
                         </div>
-                        {/* Dropdown Items */}
                         <div
                             className={`transition-all duration-300 overflow-hidden ${openDropdown === index ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
                                 }`}

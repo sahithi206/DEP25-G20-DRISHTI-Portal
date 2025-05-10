@@ -133,13 +133,13 @@ const MiscRequest = () => {
                 <HomeNavbar isSidebarOpen={isSidebarOpen} />
                 <ToastContainer position="top-right" autoClose={5000} />
 
-                <div className="p-6 space-y-6 mt-16">
+                <div className="p-6 space-y-6 mt-10">
                     <div className="p-6 space-y-6">
-                        {/* Page Header */}
-                        <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-                            <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>
-                            <p className="mt-3 text-2xl font-bold text-blue-800">Miscellaneous Requests</p>
+                                           <div className="bg-white shadow-md rounded-xl p-6 text-center  hover:shadow-xl transition-shadow">
+                        <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
+                        {/*  <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                        <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>*/}
+                            <p className="mt-3 text-2xl font-bold ml-9 text-blue-800">Miscellaneous Requests</p>
                         </div>
 
                                                 <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200 mb-6">

@@ -43,7 +43,7 @@ const AdminProposalReview = () => {
                     headers: { accessToken: token },
                 });
                 const data = await response.json();
-                const sxhmes=await res.json();
+                const sxhmes = await res.json();
                 console.log("Quotations Data:", data.quotations);
                 setQuotations(data.quotations || []);
                 setSchemes(sxhmes);
@@ -76,33 +76,33 @@ const AdminProposalReview = () => {
                         {error}
                     </div>
                 )}
- <div className="mt-6 bg-white p-6 rounded-lg shadow-md w-full">
-                <div className="grid grid-cols-2 gap-8 mb-4">
-                    <input
-                        type="text"
-                        placeholder="Filter by Title"
-                        value={instituteFilter}
-                        onChange={(e) => setInstituteFilter(e.target.value)}
-                        className="px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <select
-                        value={schemeFilter}
-                        onChange={(e) => setSchemeFilter(e.target.value)}
-                        className="px-4  py-2  border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">All Schemes</option>
-                        {(schemes || []).map((scheme, idx) => (
-                            <option key={idx} value={scheme.name}>{scheme.name}</option>
-                        ))}
-                    </select>
-                </div>
+                <div className="mt-6 bg-white p-6 rounded-lg shadow-md w-full">
+                    <div className="grid grid-cols-2 gap-8 mb-4">
+                        <input
+                            type="text"
+                            placeholder="Filter by Title"
+                            value={instituteFilter}
+                            onChange={(e) => setInstituteFilter(e.target.value)}
+                            className="px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <select
+                            value={schemeFilter}
+                            onChange={(e) => setSchemeFilter(e.target.value)}
+                            className="px-4  py-2  border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">All Schemes</option>
+                            {(schemes || []).map((scheme, idx) => (
+                                <option key={idx} value={scheme.name}>{scheme.name}</option>
+                            ))}
+                        </select>
+                    </div>
 
                     {loading ? (
                         <p className="text-gray-500 text-center">Loading Quotations...</p>
                     ) : filteredQuotations.length === 0 ? (
                         <p className="text-gray-500 text-center">No Quotations Found</p>
                     ) : (
-                        <table className="w-full border-collapse border border-gray-200">
+                        <table className="w-full border-collapse border border-gray-200:w-[48px] border-collapse border border-gray-200:w-[16px] border-collapse border border-gray-200">
                             <thead>
                                 <tr className="bg-gray-100">
                                     <th className="p-3 text-left border border-gray-200">File. No</th>
@@ -114,19 +114,17 @@ const AdminProposalReview = () => {
                                 {filteredQuotations.map((q) => (
                                     <tr key={q._id} className="hover:bg-gray-50">
                                         <td className="p-3 border border-gray-200" onClick={() => {
-                                                    setSelectedQuotation(q);
-                                                    navigate(`/admin/quotations/${q._id}`);
-                                                }}>{q._id}</td>
+                                            setSelectedQuotation(q);
+                                            navigate(`/admin/quotations/${q._id}`);
+                                        }}>{q._id}</td>
                                         <td className="p-3 border border-gray-200" onClick={() => {
-                                                    setSelectedQuotation(q);
-                                                    navigate(`/admin/quotations/${q._id}`);
-                                                }}>{q.scheme || "N/A"}</td>
+                                            setSelectedQuotation(q);
+                                            navigate(`/admin/quotations/${q._id}`);
+                                        }}>{q.scheme || "N/A"}</td>
                                         <td className="p-3 border border-gray-200" onClick={() => {
-                                                    setSelectedQuotation(q);
-                                                    navigate(`/admin/quotations/${q._id}`);
-                                                }}>{q?.Title || "N/A"}</td>
-                                        
-                                        
+                                            setSelectedQuotation(q);
+                                            navigate(`/admin/quotations/${q._id}`);
+                                        }}>{q?.Title || "N/A"}</td>
                                     </tr>
                                 ))}
                             </tbody>

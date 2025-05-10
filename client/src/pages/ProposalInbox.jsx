@@ -82,10 +82,11 @@ const ProposalInbox = () => {
             <div className={`flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
                 <HomeNavbar isSidebarOpen={isSidebarOpen} />
                 <div className="p-6 space-y-6 mt-16">
-                    <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700">
-                        <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-                        <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>
-                        <p className="mt-3 text-2xl font-bold text-blue-800">Proposal Inbox</p>
+                    <div className="bg-white shadow-md rounded-xl p-8 text-center">
+                        <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain"/>
+                       {/*  <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                        <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>*/}
+                        <p className="mt-3 text-2xl ml-19 font-bold text-blue-800">Submitted Proposals</p>
                     </div>
                     <div className="bg-white shadow-md rounded-xl overflow-hidden">
   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4">

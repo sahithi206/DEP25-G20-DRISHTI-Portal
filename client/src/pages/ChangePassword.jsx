@@ -98,7 +98,7 @@ export default function ChangePassword() {
     
                 <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
                     <HomeNavbar isSidebarOpen={isSidebarOpen} />
-    
+                    <div className="p-6 space-y-6 mt-16">
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
         <div className="text-center mb-6">
@@ -219,6 +219,8 @@ export default function ChangePassword() {
           </button>
         </div>
       </div>
+            </div>
+
     </div>
     </div>
       </div>
