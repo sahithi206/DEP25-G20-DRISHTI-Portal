@@ -26,26 +26,21 @@ const AdminNavbar = ({ activeSection }) => {
     fetchAdminDetails();
   }, [getAdmin]);
 
-  const title = activeSection ? sectionTitles[activeSection] || "Admin Dashboard" : "Admin Dashboard";
 
   return (
     <div className="flex justify-between items-center bg-white p-4 shadow-md rounded-lg">
       <div>
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        {admin && (
-          <p className="text-sm text-gray-500">
-            Welcome, {admin.name} ({admin.role})
-          </p>
-        )}
+           <img src="/3.png" alt="ResearchX Logo" className=" w-56 h-25 object-contain"/>
+       
 
       </div>
       <div className="flex space-x-4">
-        <button className="p-2 bg-blue-100 text-blue-700 rounded-md flex items-center hover:bg-blue-200 transition">
-          <Bell className="w-5 h-5" />
-        </button>
-        <button className="p-2 bg-gray-100 text-gray-700 rounded-md flex items-center hover:bg-gray-200 transition">
-          <Settings className="w-5 h-5" />
-        </button>
+        {admin && (
+          <p className=" mx-auto text-sm text-gray-500">
+            Welcome, {admin.name} 
+            <br/> ({admin.role})
+          </p>
+        )}
         <button
           className="p-2 bg-red-100 text-red-700 rounded-md flex items-center hover:bg-red-200 transition"
           onClick={logout}

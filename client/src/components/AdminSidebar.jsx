@@ -24,7 +24,6 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
     if (!admin) {
         return (
             <div className="w-72 bg-gray-900 text-white flex flex-col p-5 min-h-screen">
-                <h2 className="text-2xl font-bold mb-6">Admin Panel</h2>
                 <p>Loading...</p>
             </div>
         );

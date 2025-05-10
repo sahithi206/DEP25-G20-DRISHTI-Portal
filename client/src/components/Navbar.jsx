@@ -49,8 +49,7 @@ const Navbar = ({yes}) => {
       <div className="flex justify-between items-center px-8 py-2 bg-teal-700 text-white">
         <div>
           <h1 className="text-3xl font-bold leading-tight space-y-1">
-            <span className="mb-1">ResearchX</span><br />
-            <span className="text-sm" onClick={() => navigate("/")}>Research Grant Management portal</span>
+   <img src="/4.png" alt="ResearchX Logo" className="mx-auto w-56 h-25 object-contain"/>
           </h1>
         </div>
 
