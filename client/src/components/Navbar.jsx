@@ -51,10 +51,12 @@ const Navbar = ({ yes }) => {
         </div>
         <div className="flex items-center space-x-4 sm:space-x-8">
           <span className="hover:text-gray-300 cursor-pointer" onClick={() => navigate("/aboutus")}>About Us</span>
-          <FaUserCircle
+{/*           <FaUserCircle
             className="text-2xl cursor-pointer hover:text-gray-300"
             onClick={() => navigate("/institute/profile")}
-          />
+          /> */}
+          <FaUserCircle className="text-2xl" onClick={() => navigate("/login")} />
+{/*          {yes && <span className="ml-2">Welcome, Institute</span>}  */}
           {yes && <span className="ml-2">Welcome, {profile.name}</span>}
           {yes && (
             <FontAwesomeIcon
