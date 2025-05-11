@@ -1,13 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Home, Users, ClipboardList, DollarSign, FileText, ChevronDown, Folder } from "lucide-react";
+import { Home, Users, ClipboardList, ChevronDown, Folder, User } from "lucide-react";
 import { Link } from "react-router-dom";
-import { FaBullseye } from "react-icons/fa";
+import { FaBullseye, FaBars, FaTimes } from "react-icons/fa";
 import { AuthContext } from "../pages/Context/Authcontext";
 
 const SidebarMenu = ({ activeSection, setActiveSection }) => {
   const { getInstUser } = useContext(AuthContext);
   const [instituteUser, setInstituteUser] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     const fetchInstituteUserDetails = async () => {
@@ -24,7 +25,7 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
 
   if (!instituteUser) {
     return (
-      <div className="w-72 bg-gray-900 text-white flex flex-col p-5 h-full sticky top-0">
+      <div className="bg-gray-900 text-white flex flex-col p-5 h-full sticky top-0 transition-all duration-300">
         <h2 className="text-2xl font-bold mb-6">Institute Panel</h2>
         <p>Loading...</p>
       </div>
@@ -39,11 +40,11 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
       id: "users",
       path: "/institute-users"
     },
-    { label: "Projects", icon: Folder, id: "sanctioned-projects", path: "/sanctioned-projects"}
+    { label: "Projects", icon: Folder, id: "sanctioned-projects", path: "/sanctioned-projects" },
+    { label: "Profile", icon: User, id: "profile", path: "/institute/profile" }
   ];
 
   if (instituteUser.role === "Head of Institute") {
-
     menuItems.push({
       label: "Requests",
       icon: ClipboardList,
@@ -61,7 +62,8 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
     ];
   } else if (instituteUser.role === "CFO") {
     reportItems = [
-      { label: "UC", id: "uc", path: "/institute/uc" }  ];
+      { label: "UC", id: "uc", path: "/institute/uc" }
+    ];
   } else if (instituteUser.role === "Accounts Officer") {
     reportItems = [
       { label: "SE", id: "se", path: "/institute/se" }
@@ -78,41 +80,47 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
   }
 
   return (
-    <div className="w-72 bg-gray-900 text-white flex flex-col p-5 min-h-screen sticky top-0 overflow-y-auto">
-      <ul className="space-y-2 pb-6">
+    <div className={`bg-gray-900 text-white flex flex-col min-h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${isSidebarOpen ? "w-72" : "w-16"}`}>
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-700">
+        {isSidebarOpen && <h2 className="text-xl font-bold">Institute Panel</h2>}
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-xl">
+          {isSidebarOpen ? <FaTimes /> : <FaBars />}
+        </button>
+      </div>
+
+      <ul className="space-y-2 p-4">
         {menuItems.map(({ label, icon: Icon, id, path, children }) => (
           <li key={id}>
             {children ? (
               <>
                 <div
-                  className={`p-3 flex items-center justify-between cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${
-                    activeSection === id
-                      ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400"
-                      : ""
-                  }`}
+                  className={`p-3 flex items-center justify-between cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${activeSection === id
+                    ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400"
+                    : ""
+                    }`}
                   onClick={() => setOpenDropdown(openDropdown === id ? null : id)}
                 >
                   <div className="flex items-center">
                     <Icon className="w-5 h-5 mr-3" />
-                    {label}
+                    {isSidebarOpen && label}
                   </div>
-                  <ChevronDown
-                    className={`w-4 h-4 transform transition-transform ${
-                      openDropdown === id ? "rotate-180" : ""
-                    }`}
-                  />
+                  {isSidebarOpen && (
+                    <ChevronDown
+                      className={`w-4 h-4 transform transition-transform ${openDropdown === id ? "rotate-180" : ""
+                        }`}
+                    />
+                  )}
                 </div>
-                {openDropdown === id && (
+                {openDropdown === id && isSidebarOpen && (
                   <ul className="ml-6 mt-1 space-y-1">
                     {children.map(({ label, id: subId, path: subPath }) => (
                       <li key={subId}>
                         <Link
                           to={subPath}
-                          className={`p-2 block rounded-md hover:bg-gray-700 ${
-                            activeSection === subId
-                              ? "bg-gray-700 text-blue-400"
-                              : ""
-                          }`}
+                          className={`p-2 block rounded-md hover:bg-gray-700 ${activeSection === subId
+                            ? "bg-gray-700 text-blue-400"
+                            : ""
+                            }`}
                           onClick={() => setActiveSection(subId)}
                         >
                           {label}
@@ -125,15 +133,14 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
             ) : (
               <Link
                 to={path}
-                className={`p-3 flex items-center cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${
-                  activeSection === id
-                    ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400"
-                    : ""
-                }`}
+                className={`p-3 flex items-center cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${activeSection === id
+                  ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400"
+                  : ""
+                  }`}
                 onClick={() => setActiveSection(id)}
               >
                 <Icon className="w-5 h-5 mr-3" />
-                {label}
+                {isSidebarOpen && label}
               </Link>
             )}
           </li>
@@ -141,6 +148,6 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
       </ul>
     </div>
   );
-};  
+};
 
 export default SidebarMenu;

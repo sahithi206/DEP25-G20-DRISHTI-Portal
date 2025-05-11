@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import { AuthContext } from "../Context/Authcontext";
@@ -14,6 +14,7 @@ const SanctionedProjects = () => {
   const [searchTitle, setSearchTitle] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
   const [filteredProjects, setFilteredProjects] = useState([]);
+  const sidebarRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,6 +67,21 @@ const SanctionedProjects = () => {
     filterProjects();
   }, [searchTitle, statusFilter, sortOrder, projects]);
 
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(entries => {
+    });
+
+    if (sidebarRef.current) {
+      resizeObserver.observe(sidebarRef.current);
+    }
+
+    return () => {
+      if (sidebarRef.current) {
+        resizeObserver.unobserve(sidebarRef.current);
+      }
+    };
+  }, []);
+
   const calculateDaysLeft = (endDate) => {
     const end = new Date(endDate);
     const today = new Date();
@@ -83,20 +99,23 @@ const SanctionedProjects = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Navbar yes={1}/>
+      <Navbar yes={1} />
       <div className="flex flex-grow">
-        <InstituteSidebar
-          activeSection={activeSection}
-          setActiveSection={setActiveSection}
-        />
+        {/* Reference the sidebar to detect its width */}
+        <div ref={sidebarRef}>
+          <InstituteSidebar
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+          />
+        </div>
 
-        <main className="flex-grow p-6">
+        <main className="flex-grow p-6 transition-all duration-300">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-800 text-center">
               Ongoing Projects in Your Institute
             </h1>
 
-            <div className="flex items-center justify-between mb-4 gap-4">
+            <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
               <div className="relative flex-grow">
                 <input
                   type="text"
@@ -125,25 +144,27 @@ const SanctionedProjects = () => {
                 </div>
               </div>
 
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All Status</option>
-                <option value="Ongoing">Ongoing</option>
-                <option value="Completed">Completed</option>
-                <option value="Approved">Approved</option>
-              </select>
+              <div className="flex gap-4 flex-shrink-0">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Status</option>
+                  <option value="Ongoing">Ongoing</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Approved">Approved</option>
+                </select>
 
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-              </select>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                </select>
+              </div>
             </div>
 
             <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -153,7 +174,7 @@ const SanctionedProjects = () => {
                 </div>
               ) : filteredProjects.length > 0 ? (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
+                  <table className="min-w-full divide-y divide-gray-200 transition-all duration-300">
                     <thead className="bg-gray-200">
                       <tr>
                         <th className="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
@@ -186,7 +207,7 @@ const SanctionedProjects = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                             {project.Scheme?.name || "N/A"}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-700 hover:underline">
+                          <td className="px-6 py-4 text-sm text-gray-700">
                             {project.PI?.length > 0 ? (
                               <ul className="list-disc pl-5">
                                 {project.PI.map((name, idx) => (
@@ -198,15 +219,14 @@ const SanctionedProjects = () => {
                             )}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-900 font-medium">
-                            {project.Title}
+                            <div className="truncate max-w-md">{project.Title}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
                             <span
-                              className={`px-2 py-1 rounded-full ${
-                                calculateDaysLeft(project.endDate) === "Expired"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-blue-100 text-blue-800"
-                              }`}
+                              className={`px-2 py-1 rounded-full ${calculateDaysLeft(project.endDate) === "Expired"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-blue-100 text-blue-800"
+                                }`}
                             >
                               {calculateDaysLeft(project.endDate)}
                             </span>
