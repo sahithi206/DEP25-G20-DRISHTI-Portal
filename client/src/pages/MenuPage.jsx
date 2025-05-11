@@ -56,7 +56,8 @@ const MenuPage = () => {
                                 </p>
                             </div>
                             <div className="ml-auto">
-                                <Link to="/update-profile" className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-md text-sm font-medium transition">
+                                {/* Complete Profile */}
+                                <Link to="#" className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-md text-sm font-medium transition">
                                     Complete Profile
                                 </Link>
                             </div>
@@ -85,7 +86,7 @@ const MenuPage = () => {
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 col-span-1 lg:col-span-2">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-gray-800">Recent Activities</h2>
-                                <Link to="/activities" className="text-blue-600 hover:text-blue-800 text-sm font-medium">View All</Link>
+                                <Link to="#" className="text-blue-600 hover:text-blue-800 text-sm font-medium">View All</Link>
                             </div>
 
                             <div className="space-y-4">
@@ -117,7 +118,7 @@ const MenuPage = () => {
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-gray-800">Upcoming Events</h2>
-                                <Link to="/calendar" className="text-blue-600 hover:text-blue-800 text-sm font-medium">View Calendar</Link>
+                                <Link to="#" className="text-blue-600 hover:text-blue-800 text-sm font-medium">View Calendar</Link>
                             </div>
 
                             <div className="space-y-4">
@@ -146,15 +147,15 @@ const MenuPage = () => {
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Links</h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <Link to="/new-proposal" className="bg-blue-50 hover:bg-blue-100 p-4 rounded-lg flex items-center transition-colors">
+                            <Link to="/formsubmission" className="bg-blue-50 hover:bg-blue-100 p-4 rounded-lg flex items-center transition-colors">
                                 <FaFileAlt className="text-blue-600 mr-3" />
                                 <span className="font-medium text-gray-800">Submit New Proposal</span>
                             </Link>
-                            <Link to="/guidelines" className="bg-green-50 hover:bg-green-100 p-4 rounded-lg flex items-center transition-colors">
+                            <Link to="#" className="bg-green-50 hover:bg-green-100 p-4 rounded-lg flex items-center transition-colors">
                                 <FaFileAlt className="text-green-600 mr-3" />
                                 <span className="font-medium text-gray-800">PI Guidelines</span>
                             </Link>
-                            <Link to="/team-management" className="bg-purple-50 hover:bg-purple-100 p-4 rounded-lg flex items-center transition-colors">
+                            <Link to="#" className="bg-purple-50 hover:bg-purple-100 p-4 rounded-lg flex items-center transition-colors">
                                 <FaUsers className="text-purple-600 mr-3" />
                                 <span className="font-medium text-gray-800">Manage Research Team</span>
                             </Link>
