@@ -22,11 +22,8 @@ const Navbar = ({yes}) => {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        throw new Error("Authentication token not found. Please login again.");
-      }
-
-      const config = {
+      if (token) {
+         const config = {
         headers: {
           "Content-Type": "application/json",
           "accessToken": token,
@@ -35,6 +32,9 @@ const Navbar = ({yes}) => {
 
       const res = await axios.get(`${url}institute/profile`, config);
       setProfile(res.data.institute); 
+      }
+
+     
       setError(null);
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -49,26 +49,35 @@ const Navbar = ({yes}) => {
       <div className="flex justify-between items-center px-8 py-2 bg-teal-700 text-white">
         <div>
           <h1 className="text-3xl font-bold leading-tight space-y-1">
-   <img src="/4.png" alt="ResearchX Logo" className="mx-auto w-56 h-25 object-contain"/>
+            <img src="/4.png" alt="ResearchX Logo" className="mx-auto w-56 h-25 object-contain" />
           </h1>
         </div>
 
         <div className="flex items-center space-x-8">
-          <span className="hover:text-gray-300 cursor-pointer" onClick={() => navigate("/aboutus")}>About Us</span>
-          <FaUserCircle className="text-2xl" onClick={() => navigate("/login")} />
-         {yes && <span className="ml-2">Welcome, Institute</span>} 
+          <span
+            className="hover:text-gray-300 cursor-pointer"
+            onClick={() => navigate("/aboutus")}
+          >
+            About Us
+          </span>
+          <FaUserCircle
+            className="text-2xl"
+            onClick={() => navigate(yes ? "/profile" : "/login")}
+            title="Login"
+            aria-label="Login"
+          />
+          {yes && <span className="ml-2">Welcome, Institute</span>}
           {yes && (
             <FontAwesomeIcon
               icon={faPowerOff}
               className="text-2xl cursor-pointer hover:text-gray-300 ml-4"
-              onClick={()=>{
+              onClick={() => {
                 localStorage.removeItem("token");
                 navigate("/");
               }}
             />
           )}
         </div>
-
       </div>
     </nav>
   );

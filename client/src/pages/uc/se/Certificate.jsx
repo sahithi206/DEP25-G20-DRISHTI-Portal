@@ -76,8 +76,8 @@ const Certificates = () => {
                 <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/certificates/${data.projectId}`} />
                 <div className="p-6 space-y-6 mt-16">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                        <h1 className="text-3xl font-black text-gray-900 mb-2">अनुसंधान नेशनल रिसर्च फाउंडेशन</h1>
-                        <h2 className="text-xl font-semibold text-gray-700">Anusandhan National Research Foundation</h2>
+                                                <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
+
                         <p className="mt-3 text-2xl font-bold text-blue-800">Final Utilization Certificate of the Financial Year</p>
                     </div>
 

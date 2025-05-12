@@ -4,20 +4,17 @@ import Navbar from "./Navbar";
 const AboutUs = () => {
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Include Navbar */}
       <Navbar />
 
-      {/* Main Content Container */}
       <div className="container mx-auto px-4 py-8">
-        {/* About Us Section */}
         <section className="bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-bold text-teal-900 border-b-2 border-teal-700 pb-2">
             About Us
           </h2>
 
           <p className="mt-6 text-gray-800 text-lg leading-relaxed">
-            <b>Anusandhan National Research Foundation (ANRF)</b> - established through an  
-            Act of Parliament: <b>ANRF Act, 2023</b>, to provide high-level strategic directions  
+            <b>ResearchX</b> - established through an  
+            Act of Parliament: <b>ResearchX Act, 2023</b>, to provide high-level strategic directions  
             for research, innovation, and entrepreneurship in the fields of natural sciences,  
             including mathematical sciences, engineering and technology, environmental and  
             earth sciences, health and agriculture, and scientific and technological interfaces  
@@ -25,22 +22,22 @@ const AboutUs = () => {
           </p>
 
           <p className="mt-4 text-gray-800 text-lg leading-relaxed">
-            <b>Anusandhan National Research Foundation (ANRF)</b> has been established to promote  
+            <b>ResearchX</b> has been established to promote  
             research and development and foster a culture of research and innovation throughout  
-            India's Universities, Colleges, Research Institutions, and R&D laboratories. ANRF acts as an apex body  
+            India's Universities, Colleges, Research Institutions, and R&D laboratories. ResearchX acts as an apex body  
             to provide high-level strategic direction of scientific research in the country as per  
-            recommendations of the National Education Policy. ANRF forges collaborations among  
+            recommendations of the National Education Policy. ResearchX forges collaborations among  
             industry, academia, research institutions, and government departments.
           </p>
 
           <blockquote className="italic text-teal-800 font-medium mt-6 border-l-4 border-teal-500 pl-4 py-2">
-            "ANRF strategies should align with the goals of Viksit Bharat 2047 and  
+            "ResearchX strategies should align with the goals of Viksit Bharat 2047 and  
             implementation should follow global best practices adopted by research  
-            and development agencies across the world" – <b>ANRF Governing Body</b>
+            and development agencies across the world" – <b>ResearchX Governing Body</b>
           </blockquote>
 
           <h3 className="mt-8 text-xl text-teal-900 font-semibold border-b-2 border-teal-700 pb-2">
-            ANRF represents India's pioneering efforts to unleash Indian research  
+            ResearchX represents India's pioneering efforts to unleash Indian research  
             and innovation talent to achieve global scientific and technological excellence  
             with the following objectives:
           </h3>

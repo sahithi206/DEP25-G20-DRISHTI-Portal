@@ -118,7 +118,7 @@ const UtilizationCertificates = () => {
                                     {expenditureCertificates&&expenditureCertificates.length > 0 ? (
                                         expenditureCertificates.map((certificate) => (
                                             <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0">
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => {navigate(`/certificate-details/se/${certificate._id}`)}} >{certificate._id}</td>
+                                                <td className="p-4 text-center text-sm text-blue-600 underline" onClick={() => {navigate(`/certificate-details/se/${certificate._id}`)}} >{certificate._id}</td>
                                                 <td className="p-4 text-center text-sm text-gray-600" onClick={() => {navigate(`/certificate-details/se/${certificate._id}`)}} >{certificate.currentYear}</td>
                                                 <td className="p-4 text-center text-sm text-gray-600" onClick={() => navigate(`/certificate-details/se/${certificate._id}`)} >{certificate.scheme}</td>
                                                 <td className="p-4 text-center text-sm text-gray-600" onClick={() => navigate(`/certificate-details/se/${certificate._id}`)} >{certificate.status}</td>
