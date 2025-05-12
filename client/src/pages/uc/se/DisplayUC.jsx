@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate,useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
 
@@ -11,21 +11,21 @@ const UtilizationCertificates = () => {
     const [UC, setUC] = useState([]);
     const [expenditureCertificates, setSE] = useState([]);
     const navigate = useNavigate();
-     const {id}=useParams();
+    const { id } = useParams();
     useEffect(() => {
         const fetchCertificates = async () => {
-            const token=localStorage.getItem("token");
-            if(!token){
+            const token = localStorage.getItem("token");
+            if (!token) {
                 alert("UnAuthorized Access");
                 navigate("/");
             }
             try {
-                
+
                 const response = await fetch(`${url}projects/view-uc/se/${id}`, {
                     method: "GET",
                     headers: {
-                         "Content-Type": "application/json",
-                         "accessToken":token
+                        "Content-Type": "application/json",
+                        "accessToken": token
                     },
                 });
 
@@ -35,7 +35,7 @@ const UtilizationCertificates = () => {
                     setError(data.msg || "Error fetching certificates");
                     return;
                 }
-                console.log("Display",data);
+                console.log("Display", data);
                 setUC(data.grant);
                 setSE(data.se);
             } catch (error) {
@@ -49,7 +49,7 @@ const UtilizationCertificates = () => {
 
     const handleViewCertificate = (certificate) => {
         if (certificate && certificate._id) {
-            console.log(certificate)
+            console.log("asjdchdkc", certificate)
             navigate(`/certificate-details/${certificate.type}/${certificate._id}`);
         } else {
             setError("Failed to open certificate details");
@@ -65,7 +65,7 @@ const UtilizationCertificates = () => {
 
                 <div className="p-6 space-y-6 mt-16">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                                                               <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
+                        <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
                         <h1 className="text-3xl font-black text-gray-900 mb-2">Utilization Certificates</h1>
                     </div>
 
@@ -83,18 +83,18 @@ const UtilizationCertificates = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {UC&&UC.length > 0 && UC.map((certificate) => (
-                                            <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0">
-                                                <td className="p-4 text-center text-sm text-blue-600 underline " onClick={() => handleViewCertificate(certificate)}>{certificate._id}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.type}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.ucData.currentYear}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.ucData.scheme}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.status}</td>
+                                    {UC && UC.length > 0 && UC.map((certificate) => (
+                                        <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0">
+                                            <td className="p-4 text-center text-sm text-blue-600 underline " onClick={() => handleViewCertificate(certificate)}>{certificate._id}</td>
+                                            <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.type}</td>
+                                            <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.ucData.currentYear}</td>
+                                            <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.ucData.scheme}</td>
+                                            <td className="p-4 text-center text-sm text-gray-600" onClick={() => handleViewCertificate(certificate)}>{certificate.status}</td>
 
-                                            </tr>
-                                        ))
-                                    }                                      
-                                    {UC&&UC.length === 0 &&
+                                        </tr>
+                                    ))
+                                    }
+                                    {UC && UC.length === 0 &&
                                         <tr>
                                             <td colSpan="5" className="p-6 text-center text-gray-500">No Utilization Certificates Found</td>
                                         </tr>
@@ -116,11 +116,11 @@ const UtilizationCertificates = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {expenditureCertificates&&expenditureCertificates.length > 0 ? (
+                                    {expenditureCertificates && expenditureCertificates.length > 0 ? (
                                         expenditureCertificates.map((certificate) => (
                                             <tr key={certificate._id} className="hover:bg-blue-50 transition-colors border-b border-blue-200 last:border-b-0">
-                                                <td className="p-4 text-center text-sm text-blue-600 underline" onClick={() => {navigate(`/certificate-details/se/${certificate._id}`)}} >{certificate._id}</td>
-                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => {navigate(`/certificate-details/se/${certificate._id}`)}} >{certificate.currentYear}</td>
+                                                <td className="p-4 text-center text-sm text-blue-600 underline" onClick={() => { navigate(`/certificate-details/se/${certificate._id}`) }} >{certificate._id}</td>
+                                                <td className="p-4 text-center text-sm text-gray-600" onClick={() => { navigate(`/certificate-details/se/${certificate._id}`) }} >{certificate.currentYear}</td>
                                                 <td className="p-4 text-center text-sm text-gray-600" onClick={() => navigate(`/certificate-details/se/${certificate._id}`)} >{certificate.scheme}</td>
                                                 <td className="p-4 text-center text-sm text-gray-600" onClick={() => navigate(`/certificate-details/se/${certificate._id}`)} >{certificate.status}</td>
                                             </tr>
