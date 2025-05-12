@@ -936,7 +936,7 @@ const ApproveUC = () => {
                       </>
                     )}
                     <div className="mt-6">
-                      <h3 className="text-lg font-semibold text-blue-700 mb-4">
+                      <h3 className="text-lg font-semibold text-green-700 mb-4">
                         Details of grants position at the end of the year
                       </h3>
                       <div className="pl-5">
@@ -1060,7 +1060,7 @@ const ApproveUC = () => {
                     <div className="flex justify-between mt-8">
                       <button
                         onClick={handleSaveAsPDF}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
+                        className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
                       >
                         <div className="flex items-center">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
