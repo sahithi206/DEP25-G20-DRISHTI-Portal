@@ -1,11 +1,14 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from './Context/Authcontext.jsx';
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showTooltip, setShowTooltip] = useState(false);
   const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     window.history.pushState(null, null, window.location.href);
@@ -27,7 +30,19 @@ const Login = () => {
   return (
     <div className="min-h-screen flex justify-center items-center bg-gradient-to-b from-blue-50 to-slate-100 p-4">
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md border border-gray-100">
-        <div className="mb-8 text-center">
+        <div
+          className="mb-8 text-center cursor-pointer relative group"
+          onClick={() => navigate("/")}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+        >
+          {/* Tooltip */}
+          {showTooltip && (
+            <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+              Click to go to home page
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+            </div>
+          )}
           <div className="flex justify-center mb-4">
             <div className="h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
