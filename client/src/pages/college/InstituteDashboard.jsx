@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState } from "react";
+import React, { useEffect, useContext, useState, useRef } from "react";
 import { AuthContext } from "../Context/Authcontext";
 import HomeNavbar from "../../components/Navbar";
 import Sidebar from "../../components/InstituteSidebar";
@@ -56,6 +56,7 @@ const InstituteDashboard = () => {
   const { fetchInstituteProjects, fetchInstituteUsers } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const sidebarRef = useRef(null);
   const [activeSection, setActiveSection] = useState("dashboard");
   const projects = [
     {
@@ -637,9 +638,24 @@ const InstituteDashboard = () => {
   ];
 
   useEffect(() => {
+    const resizeObserver = new ResizeObserver(entries => {
+    });
+
+    if (sidebarRef.current) {
+      resizeObserver.observe(sidebarRef.current);
+    }
+
+    return () => {
+      if (sidebarRef.current) {
+        resizeObserver.unobserve(sidebarRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     fetchProfile();
   }, []);
-  const [profile,setProfile]=useState("");
+  const [profile, setProfile] = useState("");
   const fetchProfile = async () => {
     try {
       setLoading(true);
@@ -657,7 +673,7 @@ const InstituteDashboard = () => {
       };
 
       const res = await axios.get(`${url}institute/profile`, config);
-      setProfile(res.data.institute); 
+      setProfile(res.data.institute);
     } catch (err) {
       console.error("Error fetching profile:", err);
     } finally {
@@ -744,7 +760,7 @@ const InstituteDashboard = () => {
   const [deptFilter, setDeptFilter] = useState("");
   const [summaryCards, setSummaryCards] = useState([]);
 
- 
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -759,43 +775,41 @@ const InstituteDashboard = () => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
     setSummaryCards([
-      { title: "Total Ongoing Projects", value:89, type: "projects" },
-      { title: "Fund Approved in 2023-2024 (Cr)", value:35.89, type: "funds" },
-      { title: "Fund Sanctioned in 2023-2024 (Cr)", value:10.41, type: "funds" }
+      { title: "Total Ongoing Projects", value: 89, type: "projects" },
+      { title: "Fund Approved in 2023-2024 (Cr)", value: 35.89, type: "funds" },
+      { title: "Fund Sanctioned in 2023-2024 (Cr)", value: 10.41, type: "funds" }
 
     ]);
   }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <div className="fixed w-full h-20 z-40 shadow-md bg-white">
-        <HomeNavbar yes={1} />
-      </div>
+      <HomeNavbar yes={1} />
 
-      <div className="flex flex-grow pt-20">
-        <div className="w-72 h-[calc(100vh-5rem)] sticky top-20 bg-white shadow-md">
+      <div className="flex flex-grow">
+        <div ref={sidebarRef} className="transition-all duration-300">
           <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
         </div>
-        <main className="flex-grow container mx-auto p-6 overflow-auto bg-white shadow-md rounded-lg space-y-4">
+        <main className="flex-grow p-6 transition-all duration-300">
           {loading ? (
             <p className="text-center text-gray-600">Loading...</p>
           ) : (
             <div className="space-y-8">
               <h2 className="text-xl font-semibold text-blue-900 border-b pb-2">RESEARCH AND DEVELOPMENT ACTIVITIES</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-            {summaryCards.map((card, idx) => (
-              <div
-                key={idx}
-                className="bg-gray-200 p-6 rounded-2xl shadow-md text-center border border-gray-100 hover:shadow-lg hover:border-blue-200 transition duration-300 cursor-pointer"
-              >
-                <h3 className="text-gray-500 text-sm font-medium mb-2">{card.title}</h3>
-                <p className="text-3xl font-bold text-gray-800">{card.value}</p>
+                {summaryCards.map((card, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-gray-200 p-6 rounded-2xl shadow-md text-center border border-gray-100 hover:shadow-lg hover:border-blue-200 transition duration-300 cursor-pointer"
+                  >
+                    <h3 className="text-gray-500 text-sm font-medium mb-2">{card.title}</h3>
+                    <p className="text-3xl font-bold text-gray-800">{card.value}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
               <ul className="list-disc pl-6 space-y-2 text-gray-800">
                 <li><strong>CSR Funds:</strong> With greater emphasis on corporate funding, the Institute has received/sanctioned CSR funding of Rs. 0.87 crore from different industries. In the coming years, the same is going to substantially increase through continuous and rigorous efforts of the R&D team.</li>
                 <li><strong>Research Initiation Support (IRIS):</strong> Institute Research Initiation Support (IRIS) scheme has been announced for supporting newly joined faculty members at {profile.college}. This grant is constituted to give new faculty members a “leg-up” in their future research without waiting for a proposal to be approved by the external funding agencies or the regular Ph.D. intake in the institute to add research personnel to their group.</li>
@@ -804,7 +818,7 @@ const InstituteDashboard = () => {
               </ul>
 
               <h2 className="text-xl font-semibold mb-1 text-center uppercase">
-              SPONSORED RESEARCH PROJECTS SANCTIONED ANNUALLY              </h2>
+                SPONSORED RESEARCH PROJECTS SANCTIONED ANNUALLY              </h2>
               <p className="text-sm text-center mb-6 text-gray-600">
                 No. of Projects till 2023-24: 476 with outlay of Rs. 202.91 (Crore)
               </p>
@@ -842,8 +856,8 @@ const InstituteDashboard = () => {
               </ResponsiveContainer>
 
               <h2 className="text-xl font-semibold mb-1 text-center uppercase">
-              AMOUNT SANCTIONED ANNUALLY (SPONSORED PROJECTS)
-                           </h2>
+                AMOUNT SANCTIONED ANNUALLY (SPONSORED PROJECTS)
+              </h2>
               <p className="text-sm text-center mb-4">
                 No. of Project till 2023-24 : 615 with outlay of Rs. 35.85 Crore
               </p>

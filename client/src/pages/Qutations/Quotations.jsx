@@ -305,9 +305,8 @@ const UploadDocuments = () => {
     <div className="flex bg-gray-100 min-h-screen">
       <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
       <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-        <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/project-dashboard/${id}`} />
+        <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/view/Quotations/${id}`} />
         <div className="p-6 space-y-6 mt-16">
-          <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow"></div>
           <div className="p-6 bg-gray-100 min-h-screen">
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-2xl font-semibold mb-4">Quotations/RTGS</h2>

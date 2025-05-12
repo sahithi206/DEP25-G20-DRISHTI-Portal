@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { AuthContext } from "../Context/Authcontext";
+import { toast } from "react-toastify";
 const API_BASE_URL = import.meta.env.VITE_REACT_APP_URL;
 const GeneralInfo = ({ generalInfo }) => {
     const [userId, setId] = useState(null);
@@ -54,21 +55,21 @@ const GeneralInfo = ({ generalInfo }) => {
                 photo: projects.photo
             });
             if (response.success) {
-                alert(response.msg);
+                toast.success(response.msg);
             }
         } catch (error) {
             console.error("Error submitting general info:", error.message);
-            alert("Failed to submit general info");
+            toast.error("Failed to submit general info");
         }
     };
     const handleFileUpload = async (e, fileType) => {
         const file = e.target.files[0];
         if (!file) {
-            alert("Please select a file.");
+            toast.error("Please select a file.");
             return;
         }
         if (file.type !== "text/csv") {
-            alert("Please upload a valid CSV file.");
+            toast.error("Please upload a valid CSV file.");
             return;
         }
         const formData = new FormData();
@@ -89,10 +90,10 @@ const GeneralInfo = ({ generalInfo }) => {
                     photo: response.data.filePath || response.data.filename
                 }));
             }
-            alert(`Upload Successful! File Path: ${response.data.filePath}`);
+            toast.success(`Upload Successful! File Path: ${response.data.filePath}`);
         } catch (error) {
             console.log("Upload Error:", error.message);
-            alert("Upload failed. Ensure the file type & size are correct.");
+            toast.error("Upload failed. Ensure the file type & size are correct.");
         }
     };
 

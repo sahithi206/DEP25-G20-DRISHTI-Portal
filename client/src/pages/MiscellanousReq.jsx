@@ -86,6 +86,7 @@ const MiscRequest = () => {
         }
     };
 
+    // Get status badge color
     const getStatusBadgeColor = (status) => {
         switch (status) {
             case "Approved":
@@ -100,6 +101,7 @@ const MiscRequest = () => {
         }
     };
 
+    // Format date nicely
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return new Intl.DateTimeFormat('en-US', {
@@ -135,67 +137,68 @@ const MiscRequest = () => {
 
                 <div className="p-6 space-y-6 mt-10">
                     <div className="p-6 space-y-6">
-                                           <div className="bg-white shadow-md rounded-xl p-6 text-center  hover:shadow-xl transition-shadow">
-                        <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
-                        {/*  <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                        <div className="bg-white shadow-md rounded-xl p-6 text-center  hover:shadow-xl transition-shadow">
+                            <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
+                            {/*  <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
                         <h3 className="text-medium font-semibold text-gray-700">Empowering Research Through Technology</h3>*/}
                             <p className="mt-3 text-2xl font-bold ml-9 text-blue-800">Miscellaneous Requests</p>
                         </div>
 
-                                                <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200 mb-6">
-                                                    <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                                                        </svg>
-                                                        New Request
-                                                    </h2>
-                                                    <h3 className="border-b pb-2 mt-3 mb-6"></h3>
+                        {/* Request Form */}
+                        <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200 mb-6">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                                </svg>
+                                New Request
+                            </h2>
+                            <h3 className="border-b pb-2 mt-3 mb-6"></h3>
 
-                                                        <form onSubmit={handleSubmit}>
-                                                            <div className="mb-4">
-                                                                <label className="block text-gray-700 font-semibold mb-2">Request Type</label>
-                                                                <select
-                                                                    name="requestType"
-                                                                    value={formData.requestType}
-                                                                    onChange={handleChange}
-                                                                    className="w-full border border-gray-300 rounded p-2"
-                                                                    required
-                                                                >
-                                                                    <option value="">Select Request Type</option>
-                                                                    <option value="Technical Support">Technical Support</option>
-                                                                    <option value="Document Request">Document Request</option>
-                                                                    <option value="Budget Revision">Budget Revision</option>
-                                                                    <option value="Other">Other</option>
-                                                                </select>
-                                                            </div>
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 font-semibold mb-2">Request Type</label>
+                                    <select
+                                        name="requestType"
+                                        value={formData.requestType}
+                                        onChange={handleChange}
+                                        className="w-full border border-gray-300 rounded p-2"
+                                        required
+                                    >
+                                        <option value="">Select Request Type</option>
+                                        <option value="Technical Support">Technical Support</option>
+                                        <option value="Document Request">Document Request</option>
+                                        <option value="Budget Revision">Budget Revision</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
 
-                                                            <div className="mb-4">
-                                                                <label className="block text-gray-700 font-semibold mb-2" >Description</label>
-                                                                <textarea
-                                                                    name="description"
-                                                                    value={formData.description}
-                                                                    onChange={handleChange}
-                                                                    className="w-full border border-gray-300 rounded p-2"
-                                                                    rows="3"
-                                                                    placeholder="Describe your request..."
-                                                                    required
-                                                                ></textarea>
-                                                                                                                        <p className="text-sm text-gray-500 mb-6">* Please ensure all fields are filled before submitting.</p>
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 font-semibold mb-2" >Description</label>
+                                    <textarea
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleChange}
+                                        className="w-full border border-gray-300 rounded p-2"
+                                        rows="3"
+                                        placeholder="Describe your request..."
+                                        required
+                                    ></textarea>
+                                    <p className="text-sm text-gray-500 mb-6">* Please ensure all fields are filled before submitting.</p>
 
-                                                            </div>
+                                </div>
 
-                                                            <button
-                                                                type="submit"
-                                                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
-                                                            >
-                                                                Submit
-                                                            </button>
-                                                        </form>
+                                <button
+                                    type="submit"
+                                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
+                                >
+                                    Submit
+                                </button>
+                            </form>
 
-                                                </div>
+                        </div>
 
 
-                                                {/* Requests Table */}
+                        {/* Requests Table */}
                         <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
                             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
                                 <h2 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0 flex items-center">
@@ -226,7 +229,7 @@ const MiscRequest = () => {
                                         onChange={(e) => setStatusFilter(e.target.value)}
                                         className="border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="">All Statuses</option>
+                                        <option value="">All</option>
                                         <option value="Approved">Approved</option>
                                         <option value="Rejected">Rejected</option>
                                         <option value="Pending">Pending</option>

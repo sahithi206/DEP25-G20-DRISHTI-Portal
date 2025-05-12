@@ -173,35 +173,35 @@ const ProposalScheme = () => {
                     </div>
 
                     <div className=" bg-white p-4  rounded-md shadow-md">
-                            <div className=" flex  items-center justify-between bg-white hover">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-4 w-4 text-gray-500 mr-2 flex-shrink-0"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                    />
-                                </svg>
-                                <input
-                                    type="text"
-                                    placeholder="Search by Scheme"
-                                    className="w-full outline-none  text-gray-800 placeholder-gray-500 text-sm pr-9"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                        <div className=" flex  items-center justify-between bg-white hover">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4 text-gray-500 mr-2 flex-shrink-0"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                                 />
-                                 <button
-                                    onClick={toggleSortDirection}
-                                    className="flex items-center mb-2 bg-gray-200 hover:bg-gray-300 px-5  rounded text-sm"
-                                >
-                                    Sort: {sortConfig.direction === "asc" ? "Oldest ↑" : "Newest ↓"}
-                                </button>
-                            </div>
+                            </svg>
+                            <input
+                                type="text"
+                                placeholder="Search by Scheme"
+                                className="w-full outline-none  text-gray-800 placeholder-gray-500 text-sm pr-9"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            <button
+                                onClick={toggleSortDirection}
+                                className="flex items-center mb-2 bg-gray-200 hover:bg-gray-300 px-5  rounded text-sm"
+                            >
+                                Sort: {sortConfig.direction === "asc" ? "Oldest ↑" : "Newest ↓"}
+                            </button>
+                        </div>
 
                         <div className="overflow-x-auto">
                             <table className="min-w-full bg-white">

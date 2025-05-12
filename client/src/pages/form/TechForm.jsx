@@ -61,7 +61,7 @@ const TechForm = ({ researchDetails }) => {
     };
 
     const csvTemplate = `proposalTitle,projectDuration,projectSummary,objectives,expectedOutput,otherDetails
-Sample Title,12,Sample Summary,"Objective 1\nObjective 2",Sample Output,Sample Other Details`;
+Sample Title,12,Sample Summary,"Objective 1",Sample Output,Sample Other Details`;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -88,32 +88,39 @@ Sample Title,12,Sample Summary,"Objective 1\nObjective 2",Sample Output,Sample O
 
     return (
         <div className="container mx-auto p-6">
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold mb-4">Technical Details</h1>
+            <div className="flex justify-between">
+                  <div className="flex justify-between items-center ">
+                <h1 className="text-2xl font-bold mb-9">Technical Details</h1>
+            </div>
+            <div>
+                 <div className="flex justify-end items-center mb-2">
                 <input
                     type="file"
-                    accept=".json"
+                    accept=".csv"
                     className="hidden"
                     id="fileInput"
                     onChange={handleFileUpload}
                 />
                 <label
                     htmlFor="fileInput"
-                    className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
+                    className="px-5 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
                 >
                     Import CSV
                 </label>
             </div>
-            <div className="mb-4">
-                <a
+            <div className="flex justify-end items-center mb-2">
+                  <a
                     href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvTemplate)}`}
                     download="template.csv"
-                    className="text-blue-600 hover:underline"
+                    className="text-blue-600 text-sm underline"
                 >
-                    Download CSV Template
+                    Download Template
                 </a>
             </div>
-
+            </div>
+            </div>
+          
+            
 
             <form className="bg-white p-6 rounded-lg shadow-md" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">

@@ -38,7 +38,10 @@ const SEForm = () => {
     const [instituteStamp, setInstituteStamp] = useState(null);
     const [authSignature, setauthSignature] = useState(null);
     const [showUploadOption, setShowUploadOption] = useState(false);
-
+    const [sentToAdmin, setSentToAdmin] = useState(false);
+    const [adminApproved, setAdminApproved] = useState(false);
+    const [adminRejected, setAdminRejected] = useState(false);
+    const [seRequestId, setSeRequestId] = useState(null);
     const sigCanvas = useRef(null);
     const fileInputRef = useRef(null);
     const [instituteOfficials, setInstituteOfficials] = useState({
@@ -61,13 +64,13 @@ const SEForm = () => {
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { getProject, getpi } = useContext(AuthContext);
+    const { getProject } = useContext(AuthContext);
     useEffect(() => {
         const fetchStatus = async () => {
             if (id) {
                 try {
                     const res = await fetch(`${url}se/latest?projectId=${id}`);
-                    console.log("RESSSS:", res);
+                    // console.log("RESSSS:", res);
                     if (!res.ok) {
                         if (res.status === 404) {
                             console.warn("No SE found for this project");
@@ -80,12 +83,14 @@ const SEForm = () => {
                     const data = await res.json();
                     if (data.success && data.data) {
                         const se = data.data;
+                        const authData = await fetchInstituteOfficials(se.institute);
                         // console.log("Auth Data:", authData);
+                        setInstituteOfficials(authData);
                         setSentForApproval(true);
                         setPiSignature(se.piSignature);
                         setInstituteStamp(se.instituteStamp);
                         setauthSignature(se.authSignature);
-                        // setSeRequestId(se._id);
+                        setSeRequestId(se._id);
                         if (se.status === "approvedByInst") {
                             setInstituteApproved(true);
                         }
@@ -103,11 +108,6 @@ const SEForm = () => {
                         }
                         else {
                             setInstituteApproved(false);
-                            setInstituteOfficials({
-                                headOfInstitute: "pending approval...",
-                                cfo: "pending approval...",
-                                accountsOfficer: "pending approval..."
-                            });
                         }
                     } else {
                         setSentForApproval(false);
@@ -336,28 +336,108 @@ const SEForm = () => {
             );
         }
 
-        return (
-            <div className={`rounded-lg p-4 mb-6 ${instituteApproved ? 'bg-green-100' : 'bg-yellow-100'}`}>
-                <div className="flex items-center">
-                    {instituteApproved ? (
-                        <>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="font-medium text-green-800">Approved by Institute on {new Date().toLocaleDateString()}</span>
-                        </>
-                    ) : (
-                        <>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="font-medium text-yellow-800">Pending Institute Approval</span>
-                        </>
-                    )}
+        if (instituteApproved && sentToAdmin && !adminApproved && !adminRejected) {
+            return (
+                <div className="rounded-lg p-4 mb-6 bg-blue-100">
+                    <div className="flex items-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 text-blue-500 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span className="font-medium text-blue-800">
+                            SE has been sent to Admin for final approval.
+                        </span>
+                    </div>
                 </div>
-            </div>
-        );
-    };
+            );
+        }
+
+        if (instituteApproved && !sentToAdmin) {
+            return (
+                <div className="rounded-lg p-4 mb-6 bg-green-100">
+                    <div className="flex items-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 text-green-500 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span className="font-medium text-green-800">
+                            Approved by Institute on {new Date().toLocaleDateString()}.
+                        </span>
+                    </div>
+                </div>
+            );
+        }
+        if (adminRejected) {
+            return (
+                <div className="rounded-lg p-4 mb-6 bg-red-100">
+                    <div className="flex items-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 text-red-500 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span className="font-medium text-red-800">
+                            Rejected by Admin on {new Date().toLocaleDateString()}.
+                        </span>
+                    </div>
+                </div>
+            );
+        }
+        if (adminApproved) {
+            return (
+                <div className="rounded-lg p-4 mb-6 bg-green-100">
+                    <div className="flex items-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6 text-green-500 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span className="font-medium text-green-800">
+                            Approved by Admin on {new Date().toLocaleDateString()}.
+                        </span>
+                    </div>
+                </div>
+            );
+        }
+    }
 
     const SignatureModal = () => {
         if (!showSignatureModal) return null;
@@ -470,6 +550,31 @@ const SEForm = () => {
         );
     };
 
+    const sendSEToAdmin = async () => {
+        try {
+            const response = await fetch(`${url}se/send-to-admin/${seRequestId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    accessToken: localStorage.getItem("token"),
+                },
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                alert(result.message || "Failed to send SE to admin");
+                return;
+            }
+
+            alert("SE sent to admin for approval");
+            setSentToAdmin(true);
+        } catch (err) {
+            console.error("Error sending SE to admin:", err.message);
+            alert("Failed to send SE to admin");
+        }
+    };
+
     const handleChange = (e) => {
         setData((prevData) => ({ ...prevData, [e.target.name]: e.target.value }));
     };
@@ -526,7 +631,7 @@ const SEForm = () => {
                 return;
             }
 
-            // setSeRequestId(result.id);
+            setSeRequestId(result.id);
             setShowSuccessPopup(true);
             setSentForApproval(true);
 
@@ -1080,6 +1185,18 @@ const SEForm = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                     Send for Approval
+                                </button>
+
+                            )}
+
+                            {instituteApproved && !sentToAdmin && seRequestId && (
+                                <button
+                                    onClick={sendSEToAdmin}
+                                    className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${piSignature
+                                        ? "bg-green-600 text-white hover:bg-green-700"
+                                        : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
+                                >
+                                    Send to Admin
                                 </button>
                             )}
                         </div>

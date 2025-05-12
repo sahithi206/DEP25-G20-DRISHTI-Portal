@@ -88,7 +88,7 @@ router.post("/ProposalID", fetchUser, async (req, res, next) => {
     const newProposal = new Proposal({
       userId: _id,
       Scheme,
-      status: "Unsaved"
+      status: "Unsaved",
     });
 
     await newProposal.save();

@@ -34,7 +34,7 @@ router.get("/pending", fetchInstitute, async (req, res) => {
         console.log("INSTITUTE:", instituteName);
 
         const pendingOrApproved = await UCRequest.find({
-            status: { $in: ["pending", "pendingAuthSign", "approvedByAuth"] },
+            status: { $in: ["pending", "pendingByHOI", "approvedByHOI"] },
             "ucData.instituteName": instituteName
         });
 
@@ -46,19 +46,19 @@ router.get("/pending", fetchInstitute, async (req, res) => {
 });
 
 //Get all pendingAuthSign UCs
-router.get("/pendingAuthSign", fetchInstitute, async (req, res) => {
+router.get("/pendingByHOI", fetchInstitute, async (req, res) => {
     try {
         const instituteName = req.institute.college; // or req.institute.name if nested
         console.log("INSTITUTE CFO:", instituteName);
 
-        const pendingAuthSign = await UCRequest.find({
-            status: "pendingAuthSign",
+        const pendingByHOI = await UCRequest.find({
+            status: "pendingByHOI",
             "ucData.instituteName": instituteName
         });
 
-        res.json({ success: true, data: pendingAuthSign });
+        res.json({ success: true, data: pendingByHOI });
     } catch (err) {
-        console.error("Error fetching pendingAuthSign UCs:", err);
+        console.error("Error fetching pendingByHOI UCs:", err);
         res.status(500).json({ success: false, message: err.message });
     }
 });
@@ -67,10 +67,10 @@ router.get("/pendingAuthSign", fetchInstitute, async (req, res) => {
 router.put("/approve/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { instituteStamp } = req.body;
+        const { instituteStamp, authSignature } = req.body;
 
-        if (!instituteStamp) {
-            return res.status(400).json({ success: false, message: "Institute stamp is required" });
+        if (!instituteStamp || !authSignature) {
+            return res.status(400).json({ success: false, message: "All Signatures are required" });
         }
 
         const updatedUC = await UCRequest.findByIdAndUpdate(
@@ -78,6 +78,7 @@ router.put("/approve/:id", async (req, res) => {
             {
                 status: "approvedByInst",
                 instituteStamp,
+                authSignature,
                 approvalDate: new Date()
             },
             { new: true }
@@ -146,20 +147,21 @@ router.get("/latest", async (req, res) => {
     }
 });
 
-router.put("/send-to-auth/:id", async (req, res) => {
+router.put("/send-to-head/:id", async (req, res) => {
     try {
+        console.log("Inside send-to-head");
         const { id } = req.params;
-        const { instituteStamp } = req.body;
+        const { authSignature } = req.body;
 
-        if (!instituteStamp) {
-            return res.status(400).json({ success: false, message: "Institute stamp is required" });
+        if (!authSignature) {
+            return res.status(400).json({ success: false, message: "Auth Sign is required" });
         }
 
         const updatedUC = await UCRequest.findByIdAndUpdate(
             id,
             {
-                status: "pendingAuthSign",
-                instituteStamp,
+                status: "pendingByHOI",
+                authSignature,
                 approvalDate: new Date()
             },
             { new: true }
@@ -175,20 +177,20 @@ router.put("/send-to-auth/:id", async (req, res) => {
     }
 });
 
-router.put("/auth-approval/:id", async (req, res) => {
+router.put("/head-approval/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { authSignature } = req.body;
+        const { instituteStamp } = req.body;
 
-        if (!authSignature) {
+        if (!instituteStamp) {
             return res.status(400).json({ success: false, message: "Institute stamp is required" });
         }
 
         const updatedUC = await UCRequest.findByIdAndUpdate(
             id,
             {
-                status: "approvedByAuth",
-                authSignature,
+                status: "approvedByHOI",
+                instituteStamp,
                 approvalDate: new Date()
             },
             { new: true }

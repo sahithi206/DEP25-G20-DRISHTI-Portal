@@ -58,7 +58,7 @@ router.get("/pending", fetchInstitute, async (req, res) => {
         console.log("INSTITUTE:", instituteName);
 
         const pendingSE = await SE.find({
-            status: { $in: ["pending", "pendingAuthSign", "approvedByAuth"] },
+            status: { $in: ["pending", "pendingByHOI", "approvedByHOI"] },
             institute: instituteName
         });
 
@@ -69,22 +69,22 @@ router.get("/pending", fetchInstitute, async (req, res) => {
     }
 });
 
-//Get all pendingAuthSign SEs
-router.get("/pendingAuthSign", fetchInstitute, async (req, res) => {
+//Get all pendingByHOI SEs
+router.get("/pendingByHoi", fetchInstitute, async (req, res) => {
     try {
         const instituteName = req.institute.college; // or req.institute.name if nested
-        console.log("INSTITUTE AO:", instituteName);
+        console.log("INSTITUTE HOI:", instituteName);
 
-        const pendingAuthSign = await SE.find({
-            status: "pendingAuthSign",
+        const pendingByHOI = await SE.find({
+            status: "pendingByHOI",
             institute: instituteName
         });
 
-        console.log("Pending AO Sign:", pendingAuthSign);
+        console.log("Pending HOI Sign:", pendingByHOI);
 
-        res.json({ success: true, data: pendingAuthSign });
+        res.json({ success: true, data: pendingByHOI });
     } catch (err) {
-        console.error("Error fetching pendingAuthSign SEs:", err);
+        console.error("Error fetching pendingByHOI SEs:", err);
         res.status(500).json({ success: false, message: err.message });
     }
 });
@@ -93,10 +93,10 @@ router.get("/pendingAuthSign", fetchInstitute, async (req, res) => {
 router.put("/approve/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { instituteStamp } = req.body;
+        const { instituteStamp, authSignature } = req.body;
 
-        if (!instituteStamp) {
-            return res.status(400).json({ success: false, message: "Institute stamp is required" });
+        if (!instituteStamp || !authSignature) {
+            return res.status(400).json({ success: false, message: "All signatures are required" });
         }
 
         const updatedSE = await SE.findByIdAndUpdate(
@@ -104,7 +104,8 @@ router.put("/approve/:id", async (req, res) => {
             {
                 status: "approvedByInst", // Update status to approvedByInst
                 instituteStamp,
-                approvedDate: new Date()
+                authSignature,
+                date: new Date()
             },
             { new: true }
         );
@@ -143,20 +144,20 @@ router.get("/latest", async (req, res) => {
     }
 });
 
-router.put("/send-to-auth/:id", async (req, res) => {
+router.put("/send-to-head/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { instituteStamp } = req.body;
+        const { authSignature } = req.body;
 
-        if (!instituteStamp) {
-            return res.status(400).json({ success: false, message: "Institute stamp is required" });
+        if (!authSignature) {
+            return res.status(400).json({ success: false, message: "Auth Sign is required" });
         }
 
         const updatedSE = await SE.findByIdAndUpdate(
             id,
             {
-                status: "pendingAuthSign",
-                instituteStamp,
+                status: "pendingByHOI",
+                authSignature,
                 approvalDate: new Date()
             },
             { new: true }
@@ -172,20 +173,20 @@ router.put("/send-to-auth/:id", async (req, res) => {
     }
 });
 
-router.put("/auth-approval/:id", async (req, res) => {
+router.put("/head-approval/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { authSignature } = req.body;
+        const { instituteStamp } = req.body;
 
-        if (!authSignature) {
+        if (!instituteStamp) {
             return res.status(400).json({ success: false, message: "Institute stamp is required" });
         }
 
         const updatedSE = await SE.findByIdAndUpdate(
             id,
             {
-                status: "approvedByAuth",
-                authSignature,
+                status: "approvedByHOI",
+                instituteStamp,
                 approvalDate: new Date()
             },
             { new: true }

@@ -45,14 +45,14 @@ export default function Report() {
     <div className="flex bg-gray-100 min-h-screen">
       <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
       <div className={`flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64 w-[calc(100%-16rem)]' : 'ml-16 w-[calc(100%-4rem)]'}`}>
-        <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/project-dashboard/${id}`} />
+        <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/project-dashboard/${report?.projectId._id}`} />
         <div className="p-6 space-y-6 mt-16">
           <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-            <p className="mt-3 text-2xl font-bold text-blue-800">tagline</p>
+                                                          <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
+
             {report?.projectId?.currentYear && (
               <p className="text-lg font-semibold text-gray-600 mt-2">
-                Year {report?.projectId?.currentYear} Report
+                Yearly Report - {report?.projectId?.currentYear}
               </p>
             )}
           </div>
@@ -246,12 +246,7 @@ export default function Report() {
                   </div>
                 )}
               </>
-                <button 
-                  onClick={() => navigate(-1)}
-                  className="bg-gray-600 text-white py-2 px-6 rounded-md hover:bg-gray-700 transition-colors ml-auto"
-                >
-                  Back to Dashboard
-                </button>
+                
           </div>
         </div>
       </div>

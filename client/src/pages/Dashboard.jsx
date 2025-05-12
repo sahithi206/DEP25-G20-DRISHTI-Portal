@@ -8,6 +8,7 @@ import BankDetailsForm from "./form/BankDetailsForm";
 import {ReviewAndSubmit} from "./form/ReviewAndSubmit";
 import HomeNavbar from "../utils/HomeNavbar"
 import { AuthContext } from "./Context/Authcontext";
+import { data } from "react-router-dom";
 const tabs = [
     "General Information",
     "Principal Investigator",
@@ -76,7 +77,7 @@ const Dashboard = () => {
         };
         nochange();
         console.log("PrevDetails:", prevData);
-    }, [unsavedProposal]);
+    }, [prevData]);
 
     const tabContent = {
         "General Information": <GeneralInfo generalInfo={prevData.generalInfo} />,

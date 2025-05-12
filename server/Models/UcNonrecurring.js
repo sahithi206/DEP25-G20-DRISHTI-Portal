@@ -15,7 +15,7 @@ const NonRecurringGrantSchema = new mongoose.Schema({
     status: { type: String, required: true, default: "Pending for institute approval." }, 
     date:{
         type:Date,
-        dafault:new Date()
+        default:Date.now
       }
 });
 

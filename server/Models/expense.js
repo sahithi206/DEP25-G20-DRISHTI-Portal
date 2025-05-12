@@ -31,7 +31,7 @@ const ExpenseSchema = new mongoose.Schema({
         default: null,
         validate: {
             validator: function (v) {
-                if (!v) return true; // Allow null (pending transaction)
+                if (!v) return true;
                 return this.committedDate && v >= this.committedDate;
             },
             message: "Transaction date must be on or after the committed date",

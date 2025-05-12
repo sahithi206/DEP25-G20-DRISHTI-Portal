@@ -103,7 +103,7 @@ const BankDetailsForm = ({bankDetails }) => {
                         />
                         <label
                             htmlFor="fileInput"
-                            className="px-4 py-2 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
+                            className="px-5 py-2 p-4 bg-green-600 text-white rounded cursor-pointer hover:bg-green-700"
                         >
                             Import CSV
                         </label>
@@ -112,7 +112,7 @@ const BankDetailsForm = ({bankDetails }) => {
                         <a
                             href="#"
                             onClick={downloadCSVTemplate}
-                            className="text-blue-600 underline cursor-pointer hover:text-blue-800"
+                            className="text-blue-600 text-sm underline cursor-pointer hover:text-blue-800"
                         >
                             Download Template
                         </a>
