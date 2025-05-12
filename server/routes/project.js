@@ -323,7 +323,7 @@ router.get("/ucforms/:id", fetchUser, async (req, res) => {
 router.get("/ucforms/recurring/:id", fetchUser, async (req, res) => {
   try {
     const grant = await UCRequest.findById(req.params.id);
-
+    console.log("Grant:::", grant);
     if (!grant) {
       return res.status(404).json({ succes: false, msg: "Utilization Certificate not found" });
     }
@@ -335,10 +335,11 @@ router.get("/ucforms/recurring/:id", fetchUser, async (req, res) => {
 });
 router.get("/ucforms/nonRecurring/:id", fetchUser, async (req, res) => {
   try {
-    console.log(req.params.id);
+    console.log("params", req.params.id);
     const { id } = req.params
     const grant = await UCRequest.findById(id);
-    console.log(grant);
+    console.log("Grant:::", grant);
+
     if (!grant) {
       return res.status(400).json({ succes: false, msg: "Utilization Certificate not found" });
     }

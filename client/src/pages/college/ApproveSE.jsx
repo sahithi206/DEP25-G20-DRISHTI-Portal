@@ -36,6 +36,7 @@ const ApproveSE = () => {
     accountsOfficer: "Loading...",
   });
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const stampCanvas = useRef(null);
   const fileInputRef = useRef(null);
@@ -83,6 +84,8 @@ const ApproveSE = () => {
     const fetchPending = async () => {
       if (!userRole) return;
 
+      setIsLoading(true)
+
       let endpoint = `${url}se/pendingByHOI`;
       if (userRole === "Accounts Officer") {
         endpoint = `${url}se/pending`;
@@ -101,6 +104,7 @@ const ApproveSE = () => {
         if (data.success) {
           setPendingRequests(data.data);
         }
+        setIsLoading(false);
       } catch (err) {
         console.error("Error fetching pending SE requests:", err);
       }
@@ -743,7 +747,38 @@ const ApproveSE = () => {
         <main className="flex-grow container mx-auto p-6">
           <h1 className="text-2xl font-bold mb-4 text-center">{getPageTitle()}</h1>
 
-          {!selectedRequest ? (
+          {isLoading ? (
+            <div className="bg-white rounded-lg shadow-md p-6 mt-6 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <svg
+                  className="animate-spin h-10 w-10 text-blue-500"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <h2 className="text-xl font-semibold text-gray-700">
+                  Loading Pending Utilization Certificates
+                </h2>
+                <p className="text-gray-500">
+                  Please wait while we retrieve your pending approvals...
+                </p>
+              </div>
+            </div>
+          ) : (!selectedRequest ? (
             <div className="bg-white rounded-lg shadow-md p-6 mt-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Pending SE Requests</h2>
               <div className="flex space-x-4 mb-6">
@@ -1143,6 +1178,7 @@ const ApproveSE = () => {
                 </div>
               )}
             </div>
+          )
           )}
         </main>
       </div>

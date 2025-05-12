@@ -36,6 +36,7 @@ const ApproveUC = () => {
     cfo: "Loading...",
     accountsOfficer: "Loading...",
   });
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   const stampCanvas = useRef(null);
@@ -54,27 +55,38 @@ const ApproveUC = () => {
     const fetchPendingRequests = async () => {
       if (!userRole) return;
 
-      let endpoint = `${url}uc/pendingByHOI`;
-      if (userRole === "CFO") {
-        endpoint = `${url}uc/pending`;
-      }
+      // Set loading state to true at the start of fetch
+      setIsLoading(true);
 
-      const res = await fetch(endpoint, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          accessToken: localStorage.getItem("token"),
-        },
-      });
+      try {
+        let endpoint = `${url}uc/pendingByHOI`;
+        if (userRole === "CFO") {
+          endpoint = `${url}uc/pending`;
+        }
 
-      const result = await res.json();
-      if (result.success) {
-        setPendingRequests(result.data);
+        const res = await fetch(endpoint, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            accessToken: localStorage.getItem("token"),
+          },
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          setPendingRequests(result.data);
+        }
+      } catch (error) {
+        console.error("Error fetching pending requests:", error);
+        // Optionally set an error state
+      } finally {
+        // Ensure loading state is set to false after fetch completes
+        setIsLoading(false);
       }
     };
 
     fetchPendingRequests();
-  }, [userRole]); // <-- runs only after userRole is set
+  }, [userRole]);
 
 
   const [sortOrder, setSortOrder] = useState("newest");
@@ -650,418 +662,450 @@ const ApproveUC = () => {
         <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
         <main className="flex-grow container mx-auto p-6">
           <h1 className="text-2xl font-bold mb-4 text-center">{getPageTitle()}</h1>
-
-          {!selectedRequest ? (
-            <div className="bg-white rounded-lg shadow-md p-6 mt-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Pending Requests</h2>
-              <div className="flex space-x-4 mb-6">
-                <div className="relative flex-grow">
-                  <input
-                    type="text"
-                    placeholder="Search projects by PI name or Type..."
-                    value={searchTitle}
-                    onChange={(e) => setSearchTitle(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      role="img"
-                      aria-label="Search icon"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <select
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value)}
-                  className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          {isLoading ? (
+            <div className="bg-white rounded-lg shadow-md p-6 mt-6 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <svg
+                  className="animate-spin h-10 w-10 text-blue-500"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
                 >
-                  <option value="newest">Newest</option>
-                  <option value="oldest">Oldest</option>
-                </select>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">All </option>
-                  <option value="nonRecurring">Non Recurring</option>
-                  <option value="recurring">Recurring</option>
-                </select>
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <h2 className="text-xl font-semibold text-gray-700">
+                  Loading Pending Utilization Certificates
+                </h2>
+                <p className="text-gray-500">
+                  Please wait while we retrieve your pending approvals...
+                </p>
               </div>
-              {filteredUc.length === 0 ? (
-                <div className="text-center py-8">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <p className="text-gray-500">No pending approval requests</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pendingRequests.map((request) => (
-                    <div
-                      key={request._id}
-                      className="border p-4 rounded-lg cursor-pointer transition-all duration-200 hover:border-grey-300 hover:bg-green-50"
-                      onClick={() => handleViewDetails(request)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-medium text-gray-800">Project ID: {request.projectId}</h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Type: {request.type === "recurring" ? "Recurring" : "Non-Recurring"}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Submitted: {new Date(request.submissionDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <span className={`px-3 py-1 text-xs font-medium rounded-full ${request.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                          request.status === "pendingByHOI" ? "bg-blue-100 text-blue-800" :
-                            request.status === "approvedByHOI" ? "bg-green-100 text-green-800" :
-                              "bg-yellow-100 text-yellow-800"
-                          }`}>
-                          {request.status === "pending" ? "Pending CFO" :
-                            request.status === "pendingByHOI" ? "Pending HOI" :
-                              request.status === "approvedByHOI" ? "Ready for Approval" :
-                                "Pending"}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           ) : (
-            <div className="bg-white shadow-md rounded-xl p-6 mt-6">
-              <div className="flex justify-between items-center mb-6">
-                <button
-                  onClick={handleBackToList}
-                  className="flex items-center text-teal-600 hover:text-teal-800"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                  Back to List
-                </button>
-                <span className={`px-3 py-1 text-xs font-medium rounded-full ${selectedRequest.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                  selectedRequest.status === "pendingByHOI" ? "bg-blue-100 text-blue-800" :
-                    selectedRequest.status === "approvedByHOI" ? "bg-green-100 text-green-800" :
-                      "bg-yellow-100 text-yellow-800"
-                  }`}>
-                  {selectedRequest.status === "pending" ? "Pending CFO Sign" :
-                    selectedRequest.status === "pendingByHOI" ? "Pending HOI Sign" :
-                      selectedRequest.status === "approvedByHOI" ? "Ready for Approval" :
-                        "Pending Approval"}
-                </span>
-              </div>
-
-              {loading ? (
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  <h2 className="text-xl font-semibold">Processing Request</h2>
-                  <p className="text-gray-600">Please wait while we process your action...</p>
+            !selectedRequest ? (
+              <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Pending Requests</h2>
+                <div className="flex space-x-4 mb-6">
+                  <div className="relative flex-grow">
+                    <input
+                      type="text"
+                      placeholder="Search projects by PI name or Type..."
+                      value={searchTitle}
+                      onChange={(e) => setSearchTitle(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        role="img"
+                        aria-label="Search icon"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="newest">Newest</option>
+                    <option value="oldest">Oldest</option>
+                  </select>
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All </option>
+                    <option value="nonRecurring">Non Recurring</option>
+                    <option value="recurring">Recurring</option>
+                  </select>
                 </div>
-              ) : (
-                <>
-                  <h3 className="text-lg font-semibold text-teal-600 mb-4">
-                    {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
-
-                    <label className="font-semibold text-gray-700">Name of the Principal Investigator(s):</label>
-                    <span className="px-3 py-1 w-full">:{ucData.principalInvestigator?.length > 0 ? (
-                      <ul className="list-disc pl-5">
-                        {ucData.principalInvestigator.map((name, idx) => (
-                          <li key={idx}>{name}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      "N/A"
-                    )}
-                    </span>
-
-                    <label className="font-semibold text-gray-700">Title of the Project:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.title}</span>
-
-                    <label className="font-semibold text-gray-700">Name of the Scheme:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.scheme}</span>
-
-                    <label className="font-semibold text-gray-700">Whether recurring or non-recurring:</label>
-                    <span className="px-3 py-1 w-full">: {selectedType}</span>
-
-                    <label className="font-semibold text-gray-700">Present Year of Project:</label>
-                    <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
-
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                        Grants position at the beginning of the Financial year
-                      </h3>
-                      <div className="pl-11 grid grid-cols-2 gap-4">
-                        <label className="text-gray-700">Carry forward from previous financial year</label>
-                        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
-
-                        <label className="text-gray-700">Others, If any</label>
-                        <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
-
-                        <label className="text-gray-700">Total</label>
-                        <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
-                      </div>
-                    </div>
+                {filteredUc.length === 0 ? (
+                  <div className="text-center py-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p className="text-gray-500">No pending approval requests</p>
                   </div>
-                  <h3 className="text-lg font-semibold text-teal-700 mb-4">Financial Summary</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border border-gray-300 rounded-lg">
-                      <thead>
-                        <tr className="bg-gray-100 text-gray-700">
-                          <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
-                          <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
-                          <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
-                          <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
-                          <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
-                          <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
-                          <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
-                        </tr>
-                        <tr className="bg-gray-50 text-gray-700">
-                          <th className="border border-gray-400 px-4 py-2">1</th>
-                          <th className="border border-gray-400 px-4 py-2">2</th>
-                          <th className="border border-gray-400 px-4 py-2">3</th>
-                          <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
-                          <th className="border border-gray-400 px-4 py-2">Date</th>
-                          <th className="border border-gray-400 px-4 py-2">Amount</th>
-                          <th className="border border-gray-400 px-4 py-2">5</th>
-                          <th className="border border-gray-400 px-4 py-2">6</th>
-                          <th className="border border-gray-400 px-4 py-2">7</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="text-center">
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ 0</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ 0</td>
-                          <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || '23/2017/003478'}</td>
-                          <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || '12-03-2025'}</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
-                          <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
-                          <td className="border border-gray-400 px-4 py-2">
-                            ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
-                          </td>
-                          <td className="border border-gray-400 px-4 py-2">
-                            ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {(selectedType === "recurring" || selectedType !== "recurring") && (
-                    <>
-                      <h3 className="text-lg font-semibold text-teal-700 mt-6 mb-4">
-                        Component-wise Utilization of Grants
-                      </h3>
-                      <div className="overflow-x-auto">
-                        <table className="w-full border border-gray-300 rounded-lg">
-                          <thead>
-                            <tr className="bg-blue-100 text-gray-700">
-                              <th className="border border-gray-400 px-4 py-2">Grant-in-aid-General</th>
-                              <th className="border border-gray-400 px-4 py-2">Total</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="text-center">
-                              <td className="border border-gray-400 px-4 py-2">
-                                ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
-                              </td>
-                              <td className="border border-gray-400 px-4 py-2">
-                                ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
-                              </td>
-                            </tr>
-
-                          </tbody>
-                        </table>
-                      </div>
-                    </>
-                  )}
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-blue-700 mb-4">
-                      Details of grants position at the end of the year
-                    </h3>
-                    <div className="pl-5">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex">
-                          <span className="mr-2">(i)</span>
-                          <span>Balance available at end of financial year</span>
-                        </div>
-                        <span>
-                          : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
-                        </span>
-
-                        <div className="flex">
-                          <span className="mr-2">(ii)</span>
-                          <span>Unspent balance refunded to Funding Agency (if any)</span>
-                        </div>
-                        <span>: ₹ 0</span>
-
-                        <div className="flex">
-                          <span className="mr-2">(iii)</span>
-                          <span>Balance (Carry forward to next financial year)</span>
-                        </div>
-                        <span>
-                          : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <TermsAndConditions />
-
-                  {/* Signature Section */}
-                  <div className="border-t border-gray-200 pt-4 mb-6 mt-6">
-                    <h3 className="text-xl font-semibold mb-4">Signatures</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="border p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Principal Investigator</h4>
-                        {piSignature ? (
-                          <div className="border p-2 rounded mb-2">
-                            <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
-                          </div>
-                        ) : (
-                          <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
-                            <p className="text-gray-500">No signature added</p>
-                          </div>
-                        )}
-                        <p className="font-medium">Signature of PI : ...........................</p>
-                        <p className="font-medium">Name: {ucData.principalInvestigator[0]}</p>
-                      </div>
-
-                      <div className="border p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Chief Finance Officer</h4>
-                        {authSignature ? (
-                          <div className="border p-2 rounded mb-2">
-                            <img src={authSignature} alt="CFO Signature" className="h-24 object-contain" />
-                          </div>
-                        ) : (
-                          <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
-                            <p className="text-gray-500">No signature added</p>
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-medium">Signature ...............</p>
-                          <p className="font-medium">Name: {instituteOfficials.cfo}</p>
-                          <p className="font-medium">Chief Finance Officer</p>
-                          <p className="font-medium">(Head of Finance)</p>
-                        </div>
-                        {!authSignature && userRole === "CFO" && (
-                          <button
-                            onClick={handleAddStamp}
-                            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
-                            disabled={loading}
-                          >
-                            <div className="flex items-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                              </svg>
-                              Add CFO Signature
-                            </div>
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="border p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Institute Approval</h4>
-                        {instituteStamp ? (
-                          <div className="border p-2 rounded mb-2">
-                            <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
-                          </div>
-                        ) : (
-                          <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
-                            <p className="text-gray-500">
-                              Institute stamp required for approval
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {pendingRequests.map((request) => (
+                      <div
+                        key={request._id}
+                        className="border p-4 rounded-lg cursor-pointer transition-all duration-200 hover:border-grey-300 hover:bg-green-50"
+                        onClick={() => handleViewDetails(request)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-medium text-gray-800">Project ID: {request.projectId}</h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Type: {request.type === "recurring" ? "Recurring" : "Non-Recurring"}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Submitted: {new Date(request.submissionDate).toLocaleDateString()}
                             </p>
                           </div>
-                        )}
-                        <div>
-                          <p className="font-medium">Signature.................</p>
-                          <p className="font-medium">Name: {instituteOfficials.headOfInstitute}</p>
-                          <p className="font-medium">Head of Organisation</p>
+                          <span className={`px-3 py-1 text-xs font-medium rounded-full ${request.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                            request.status === "pendingByHOI" ? "bg-blue-100 text-blue-800" :
+                              request.status === "approvedByHOI" ? "bg-green-100 text-green-800" :
+                                "bg-yellow-100 text-yellow-800"
+                            }`}>
+                            {request.status === "pending" ? "Pending CFO" :
+                              request.status === "pendingByHOI" ? "Pending HOI" :
+                                request.status === "approvedByHOI" ? "Ready for Approval" :
+                                  "Pending"}
+                          </span>
                         </div>
-                        {!instituteStamp && userRole === "Head of Institute" && (
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white shadow-md rounded-xl p-6 mt-6">
+                <div className="flex justify-between items-center mb-6">
+                  <button
+                    onClick={handleBackToList}
+                    className="flex items-center text-teal-600 hover:text-teal-800"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to List
+                  </button>
+                  <span className={`px-3 py-1 text-xs font-medium rounded-full ${selectedRequest.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                    selectedRequest.status === "pendingByHOI" ? "bg-blue-100 text-blue-800" :
+                      selectedRequest.status === "approvedByHOI" ? "bg-green-100 text-green-800" :
+                        "bg-yellow-100 text-yellow-800"
+                    }`}>
+                    {selectedRequest.status === "pending" ? "Pending CFO Sign" :
+                      selectedRequest.status === "pendingByHOI" ? "Pending HOI Sign" :
+                        selectedRequest.status === "approvedByHOI" ? "Ready for Approval" :
+                          "Pending Approval"}
+                  </span>
+                </div>
+
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <h2 className="text-xl font-semibold">Processing Request</h2>
+                    <p className="text-gray-600">Please wait while we process your action...</p>
+                  </div>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold text-teal-600 mb-4">
+                      {selectedType === "recurring" ? "Recurring Grant Details" : "Non-Recurring Grant Details"}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <label className="font-semibold text-gray-700">Name of the Grant Receiving Organisation:</label>
+                      <span className="px-3 py-1 w-full">: {ucData.instituteName}</span>
+
+                      <label className="font-semibold text-gray-700">Name of the Principal Investigator(s):</label>
+                      <span className="px-3 py-1 w-full">:{ucData.principalInvestigator?.length > 0 ? (
+                        <ul className="list-disc pl-5">
+                          {ucData.principalInvestigator.map((name, idx) => (
+                            <li key={idx}>{name}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        "N/A"
+                      )}
+                      </span>
+
+                      <label className="font-semibold text-gray-700">Title of the Project:</label>
+                      <span className="px-3 py-1 w-full">: {ucData.title}</span>
+
+                      <label className="font-semibold text-gray-700">Name of the Scheme:</label>
+                      <span className="px-3 py-1 w-full">: {ucData.scheme}</span>
+
+                      <label className="font-semibold text-gray-700">Whether recurring or non-recurring:</label>
+                      <span className="px-3 py-1 w-full">: {selectedType}</span>
+
+                      <label className="font-semibold text-gray-700">Present Year of Project:</label>
+                      <span className="px-3 py-1 w-full">: {ucData.currentYear}</span>
+
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                          Grants position at the beginning of the Financial year
+                        </h3>
+                        <div className="pl-11 grid grid-cols-2 gap-4">
+                          <label className="text-gray-700">Carry forward from previous financial year</label>
+                          <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+
+                          <label className="text-gray-700">Others, If any</label>
+                          <span className="px-3 py-1 w-full text-gray-700">₹ 0</span>
+
+                          <label className="text-gray-700">Total</label>
+                          <span className="px-3 py-1 w-full text-gray-700">₹ {ucData.CarryForward.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-teal-700 mb-4">Financial Summary</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border border-gray-300 rounded-lg">
+                        <thead>
+                          <tr className="bg-gray-100 text-gray-700">
+                            <th className="border border-gray-400 px-4 py-2">Unspent Balances of Grants received years (figure as at Sl. No. 7 (iii))</th>
+                            <th className="border border-gray-400 px-4 py-2">Interest Earned thereon</th>
+                            <th className="border border-gray-400 px-4 py-2">Interest deposited back to Funding Agency</th>
+                            <th className="border border-gray-400 px-4 py-2" colSpan="3">Grant received during the year</th>
+                            <th className="border border-gray-400 px-4 py-2">Total (1+2 - 3+4)</th>
+                            <th className="border border-gray-400 px-4 py-2">Expenditure incurred</th>
+                            <th className="border border-gray-400 px-4 py-2">Closing Balances (5 - 6)</th>
+                          </tr>
+                          <tr className="bg-gray-50 text-gray-700">
+                            <th className="border border-gray-400 px-4 py-2">1</th>
+                            <th className="border border-gray-400 px-4 py-2">2</th>
+                            <th className="border border-gray-400 px-4 py-2">3</th>
+                            <th className="border border-gray-400 px-4 py-2">Sanction No.</th>
+                            <th className="border border-gray-400 px-4 py-2">Date</th>
+                            <th className="border border-gray-400 px-4 py-2">Amount</th>
+                            <th className="border border-gray-400 px-4 py-2">5</th>
+                            <th className="border border-gray-400 px-4 py-2">6</th>
+                            <th className="border border-gray-400 px-4 py-2">7</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="text-center">
+                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.CarryForward}</td>
+                            <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                            <td className="border border-gray-400 px-4 py-2">₹ 0</td>
+                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionNumber || '23/2017/003478'}</td>
+                            <td className="border border-gray-400 px-4 py-2">{ucData.sanctionDate || '12-03-2025'}</td>
+                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.yearTotal}</td>
+                            <td className="border border-gray-400 px-4 py-2">₹ {ucData.total}</td>
+                            <td className="border border-gray-400 px-4 py-2">
+                              ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                            </td>
+                            <td className="border border-gray-400 px-4 py-2">
+                              ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {(selectedType === "recurring" || selectedType !== "recurring") && (
+                      <>
+                        <h3 className="text-lg font-semibold text-teal-700 mt-6 mb-4">
+                          Component-wise Utilization of Grants
+                        </h3>
+                        <div className="overflow-x-auto">
+                          <table className="w-full border border-gray-300 rounded-lg">
+                            <thead>
+                              <tr className="bg-blue-100 text-gray-700">
+                                <th className="border border-gray-400 px-4 py-2">Grant-in-aid-General</th>
+                                <th className="border border-gray-400 px-4 py-2">Total</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="text-center">
+                                <td className="border border-gray-400 px-4 py-2">
+                                  ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                                </td>
+                                <td className="border border-gray-400 px-4 py-2">
+                                  ₹ {selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                                </td>
+                              </tr>
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
+                    )}
+                    <div className="mt-6">
+                      <h3 className="text-lg font-semibold text-blue-700 mb-4">
+                        Details of grants position at the end of the year
+                      </h3>
+                      <div className="pl-5">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex">
+                            <span className="mr-2">(i)</span>
+                            <span>Balance available at end of financial year</span>
+                          </div>
+                          <span>
+                            : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                          </span>
+
+                          <div className="flex">
+                            <span className="mr-2">(ii)</span>
+                            <span>Unspent balance refunded to Funding Agency (if any)</span>
+                          </div>
+                          <span>: ₹ 0</span>
+
+                          <div className="flex">
+                            <span className="mr-2">(iii)</span>
+                            <span>Balance (Carry forward to next financial year)</span>
+                          </div>
+                          <span>
+                            : ₹ {ucData.total - (selectedType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <TermsAndConditions />
+
+                    {/* Signature Section */}
+                    <div className="border-t border-gray-200 pt-4 mb-6 mt-6">
+                      <h3 className="text-xl font-semibold mb-4">Signatures</h3>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="border p-4 rounded-lg">
+                          <h4 className="font-medium mb-2">Principal Investigator</h4>
+                          {piSignature ? (
+                            <div className="border p-2 rounded mb-2">
+                              <img src={piSignature} alt="PI Signature" className="h-24 object-contain" />
+                            </div>
+                          ) : (
+                            <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
+                              <p className="text-gray-500">No signature added</p>
+                            </div>
+                          )}
+                          <p className="font-medium">Signature of PI : ...........................</p>
+                          <p className="font-medium">Name: {ucData.principalInvestigator[0]}</p>
+                        </div>
+
+                        <div className="border p-4 rounded-lg">
+                          <h4 className="font-medium mb-2">Chief Finance Officer</h4>
+                          {authSignature ? (
+                            <div className="border p-2 rounded mb-2">
+                              <img src={authSignature} alt="CFO Signature" className="h-24 object-contain" />
+                            </div>
+                          ) : (
+                            <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
+                              <p className="text-gray-500">No signature added</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium">Signature ...............</p>
+                            <p className="font-medium">Name: {instituteOfficials.cfo}</p>
+                            <p className="font-medium">Chief Finance Officer</p>
+                            <p className="font-medium">(Head of Finance)</p>
+                          </div>
+                          {!authSignature && userRole === "CFO" && (
+                            <button
+                              onClick={handleAddStamp}
+                              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
+                              disabled={loading}
+                            >
+                              <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add CFO Signature
+                              </div>
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="border p-4 rounded-lg">
+                          <h4 className="font-medium mb-2">Institute Approval</h4>
+                          {instituteStamp ? (
+                            <div className="border p-2 rounded mb-2">
+                              <img src={instituteStamp} alt="Institute Stamp" className="h-24 object-contain" />
+                            </div>
+                          ) : (
+                            <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
+                              <p className="text-gray-500">
+                                Institute stamp required for approval
+                              </p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium">Signature.................</p>
+                            <p className="font-medium">Name: {instituteOfficials.headOfInstitute}</p>
+                            <p className="font-medium">Head of Organisation</p>
+                          </div>
+                          {!instituteStamp && userRole === "Head of Institute" && (
+                            <button
+                              onClick={handleAddStamp}
+                              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
+                              disabled={loading}
+                            >
+                              <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Institute Stamp
+                              </div>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between mt-8">
+                      <button
+                        onClick={handleSaveAsPDF}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
+                      >
+                        <div className="flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Save as PDF
+                        </div>
+                      </button>
+
+                      <div className="flex space-x-4">
+                        {userRole === "CFO" && selectedRequest.status === "pending" && (
                           <button
-                            onClick={handleAddStamp}
-                            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
+                            onClick={() => setShowSendToHeadModal(true)}
+                            className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
+                            disabled={loading || !!authSignature === false}
+                          >
+                            Send to HOI for Signature
+                          </button>
+                        )}
+
+                        {userRole === "Head of Institute" && selectedRequest.status === "pendingByHOI" && (
+                          <button
+                            onClick={() => setShowApproveModal(true)}
+                            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
                             disabled={loading}
                           >
-                            <div className="flex items-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                              </svg>
-                              Add Institute Stamp
-                            </div>
+                            Approve
+                          </button>
+                        )}
+
+                        {userRole === "CFO" && selectedRequest.status === "approvedByHOI" && (
+                          <button
+                            onClick={() => setShowApproveModal(true)}
+                            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
+                            disabled={loading}
+                          >
+                            Approve UC
                           </button>
                         )}
                       </div>
                     </div>
-                  </div>
-
-                  <div className="flex justify-between mt-8">
-                    <button
-                      onClick={handleSaveAsPDF}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
-                    >
-                      <div className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Save as PDF
-                      </div>
-                    </button>
-
-                    <div className="flex space-x-4">
-                      {userRole === "CFO" && selectedRequest.status === "pending" && (
-                        <button
-                          onClick={() => setShowSendToHeadModal(true)}
-                          className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
-                          disabled={loading || !!authSignature === false}
-                        >
-                          Send to HOI for Signature
-                        </button>
-                      )}
-
-                      {userRole === "Head of Institute" && selectedRequest.status === "pendingByHOI" && (
-                        <button
-                          onClick={() => setShowApproveModal(true)}
-                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
-                          disabled={loading}
-                        >
-                          Approve
-                        </button>
-                      )}
-
-                      {userRole === "CFO" && selectedRequest.status === "approvedByHOI" && (
-                        <button
-                          onClick={() => setShowApproveModal(true)}
-                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
-                          disabled={loading}
-                        >
-                          Approve UC
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+                  </>
+                )}
+              </div>
+            )
           )}
         </main>
       </div>
