@@ -5,51 +5,56 @@ import PropTypes from "prop-types";
 import autoTable from "jspdf-autotable";
 
 export const ReviewAndSubmit = ({ generalInfo, PIdetails, researchDetails, budgetSummary, bankDetails, onEditDetails = {} }) => {
-    const [isChecked, setIsChecked] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
-    const { submitAcknowledgement } = useContext(AuthContext);
+const [isChecked, setIsChecked] = useState(false);
+const [submitted, setSubmitted] = useState(false);
+const { submitAcknowledgement } = useContext(AuthContext);
 
-    const EditDetails = async (section) => {
-        switch (section) {
-            case "generalInfo":
-                onEditDetails("General Information");
-                break;
-            case "PIdetails":
-                onEditDetails("Principal Investigator");
-                break;
-            case "researchDetails":
-                onEditDetails("Technical Details");
-                break;
-            case "budgetSummary":
-                onEditDetails("Budget Related Details");
-                break;
-            case "bankDetails":
-                onEditDetails("Bank Details");
-                break;
-            default:
-                break;
-        }
+const EditDetails = async (section) => {
+    switch (section) {
+        case "generalInfo":
+            onEditDetails("General Information");
+            break;
+        case "PIdetails":
+            onEditDetails("Principal Investigator");
+            break;
+        case "researchDetails":
+            onEditDetails("Technical Details");
+            break;
+        case "budgetSummary":
+            onEditDetails("Budget Related Details");
+            break;
+        case "bankDetails":
+            onEditDetails("Bank Details");
+            break;
+        default:
+            break;
     }
+};
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (isChecked) {
-            try {
-                await submitAcknowledgement(isChecked);
-                setSubmitted(true);
-                console.log("Declaration submitted successfully!");
-
-            } catch (error) {
-                console.error("Error submitting declaration:", error.message);
-                alert("Failed to submit declaration");
-            }
-        } else {
-            alert("Please accept the declaration before submitting.");
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isChecked) {
+        try {
+            await submitAcknowledgement(isChecked);
+            setSubmitted(true);
+            console.log("Declaration submitted successfully!");
+        } catch (error) {
+            console.error("Error submitting declaration:", error.message);
+            alert("Failed to submit declaration");
         }
-    };
+    } else {
+        alert("Please accept the declaration before submitting.");
+    }
+};
 
 const exportAsPDF = () => {
-    if (!generalInfo && !PIdetails && !researchDetails && !budgetSummary && !bankDetails) {
+    if (
+        Object.keys(generalInfo || {}).length === 0 &&
+        Object.keys(PIdetails || {}).length === 0 &&
+        Object.keys(researchDetails || {}).length === 0 &&
+        Object.keys(budgetSummary || {}).length === 0 &&
+        Object.keys(bankDetails || {}).length === 0
+    ) {
         alert("No data to export!");
         return;
     }
@@ -62,9 +67,9 @@ const exportAsPDF = () => {
     const lineSpacing = 7;
 
     const image = new Image();
-    image.src = "/3.png"; 
+    image.src = "/3.png";
     image.onload = function () {
-        doc.addImage(image, "PNG", 68, y, 80, 30); 
+        doc.addImage(image, "PNG", 68, y, 80, 30);
         y += 40;
 
         doc.setFont("helvetica", "bold");
@@ -72,7 +77,6 @@ const exportAsPDF = () => {
         doc.text("ResearchX Proposal Submission", 68, y);
         y += 10;
 
-      
         doc.setDrawColor(0);
         doc.setLineWidth(0.5);
         doc.line(marginLeft, y, 200, y);
@@ -85,7 +89,6 @@ const exportAsPDF = () => {
             y += sectionSpacing;
         }
 
-        // Helper function to render sections
         const renderSection = (title, lines) => {
             doc.setFont("helvetica", "bold");
             doc.setFontSize(14);
@@ -95,93 +98,154 @@ const exportAsPDF = () => {
             doc.setFont("helvetica", "normal");
             doc.setFontSize(12);
             lines.forEach((text) => {
-                if (y + lineSpacing > 270) {
-                    doc.addPage();
-                    y = 20;
-                }
-                doc.text(text, marginLeft, y);
-                y += lineSpacing;
+                const wrapped = doc.splitTextToSize(text, maxWidth);
+                wrapped.forEach(line => {
+                    if (y + lineSpacing > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text(line, marginLeft, y);
+                    y += lineSpacing;
+                });
             });
             y += sectionSpacing;
         };
 
+        // General Info
         if (generalInfo && Object.keys(generalInfo).length > 0) {
             const generalInfoDetails = [
-                `Name: ${generalInfo.name || "N/A"}`,
-                `Email: ${generalInfo.email || "N/A"}`,
-                `Address: ${generalInfo.address || "N/A"}`,
-                `Mobile No: ${generalInfo.mobileNo || "N/A"}`,
-                `Institute: ${generalInfo.instituteName || "N/A"}`,
-                `Department: ${generalInfo.areaOfSpecialization || "N/A"}`,
-                `Ongoing DBT Projects: ${generalInfo.DBTproj_ong || "0"}`,
-                `Completed DBT Projects: ${generalInfo.DBTproj_completed || "0"}`,
-                `Other Ongoing Projects: ${generalInfo.Proj_ong || "0"}`,
-                `Other Completed Projects: ${generalInfo.Proj_completed || "0"}`,
+                ["Name", generalInfo.name],
+                ["Email", generalInfo.email],
+                ["Address", generalInfo.address],
+                ["Mobile No", generalInfo.mobileNo],
+                ["Institute", generalInfo.instituteName],
+                ["Department", generalInfo.areaOfSpecialization],
+                ["Ongoing DBT Projects", generalInfo.DBTproj_ong || "0"],
+                ["Completed DBT Projects", generalInfo.DBTproj_completed || "0"],
+                ["Other Ongoing Projects", generalInfo.Proj_ong || "0"],
+                ["Other Completed Projects", generalInfo.Proj_completed || "0"],
             ];
-            renderSection("General Information", generalInfoDetails);
+
+            generalInfoDetails.forEach(([label, value]) => {
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(12);
+                doc.text(`${label}`, marginLeft, y);
+
+                doc.setFont("helvetica", "normal");
+                doc.text(`:  ${value || "N/A"}`, 100, y, { align: "left" });
+
+                y += lineSpacing;
+            });
+            y += sectionSpacing;
         }
 
-       const renderPIMembers = (members, title) => {
-    if (members?.length > 0) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
-        doc.text(title, marginLeft, y);
-        y += sectionSpacing;
+        const renderPIMembers = (members, title) => {
+            if (members?.length > 0) {
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.text(title, marginLeft, y);
+                y += sectionSpacing;
 
-        const tableBody = members.map((member) => [
-            member.Name || "N/A",
-            member.email || "N/A",
-            member.address || "N/A",
-            member.Mobile || "N/A",
-            member.Institute || "N/A",
-            member.Dept || "N/A",
-            member.DOB || "N/A",
-            member.Gender || "N/A",
-        ]);
+                const tableBody = members.map((member) => [
+                    member.Name || "N/A",
+                    member.email || "N/A",
+                    member.address || "N/A",
+                    member.Mobile || "N/A",
+                    member.Institute || "N/A",
+                    member.Dept || "N/A",
+                    member.DOB || "N/A",
+                    member.Gender || "N/A",
+                ]);
 
-        autoTable(doc, {
-            startY: y,
-            head: [[
-                "Name",
-                "Email",
-                "Address",
-                "Mobile No",
-                "Institute",
-                "Department",
-                "Date of Birth",
-                "Gender"
-            ]],
-            body: tableBody,
-            margin: { left: marginLeft },
-            styles: { fontSize: 10, cellPadding: 2 },
-            theme: 'grid',
-            headStyles: { fillColor: [173, 216, 230] },
-            didDrawPage: (data) => {
-                y = data.cursor.y + sectionSpacing;
-            },
-        });
-    }
-};
+                autoTable(doc, {
+                    startY: y,
+                    head: [[
+                        "Name",
+                        "Email",
+                        "Address",
+                        "Mobile No",
+                        "Institute",
+                        "Department",
+                        "Date of Birth",
+                        "Gender"
+                    ]],
+                    body: tableBody,
+                    margin: { left: marginLeft },
+                    styles: { fontSize: 10, cellPadding: 2 },
+                    theme: 'grid',
+                    headStyles: { fillColor: [64, 64, 64] }, // Dark grey color
+                    didDrawPage: (data) => {
+                        y = data.cursor.y + sectionSpacing;
+                    },
+                });
+            }
+        };
 
+        // PI & Co-PI
         if (PIdetails) {
-            renderSection("Principal Investigator(s)", []);
             renderPIMembers(PIdetails.piList, "Principal Investigator(s)");
             renderPIMembers(PIdetails.coPiList, "Co-Principal Investigator(s)");
         }
 
-        if (researchDetails && Object.keys(researchDetails).length > 0) {
-            const researchDetailsContent = [
-                `Title: ${researchDetails.Title || "N/A"}`,
-                `Duration: ${researchDetails.Duration || "N/A"} months`,
-                `Summary: ${researchDetails.Summary || "N/A"}`,
-                `Objectives: ${researchDetails.objectives?.join(", ") || "N/A"}`,
-                `Output: ${researchDetails.Output || "N/A"}`,
-                `Other: ${researchDetails.other || "N/A"}`,
-                `Proposal ID: ${researchDetails.proposalId || "N/A"}`,
-            ];
-            renderSection("Technical Details", researchDetailsContent);
-        }
+  // Technical Details
+if (researchDetails && Object.keys(researchDetails).length > 0) {
+    // Iterate over the research details and print them, excluding _id and __v
+    Object.entries(researchDetails).forEach(([label, value]) => {
+        // Skip _id and __v fields
+        if (label === "_id" || label === "__v"||label==="proposalId") return;
 
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text(`${label}`, marginLeft, y);
+
+        doc.setFont("helvetica", "normal");
+        // Wrap the text of the value to avoid overflow
+        const valueText = `${value || "N/A"}`;
+        const wrappedValue = doc.splitTextToSize(valueText, maxWidth - 100);
+        
+        wrappedValue.forEach(line => {
+            if (y + lineSpacing > 270) { // Check if the current y exceeds the page height
+                doc.addPage();
+                y = 20;
+            }
+            doc.text(line, 100, y);
+            y += lineSpacing;
+        });
+
+    });
+
+    y += sectionSpacing; // Add space before the objectives section if available
+
+    if (researchDetails.objectives?.length > 0) {
+        // Print the objectives section
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.text("Objectives:", marginLeft, y);
+        y += sectionSpacing;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+
+        // Iterate over the objectives and wrap text if necessary
+        researchDetails.objectives.forEach((objective, index) => {
+            const wrappedObjective = doc.splitTextToSize(`${index + 1}. ${objective}`, maxWidth);
+            
+            wrappedObjective.forEach(line => {
+                if (y + lineSpacing > 270) { // Check if the current y exceeds the page height
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.text(line, marginLeft, y);
+                y += lineSpacing;
+            });
+        });
+
+        y += sectionSpacing; // Add space after objectives
+    }
+}
+
+
+        // Budget Summary
         if (budgetSummary && Object.keys(budgetSummary).length > 0) {
             const budgetDetails = [
                 `Non-Recurring Cost: ₹${budgetSummary.non_recurring_total || "0"}`,
@@ -191,22 +255,51 @@ const exportAsPDF = () => {
             renderSection("Budget Summary", budgetDetails);
         }
 
+        // Bank Details
         if (bankDetails && Object.keys(bankDetails).length > 0) {
             const bankDetailsContent = [
-                `Name: ${bankDetails.name || "N/A"}`,
-                `Account Number: ${bankDetails.accountNumber || "N/A"}`,
-                `Account Type: ${bankDetails.accountType || "N/A"}`,
-                `Bank Name: ${bankDetails.bankName || "N/A"}`,
-                `IFSC Code: ${bankDetails.ifscCode || "N/A"}`,
+                ["Name", bankDetails.name],
+                ["Account Number", bankDetails.accountNumber],
+                ["Account Type", bankDetails.accountType],
+                ["Bank Name", bankDetails.bankName],
+                ["IFSC Code", bankDetails.ifscCode],
             ];
-            renderSection("Bank Details", bankDetailsContent);
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text("Bank Details", marginLeft, y);
+            y += sectionSpacing;
+
+            bankDetailsContent.forEach(([label, value]) => {
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(12);
+                doc.text(`${label}`, marginLeft, y);
+
+                doc.setFont("helvetica", "normal");
+                doc.text(`:  ${value || "N/A"}`, 100, y, { align: "left" });
+
+                y += lineSpacing;
+            });
+            y += sectionSpacing;
         }
-          const currentDate = new Date().toLocaleString();
+
+        // Timestamp & Signature
+        const currentDate = new Date().toLocaleString();
         doc.setFont("helvetica", "normal");
         doc.setFontSize(12);
         doc.text(`Generated on: ${currentDate}`, marginLeft, y);
         y += sectionSpacing;
+        y += 20;
 
+        // Page numbers
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(10);
+            doc.text(`Page ${i} of ${pageCount}`, 200, 290, { align: "right" });
+        }
+
+        // Save
         doc.save("ResearchX_Acknowledgement.pdf");
     };
 };
@@ -536,7 +629,8 @@ ReviewAndSubmit.propTypes = {
     budgetSummary: PropTypes.shape({
         non_recurring_total: PropTypes.string,
         recurring_total: PropTypes.string,
-        total: PropTypes.string,
+        objectives: PropTypes.arrayOf(PropTypes.string),
+        forEach: PropTypes.func, // Added to validate forEach usage
     }),
     bankDetails: PropTypes.shape({
         name: PropTypes.string,

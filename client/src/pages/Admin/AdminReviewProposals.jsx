@@ -290,7 +290,6 @@ const AdminProposalReview = () => {
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
                 <AdminNavbar activeSection={activeSection}  yes={1}/>
-                {/* Success/Error messages */}
                 {successMessage && (
                     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mt-4">
                         {successMessage}
@@ -360,23 +359,31 @@ const AdminProposalReview = () => {
                         <table className="w-full border">
                             <thead>
                                 <tr className="bg-gray-200">
+                                        <th className="p-2 text-left">Proposal ID</th>
                                     <th className="p-2 text-left">Title</th>
-                                    <th className="p-2 text-left">Proposal ID</th>
+                                
                                     <th className="p-2 text-left">Institute</th>
                                     <th className="p-2 text-left">PIs</th>
                                     <th className="p-2 text-left">Submission Date</th>
-                                    <th className="p-2 text-left">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredAndSortedProposals.map(proposal => (
                                     <tr key={proposal.proposal._id} className="border-b">
-                                        <td className="p-2">{proposal.researchDetails?.Title}</td>
-                                        <td className="p-2">{proposal.proposal._id}</td>
-                                        <td className="p-2">{proposal.generalInfo?.instituteName}</td>
-                                        <td className="p-2">
-                                            {(proposal.piInfo?.members && proposal.piInfo.members.length > 0)
-                                                ? proposal.piInfo.members.map((member) => member.name || "N/A").join(", ")
+                                        <td className="p-2 text-blue-500 underline"onClick={() => setSelectedProposal(proposal)}>{proposal.proposal._id}</td>
+                                        <td className="p-2"onClick={() => setSelectedProposal(proposal)}>{proposal.researchDetails?.Title}</td>
+                                        
+                                        <td className="p-2" onClick={() => setSelectedProposal(proposal)}>{proposal.generalInfo?.instituteName}</td>
+                                        <td className="p-2"  onClick={() => setSelectedProposal(proposal)}
+>
+                                            {(proposal.piInfo?.piList && proposal.piInfo.piList.length > 0)
+                                                ? (
+                                                    <ul>
+                                                        {proposal.piInfo.piList.map((member, index) => (
+                                                            <li key={index}>{member.Name}</li>
+                                                        ))}
+                                                    </ul>
+                                                )
                                                 : "N/A"}
                                         </td>
 
@@ -385,14 +392,7 @@ const AdminProposalReview = () => {
                                                 ? new Date(proposal.proposal.date).toLocaleDateString()
                                                 : "N/A"}
                                         </td>
-                                        <td className="p-2">
-                                            <button
-                                                onClick={() => setSelectedProposal(proposal)}
-                                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2"
-                                            >
-                                                View
-                                            </button>
-                                        </td>
+                                       
                                     </tr>
                                 ))}
                             </tbody>

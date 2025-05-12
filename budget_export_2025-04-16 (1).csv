@@ -1,20 +1,20 @@
-Non-Recurring Items
+Non-Recurring Items,,,
 Item,Quantity,Unit Cost,Total
-geygwedh,2365,2,234
-
-Materials
+Laptop,2,70000,140000
+GPU,1,450000,450000
+Materials,,,
 Item,Quantity,Per Unit Cost,Total
-dvfvfv,23,32,3435
-
-Manpower
+Wires,3,40000,120000
+pens,1000,20,20000
+Manpower,,,
 Designation,Number of Employees,Emoluments,Total
-,0,0,0,0
-
-Other Expenses
-Description,Amount
-Description,0
-,0
-
-Overhead
-Value
-0
+JRF,2,32000,36
+Lab Assistant,2,27000,36
+Other Expenses,,,
+Description,Amount,,
+internet,20000,,
+electricity,100000,,
+,,,
+Overhead,,,
+Value,,,
+450000,,,

@@ -45,9 +45,8 @@ router.get("/approvedProposals", fetchAdmin, async (req, res) => {
     const proposals = await Proposal.find({ Scheme: { $in: schemeIds }, status: "Approved" }).populate("Scheme");
 
     if (!proposals.length) {
-      return res.status(400).json({ success: false, msg: "No proposals found" });
+      return res.status(404).json({ success: false, msg: "No proposals found" });
     }
-    console.log("Final Data:", data);
     const data = await Promise.all(
       proposals.map(async (proposal) => {
         const generalInfo = await GeneralInfo.findOne({ proposalId: proposal._id });
@@ -60,6 +59,7 @@ router.get("/approvedProposals", fetchAdmin, async (req, res) => {
         return { proposal, generalInfo, researchDetails, bankInfo, user, totalBudget, piInfo };
       })
     );
+    console.log("Final Data:", data);
 
     res.json({ success: true, msg: "Projects Fetched", data });
 
@@ -75,7 +75,7 @@ router.get("/approvedProposal/:id", fetchAdmin, async (req, res) => {
     const userId = req.admin.id;
     console.log("User ID from Token:", userId);
     const proposal = await Proposal.findById(id).populate("Scheme");
-    if (!proposals) {
+    if (!proposal) {
       return res.status(400).json({ success: false, msg: "Proposal Not found" });
     }
     console.log(id);
@@ -88,7 +88,7 @@ router.get("/approvedProposal/:id", fetchAdmin, async (req, res) => {
     res.json({ success: true, msg: "Projects Fetched", budget, researchDetails });
 
   } catch (error) {
-    console.error("Error fetching proposals:", error.message);
+    console.error("Error fetching proposals:", error);
     res.status(500).json({ success: false, msg: "Failed to Fetch Projects", error: "Internal Server Error" });
   }
 });
@@ -129,7 +129,13 @@ router.post("/allocate-budget/:id", fetchAdmin, async (req, res) => {
     console.log(4);
     await newBudget.save();
     console.log(5);
-    const projectData = await response.json();
+     console.log("Budget:", newBudget);
+    const response = await fetch(`${process.env.local}admin/createProject/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    console.log(5);
+    const projectData= await response.json();
     console.log("Project:", projectData);
     if (!projectData.success) {
       await Promise.all([
@@ -313,9 +319,9 @@ router.get("/get-project/:projectid", fetchAdmin, async (req, res) => {
   try {
     let { projectid } = req.params;
     let id = new ObjectId(projectid);
-    const project = await Project.findById(id);
+    const project = await Project.findById(id).populate("Scheme");
     const ids = await Project.findById(id)
-      .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId");
+      .populate("generalInfoId researchDetailsId PIDetailsId YearlyDataId Scheme");
     console.log(project);
     const generalInfo = await GeneralInfo.findById(ids.generalInfoId);
     const researchDetails = await ResearchDetails.findById(ids.researchDetailsId);

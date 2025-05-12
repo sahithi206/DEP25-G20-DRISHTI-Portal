@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import PropTypes from "prop-types";
 import { AuthContext } from "../Context/Authcontext";
-
+import { toast } from "react-toastify";
 const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
     const [activeTab, setActiveTab] = useState("Non-Recurring");
     const [nonRecurringItems, setNonRecurringItems] = useState([]);
@@ -13,10 +13,9 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
     
     const { submitBudgetDetails } = useContext(AuthContext);
 
-    // Initialize form data from props
     useEffect(() => {
         if (recurring) {
-            setTravel(recurring.travel || 0);
+            setTravel(recurring.travel);
             setMaterials(recurring.consumables || []);
             setManpower(recurring.human_resources || []);
             setOtherExpenses(recurring.others || []);
@@ -27,7 +26,7 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
         if (budgetSummary) {
             setOverhead(parseFloat(budgetSummary.overhead) || 0);
         }
-    }, [budgetSummary, recurring, nonRecurring]);
+    }, []);
 
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
@@ -38,8 +37,6 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
             try {
                 const csvData = e.target.result;
                 const rows = csvData.split(/\r?\n/).filter(row => row.trim() !== '');
-                
-                // Initialize empty arrays for each category
                 const newNonRecurringItems = [];
                 const newMaterials = [];
                 const newManpower = [];
@@ -67,12 +64,10 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                         return;
                     }
                     
-                    // Skip empty rows or header rows
                     if (!currentSection || row.trim() === "" || row.includes("Item") || row.includes("Designation")) {
                         return;
                     }
                     
-                    // Process rows based on current section
                     const values = row.split(",").map(val => val.trim());
                     
                     switch (currentSection) {
@@ -82,7 +77,6 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                                     item: values[0],
                                     UnitCost: parseFloat(values[1]) || 0,
                                     quantity: parseInt(values[2]) || 0,
-                                    total: parseFloat(values[3]) || 0
                                 });
                             }
                             break;
@@ -93,7 +87,6 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                                     item: values[0],
                                     quantity: parseInt(values[1]) || 0,
                                     perUnitCost: parseFloat(values[2]) || 0,
-                                    total: parseFloat(values[3]) || 0
                                 });
                             }
                             break;
@@ -105,7 +98,6 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                                     noOfEmployees: parseInt(values[1]) || 0,
                                     Emoluments: parseFloat(values[2]) || 0,
                                     Duration: parseFloat(values[3]) || 0,
-                                    total: parseFloat(values[4]) || 0
                                 });
                             }
                             break;
@@ -136,12 +128,12 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                 
             } catch (error) {
                 console.error("Error processing CSV:", error);
-                alert("Invalid CSV format. Please check the file matches the expected structure.");
+                toast.success("Invalid CSV format. Please check the file matches the expected structure.");
             }
         };
         
         reader.onerror = () => {
-            alert("Error reading file. Please try again.");
+            toast.error("Error reading file. Please try again.");
         };
         
         reader.readAsText(file);
@@ -209,7 +201,6 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
         const updatedItems = [...state];
         updatedItems[index][field] = value;
     
-        // Calculate totals based on field changes
         if (field === "UnitCost" || field === "quantity") {
             const unitCost = parseFloat(updatedItems[index].UnitCost) || 0;
             const quantity = parseFloat(updatedItems[index].quantity) || 0;
@@ -252,13 +243,13 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
             });
 
             if (response.success) {
-                alert(response.msg || "Budget submitted successfully!");
+                toast.success(response.msg || "Budget submitted successfully!");
             } else {
-                alert(response.msg || "Failed to submit budget. Please try again.");
+                toast.error(response.msg || "Failed to submit budget. Please try again.");
             }
         } catch (error) {
             console.error("Submission error:", error);
-            alert("An error occurred while submitting the budget");
+            toast.error("An error occurred while submitting the budget");
         }
     };
 
@@ -307,6 +298,7 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                                     type="number"
                                     placeholder="Total"
                                     className="border p-2 rounded bg-gray-100"
+                                    default={item.UnitCost*item.quantity}
                                     readOnly
                                     value={item.total}
                                 />
@@ -341,13 +333,20 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                         {/* Travel Section */}
                         <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg mb-6">
                             <h3 className="text-lg font-semibold">Travel Costs</h3>
-                            <input
-                                type="number"
-                                placeholder="Amount"
-                                className="border p-2 rounded"
-                                value={travel}
-                                onChange={(e) => setTravel(e.target.value)}
-                            />
+                          <input
+    type="number"
+    placeholder="Amount"
+    className="border p-2 rounded"
+    value={travel}
+    onChange={(e) => {
+      const val = e.target.value;
+   if (val === "" || /^[0-9]*\.?[0-9]*$/.test(val)) {
+        setTravel(parseFloat(val));
+      }
+    }}
+    step="0.01"
+    min="0"
+  />
                         </div>
 
                         {/* Materials Section */}
@@ -380,6 +379,7 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                                     placeholder="Total"
                                     className="border p-2 rounded bg-gray-100"
                                     readOnly
+                                    default={item.quantity*item.perUnitCost}
                                     value={item.total}
                                 />
                                 <button
@@ -442,6 +442,7 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                                     placeholder="Total"
                                     className="border p-2 rounded bg-gray-100"
                                     readOnly
+                                    default={item.Emoluments*item.Duration*item.noOfEmployees}
                                     value={item.total}
                                 />
                                 <button

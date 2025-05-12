@@ -224,7 +224,7 @@ const BudgetAllocationForm = () => {
         throw new Error("All budget details must be provided!");
       }
 
-      const finalComment = "Proposal approved with budget allocation.";
+      const finalComment = "Proposal approved and budget allocation.";
 
       const approvalResponse = await fetch(`${url}admin/allocate-budget/${id}`, {
         method: "POST",
@@ -242,6 +242,7 @@ const BudgetAllocationForm = () => {
       });
 
       const approvalResult = await approvalResponse.json();
+      console.log(approvalResult);
       toast.success(approvalResult.msg);
       if(approvalResult.msg){
         navigate("/admin/sanction-projects");
@@ -266,9 +267,9 @@ const BudgetAllocationForm = () => {
         <div className="p-8">
           <div className="p-8 border rounded-lg bg-gray-50 shadow-sm">
 
-            <h2 className="text-2xl font-semibold mb-4">Budget Allocation</h2>
-            <p className="mb-4">
-              Proposal: <strong>{selectedProposal.researchDetails?.Title}</strong>
+            <h2 className="text-xl font-semibold mb-4">Budget Allocation</h2>
+            <p className="mb-4  text-2xl text-blue-700">
+               <strong>{selectedProposal.researchDetails?.Title}</strong>
             </p>
             <h3 className="font-bold text-lg mb-2">Proposed Budget Summary</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

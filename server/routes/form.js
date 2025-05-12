@@ -184,6 +184,7 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
           designation: emp.designation,
           noOfEmployees,
           Emoluments,
+          Duration:emp.Duration,
           total
         };
       });
@@ -234,7 +235,7 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
       });
       console.log("Non-Recurring Items", items);
     }
-
+     
     const recurringUpdate = await Recurring.findOneAndUpdate(
       { proposalId },
       {
@@ -260,7 +261,7 @@ router.post("/submit-budget/:proposalId", fetchUser, async (req, res) => {
         overhead: overhead,
         recurring_total: totalRecurring + parseFloat(recurring_items?.travel),
         non_recurring_total: totalNonRecurring,
-        total: totalRecurring + totalNonRecurring + parseFloat(overhead)
+        total: totalRecurring + totalNonRecurring + parseFloat(overhead)+ parseFloat(recurring_items?.travel)
       },
       { new: true, upsert: true }
     );
@@ -486,11 +487,11 @@ router.get("/get-proposal/:objectId", fetchUser, async (req, res) => {
   const { objectId } = req.params;
   try {
     console.log("Converted ObjectId:", objectId);
-    const Pendingproposal = await Proposal.findOne({ _id: objectId, status: "Pending" });
+    const Pendingproposal = await Proposal.findOne({ _id: objectId, status: "Pending" }).populate("Scheme");
     if (Pendingproposal) {
       return res.status(200).json({ success: false, msg: "Proposal was Already Submitted" });
     }
-    const proposal = await Proposal.findOne({ _id: objectId, status: "Unsaved" });
+    const proposal = await Proposal.findOne({ _id: objectId, status: "Unsaved" }).populate("Scheme");
     console.log(proposal);
     if (!proposal) {
       return res.status(400).json({ success: false, msg: "Proposal not found" })
@@ -687,8 +688,12 @@ router.get("/pendingProposals", fetchAdmin, async (req, res) => {
     const schemeIds = schemes.map((scheme) => scheme._id);
     console.log("Extracted Scheme IDs:", schemeIds);
 
-    const proposals = await Proposal.find({ status: "Pending", Scheme: { $in: schemeIds } });
+    if (!schemeIds || schemeIds.length === 0) {
+      console.log("No scheme IDs available for this Coordinator.");
+      return res.status(404).json({ success: false, msg: "No schemes assigned to this Coordinator" });
+    }
 
+    const proposals = await Proposal.find({ status: "Pending", Scheme: { $in: schemeIds } }).populate("Scheme");
     console.log("Fetched Pending Proposals:", proposals);
 
     if (!proposals.length) {
