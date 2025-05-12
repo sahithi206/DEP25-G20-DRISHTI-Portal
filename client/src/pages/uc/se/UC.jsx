@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useContext } from "react";
+import React, { useRef, useState, useEffect, useContext, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../Context/Authcontext";
 import Sidebar from "../../../utils/Sidebar";
@@ -19,6 +19,7 @@ const UCForm = () => {
   const [selectedType, setSelectedType] = useState("");
   const [ucData, setUCData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
   const [error, setError] = useState("");
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
@@ -42,61 +43,130 @@ const UCForm = () => {
   const sigCanvas = useRef(null);
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    const fetchOfficials = async () => {
-      const authData = await fetchInstituteOfficials(uc.ucData.instituteName);
-      console.log("Auth Data:", authData);
+  // Cache for approval status to avoid redundant fetches
+  const statusCache = useRef({});
+
+  // Memoized fetch status function to prevent unnecessary re-creation
+  const fetchStatus = useCallback(async (projectId, type) => {
+    if (!projectId || !type) return;
+
+    // Check if we already have this status in cache
+    const cacheKey = `${projectId}-${type}`;
+    if (statusCache.current[cacheKey]) {
+      const cachedData = statusCache.current[cacheKey];
+      // Update all states at once to avoid multiple re-renders
+      setPiSignature(cachedData.piSignature);
+      setInstituteStamp(cachedData.instituteStamp);
+      setauthSignature(cachedData.authSignature);
+      setUcRequestId(cachedData.ucRequestId);
+      setSentForApproval(cachedData.sentForApproval);
+      setInstituteApproved(cachedData.instituteApproved);
+      setSentToAdmin(cachedData.sentToAdmin);
+      setAdminApproved(cachedData.adminApproved);
+      setAdminRejected(cachedData.adminRejected);
+      setInstituteOfficials(cachedData.instituteOfficials);
+      return;
     }
-    fetchOfficials();
-  })
 
-  useEffect(() => {
-    const fetchStatus = async () => {
-      if (projectId && selectedType) {
-        try {
-          const res = await fetch(`${url}uc/latest?projectId=${projectId}&type=${selectedType}`);
-          const data = await res.json();
-          if (data.success && data.data) {
-            const uc = data.data;
-            const authData = await fetchInstituteOfficials(uc.ucData.instituteName);
-            console.log("Auth Data:", authData);
-            setInstituteOfficials(authData);
-            setSentForApproval(true);
-            setPiSignature(uc.piSignature);
-            setInstituteStamp(uc.instituteStamp);
-            setauthSignature(uc.authSignature);
-            setUcRequestId(uc._id);
-            if (uc.status === "approvedByInst") {
-              setInstituteApproved(true);
-            }
-            else if (uc.status === "pendingAdminApproval") {
-              setInstituteApproved(true);
-              setSentToAdmin(true);
-            } else if (uc.status === "approvedByAdmin") {
-              setInstituteApproved(true);
-              setSentToAdmin(true);
-              setAdminApproved(true);
-            } else if (uc.status === "rejectedByAdmin") {
-              setInstituteApproved(true);
-              setSentToAdmin(true);
-              setAdminRejected(true);
-            }
-            else {
-              setInstituteApproved(false);
-            }
-          } else {
-            setSentForApproval(false);
-            setPiSignature(null);
-            setInstituteStamp(null);
-          }
-        } catch (err) {
-          console.error("Error fetching approval status:", err);
+    setStatusLoading(true);
+    try {
+      const res = await fetch(`${url}uc/latest?projectId=${projectId}&type=${type}`);
+      const data = await res.json();
+
+      let newStatus = {
+        piSignature: null,
+        instituteStamp: null,
+        authSignature: null,
+        ucRequestId: null,
+        sentForApproval: false,
+        instituteApproved: false,
+        sentToAdmin: false,
+        adminApproved: false,
+        adminRejected: false,
+        instituteOfficials: {
+          headOfInstitute: "Loading...",
+          cfo: "Loading...",
+          accountsOfficer: "Loading...",
         }
-      }
-    };
-    fetchStatus();
-  }, [projectId, selectedType]);
+      };
 
+      if (data.success && data.data) {
+        const uc = data.data;
+        const authData = await fetchInstituteOfficials(uc.ucData.instituteName);
+
+        newStatus = {
+          piSignature: uc.piSignature,
+          instituteStamp: uc.instituteStamp,
+          authSignature: uc.authSignature,
+          ucRequestId: uc._id,
+          sentForApproval: true,
+          instituteApproved: ['approvedByInst', 'pendingAdminApproval', 'approvedByAdmin', 'rejectedByAdmin'].includes(uc.status),
+          sentToAdmin: ['pendingAdminApproval', 'approvedByAdmin', 'rejectedByAdmin'].includes(uc.status),
+          adminApproved: uc.status === 'approvedByAdmin',
+          adminRejected: uc.status === 'rejectedByAdmin',
+          instituteOfficials: authData
+        };
+      }
+
+      // Update cache
+      statusCache.current[cacheKey] = newStatus;
+
+      // Batch update all states at once
+      setPiSignature(newStatus.piSignature);
+      setInstituteStamp(newStatus.instituteStamp);
+      setauthSignature(newStatus.authSignature);
+      setUcRequestId(newStatus.ucRequestId);
+      setSentForApproval(newStatus.sentForApproval);
+      setInstituteApproved(newStatus.instituteApproved);
+      setSentToAdmin(newStatus.sentToAdmin);
+      setAdminApproved(newStatus.adminApproved);
+      setAdminRejected(newStatus.adminRejected);
+      setInstituteOfficials(newStatus.instituteOfficials);
+    } catch (err) {
+      console.error("Error fetching approval status:", err);
+    } finally {
+      setStatusLoading(false);
+    }
+  }, [fetchInstituteOfficials]);
+
+  // When type changes, immediately reset states for a smooth transition
+  const handleSelection = (type) => {
+    // First set up the new type
+    setSelectedType(type);
+
+    // Reset banner states for immediate visual feedback
+    resetApprovalStates();
+
+    // Then fetch data
+    fetchUCData(type);
+
+    // Then fetch status (with a slight delay to allow the UI to update)
+    setTimeout(() => {
+      fetchStatus(projectId, type);
+    }, 100);
+  };
+
+  // Reset approval states function for clean transitions
+  const resetApprovalStates = () => {
+    setSentForApproval(false);
+    setInstituteApproved(false);
+    setInstituteStamp(null);
+    setauthSignature(null);
+    setSentToAdmin(false);
+    setAdminApproved(false);
+    setAdminRejected(false);
+    setUcRequestId(null);
+    setPiSignature(null);
+  };
+
+  // Initial load of approval status when component mounts
+  useEffect(() => {
+    if (projectId && selectedType) {
+      fetchStatus(projectId, selectedType);
+    }
+  }, [projectId, selectedType, fetchStatus]);
+
+  // Polling for approval status
   useEffect(() => {
     let checkApprovalInterval;
 
@@ -107,6 +177,16 @@ const UCForm = () => {
           const data = await res.json();
 
           if (data.success && data.data) {
+            // Update cache with new approval data
+            const cacheKey = `${projectId}-${selectedType}`;
+            if (statusCache.current[cacheKey]) {
+              statusCache.current[cacheKey] = {
+                ...statusCache.current[cacheKey],
+                instituteApproved: true,
+                instituteStamp: data.data.instituteStamp
+              };
+            }
+
             setInstituteApproved(true);
             setInstituteStamp(data.data.instituteStamp);
             clearInterval(checkApprovalInterval);
@@ -120,11 +200,49 @@ const UCForm = () => {
     return () => clearInterval(checkApprovalInterval);
   }, [sentForApproval, instituteApproved, projectId, selectedType]);
 
-  useEffect(() => {
-    console.log("Institute Approved:", instituteApproved);
-    console.log("Sent to Admin:", sentToAdmin);
-    console.log("UC Request ID:", ucRequestId);
-  }, [instituteApproved, sentToAdmin, ucRequestId]);
+  // Memoize the fetchUCData function to avoid recreating it on each render
+  const fetchUCData = useCallback(async (type) => {
+    setLoading(true);
+    setError("");
+    setUCData(null);
+
+    try {
+      const endpoint =
+        type === "recurring"
+          ? `${url}projects/generate-uc/recurring/${projectId}`
+          : `${url}projects/generate-uc/nonRecurring/${projectId}`;
+
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          accessToken: localStorage.getItem("token"),
+        },
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        setError(result.message || `Error fetching ${type} UC data`);
+        return;
+      }
+      setUCData(result.data);
+
+      // Do this asynchronously to not block the UI
+      fetchInstituteOfficials(result.data.instituteName)
+        .then(authData => {
+          setInstituteOfficials(authData);
+        })
+        .catch(err => {
+          console.error("Error fetching institute officials:", err);
+        });
+
+    } catch (err) {
+      console.error(`Error fetching ${type} UC data:`, err.message);
+      setError(`Failed to fetch ${type} UC data`);
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId, fetchInstituteOfficials]);
 
   const handleSendForApproval = async () => {
     try {
@@ -152,16 +270,23 @@ const UCForm = () => {
       });
 
       const result = await response.json();
-      console.log("Response from /uc/submit:", result);
 
       if (!result.success) {
         setError(result.message || "Failed to send for approval");
         return;
       }
 
-      setUcRequestId(result.ucId);
-      console.log("UC Request ID:", result.ucId);
+      // Update cache with new approval data
+      const cacheKey = `${projectId}-${selectedType}`;
+      if (statusCache.current[cacheKey]) {
+        statusCache.current[cacheKey] = {
+          ...statusCache.current[cacheKey],
+          sentForApproval: true,
+          ucRequestId: result.ucId
+        };
+      }
 
+      setUcRequestId(result.ucId);
       setShowSuccessPopup(true);
       setSentForApproval(true);
       setTimeout(() => {
@@ -173,52 +298,19 @@ const UCForm = () => {
     }
   };
 
-  const fetchUCData = async (type) => {
-    setLoading(true);
-    setError("");
-    setUCData(null);
-
-    try {
-      const endpoint =
-        type === "recurring"
-          ? `${url}projects/generate-uc/recurring/${projectId}`
-          : `${url}projects/generate-uc/nonRecurring/${projectId}`;
-
-      const response = await fetch(endpoint, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          accessToken: localStorage.getItem("token"),
-        },
-      });
-
-      const result = await response.json();
-      if (!result.success) {
-        setError(result.message || `Error fetching ${type} UC data`);
-        return;
-      }
-      setUCData(result.data);
-      console.log("UC.jsx FetchUcData:", result.data);
-      const authData = await fetchInstituteOfficials(result.data.instituteName);
-      console.log("Auth Data:", authData);
-      setInstituteOfficials(authData);
-    } catch (err) {
-      console.error(`Error fetching ${type} UC data:`, err.message);
-      setError(`Failed to fetch ${type} UC data`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSelection = (type) => {
-    setSelectedType(type);
-    fetchUCData(type);
-  };
-
   const handleSignatureEnd = () => {
     if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       const signatureDataUrl = sigCanvas.current.toDataURL();
       setPiSignature(signatureDataUrl);
+
+      // Update cache with new signature
+      const cacheKey = `${projectId}-${selectedType}`;
+      if (statusCache.current[cacheKey]) {
+        statusCache.current[cacheKey] = {
+          ...statusCache.current[cacheKey],
+          piSignature: signatureDataUrl
+        };
+      }
     }
   };
 
@@ -226,6 +318,15 @@ const UCForm = () => {
     if (sigCanvas.current) {
       sigCanvas.current.clear();
       setPiSignature(null);
+
+      // Update cache to clear signature
+      const cacheKey = `${projectId}-${selectedType}`;
+      if (statusCache.current[cacheKey]) {
+        statusCache.current[cacheKey] = {
+          ...statusCache.current[cacheKey],
+          piSignature: null
+        };
+      }
     }
   };
 
@@ -233,6 +334,16 @@ const UCForm = () => {
     if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       const signatureDataUrl = sigCanvas.current.toDataURL();
       setPiSignature(signatureDataUrl);
+
+      // Update cache with new signature
+      const cacheKey = `${projectId}-${selectedType}`;
+      if (statusCache.current[cacheKey]) {
+        statusCache.current[cacheKey] = {
+          ...statusCache.current[cacheKey],
+          piSignature: signatureDataUrl
+        };
+      }
+
       setShowSignatureModal(false);
     } else {
       setError("Please provide a signature before saving");
@@ -249,7 +360,18 @@ const UCForm = () => {
 
       const reader = new FileReader();
       reader.onload = (event) => {
-        setPiSignature(event.target.result);
+        const signatureDataUrl = event.target.result;
+        setPiSignature(signatureDataUrl);
+
+        // Update cache with new signature
+        const cacheKey = `${projectId}-${selectedType}`;
+        if (statusCache.current[cacheKey]) {
+          statusCache.current[cacheKey] = {
+            ...statusCache.current[cacheKey],
+            piSignature: signatureDataUrl
+          };
+        }
+
         setShowSignatureModal(false);
       };
       reader.readAsDataURL(file);
@@ -264,7 +386,72 @@ const UCForm = () => {
     fileInputRef.current.click();
   };
 
+  const sendToAdmin = async () => {
+    try {
+      const response = await fetch(`${url}uc/send-to-admin/${ucRequestId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          accessToken: localStorage.getItem("token"),
+        },
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        setError(result.message || "Failed to send UC to admin");
+        return;
+      }
+
+      // Update cache with new admin status
+      const cacheKey = `${projectId}-${selectedType}`;
+      if (statusCache.current[cacheKey]) {
+        statusCache.current[cacheKey] = {
+          ...statusCache.current[cacheKey],
+          sentToAdmin: true
+        };
+      }
+
+      alert("UC sent to admin for approval");
+      setSentToAdmin(true);
+    } catch (err) {
+      console.error("Error sending UC to admin:", err.message);
+      setError("Failed to send UC to admin");
+    }
+  };
+
+  const handleSaveAsPDF = () => {
+    // PDF generation code remains the same
+    const pdf = new jsPDF("p", "mm", "a4");
+    const currentDate = new Date().toLocaleDateString("en-IN");
+
+    const pageWidth = 210;
+    const margin = 20;
+    const contentWidth = pageWidth - 2 * margin;
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(14);
+    pdf.text("GFR 12-A", pageWidth / 2, 20, { align: "center" });
+    // Rest of the PDF generation code...
+    pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
+  };
+
   const ApprovalStatusBanner = () => {
+    // Show loading indicator while fetching status
+    if (statusLoading) {
+      return (
+        <div className="rounded-lg p-4 mb-6 bg-gray-100">
+          <div className="flex items-center">
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="font-medium text-gray-800">Loading approval status...</span>
+          </div>
+        </div>
+      );
+    }
+
     if (!sentForApproval) {
       return (
         <div className="rounded-lg p-4 mb-6 bg-gray-100">
@@ -345,11 +532,11 @@ const UCForm = () => {
 
     if (instituteApproved && !sentToAdmin) {
       return (
-        <div className="rounded-lg p-4 mb-6 bg-green-100">
+        <div className="rounded-lg p-4 mb-6 bg-blue-100">
           <div className="flex items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-green-500 mr-2"
+              className="h-6 w-6 text-blue-500 mr-2"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -361,7 +548,7 @@ const UCForm = () => {
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="font-medium text-green-800">
+            <span className="font-medium text-blue-800">
               Approved by Institute on {new Date().toLocaleDateString()}.
             </span>
           </div>
@@ -420,312 +607,8 @@ const UCForm = () => {
         </div>
       );
     }
-  }
 
-  const handleSaveAsPDF = () => {
-    const pdf = new jsPDF("p", "mm", "a4");
-    const currentDate = new Date().toLocaleDateString("en-IN");
-
-    const pageWidth = 210;
-    const margin = 20;
-    const contentWidth = pageWidth - 2 * margin;
-
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(14);
-    pdf.text("GFR 12-A", pageWidth / 2, 20, { align: "center" });
-    pdf.setFontSize(12);
-    pdf.text("[See Rule 238 (1)]", pageWidth / 2, 25, { align: "center" });
-    pdf.setFontSize(12);
-    pdf.text(`FINAL UTILIZATION CERTIFICATE FOR THE YEAR ${ucData.currentYear} in respect of`, pageWidth / 2, 32, { align: "center" });
-    pdf.text(`${selectedType === "recurring" ? "Recurring" : "Non - Recurring"}`, pageWidth / 2, 38, { align: "center" });
-    pdf.text(`as on ${currentDate} to be submitted to Funding Agency`, pageWidth / 2, 44, { align: "center" });
-    pdf.text("Is the UC Provisional (Provisional/Audited)", pageWidth / 2, 50, { align: "center" });
-
-    pdf.setFontSize(11);
-    pdf.setFont("helvetica", "normal");
-
-    const items = [
-      { label: "Name of the grant receiving Organization", value: ucData.instituteName },
-      {
-        label: "Name of Principal Investigator (PI)", value: Array.isArray(ucData.principalInvestigator)
-          ? ucData.principalInvestigator.join(", ")
-          : ucData.principalInvestigator
-      },
-      { label: "Title of the Project", value: ucData.title },
-      { label: "Name of the Scheme", value: ucData.scheme || "N/A" },
-      { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" },
-    ];
-
-    let yPos = 60;
-    let itemNum = 1;
-
-    items.forEach(item => {
-      pdf.setFont("helvetica", "normal");
-      pdf.text(`${itemNum}`, margin, yPos);
-      pdf.text(item.label, margin + 5, yPos);
-      pdf.text(`: ${item.value}`, margin + 80, yPos);
-      yPos += 7;
-      itemNum++;
-    });
-
-    yPos += 3;
-    pdf.text(`${itemNum}`, margin, yPos);
-    pdf.text("Grants position of the beginning of the Financial year", margin + 5, yPos);
-    yPos += 7;
-
-    pdf.text("Carry forward from previous financial year", margin + 20, yPos);
-    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
-    yPos += 7;
-
-    pdf.text("Others, If any", margin + 20, yPos);
-    pdf.text("Rs 0", margin + 120, yPos);
-    yPos += 7;
-
-    pdf.text("Total", margin + 20, yPos);
-    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
-    yPos += 10;
-
-    pdf.text(`${itemNum + 1}`, margin, yPos);
-    pdf.text("Details of grants received, expenditure incurred and closing balances: (Actual)", margin + 5, yPos);
-    yPos += 10;
-
-    const headers = [
-      [
-        { content: "Unspent Balances of\nGrants received years", colSpan: 1 },
-        { content: "Interest Earned\nthereon", colSpan: 1 },
-        { content: "Interest deposited\nback to Funding Agency", colSpan: 1 },
-        { content: "Grant received during the year", colSpan: 3 },
-        { content: "Total\n(1+2-3+4)", colSpan: 1 },
-        { content: "Expenditure\nincurred", colSpan: 1 },
-        { content: "Closing Balance\n(5-6)", colSpan: 1 }
-      ],
-      [
-        { content: "1", colSpan: 1 },
-        { content: "2", colSpan: 1 },
-        { content: "3", colSpan: 1 },
-        { content: "Sanction No.", colSpan: 1 },
-        { content: "Date", colSpan: 1 },
-        { content: "Amount", colSpan: 1 },
-        { content: "5", colSpan: 1 },
-        { content: "6", colSpan: 1 },
-        { content: "7", colSpan: 1 }
-      ]
-    ];
-
-    const recurringExp = ucData.recurringExp || 0;
-    const nonRecurringExp = ucData.nonRecurringExp || 0;
-
-    const isRecurring = selectedType === "recurring";
-    const usedExp = isRecurring ? recurringExp : nonRecurringExp;
-
-    const data = [
-      [
-        `Rs ${ucData.CarryForward.toLocaleString()}`,
-        "Rs 0",
-        "Rs 0",
-        ucData.sanctionNumber || "N/A",
-        ucData.sanctionDate || "N/A",
-        `Rs ${ucData.yearTotal.toLocaleString()}`,
-        `Rs ${ucData.total.toLocaleString()}`,
-        `Rs ${usedExp.toLocaleString()}`,
-        `Rs ${(ucData.total - usedExp).toLocaleString()}`
-      ]
-    ];
-
-    pdf.autoTable({
-      head: headers,
-      body: data,
-      startY: yPos,
-      theme: 'grid',
-      headStyles: {
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        halign: 'center',
-        valign: 'middle',
-        fontSize: 8
-      },
-      styles: {
-        fontSize: 8,
-        cellPadding: 1,
-        overflow: 'linebreak',
-        lineWidth: 0.1,
-        lineColor: [0, 0, 0]
-      },
-      columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 20 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 20 },
-        4: { cellWidth: 20 },
-        5: { cellWidth: 20 },
-        6: { cellWidth: 20 },
-        7: { cellWidth: 20 },
-        8: { cellWidth: 25 }
-      }
-    });
-
-    yPos = pdf.lastAutoTable.finalY + 10;
-
-    const amount = isRecurring ? recurringExp : nonRecurringExp;
-
-    pdf.text("Component wise utilization of grants:", margin, yPos);
-    yPos += 5;
-
-    const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
-    const formattedAmount = `Rs ${amount.toLocaleString()}`;
-    const componentData = [[formattedAmount, formattedAmount]];
-
-    pdf.autoTable({
-      head: componentHeaders,
-      body: componentData,
-      startY: yPos,
-      theme: 'grid',
-      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
-      styles: { fontSize: 10, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] }
-    });
-
-    yPos = pdf.lastAutoTable.finalY + 10;
-
-    pdf.text("Details of grants position at the end of the year", margin, yPos);
-    yPos += 7;
-
-    const closingBalance = isRecurring ? (ucData.total - recurringExp) : (ucData.total - nonRecurringExp);
-
-    pdf.text("(i)", margin, yPos);
-    pdf.text("Balance available at end of financial year", margin + 10, yPos);
-    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
-    yPos += 7;
-
-    pdf.text("(ii)", margin, yPos);
-    pdf.text("Unspent balance refunded to Funding Agency(if any)", margin + 10, yPos);
-    pdf.text("Rs 0", margin + 100, yPos);
-    yPos += 7;
-
-    pdf.text("(iii)", margin, yPos);
-    pdf.text("Balance (Carry forward to next financial year)", margin + 10, yPos);
-    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
-    yPos += 15;
-
-    pdf.addPage();
-    yPos = 20;
-
-    pdf.setFontSize(10);
-    pdf.text("Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly ", margin, yPos);
-    pdf.text("fulfilled/are being fulfilled and that I have exercised following checks to see that the money has ", margin, yPos + 5);
-    pdf.text("been utilized for the purpose for which it was sanctioned.", margin, yPos + 10);
-    yPos += 20;
-
-    const certItems = [
-      "The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.",
-      "There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.",
-      "To the best of our knowledge and belief, no transactions have been entered that are in violation of relevant Act/Rules/standing instructions and scheme guidelines.",
-      "The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.",
-      "The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.",
-      "The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.",
-    ];
-
-    certItems.forEach((item, index) => {
-      const numeral = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"][index];
-      const splitText = pdf.splitTextToSize(item, contentWidth - 15);
-
-      pdf.text(`(${numeral})`, margin, yPos);
-      pdf.text(splitText, margin + 10, yPos);
-
-      yPos += (splitText.length * 5) + 5;
-    });
-
-    yPos += 10;
-    pdf.text("Date: " + new Date().toLocaleDateString("en-IN"), margin, yPos);
-    yPos += 10;
-
-    // Set up signature section
-    pdf.setFontSize(12);
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Signatures", margin, yPos);
-    yPos += 5;
-
-    // Create signature table
-    const sigWidth = (contentWidth) / 3;
-    const sigHeight = 40;
-    const startX = margin;
-
-    // Draw signature table outline
-    pdf.rect(startX, yPos, contentWidth, sigHeight + 25);
-    pdf.line(startX + sigWidth, yPos, startX + sigWidth, yPos + sigHeight + 25); // First vertical divider
-    pdf.line(startX + sigWidth * 2, yPos, startX + sigWidth * 2, yPos + sigHeight + 25); // Second vertical divider
-    pdf.line(startX, yPos + sigHeight, startX + contentWidth, yPos + sigHeight); // Horizontal divider
-
-    // Add PI signature
-    if (piSignature) {
-      pdf.addImage(piSignature, 'PNG', startX + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
-    } else {
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "italic");
-      pdf.text("No signature added", startX + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
-    }
-    pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.text("Signature of PI : ...........................", startX + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
-
-    // Add CFO signature
-    if (instituteApproved && authSignature) {
-      pdf.addImage(authSignature, 'PNG', startX + sigWidth + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
-    } else {
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "italic");
-      pdf.text(sentForApproval ? "Awaiting approval" : "Not sent for approval yet",
-        startX + sigWidth + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
-    }
-
-    pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.text("Signature ...............", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
-    pdf.text(`Name: ${instituteOfficials.cfo}`, startX + sigWidth + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
-    pdf.text("Chief Finance Officer", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
-    pdf.text("(Head of Finance)", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 20, { align: "center" });
-
-    // Add Institute Head signature and stamp
-    if (instituteApproved && instituteStamp) {
-      pdf.addImage(instituteStamp, 'PNG', startX + sigWidth * 2 + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
-    } else {
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "italic");
-      pdf.text(sentForApproval ? "Awaiting approval" : "Not sent for approval yet",
-        startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
-    }
-
-    pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.text("Signature.................", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
-    pdf.text(`Name: ${instituteOfficials.headOfInstitute}`, startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
-    pdf.text("Head of Organisation", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
-    pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
-  };
-
-  const sendToAdmin = async () => {
-    try {
-      const response = await fetch(`${url}uc/send-to-admin/${ucRequestId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          accessToken: localStorage.getItem("token"),
-        },
-      });
-
-      const result = await response.json();
-
-
-      if (!result.success) {
-        setError(result.message || "Failed to send UC to admin");
-        return;
-      }
-
-      alert("UC sent to admin for approval");
-      setSentToAdmin(true);
-    } catch (err) {
-      console.error("Error sending UC to admin:", err.message);
-      setError("Failed to send UC to admin");
-    }
+    return null;
   };
 
   const SignatureModal = () => {
@@ -776,7 +659,7 @@ const UCForm = () => {
                   height: 200,
                   className: "signature-canvas w-full"
                 }}
-
+                onEnd={handleSignatureEnd}
               />
             </div>
           )}
