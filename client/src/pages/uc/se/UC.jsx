@@ -43,6 +43,14 @@ const UCForm = () => {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
+    const fetchOfficials = async () => {
+      const authData = await fetchInstituteOfficials(uc.ucData.instituteName);
+      console.log("Auth Data:", authData);
+    }
+    fetchOfficials();
+  })
+
+  useEffect(() => {
     const fetchStatus = async () => {
       if (projectId && selectedType) {
         try {
@@ -75,11 +83,6 @@ const UCForm = () => {
             }
             else {
               setInstituteApproved(false);
-              setInstituteOfficials({
-                headOfInstitute: "pending approval...",
-                cfo: "pending approval...",
-                accountsOfficer: "pending approval..."
-              });
             }
           } else {
             setSentForApproval(false);

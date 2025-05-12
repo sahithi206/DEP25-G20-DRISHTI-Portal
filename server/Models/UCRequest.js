@@ -7,7 +7,7 @@ const UCRequestSchema = new mongoose.Schema({
     piSignature: { type: String, default: "null" },
     instituteStamp: { type: String, default: "null" },
     authSignature: { type: String, default: "null" },
-    status: { type: String, enum: ["pending", "pendingAuthSign", "approvedByAuth", "approvedByInst", "pendingAdminApproval", "approvedByAdmin", "rejectedByAdmin"], default: "pending" },
+    status: { type: String, enum: ["pending", "pendingByHOI", "approvedByHOI", "approvedByInst", "pendingAdminApproval", "approvedByAdmin", "rejectedByAdmin"], default: "pending" },
     submissionDate: { type: Date, default: Date.now },
 });
 

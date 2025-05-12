@@ -23,8 +23,8 @@ const ApproveUC = () => {
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("uc");
   const [userRole, setUserRole] = useState("");
-  const [showSendToCFOModal, setShowSendToCFOModal] = useState(false);
-  const [sentToCFO, setSentToCFO] = useState(false);
+  const [showSendToHeadModal, setShowSendToHeadModal] = useState(false);
+  const [sentToHoi, setSentToHoi] = useState(false);
   const [authApproved, setAuthApproved] = useState(false);
   const [instituteApproved, setInstituteApproved] = useState(false);
   const [piSignature, setPiSignature] = useState(null);
@@ -54,9 +54,9 @@ const ApproveUC = () => {
     const fetchPendingRequests = async () => {
       if (!userRole) return;
 
-      let endpoint = `${url}uc/pending`;
+      let endpoint = `${url}uc/pendingByHOI`;
       if (userRole === "CFO") {
-        endpoint = `${url}uc/pendingAuthSign`;
+        endpoint = `${url}uc/pending`;
       }
 
       const res = await fetch(endpoint, {
@@ -139,18 +139,19 @@ const ApproveUC = () => {
             setAuthSignature(uc.authSignature);
             setInstituteApproved(true);
             setAuthApproved(true)
-            setSentToCFO(true)
+            setSentToHoi(true)
           }
-          else if (uc.status === "pendingAuthSign") {
-            setInstituteStamp(uc.instituteStamp);
-            setSentToCFO(true);
-          } else if (uc.status === "approvedByAuth") {
-            setSentToCFO(true);
-            setAuthApproved(true);
+          else if (uc.status === "pendingByHOI") {
+            setAuthSignature(uc.authSignature);
+            setSentToHoi(true);
+          } else if (uc.status === "approvedByHOI") {
+            setSentToHoi(true);
+            setInstituteApproved(true);
             setInstituteStamp(uc.instituteStamp);
             setAuthSignature(uc.authSignature);
           } else {
             setInstituteApproved(false);
+            setAuthApproved(false);
           }
         } else {
           setPiSignature(null);
@@ -166,7 +167,7 @@ const ApproveUC = () => {
   const handleBackToList = () => {
     setSelectedRequest(null);
     setSelectedType(null);
-    setSentToCFO(false);
+    setSentToHoi(false);
     setInstituteApproved(false);
     setAuthApproved(false);
     setUcData(null);
@@ -217,12 +218,54 @@ const ApproveUC = () => {
     }
   };
 
-  const handleSendToCFO = async () => {
+  const handleSendToHead = async () => {
+    if (!selectedRequest || !authSignature) return;
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${url}uc/send-to-head/${selectedRequest._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          accessToken: localStorage.getItem("token")
+        },
+        body: JSON.stringify({
+          authSignature: authSignature
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Failed to send to CFO");
+      }
+
+      const updatedPendingRequests = pendingRequests.filter(req => req._id !== selectedRequest._id);
+      setPendingRequests(updatedPendingRequests);
+
+      setShowSendToHeadModal(false);
+      setShowSuccessModal(true);
+      setSentToHoi(true);
+
+      setTimeout(() => {
+        setSelectedRequest(null);
+        setAuthSignature(null);
+        setShowSuccessModal(false);
+        setLoading(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Error sending to CFO:", err.message);
+      alert("Failed to send to CFO");
+      setLoading(false);
+    }
+  };
+
+  const handleHeadApprove = async () => {
     if (!selectedRequest || !instituteStamp) return;
     setLoading(true);
 
     try {
-      const res = await fetch(`${url}uc/send-to-auth/${selectedRequest._id}`, {
+      const res = await fetch(`${url}uc/head-approval/${selectedRequest._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -236,15 +279,15 @@ const ApproveUC = () => {
       const data = await res.json();
 
       if (!data.success) {
-        throw new Error(data.message || "Failed to send to CFO");
+        throw new Error(data.message || "Approval failed");
       }
 
       const updatedPendingRequests = pendingRequests.filter(req => req._id !== selectedRequest._id);
       setPendingRequests(updatedPendingRequests);
 
-      setShowSendToCFOModal(false);
+      setShowApproveModal(false);
       setShowSuccessModal(true);
-      setSentToCFO(true);
+      setInstituteApproved(true)
 
       setTimeout(() => {
         setSelectedRequest(null);
@@ -253,24 +296,25 @@ const ApproveUC = () => {
         setLoading(false);
       }, 2000);
     } catch (err) {
-      console.error("Error sending to CFO:", err.message);
-      alert("Failed to send to CFO");
+      console.error("Error approving request:", err.message);
+      alert("Failed to approve request");
       setLoading(false);
     }
   };
 
-  const handleCFOApprove = async () => {
-    if (!selectedRequest || !authSignature) return;
+  const handleApprove = async () => {
+    if (!selectedRequest || !instituteStamp || !authSignature) return;
     setLoading(true);
 
     try {
-      const res = await fetch(`${url}uc/auth-approval/${selectedRequest._id}`, {
+      const res = await fetch(`${url}uc/approve/${selectedRequest._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           accessToken: localStorage.getItem("token")
         },
         body: JSON.stringify({
+          instituteStamp: instituteStamp,
           authSignature: authSignature
         })
       });
@@ -286,53 +330,12 @@ const ApproveUC = () => {
 
       setShowApproveModal(false);
       setShowSuccessModal(true);
-      setAuthApproved(true)
+      setInstituteApproved(true);
+      setAuthApproved(true);
 
       setTimeout(() => {
         setSelectedRequest(null);
         setAuthSignature(null);
-        setShowSuccessModal(false);
-        setLoading(false);
-      }, 2000);
-    } catch (err) {
-      console.error("Error approving request:", err.message);
-      alert("Failed to approve request");
-      setLoading(false);
-    }
-  };
-
-  const handleApprove = async () => {
-    if (!selectedRequest || !instituteStamp) return;
-    setLoading(true);
-
-    try {
-      const res = await fetch(`${url}uc/approve/${selectedRequest._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          accessToken: localStorage.getItem("token")
-        },
-        body: JSON.stringify({
-          instituteStamp: instituteStamp
-        })
-      });
-
-      const data = await res.json();
-
-      if (!data.success) {
-        throw new Error(data.message || "Approval failed");
-      }
-
-      const updatedPendingRequests = pendingRequests.filter(req => req._id !== selectedRequest._id);
-      setPendingRequests(updatedPendingRequests);
-
-      setShowApproveModal(false);
-      setShowSuccessModal(true);
-      setInstituteApproved(true);
-
-      setTimeout(() => {
-        setSelectedRequest(null);
-        setInstituteStamp(null);
         setShowSuccessModal(false);
         setLoading(false);
       }, 2000);
@@ -723,13 +726,13 @@ const ApproveUC = () => {
                           </p>
                         </div>
                         <span className={`px-3 py-1 text-xs font-medium rounded-full ${request.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                          request.status === "pendingAuthSign" ? "bg-blue-100 text-blue-800" :
-                            request.status === "approvedByAuth" ? "bg-green-100 text-green-800" :
+                          request.status === "pendingByHOI" ? "bg-blue-100 text-blue-800" :
+                            request.status === "approvedByHOI" ? "bg-green-100 text-green-800" :
                               "bg-yellow-100 text-yellow-800"
                           }`}>
-                          {request.status === "pending" ? "Pending HOI" :
-                            request.status === "pendingAuthSign" ? "Pending CFO" :
-                              request.status === "approvedByAuth" ? "Ready for HOI Approval" :
+                          {request.status === "pending" ? "Pending CFO" :
+                            request.status === "pendingByHOI" ? "Pending HOI" :
+                              request.status === "approvedByHOI" ? "Ready for Approval" :
                                 "Pending"}
                         </span>
                       </div>
@@ -751,13 +754,13 @@ const ApproveUC = () => {
                   Back to List
                 </button>
                 <span className={`px-3 py-1 text-xs font-medium rounded-full ${selectedRequest.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                  selectedRequest.status === "pendingAuthSign" ? "bg-blue-100 text-blue-800" :
-                    selectedRequest.status === "approvedByAuth" ? "bg-green-100 text-green-800" :
+                  selectedRequest.status === "pendingByHOI" ? "bg-blue-100 text-blue-800" :
+                    selectedRequest.status === "approvedByHOI" ? "bg-green-100 text-green-800" :
                       "bg-yellow-100 text-yellow-800"
                   }`}>
-                  {selectedRequest.status === "pending" ? "Pending HOI Sign" :
-                    selectedRequest.status === "pendingAuthSign" ? "Pending CFO Sign" :
-                      selectedRequest.status === "approvedByAuth" ? "Ready for HOI Approval" :
+                  {selectedRequest.status === "pending" ? "Pending CFO Sign" :
+                    selectedRequest.status === "pendingByHOI" ? "Pending HOI Sign" :
+                      selectedRequest.status === "approvedByHOI" ? "Ready for Approval" :
                         "Pending Approval"}
                 </span>
               </div>
@@ -1025,27 +1028,27 @@ const ApproveUC = () => {
                     </button>
 
                     <div className="flex space-x-4">
-                      {userRole === "Head of Institute" && selectedRequest.status === "pending" && (
+                      {userRole === "CFO" && selectedRequest.status === "pending" && (
                         <button
-                          onClick={() => setShowSendToCFOModal(true)}
+                          onClick={() => setShowSendToHeadModal(true)}
                           className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
-                          disabled={loading || !!instituteStamp === false}
+                          disabled={loading || !!authSignature === false}
                         >
-                          Send to CFO for Signature
+                          Send to HOI for Signature
                         </button>
                       )}
 
-                      {userRole === "CFO" && selectedRequest.status === "pendingAuthSign" && (
+                      {userRole === "Head of Institute" && selectedRequest.status === "pendingByHOI" && (
                         <button
                           onClick={() => setShowApproveModal(true)}
                           className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
                           disabled={loading}
                         >
-                          Add Signature & Approve
+                          Approve
                         </button>
                       )}
 
-                      {userRole === "Head of Institute" && selectedRequest.status === "approvedByAuth" && (
+                      {userRole === "CFO" && selectedRequest.status === "approvedByHOI" && (
                         <button
                           onClick={() => setShowApproveModal(true)}
                           className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
@@ -1155,30 +1158,30 @@ const ApproveUC = () => {
       )}
 
       {/* Modal for confirming send to CFO */}
-      {showSendToCFOModal && (
+      {showSendToHeadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">Send to CFO for Signature</h3>
-              <button onClick={() => setShowSendToCFOModal(false)}>
+              <h3 className="text-xl font-bold">Send to HOI for Signature</h3>
+              <button onClick={() => setShowSendToHeadModal(false)}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <p className="mb-6">Are you sure you want to send this Utilization Certificate to the CFO for signature?</p>
+            <p className="mb-6">Are you sure you want to send this Utilization Certificate to the HOI for signature?</p>
             <div className="flex justify-end space-x-2">
               <button
-                onClick={() => setShowSendToCFOModal(false)}
+                onClick={() => setShowSendToHeadModal(false)}
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
                 disabled={loading}
               >
                 Cancel
               </button>
               <button
-                onClick={handleSendToCFO}
+                onClick={handleSendToHead}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-teal-700 transition duration-200"
-                disabled={loading || !instituteStamp}
+                disabled={loading || !authSignature}
               >
                 {loading ? (
                   <div className="flex items-center">
@@ -1243,7 +1246,7 @@ const ApproveUC = () => {
               </div>
             ) : null}
 
-            {userRole === "Head of Institute" && selectedRequest.status === "approvedByAuth" && !instituteStamp ? (
+            {userRole === "CFO" && selectedRequest.status === "approvedByHOI" && !authSignature ? (
               <div className="mb-4">
                 <p className="text-amber-600 mb-2">Please add institute stamp first</p>
                 <div className="border border-gray-300 rounded-lg w-full mb-4">
@@ -1284,7 +1287,7 @@ const ApproveUC = () => {
                 Cancel
               </button>
               <button
-                onClick={userRole === "CFO" ? handleCFOApprove : handleApprove}
+                onClick={userRole === "Head of Institute" ? handleHeadApprove : handleApprove}
                 className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
                 disabled={loading || (userRole === "CFO" ? !authSignature : !instituteStamp)}
               >
@@ -1311,17 +1314,17 @@ const ApproveUC = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {userRole === "Head of Institute" && selectedRequest?.status === "pending"
-                  ? "Successfully sent to CFO"
-                  : userRole === "CFO"
+                {userRole === "CFO" && selectedRequest?.status === "pending"
+                  ? "Successfully sent to HOI"
+                  : userRole === "Head ofInstitute"
                     ? "Successfully approved"
                     : "Successfully approved UC"}
               </h3>
               <p className="text-sm text-gray-500">
-                {userRole === "Head of Institute" && selectedRequest?.status === "pending"
-                  ? "The Utilization Certificate has been sent to the CFO for signature."
-                  : userRole === "CFO"
-                    ? "The UC has been approved and sent back to HOI for final approval."
+                {userRole === "CFO" && selectedRequest?.status === "pending"
+                  ? "The Utilization Certificate has been sent to the HOI for signature."
+                  : userRole === "Head of Institute"
+                    ? "The UC has been approved and sent back to CFO for final approval."
                     : "The Utilization Certificate has been successfully approved."}
               </p>
             </div>
