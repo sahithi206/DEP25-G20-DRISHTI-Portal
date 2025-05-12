@@ -108,11 +108,6 @@ const SEForm = () => {
                         }
                         else {
                             setInstituteApproved(false);
-                            setInstituteOfficials({
-                                headOfInstitute: "pending approval...",
-                                cfo: "pending approval...",
-                                accountsOfficer: "pending approval..."
-                            });
                         }
                     } else {
                         setSentForApproval(false);
@@ -167,6 +162,8 @@ const SEForm = () => {
                     });
 
                 }
+                const authData = await fetchInstituteOfficials(info.generalInfo?.instituteName);
+                setInstituteOfficials(authData);
                 setYearly(info.yearlySanct || []);
                 setBudget(info.yearlyExp || []);
             } catch (error) {
