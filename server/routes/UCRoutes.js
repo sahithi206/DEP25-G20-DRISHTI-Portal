@@ -125,7 +125,7 @@ router.get("/approved", async (req, res) => {
 // Get latest UC (either pending or approved)
 router.get("/latest", async (req, res) => {
     try {
-        // console.log("Inside latest");
+        console.log("Inside latest");
         const { projectId, type } = req.query;
         // console.log("Request query parameters:", req.query);
         // console.log("Looking for UC with projectId:", projectId, "and type:", type);
