@@ -1,0 +1,2 @@
+proposalTitle,projectDuration,projectSummary,objectives,expectedOutput,otherDetails
+AI-Powered Edge Computing for Smart Cities,36,This project explores the integration of AI algorithms into edge devices to enhance data processing in smart city infrastructure.,1. Develop lightweight AI models for edge deployment. 2. Reduce latency in urban IoT networks. 3. Improve data privacy at the edge.,"A working prototype of an edge AI device, published research paper, open-source toolkit.""",Sample Other Details
