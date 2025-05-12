@@ -22,8 +22,8 @@ const ApproveSE = () => {
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("se-approve");
   const [userRole, setUserRole] = useState("");
-  const [showSendToAOModal, setShowSendToAOModal] = useState(false);
-  const [sentToAO, setSentToAO] = useState(false);
+  const [showSendToHeadModal, setShowSendToHeadModal] = useState(false);
+  const [sentToHoi, setsentToHoi] = useState(false);
   const [authApproved, setAuthApproved] = useState(false);
   const [instituteApproved, setInstituteApproved] = useState(false);
   const [piSignature, setPiSignature] = useState(null);
@@ -83,9 +83,9 @@ const ApproveSE = () => {
     const fetchPending = async () => {
       if (!userRole) return;
 
-      let endpoint = `${url}se/pending`;
+      let endpoint = `${url}se/pendingByHOI`;
       if (userRole === "Accounts Officer") {
-        endpoint = `${url}se/pendingAuthSign`;
+        endpoint = `${url}se/pending`;
       }
 
       try {
@@ -127,7 +127,7 @@ const ApproveSE = () => {
           const se = data.data;
           // console.log("SE data received:", se);
           const authData = await fetchInstituteOfficials(se.institute);
-          // console.log("Auth Data:", authData);
+          console.log("Auth Data:", authData);
           setInstituteOfficials(authData);
           setPiSignature(se.piSignature);
           if (se.status === "approvedByInst") {
@@ -135,23 +135,19 @@ const ApproveSE = () => {
             setAuthSignature(se.authSignature);
             setInstituteApproved(true);
             setAuthApproved(true)
-            setSentToAO(true)
+            setsentToHoi(true)
           }
-          else if (se.status === "pendingAuthSign") {
-            setInstituteStamp(se.instituteStamp);
-            setSentToAO(true);
-          } else if (se.status === "approvedByAuth") {
-            setSentToAO(true);
-            setAuthApproved(true);
+          else if (se.status === "pendingByHOI") {
+            setAuthSignature(se.authSignature);
+            setsentToHoi(true);
+          } else if (se.status === "approvedByHOI") {
+            setsentToHoi(true);
+            setInstituteApproved(true);
             setInstituteStamp(se.instituteStamp);
             setAuthSignature(se.authSignature);
           } else {
+            setAuthApproved(false);
             setInstituteApproved(false);
-            setInstituteOfficials({
-              headOfInstitute: "pending approval...",
-              cfo: "pending approval...",
-              accountsOfficer: "pending approval..."
-            });
           }
         } else {
           setPiSignature(null);
@@ -166,7 +162,7 @@ const ApproveSE = () => {
 
   const handleBackToList = () => {
     setSelectedRequest(null);
-    setSentToAO(false);
+    setsentToHoi(false);
     setInstituteApproved(false);
     setAuthApproved(false);
     setSeData(null);
@@ -244,54 +240,12 @@ const ApproveSE = () => {
     }
   };
 
-  const handleSendToAO = async () => {
-    if (!selectedRequest || !instituteStamp) return;
-    setLoading(true);
-
-    try {
-      const res = await fetch(`${url}se/send-to-auth/${selectedRequest._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          accessToken: localStorage.getItem("token")
-        },
-        body: JSON.stringify({
-          instituteStamp: instituteStamp
-        })
-      });
-
-      const data = await res.json();
-
-      if (!data.success) {
-        throw new Error(data.message || "Failed to send to AO");
-      }
-
-      const updatedPendingRequests = pendingRequests.filter(req => req._id !== selectedRequest._id);
-      setPendingRequests(updatedPendingRequests);
-
-      setShowSendToAOModal(false);
-      setShowSuccessModal(true);
-      setSentToAO(true);
-
-      setTimeout(() => {
-        setSelectedRequest(null);
-        setInstituteStamp(null);
-        setShowSuccessModal(false);
-        setLoading(false);
-      }, 2000);
-    } catch (err) {
-      console.error("Error sending to AO:", err.message);
-      alert("Failed to send to AO");
-      setLoading(false);
-    }
-  };
-
-  const handleAOApprove = async () => {
+  const handleSendToHead = async () => {
     if (!selectedRequest || !authSignature) return;
     setLoading(true);
 
     try {
-      const res = await fetch(`${url}se/auth-approval/${selectedRequest._id}`, {
+      const res = await fetch(`${url}se/send-to-head/${selectedRequest._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -299,6 +253,48 @@ const ApproveSE = () => {
         },
         body: JSON.stringify({
           authSignature: authSignature
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Failed to send to Head");
+      }
+
+      const updatedPendingRequests = pendingRequests.filter(req => req._id !== selectedRequest._id);
+      setPendingRequests(updatedPendingRequests);
+
+      setShowSendToHeadModal(false);
+      setShowSuccessModal(true);
+      setsentToHoi(true);
+
+      setTimeout(() => {
+        setSelectedRequest(null);
+        setAuthSignature(null);
+        setShowSuccessModal(false);
+        setLoading(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Error sending to Head:", err.message);
+      alert("Failed to send to Head");
+      setLoading(false);
+    }
+  };
+
+  const handleHeadApprove = async () => {
+    if (!selectedRequest || !instituteStamp) return;
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${url}se/head-approval/${selectedRequest._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          accessToken: localStorage.getItem("token")
+        },
+        body: JSON.stringify({
+          instituteStamp: instituteStamp
         })
       });
 
@@ -313,11 +309,11 @@ const ApproveSE = () => {
 
       setShowApproveModal(false);
       setShowSuccessModal(true);
-      setAuthApproved(true)
+      setInstituteApproved(true)
 
       setTimeout(() => {
         setSelectedRequest(null);
-        setAuthSignature(null);
+        setInstituteSignature(null);
         setShowSuccessModal(false);
         setLoading(false);
       }, 2000);
@@ -329,7 +325,7 @@ const ApproveSE = () => {
   };
 
   const handleApprove = async () => {
-    if (!selectedRequest || !instituteStamp) return;
+    if (!selectedRequest || !instituteStamp || !authSignature) return;
     setLoading(true);
 
     try {
@@ -341,7 +337,8 @@ const ApproveSE = () => {
           accessToken: localStorage.getItem("token")
         },
         body: JSON.stringify({
-          instituteStamp: instituteStamp
+          instituteStamp: instituteStamp,
+          authSignature: authSignature
         })
       });
 
@@ -362,7 +359,7 @@ const ApproveSE = () => {
       // Reset UI
       setTimeout(() => {
         setSelectedRequest(null);
-        setInstituteStamp(null);
+        setAuthSignature(null);
         setShowSuccessModal(false);
         setLoading(false);
       }, 2000);
@@ -661,7 +658,7 @@ const ApproveSE = () => {
     doc.text(`Signature of Principal Investigator`, margin + signatureWidth / 2, finalY + signatureHeight + 10, { align: "center" });
     doc.text(`Name: ${seData.name || "Niharika"}`, margin + signatureWidth / 2, finalY + signatureHeight + 20, { align: "center" });
 
-    // AO signature
+    // Head signature
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.text("Accounts Officer", margin + signatureWidth + signatureWidth / 2, finalY + 10, { align: "center" });
@@ -671,7 +668,7 @@ const ApproveSE = () => {
     } else {
       doc.setFontSize(9);
       doc.setFont("helvetica", "italic");
-      const approvalStatus = sentToAO ? "Awaiting approval" : "Not sent for approval yet";
+      const approvalStatus = sentToHoi ? "Awaiting approval" : "Not sent for approval yet";
       doc.text(approvalStatus, margin + signatureWidth + signatureWidth / 2, finalY + signatureHeight / 2, { align: "center" });
     }
 
@@ -690,7 +687,7 @@ const ApproveSE = () => {
     } else {
       doc.setFontSize(9);
       doc.setFont("helvetica", "italic");
-      const approvalStatus = sentToAO ? "Awaiting approval" : "Not sent for approval yet";
+      const approvalStatus = sentToHoi ? "Awaiting approval" : "Not sent for approval yet";
       doc.text(approvalStatus, margin + 2 * signatureWidth + signatureWidth / 2, finalY + signatureHeight / 2, { align: "center" });
     }
 
@@ -723,7 +720,7 @@ const ApproveSE = () => {
   // Get appropriate stamp modal title based on user role
   const getStampModalTitle = () => {
     if (userRole === "Accounts Officer") {
-      return "Add AO Signature";
+      return "Add Head Signature";
     } else {
       return "Add Institute Stamp";
     }
@@ -812,8 +809,15 @@ const ApproveSE = () => {
                               Total: Rs. {request.totalExp.total}
                             </p>
                           </div>
-                          <span className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                            Pending
+                          <span className={`px-3 py-1 text-xs font-medium rounded-full ${request.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                            request.status === "pendingByHOI" ? "bg-blue-100 text-blue-800" :
+                              request.status === "approvedByHOI" ? "bg-green-100 text-green-800" :
+                                "bg-yellow-100 text-yellow-800"
+                            }`}>
+                            {request.status === "pending" ? "Pending AO" :
+                              request.status === "pendingByHOI" ? "Pending HOI" :
+                                request.status === "approvedByHOI" ? "Ready for AO Approval" :
+                                  "Pending"}
                           </span>
                         </div>
                       </div>
@@ -834,8 +838,15 @@ const ApproveSE = () => {
                   </svg>
                   Back to List
                 </button>
-                <span className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                  Pending Approval
+                <span className={`px-3 py-1 text-xs font-medium rounded-full ${request.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                  request.status === "pendingByHOI" ? "bg-blue-100 text-blue-800" :
+                    request.status === "approvedByHOI" ? "bg-green-100 text-green-800" :
+                      "bg-yellow-100 text-yellow-800"
+                  }`}>
+                  {request.status === "pending" ? "Pending AO" :
+                    request.status === "pendingByHOI" ? "Pending HOI" :
+                      request.status === "approvedByHOI" ? "Ready for AO Approval" :
+                        "Pending"}
                 </span>
               </div>
 
@@ -1022,7 +1033,7 @@ const ApproveSE = () => {
                         <h4 className="font-medium mb-2">Accounts Officer</h4>
                         {authSignature ? (
                           <div className="border p-2 rounded mb-2">
-                            <img src={authSignature} alt="AO Signature" className="h-24 object-contain" />
+                            <img src={authSignature} alt="Head Signature" className="h-24 object-contain" />
                           </div>
                         ) : (
                           <div className="border border-dashed border-gray-300 p-4 rounded flex justify-center items-center h-24 mb-2">
@@ -1098,27 +1109,27 @@ const ApproveSE = () => {
                     </button>
 
                     <div className="flex space-x-4">
-                      {userRole === "Head of Institute" && selectedRequest.status === "pending" && (
+                      {userRole === "Accounts Officer" && selectedRequest.status === "pending" && (
                         <button
-                          onClick={() => setShowSendToAOModal(true)}
+                          onClick={() => setShowSendToHeadModal(true)}
                           className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
-                          disabled={loading || !!instituteStamp === false}
+                          disabled={loading || !!authSignature === false}
                         >
-                          Send to AO for Signature
+                          Send to HOI for Signature
                         </button>
                       )}
 
-                      {userRole === "Accounts Officer" && selectedRequest.status === "pendingAuthSign" && (
+                      {userRole === "Head of Institute" && selectedRequest.status === "pendingByHOI" && (
                         <button
                           onClick={() => setShowApproveModal(true)}
                           className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
                           disabled={loading}
                         >
-                          Add Signature & Approve
+                          Approve
                         </button>
                       )}
 
-                      {userRole === "Head of Institute" && selectedRequest.status === "approvedByAuth" && (
+                      {userRole === "Accounts Officer" && selectedRequest.status === "approvedByHOI" && (
                         <button
                           onClick={() => setShowApproveModal(true)}
                           className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
@@ -1135,7 +1146,6 @@ const ApproveSE = () => {
           )}
         </main>
       </div>
-
 
       {/* Modal for adding stamp/signature */}
       {showStampModal && (
@@ -1228,31 +1238,31 @@ const ApproveSE = () => {
         </div>
       )}
 
-      {/* Modal for confirming send to AO */}
-      {showSendToAOModal && (
+      {/* Modal for confirming send to Head */}
+      {showSendToHeadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">Send to AO for Signature</h3>
-              <button onClick={() => setShowSendToAOModal(false)}>
+              <h3 className="text-xl font-bold">Send to Head for Signature</h3>
+              <button onClick={() => setShowSendToHeadModal(false)}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <p className="mb-6">Are you sure you want to send this Statement of Expenditure to the AO for signature?</p>
+            <p className="mb-6">Are you sure you want to send this Statement of Expenditure to the HOI for signature?</p>
             <div className="flex justify-end space-x-2">
               <button
-                onClick={() => setShowSendToAOModal(false)}
+                onClick={() => setShowSendToHeadModal(false)}
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
                 disabled={loading}
               >
                 Cancel
               </button>
               <button
-                onClick={handleSendToAO}
+                onClick={handleSendToHead}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-                disabled={loading || !instituteStamp}
+                disabled={loading || !authSignature}
               >
                 {loading ? (
                   <div className="flex items-center">
@@ -1317,9 +1327,9 @@ const ApproveSE = () => {
               </div>
             ) : null}
 
-            {userRole === "Head of Institute" && selectedRequest.status === "approvedByAuth" && !instituteStamp ? (
+            {userRole === "Accounts Officer" && selectedRequest.status === "approvedByHOI" && !authSignature ? (
               <div className="mb-4">
-                <p className="text-amber-600 mb-2">Please add institute stamp first</p>
+                <p className="text-amber-600 mb-2">Please add Signature first</p>
                 <div className="border border-gray-300 rounded-lg w-full mb-4">
                   <SignatureCanvas
                     ref={stampCanvas}
@@ -1358,9 +1368,9 @@ const ApproveSE = () => {
                 Cancel
               </button>
               <button
-                onClick={userRole === "Accounts Officer" ? handleAOApprove : handleApprove}
+                onClick={userRole === "Head of Institute" ? handleHeadApprove : handleApprove}
                 className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
-                disabled={loading || (userRole === "Accounts Officer" ? !authSignature : !instituteStamp)}
+                disabled={loading || (userRole === "Head of Institute" ? !instituteStamp : !authSignature)}
               >
                 {loading ? (
                   <div className="flex items-center">
@@ -1385,17 +1395,17 @@ const ApproveSE = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {userRole === "Head of Institute" && selectedRequest?.status === "pending"
-                  ? "Successfully sent to Accounts Officer"
-                  : userRole === "Accounts Officer"
+                {userRole === "Accounts Officer" && selectedRequest?.status === "pending"
+                  ? "Successfully sent to HOI"
+                  : userRole === "Head of Institute"
                     ? "Successfully approved"
                     : "Successfully approved SE"}
               </h3>
               <p className="text-sm text-gray-500">
-                {userRole === "Head of Institute" && selectedRequest?.status === "pending"
-                  ? "The Statement of Expenditure has been sent to the Accounts Officer for signature."
-                  : userRole === "Accounts Officer"
-                    ? "The SE has been approved and sent back to HOI for final approval."
+                {userRole === "Accounts Officer" && selectedRequest?.status === "pending"
+                  ? "The Statement of Expenditure has been sent to the HOI for signature."
+                  : userRole === "Head of Institute"
+                    ? "The SE has been approved and sent back to AO for final approval."
                     : "The Statement of Expenditure has been successfully approved."}
               </p>
             </div>

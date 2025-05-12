@@ -45,14 +45,14 @@ const SESchema = new mongoose.Schema({
         total: { type: Number, default: 0 },
     },
     piSignature: { type: String },
-    instituteStamp: { type: String, default: "null" },
-    authSignature: { type: String, default: "null" },
+    instituteStamp: { type: String, default: "null" }, // Head Of institute Sign/Stamp
+    authSignature: { type: String, default: "null" },  // CFO or AO sign
     status: {
         type: String,
         enum: [
             "pending",
-            "pendingByAuth",
-            "approvedByAuth",
+            "pendingByHOI",
+            "approvedByHOI",
             "approvedByInst",
             "pendingAdminApproval",
             "approvedByAdmin",
