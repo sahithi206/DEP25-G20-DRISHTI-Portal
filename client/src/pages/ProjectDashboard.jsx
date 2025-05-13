@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-
+import { toast } from "react-toastify";
 const ProjectDashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const navigate = useNavigate();
@@ -23,7 +23,7 @@ const ProjectDashboard = () => {
             const token = localStorage.getItem("token");
             if (!token) {
                 console.log("Use a valid Token");
-                alert("Authentication required.");
+                toast.error("Authentication required.");
                 return;
             }
             try {

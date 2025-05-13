@@ -13,6 +13,7 @@ export default function Report() {
   const { id } = useParams();
   const { getuser, getProject } = useContext(AuthContext);
   const [user, setUser] = useState({});
+      const [showModal, setShowModal] = useState(false);
 const [newEquipment, setNewEquipment] = useState({
   equipment: "",
   cost: "",
@@ -178,12 +179,17 @@ const handleAddEquipment = () => {
       });
       const json = await response.json();
       console.log(json.data);
-      if (json.success) {
+      if(json){
+if (json.success) {
         toast.success("Data submitted successfully!");
         navigate(`/project-dashboard/${id}`);
       } else {
         toast.error(json.msg);
       }
+      }else{
+              toast.error("Error in submitting data!");
+      }
+      
     } catch (error) {
       console.error("Error:", error);
       toast.error("Error in submitting data!");
@@ -571,7 +577,27 @@ const handleAddEquipment = () => {
     className="px-3 py-1 w-full border rounded-lg"
   />
 </div>
-
+{showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 p-5 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <p className="mb-10">Are you sure you want to submit?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={handleSubmit}
+              >
+                Yes, Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 <button
   onClick={handleAddEquipment}
   className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 mb-4"
@@ -634,7 +660,10 @@ const handleAddEquipment = () => {
                 </button>
               )}
               {page === 4 && (
-                <button onClick={handleSubmit} className="bg-blue-500 text-white py-2 px-4 rounded-md ml-auto p-8 hover:bg-blue-700">
+                <button onClick={(e) => {
+          e.preventDefault(); 
+          setShowModal(true); 
+        }}  className="bg-blue-500 text-white py-2 px-4 rounded-md ml-auto p-8 hover:bg-blue-700">
                    Submit
                 </button>
               )}

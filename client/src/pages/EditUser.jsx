@@ -2,7 +2,7 @@ import { useState, useContext,useEffect } from "react";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";
 import { AuthContext } from "./Context/Authcontext";
-
+import { toast } from "react-toastify";
 const RegistrationForm = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { getuser,edituser } = useContext(AuthContext);
@@ -52,11 +52,11 @@ const RegistrationForm = () => {
         try {
             const resp = await edituser(formData);
             if (resp && resp.success) {
-                alert(resp.msg);
+                toast.success(resp.msg);
                 const updatedUser = await getuser(); 
                 setFormData(updatedUser);
             } else {
-                alert(resp.msg);
+                toast.error(resp.msg);
             }
         } catch (e) {
             console.error(e);

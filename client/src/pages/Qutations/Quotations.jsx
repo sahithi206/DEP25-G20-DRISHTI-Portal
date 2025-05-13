@@ -11,6 +11,7 @@ import axios from "axios";
 const UploadDocuments = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { id } = useParams();
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const [equipments, setEquipments] = useState([]);
   const [showBreakup, setShowBreakup] = useState(false);
@@ -84,7 +85,7 @@ const UploadDocuments = () => {
 
   const handleFileUpload = async () => {
     if (!selectedFile) {
-      alert('Please select a file first');
+      toast.error('Please select a file first');
       return;
     }
 
@@ -109,10 +110,10 @@ const UploadDocuments = () => {
       setIsModalOpen(false);
       setSelectedFile(null);
 
-      alert('File uploaded successfully!');
+      toast.success('File uploaded successfully!');
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('Failed to upload file');
+      toast.error('Failed to upload file');
     }
   };
 
@@ -123,7 +124,7 @@ const UploadDocuments = () => {
 
   const addEquipment = () => {
     if (!form.name || !form.make || !form.model) {
-      alert('Please fill in all required equipment fields');
+      toast.error('Please fill in all required equipment fields');
       return;
     }
 
@@ -247,11 +248,11 @@ const UploadDocuments = () => {
 
   const validateForm = () => {
     if (!bank.name || !bank.number || !bank.bankName || !bank.Ifsc) {
-      alert('Please fill in all required bank details');
+      toast.error('Please fill in all required bank details');
       return false;
     }
     if (equipments.length === 0) {
-      alert('Please add at least one equipment');
+      toast.error('Please add at least one equipment');
       return false;
     }
     return true;
@@ -264,7 +265,7 @@ const UploadDocuments = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Authentication required. Please login again.");
+        toast.error("Authentication required. Please login again.");
         return;
       }
 
@@ -396,7 +397,6 @@ const UploadDocuments = () => {
                           <th className="border p-2">Imported</th>
                           <th className="border p-2">Estimated Cost</th>
                           <th className="border p-2">Remarks</th>
-                          <th className="border p-2">File</th>
                           <th className="border p-2">Action</th>
                         </tr>
                       </thead>
@@ -411,17 +411,6 @@ const UploadDocuments = () => {
                             <td className="border p-2 text-center">{equipment.imported}</td>
                             <td className="border p-2 text-right">{equipment.cost.toLocaleString()}</td>
                             <td className="border p-2">{equipment.remarks}</td>
-                            <td className="border p-2 text-center">
-                              <button
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-md"
-                                onClick={() => handleUploadClick(equipment)}
-                              >
-                                {equipment.quotationFile ? 'Re-upload' : 'Upload'}
-                              </button>
-                              {equipment.quotationFile && (
-                                <div className="text-xs mt-1 text-green-600">File uploaded</div>
-                              )}
-                            </td>
                             <td className="border p-2 text-center">
                               <button
                                 className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
@@ -698,10 +687,33 @@ const UploadDocuments = () => {
                   </div>
                 </div>
               </div>
-
+  {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 p-5 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <p className="mb-10">Are you sure you want to submit?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={handleSubmit}
+              >
+                Yes, Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
               <div className="flex justify-end space-x-4">
                 <button
-                  onClick={handleSubmit}
+                onClick={(e) => {
+          e.preventDefault(); 
+          setShowModal(true); 
+        }} 
                   disabled={isSubmitting}
                   className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
                     }`}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
-
+import { toast } from "react-toastify";
 const PISection = ({ title, data, onSave, onDelete, onView }) => {
     const [email, setEmail] = useState("");
     const { getpi } = useContext(AuthContext);
@@ -24,11 +24,11 @@ const PISection = ({ title, data, onSave, onDelete, onView }) => {
                     Dept: user.isUser.Dept,
                 });
             } else {
-                alert("PI/Co-PI Haven't SignedUp.");
+                toast.warning("PI/Co-PI Haven't SignedUp.");
             }
         } catch (error) {
             console.error("Error fetching PI:", error);
-            alert("An error occurred while fetching PI data.");
+            toast.error("An error occurred while fetching PI data.");
         }
     };
 
@@ -152,7 +152,7 @@ function PrincipalInvestigatorForm({ PIdetails }) {
     }, [getuser, PIdetails]);
     const addPI = (pi) => {
         if (piList.some((p) => p.email === pi.email || coPiList.some((p) => p.email === pi.email))) {
-            alert("This PI is already added.");
+            toast.error("This PI is already added.");
             return;
         }
         setPiList((prev) => [...prev, pi]);
@@ -160,7 +160,7 @@ function PrincipalInvestigatorForm({ PIdetails }) {
 
     const addCoPI = (copi) => {
         if (piList.some((p) => p.email === copi.email || coPiList.some((p) => p.email === copi.email))) {
-            alert("This Co-PI is already added.");
+            toast.error("This Co-PI is already added.");
             return;
         }
         setCoPiList((prev) => [...prev, copi]);
@@ -196,7 +196,7 @@ function PrincipalInvestigatorForm({ PIdetails }) {
                 onView={setSelectedPI}
             />
 
-            <button onClick={handleClick} className="bg-red-500 text-white px-4 py-2 mt-4 rounded">
+            <button onClick={handleClick} className="bg-blue-500 text-white px-4 py-2 mt-4 rounded">
                 Save
             </button>
 

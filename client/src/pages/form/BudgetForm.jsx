@@ -647,12 +647,12 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
 
             {renderForm()}
 
-            <div className="mt-6 flex justify-end gap-4">
+            <div className="mt-6 flex  gap-4">
                 <button
                     onClick={handleSubmit}
-                    className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-green-700"
                 >
-                    Save Budget
+                    Save 
                 </button>
             </div>
         </div>

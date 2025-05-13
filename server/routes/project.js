@@ -435,7 +435,7 @@ router.post("/progress-report/:id", fetchUser, async (req, res) => {
     });
 
     await progressReport.save();
-    res.status(201).json({ success: true, msg: "Progress report submitted successfully", data: progressReport });
+    res.status(200).json({ success: true, msg: "Progress report submitted successfully", data: progressReport });
   } catch (error) {
     console.error("Error submitting progress report:", error);
     res.status(500).json({ success: false, msg: "Server error" });

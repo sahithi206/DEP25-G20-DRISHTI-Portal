@@ -12,6 +12,7 @@ const ChangeOfInstitute = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [loading, setLoading] = useState(false);
     const [statusFilter, setStatusFilter] = useState("");
+    const [showModal, setShowModal] = useState(false);
 
     const [id, setID] = useState();
 
@@ -294,7 +295,10 @@ const ChangeOfInstitute = () => {
                             <p className="mt-3 text-2xl font-bold ml-9 text-blue-800">Change of Institute </p>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
+                        <form  onClick={(e) => {
+          e.preventDefault(); 
+          setShowModal(true); 
+        }} className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
                             <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
                                 <div>
                                     <label className="block font-semibold text-gray-700 mb-1">
@@ -434,7 +438,6 @@ const ChangeOfInstitute = () => {
                                             required
                                         />
                                     </div>
-
                                     <div>
                                         <label className="block font-semibold text-gray-700 mb-1">
                                             Effective Date of Transfer <span className="text-red-500">*</span>
@@ -542,6 +545,27 @@ const ChangeOfInstitute = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
+                                      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 p-5 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <p className="mb-10">Are you sure you want to submit?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={handleSubmit}
+              >
+                Yes, Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
                                     {filteredAndSortedRequests.map((req) => (
                                         <tr key={req._id}>
                                             <td className="border p-2 text-center">{req._id}</td>

@@ -4,6 +4,7 @@ import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";
 import axios from "axios";
 import { format } from "date-fns";
+import { toast } from "react-toastify";
 
 const API_BASE_URL = import.meta.env.VITE_REACT_APP_URL;
 
@@ -58,7 +59,7 @@ const ProjectExpenses = () => {
         const commentText = comments[expenseId]?.trim();
 
         if (!commentText) {
-            alert("Please enter a comment!");
+            toast.error("Please enter a comment!");
             setLoading(false);
             return;
         }
@@ -81,12 +82,12 @@ const ProjectExpenses = () => {
                 return;
             }
 
-            alert("Comment added successfully!");
+            toast.success("Comment added successfully!");
             setComments((prev) => ({ ...prev, [expenseId]: "" }));
             fetchCommentsForExpense(expenseId);
         } catch (err) {
             console.error("Error adding comment:", err);
-            alert("Failed to add comment. Please try again.");
+            toast.error("Failed to add comment. Please try again.");
         } finally {
             setLoading(false);
         }
