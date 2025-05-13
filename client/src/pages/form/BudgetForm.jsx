@@ -156,7 +156,6 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
     };
     
     const handleDownloadCSV = () => {
-        // Create CSV content matching the image structure
         const csvContent = [
             "Non-Recurring Items",
             "Item,Quantity,Unit Cost,Total",
@@ -184,7 +183,6 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
             ""
         ].join("\n");
     
-        // Create and trigger download
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
