@@ -1,20 +1,20 @@
-Non-Recurring Items,,,
-Item,Quantity,Unit Cost,Total
-Laptop,2,70000,140000
-GPU,1,450000,450000
-Materials,,,
-Item,Quantity,Per Unit Cost,Total
-Wires,3,40000,120000
-pens,1000,20,20000
-Manpower,,,
-Designation,Number of Employees,Emoluments,Total
-JRF,2,32000,36
-Lab Assistant,2,27000,36
-Other Expenses,,,
-Description,Amount,,
-internet,20000,,
-electricity,100000,,
-,,,
-Overhead,,,
-Value,,,
-450000,,,
+Non-Recurring Items,,,,
+Item,Quantity,Unit Cost,Total,
+Laptop,2,70000,140000,
+GPU,1,450000,450000,
+Materials,,,,
+Item,Quantity,Per Unit Cost,Total,
+Wires,3,40000,120000,
+pens,1000,20,20000,
+Manpower,,,,
+Designation,Number of Employees,Emoluments,Duration,Total
+JRF,2,32000,36,2304000
+Lab Assistant,2,27000,36,1944000
+Other Expenses,,,,
+internet,20000,,,
+electricity,100000,,,
+Overhead,,,,
+Value,,,,
+450000,,,,
+travel,,,,
+750000,,,,

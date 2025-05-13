@@ -41,6 +41,8 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                 const newMaterials = [];
                 const newManpower = [];
                 const newOtherExpenses = [];
+                let newTravel = [];
+
                 let newOverhead = 0;
                 
                 let currentSection = null;
@@ -62,6 +64,9 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                     } else if (row.includes("Overhead")) {
                         currentSection = "overhead";
                         return;
+                    }else if(row.includes("travel")){
+                        currentSection="travel";
+                        return ;
                     }
                     
                     if (!currentSection || row.trim() === "" || row.includes("Item") || row.includes("Designation")) {
@@ -77,6 +82,7 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                                     item: values[0],
                                     UnitCost: parseFloat(values[1]) || 0,
                                     quantity: parseInt(values[2]) || 0,
+                                    total:parseInt(values[3])||0
                                 });
                             }
                             break;
@@ -87,6 +93,7 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                                     item: values[0],
                                     quantity: parseInt(values[1]) || 0,
                                     perUnitCost: parseFloat(values[2]) || 0,
+                                    total:parseInt(values[3])||0
                                 });
                             }
                             break;
@@ -98,6 +105,8 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                                     noOfEmployees: parseInt(values[1]) || 0,
                                     Emoluments: parseFloat(values[2]) || 0,
                                     Duration: parseFloat(values[3]) || 0,
+                                    total:parseInt(values[4])||0
+
                                 });
                             }
                             break;
@@ -116,6 +125,12 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                                 newOverhead = parseFloat(values[0]) || 0;
                             }
                             break;
+                        case "travel":
+                            if (values.length >= 1) {
+                                newTravel = parseFloat(values[0]) || 0;
+                            }
+                            break;
+
                     }
                 });
                 
@@ -125,6 +140,7 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
                 setManpower(newManpower);
                 setOtherExpenses(newOtherExpenses);
                 setOverhead(newOverhead);
+                setTravel(newTravel);
                 
             } catch (error) {
                 console.error("Error processing CSV:", error);
@@ -151,7 +167,7 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
             ...materials.map(item => `${item.item},${item.quantity},${item.perUnitCost},${item.total}`),
             "",
             "Manpower",
-            "Designation,Number of Employees,Emoluments,Total",
+"Designation,Number of Employees,Emoluments,Duration,Total",
             ...manpower.map(item => `${item.designation},${item.noOfEmployees},${item.Emoluments},${item.Duration},${item.total}`),
             "",
             "Other Expenses",
@@ -161,6 +177,10 @@ const BudgetForm = ({ budgetSummary, recurring, nonRecurring }) => {
             "Overhead",
             "Value",
             overhead,
+            "",
+             "travel",
+            "Value",
+            travel,
             ""
         ].join("\n");
     
