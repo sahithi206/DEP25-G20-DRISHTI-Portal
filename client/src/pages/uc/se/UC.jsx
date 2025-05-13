@@ -43,10 +43,8 @@ const UCForm = () => {
   const sigCanvas = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Cache for approval status to avoid redundant fetches
   const statusCache = useRef({});
 
-  // Memoized fetch status function to prevent unnecessary re-creation
   const fetchStatus = useCallback(async (projectId, type) => {
     if (!projectId || !type) return;
 
@@ -434,9 +432,9 @@ const UCForm = () => {
     pdf.setFontSize(12);
     pdf.text("[See Rule 238 (1)]", pageWidth / 2, 25, { align: "center" });
     pdf.setFontSize(12);
-    pdf.text(FINAL UTILIZATION CERTIFICATE FOR THE YEAR ${ucData.currentYear} in respect of, pageWidth / 2, 32, { align: "center" });
-    pdf.text(${selectedType === "recurring" ? "Recurring" : "Non - Recurring"}, pageWidth / 2, 38, { align: "center" });
-    pdf.text(as on ${currentDate} to be submitted to Funding Agency, pageWidth / 2, 44, { align: "center" });
+    pdf.text(`FINAL UTILIZATION CERTIFICATE FOR THE YEAR ${ucData.currentYear} in respect of`, pageWidth / 2, 32, { align: "center" });
+    pdf.text(`${selectedType === "recurring" ? "Recurring" : "Non - Recurring"}`, pageWidth / 2, 38, { align: "center" });
+    pdf.text(`as on ${currentDate} to be submitted to Funding Agency`, pageWidth / 2, 44, { align: "center" });
     pdf.text("Is the UC Provisional (Provisional/Audited)", pageWidth / 2, 50, { align: "center" });
 
     pdf.setFontSize(11);
@@ -459,20 +457,20 @@ const UCForm = () => {
 
     items.forEach(item => {
       pdf.setFont("helvetica", "normal");
-      pdf.text(${itemNum}, margin, yPos);
+      pdf.text(`${itemNum}`, margin, yPos);
       pdf.text(item.label, margin + 5, yPos);
-      pdf.text(: ${item.value}, margin + 80, yPos);
+      pdf.text(`: ${item.value}`, margin + 80, yPos);
       yPos += 7;
       itemNum++;
     });
 
     yPos += 3;
-    pdf.text(${itemNum}, margin, yPos);
+    pdf.text(`${itemNum}`, margin, yPos);
     pdf.text("Grants position of the beginning of the Financial year", margin + 5, yPos);
     yPos += 7;
 
     pdf.text("Carry forward from previous financial year", margin + 20, yPos);
-    pdf.text(Rs ${ucData.CarryForward.toLocaleString()}, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
     yPos += 7;
 
     pdf.text("Others, If any", margin + 20, yPos);
@@ -480,10 +478,10 @@ const UCForm = () => {
     yPos += 7;
 
     pdf.text("Total", margin + 20, yPos);
-    pdf.text(Rs ${ucData.CarryForward.toLocaleString()}, margin + 120, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
     yPos += 10;
 
-    pdf.text(${itemNum + 1}, margin, yPos);
+    pdf.text(`${itemNum + 1}`, margin, yPos);
     pdf.text("Details of grants received, expenditure incurred and closing balances: (Actual)", margin + 5, yPos);
     yPos += 10;
 
@@ -518,15 +516,15 @@ const UCForm = () => {
 
     const data = [
       [
-        Rs ${ucData.CarryForward.toLocaleString()},
+        `Rs ${ucData.CarryForward.toLocaleString()}`,
         "Rs 0",
         "Rs 0",
         ucData.sanctionNumber || "N/A",
         ucData.sanctionDate || "N/A",
-        Rs ${ucData.yearTotal.toLocaleString()},
-        Rs ${ucData.total.toLocaleString()},
-        Rs ${usedExp.toLocaleString()},
-        Rs ${(ucData.total - usedExp).toLocaleString()}
+        `Rs ${ucData.yearTotal.toLocaleString()}`,
+        `Rs ${ucData.total.toLocaleString()}`,
+        `Rs ${usedExp.toLocaleString()}`,
+        `Rs ${(ucData.total - usedExp).toLocaleString()}`
       ]
     ];
 
@@ -570,7 +568,7 @@ const UCForm = () => {
     yPos += 5;
 
     const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
-    const formattedAmount = Rs ${amount.toLocaleString()};
+    const formattedAmount = `Rs ${amount.toLocaleString()}`;
     const componentData = [[formattedAmount, formattedAmount]];
 
     pdf.autoTable({
@@ -591,7 +589,7 @@ const UCForm = () => {
 
     pdf.text("(i)", margin, yPos);
     pdf.text("Balance available at end of financial year", margin + 10, yPos);
-    pdf.text(Rs ${closingBalance.toLocaleString()}, margin + 100, yPos);
+    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
     yPos += 7;
 
     pdf.text("(ii)", margin, yPos);
@@ -601,7 +599,7 @@ const UCForm = () => {
 
     pdf.text("(iii)", margin, yPos);
     pdf.text("Balance (Carry forward to next financial year)", margin + 10, yPos);
-    pdf.text(Rs ${closingBalance.toLocaleString()}, margin + 100, yPos);
+    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
     yPos += 15;
 
     pdf.addPage();
@@ -626,7 +624,7 @@ const UCForm = () => {
       const numeral = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"][index];
       const splitText = pdf.splitTextToSize(item, contentWidth - 15);
 
-      pdf.text((${numeral}), margin, yPos);
+      pdf.text(`(${numeral})`, margin, yPos);
       pdf.text(splitText, margin + 10, yPos);
 
       yPos += (splitText.length * 5) + 5;
@@ -678,7 +676,7 @@ const UCForm = () => {
     pdf.setFontSize(10);
     pdf.setFont("helvetica", "normal");
     pdf.text("Signature ...............", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
-    pdf.text(Name: ${instituteOfficials.cfo}, startX + sigWidth + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+    pdf.text(`Name: ${instituteOfficials.cfo}`, startX + sigWidth + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
     pdf.text("Chief Finance Officer", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
     pdf.text("(Head of Finance)", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 20, { align: "center" });
 
@@ -695,10 +693,11 @@ const UCForm = () => {
     pdf.setFontSize(10);
     pdf.setFont("helvetica", "normal");
     pdf.text("Signature.................", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
-    pdf.text(Name: ${instituteOfficials.headOfInstitute}, startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+    pdf.text(`Name: ${instituteOfficials.headOfInstitute}`, startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
     pdf.text("Head of Organisation", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
-    pdf.save(UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf);
+    pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
   };
+
 
   const ApprovalStatusBanner = () => {
     // Show loading indicator while fetching status
