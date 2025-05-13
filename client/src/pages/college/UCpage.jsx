@@ -228,7 +228,7 @@ const UCPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      <Navbar yes={1} />
       <div className="flex flex-grow">
         <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
         <div className="p-6 space-y-6 mt-5 mr-9 ml-9 flex-grow">
@@ -481,28 +481,55 @@ const UCPage = () => {
                               <table className="w-full border border-gray-300 rounded-lg">
                                 <thead>
                                   <tr className="bg-blue-100 text-gray-700">
-                                    <th className="border border-gray-400 px-4 py-2">Component</th>
-                                    <th className="border border-gray-400 px-4 py-2">Amount</th>
+                                    <th className="border border-gray-400 px-4 py-2">Grant-in-aid-General</th>
+                                    <th className="border border-gray-400 px-4 py-2">Total</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   <tr className="text-center">
-                                    <td className="border border-gray-400 px-4 py-2">Human Resources</td>
-                                    <td className="border border-gray-400 px-4 py-2">Rs {ucData.human_resources}</td>
+                                    <td className="border border-gray-400 px-4 py-2">
+                                      ₹ {ucType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                                    </td>
+                                    <td className="border border-gray-400 px-4 py-2">
+                                      ₹ {ucType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp}
+                                    </td>
                                   </tr>
-                                  <tr className="text-center">
-                                    <td className="border border-gray-400 px-4 py-2">Consumables</td>
-                                    <td className="border border-gray-400 px-4 py-2">Rs {ucData.consumables}</td>
-                                  </tr>
-                                  <tr className="text-center">
-                                    <td className="border border-gray-400 px-4 py-2">Others</td>
-                                    <td className="border border-gray-400 px-4 py-2">Rs {ucData.others}</td>
-                                  </tr>
+
                                 </tbody>
                               </table>
                             </div>
                           </>
                         )}
+                        <div className="mt-6">
+                          <h3 className="text-lg font-semibold text-blue-700 mb-4">
+                            Details of grants position at the end of the year
+                          </h3>
+                          <div className="pl-5">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="flex">
+                                <span className="mr-2">(i)</span>
+                                <span>Balance available at end of financial year</span>
+                              </div>
+                              <span>
+                                : ₹ {ucData.total - (ucType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                              </span>
+
+                              <div className="flex">
+                                <span className="mr-2">(ii)</span>
+                                <span>Unspent balance refunded to Funding Agency (if any)</span>
+                              </div>
+                              <span>: ₹ 0</span>
+
+                              <div className="flex">
+                                <span className="mr-2">(iii)</span>
+                                <span>Balance (Carry forward to next financial year)</span>
+                              </div>
+                              <span>
+                                : ₹ {ucData.total - (ucType === "recurring" ? ucData.recurringExp : ucData.nonRecurringExp)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       <TermsAndConditions />
