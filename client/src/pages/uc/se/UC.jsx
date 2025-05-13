@@ -698,7 +698,6 @@ const UCForm = () => {
     pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
   };
 
-
   const ApprovalStatusBanner = () => {
     // Show loading indicator while fetching status
     if (statusLoading) {
