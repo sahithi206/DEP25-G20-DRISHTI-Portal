@@ -43,10 +43,8 @@ const UCForm = () => {
   const sigCanvas = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Cache for approval status to avoid redundant fetches
   const statusCache = useRef({});
 
-  // Memoized fetch status function to prevent unnecessary re-creation
   const fetchStatus = useCallback(async (projectId, type) => {
     if (!projectId || !type) return;
 
@@ -421,7 +419,6 @@ const UCForm = () => {
   };
 
   const handleSaveAsPDF = () => {
-    // PDF generation code remains the same
     const pdf = new jsPDF("p", "mm", "a4");
     const currentDate = new Date().toLocaleDateString("en-IN");
 
@@ -432,7 +429,272 @@ const UCForm = () => {
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(14);
     pdf.text("GFR 12-A", pageWidth / 2, 20, { align: "center" });
-    // Rest of the PDF generation code...
+    pdf.setFontSize(12);
+    pdf.text("[See Rule 238 (1)]", pageWidth / 2, 25, { align: "center" });
+    pdf.setFontSize(12);
+    pdf.text(`FINAL UTILIZATION CERTIFICATE FOR THE YEAR ${ucData.currentYear} in respect of`, pageWidth / 2, 32, { align: "center" });
+    pdf.text(`${selectedType === "recurring" ? "Recurring" : "Non - Recurring"}`, pageWidth / 2, 38, { align: "center" });
+    pdf.text(`as on ${currentDate} to be submitted to Funding Agency`, pageWidth / 2, 44, { align: "center" });
+    pdf.text("Is the UC Provisional (Provisional/Audited)", pageWidth / 2, 50, { align: "center" });
+
+    pdf.setFontSize(11);
+    pdf.setFont("helvetica", "normal");
+
+    const items = [
+      { label: "Name of the grant receiving Organization", value: ucData.instituteName },
+      {
+        label: "Name of Principal Investigator (PI)", value: Array.isArray(ucData.principalInvestigator)
+          ? ucData.principalInvestigator.join(", ")
+          : ucData.principalInvestigator
+      },
+      { label: "Title of the Project", value: ucData.title },
+      { label: "Name of the Scheme", value: ucData.scheme || "N/A" },
+      { label: "Whether recurring or non-recurring grants", value: selectedType === "recurring" ? "Recurring" : "Non Recurring" },
+    ];
+
+    let yPos = 60;
+    let itemNum = 1;
+
+    items.forEach(item => {
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`${itemNum}`, margin, yPos);
+      pdf.text(item.label, margin + 5, yPos);
+      pdf.text(`: ${item.value}`, margin + 80, yPos);
+      yPos += 7;
+      itemNum++;
+    });
+
+    yPos += 3;
+    pdf.text(`${itemNum}`, margin, yPos);
+    pdf.text("Grants position of the beginning of the Financial year", margin + 5, yPos);
+    yPos += 7;
+
+    pdf.text("Carry forward from previous financial year", margin + 20, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
+    yPos += 7;
+
+    pdf.text("Others, If any", margin + 20, yPos);
+    pdf.text("Rs 0", margin + 120, yPos);
+    yPos += 7;
+
+    pdf.text("Total", margin + 20, yPos);
+    pdf.text(`Rs ${ucData.CarryForward.toLocaleString()}`, margin + 120, yPos);
+    yPos += 10;
+
+    pdf.text(`${itemNum + 1}`, margin, yPos);
+    pdf.text("Details of grants received, expenditure incurred and closing balances: (Actual)", margin + 5, yPos);
+    yPos += 10;
+
+    const headers = [
+      [
+        { content: "Unspent Balances of\nGrants received years", colSpan: 1 },
+        { content: "Interest Earned\nthereon", colSpan: 1 },
+        { content: "Interest deposited\nback to Funding Agency", colSpan: 1 },
+        { content: "Grant received during the year", colSpan: 3 },
+        { content: "Total\n(1+2-3+4)", colSpan: 1 },
+        { content: "Expenditure\nincurred", colSpan: 1 },
+        { content: "Closing Balance\n(5-6)", colSpan: 1 }
+      ],
+      [
+        { content: "1", colSpan: 1 },
+        { content: "2", colSpan: 1 },
+        { content: "3", colSpan: 1 },
+        { content: "Sanction No.", colSpan: 1 },
+        { content: "Date", colSpan: 1 },
+        { content: "Amount", colSpan: 1 },
+        { content: "5", colSpan: 1 },
+        { content: "6", colSpan: 1 },
+        { content: "7", colSpan: 1 }
+      ]
+    ];
+
+    const recurringExp = ucData.recurringExp || 0;
+    const nonRecurringExp = ucData.nonRecurringExp || 0;
+
+    const isRecurring = selectedType === "recurring";
+    const usedExp = isRecurring ? recurringExp : nonRecurringExp;
+
+    const data = [
+      [
+        `Rs ${ucData.CarryForward.toLocaleString()}`,
+        "Rs 0",
+        "Rs 0",
+        ucData.sanctionNumber || "N/A",
+        ucData.sanctionDate || "N/A",
+        `Rs ${ucData.yearTotal.toLocaleString()}`,
+        `Rs ${ucData.total.toLocaleString()}`,
+        `Rs ${usedExp.toLocaleString()}`,
+        `Rs ${(ucData.total - usedExp).toLocaleString()}`
+      ]
+    ];
+
+    pdf.autoTable({
+      head: headers,
+      body: data,
+      startY: yPos,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        halign: 'center',
+        valign: 'middle',
+        fontSize: 8
+      },
+      styles: {
+        fontSize: 8,
+        cellPadding: 1,
+        overflow: 'linebreak',
+        lineWidth: 0.1,
+        lineColor: [0, 0, 0]
+      },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 20 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 20 },
+        7: { cellWidth: 20 },
+        8: { cellWidth: 25 }
+      }
+    });
+
+    yPos = pdf.lastAutoTable.finalY + 10;
+
+    const amount = isRecurring ? recurringExp : nonRecurringExp;
+
+    pdf.text("Component wise utilization of grants:", margin, yPos);
+    yPos += 5;
+
+    const componentHeaders = [["Grant-in-aid-creation of capital assets", "Total"]];
+    const formattedAmount = `Rs ${amount.toLocaleString()}`;
+    const componentData = [[formattedAmount, formattedAmount]];
+
+    pdf.autoTable({
+      head: componentHeaders,
+      body: componentData,
+      startY: yPos,
+      theme: 'grid',
+      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
+      styles: { fontSize: 10, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] }
+    });
+
+    yPos = pdf.lastAutoTable.finalY + 10;
+
+    pdf.text("Details of grants position at the end of the year", margin, yPos);
+    yPos += 7;
+
+    const closingBalance = isRecurring ? (ucData.total - recurringExp) : (ucData.total - nonRecurringExp);
+
+    pdf.text("(i)", margin, yPos);
+    pdf.text("Balance available at end of financial year", margin + 10, yPos);
+    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
+    yPos += 7;
+
+    pdf.text("(ii)", margin, yPos);
+    pdf.text("Unspent balance refunded to Funding Agency(if any)", margin + 10, yPos);
+    pdf.text("Rs 0", margin + 100, yPos);
+    yPos += 7;
+
+    pdf.text("(iii)", margin, yPos);
+    pdf.text("Balance (Carry forward to next financial year)", margin + 10, yPos);
+    pdf.text(`Rs ${closingBalance.toLocaleString()}`, margin + 100, yPos);
+    yPos += 15;
+
+    pdf.addPage();
+    yPos = 20;
+
+    pdf.setFontSize(10);
+    pdf.text("Certified that I have satisfied myself that the conditions on which grants were sanctioned have been duly ", margin, yPos);
+    pdf.text("fulfilled/are being fulfilled and that I have exercised following checks to see that the money has ", margin, yPos + 5);
+    pdf.text("been utilized for the purpose for which it was sanctioned.", margin, yPos + 10);
+    yPos += 20;
+
+    const certItems = [
+      "The main accounts and other subsidiary accounts and registers (including assets registers) are maintained as prescribed in the relevant Act/Rules/Standing instructions (mention the Act/Rules) and have been duly audited by designated auditors. The figures depicted above tally with the audited figures mentioned in financial statements/accounts.",
+      "There exist internal controls for safeguarding public funds/assets, watching outcomes and achievements of physical targets against the financial inputs, ensuring quality in asset creation etc. & the periodic evaluation of internal controls is exercised to ensure their effectiveness.",
+      "To the best of our knowledge and belief, no transactions have been entered that are in violation of relevant Act/Rules/standing instructions and scheme guidelines.",
+      "The responsibilities among the key functionaries for execution of the scheme have been assigned in clear terms and are not general in nature.",
+      "The benefits were extended to the intended beneficiaries and only such areas/districts were covered where the scheme was intended to operate.",
+      "The expenditure on various components of the scheme was in the proportions authorized as per the scheme guidelines and terms and conditions of the grants-in-aid.",
+    ];
+
+    certItems.forEach((item, index) => {
+      const numeral = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"][index];
+      const splitText = pdf.splitTextToSize(item, contentWidth - 15);
+
+      pdf.text(`(${numeral})`, margin, yPos);
+      pdf.text(splitText, margin + 10, yPos);
+
+      yPos += (splitText.length * 5) + 5;
+    });
+
+    yPos += 10;
+    pdf.text("Date: " + new Date().toLocaleDateString("en-IN"), margin, yPos);
+    yPos += 10;
+
+    // Set up signature section
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Signatures", margin, yPos);
+    yPos += 5;
+
+    // Create signature table
+    const sigWidth = (contentWidth) / 3;
+    const sigHeight = 40;
+    const startX = margin;
+
+    // Draw signature table outline
+    pdf.rect(startX, yPos, contentWidth, sigHeight + 25);
+    pdf.line(startX + sigWidth, yPos, startX + sigWidth, yPos + sigHeight + 25); // First vertical divider
+    pdf.line(startX + sigWidth * 2, yPos, startX + sigWidth * 2, yPos + sigHeight + 25); // Second vertical divider
+    pdf.line(startX, yPos + sigHeight, startX + contentWidth, yPos + sigHeight); // Horizontal divider
+
+    // Add PI signature
+    if (piSignature) {
+      pdf.addImage(piSignature, 'PNG', startX + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+    } else {
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "italic");
+      pdf.text("No signature added", startX + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
+    }
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("Signature of PI : ...........................", startX + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+
+    // Add CFO signature
+    if (instituteApproved && authSignature) {
+      pdf.addImage(authSignature, 'PNG', startX + sigWidth + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+    } else {
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "italic");
+      pdf.text(sentForApproval ? "Awaiting approval" : "Not sent for approval yet",
+        startX + sigWidth + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
+    }
+
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("Signature ...............", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
+    pdf.text(`Name: ${instituteOfficials.cfo}`, startX + sigWidth + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+    pdf.text("Chief Finance Officer", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
+    pdf.text("(Head of Finance)", startX + sigWidth + sigWidth / 2, yPos + sigHeight + 20, { align: "center" });
+
+    // Add Institute Head signature and stamp
+    if (instituteApproved && instituteStamp) {
+      pdf.addImage(instituteStamp, 'PNG', startX + sigWidth * 2 + sigWidth / 4, yPos + 5, sigWidth / 2, sigHeight - 10);
+    } else {
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "italic");
+      pdf.text(sentForApproval ? "Awaiting approval" : "Not sent for approval yet",
+        startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight / 2, { align: "center" });
+    }
+
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("Signature.................", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 5, { align: "center" });
+    pdf.text(`Name: ${instituteOfficials.headOfInstitute}`, startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 10, { align: "center" });
+    pdf.text("Head of Organisation", startX + sigWidth * 2 + sigWidth / 2, yPos + sigHeight + 15, { align: "center" });
     pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
   };
 

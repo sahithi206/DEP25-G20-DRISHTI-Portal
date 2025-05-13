@@ -873,14 +873,14 @@ const ApproveSE = () => {
                   </svg>
                   Back to List
                 </button>
-                <span className={`px-3 py-1 text-xs font-medium rounded-full ${request.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                  request.status === "pendingByHOI" ? "bg-blue-100 text-blue-800" :
-                    request.status === "approvedByHOI" ? "bg-green-100 text-green-800" :
+                <span className={`px-3 py-1 text-xs font-medium rounded-full ${selectedRequest.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                  selectedRequest.status === "pendingByHOI" ? "bg-blue-100 text-blue-800" :
+                    selectedRequest.status === "approvedByHOI" ? "bg-green-100 text-green-800" :
                       "bg-yellow-100 text-yellow-800"
                   }`}>
-                  {request.status === "pending" ? "Pending AO" :
-                    request.status === "pendingByHOI" ? "Pending HOI" :
-                      request.status === "approvedByHOI" ? "Ready for AO Approval" :
+                  {selectedRequest.status === "pending" ? "Pending AO" :
+                    selectedRequest.status === "pendingByHOI" ? "Pending HOI" :
+                      selectedRequest.status === "approvedByHOI" ? "Ready for AO Approval" :
                         "Pending"}
                 </span>
               </div>
