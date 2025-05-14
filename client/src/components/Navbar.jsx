@@ -133,30 +133,28 @@ const Navbar = ({ yes }) => {
               src="/4.png"
               alt="ResearchX Logo"
               className="mx-auto w-56 h-25 object-contain"
-              onClick={() => navigate("/")}
-              style={{ cursor: "pointer" }}
             />
           </h1>
         </div>
         <div className="flex justify-between">
-       <FaUserCircle
-          className="text-2xl cursor-pointer hover:text-gray-300"
-          onClick={yes ? navigateToProfile : () => setShowModal(true)}
-        />
+          <FaUserCircle
+            className="text-2xl cursor-pointer hover:text-gray-300"
+            onClick={yes ? navigateToProfile : () => setShowModal(true)}
+          />
 
-        {yes && (
-          <>
-            <span className="ml-2">{getWelcomeMessage()}</span>
-            <FontAwesomeIcon
-              icon={faPowerOff}
-              className="text-2xl cursor-pointer hover:text-gray-300 ml-4"
-              onClick={() => setShowLogout(true)}
-            />
-          </>
-        )}
+          {yes && (
+            <>
+              <span className="ml-2">{getWelcomeMessage()}</span>
+              <FontAwesomeIcon
+                icon={faPowerOff}
+                className="text-2xl cursor-pointer hover:text-gray-300 ml-4"
+                onClick={() => setShowLogout(true)}
+              />
+            </>
+          )}
+        </div>
       </div>
-      </div>
-      
+
 
       {showLogout && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">

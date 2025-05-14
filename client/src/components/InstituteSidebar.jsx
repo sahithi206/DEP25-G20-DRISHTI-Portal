@@ -6,32 +6,66 @@ import {
   ChevronDown,
   Folder,
   User,
-  Target, // Using Lucide-react Target instead of FaBullseye for consistency
+  Target,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { AuthContext } from "../pages/Context/Authcontext";
 
 const SidebarMenu = ({ activeSection, setActiveSection }) => {
   const { getInstUser } = useContext(AuthContext);
-  const [instituteUser, setInstituteUser] = useState(null);
+  const [instituteUser, setInstituteUser] = useState(
+    // Try to get from sessionStorage first
+    JSON.parse(sessionStorage.getItem("instituteUser")) || null
+  );
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(!instituteUser);
+  const location = useLocation();
 
+  // Fetch user data only if not already in sessionStorage
   useEffect(() => {
     const fetchInstituteUserDetails = async () => {
-      try {
-        const data = await getInstUser();
-        setInstituteUser(data);
-      } catch (error) {
-        console.error("Error fetching institute user:", error);
+      if (!instituteUser) {
+        setIsLoading(true);
+        try {
+          const data = await getInstUser();
+          setInstituteUser(data);
+          // Store in sessionStorage to persist between page navigations
+          sessionStorage.setItem("instituteUser", JSON.stringify(data));
+        } catch (error) {
+          console.error("Error fetching institute user:", error);
+        } finally {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchInstituteUserDetails();
-  }, [getInstUser]);
+  }, [getInstUser, instituteUser]); // Only depends on these values
 
-  if (!instituteUser) {
+  // Update active section based on location
+  useEffect(() => {
+    const path = location.pathname;
+    // Map path to section ID
+    if (path.includes("institute-dashboard")) {
+      setActiveSection("dashboard");
+    } else if (path.includes("institute-users")) {
+      setActiveSection("users");
+    } else if (path.includes("sanctioned-projects")) {
+      setActiveSection("sanctioned-projects");
+    } else if (path.includes("institute/requests")) {
+      setActiveSection("requests");
+    } else if (path.includes("institute/uc")) {
+      setActiveSection("uc");
+    } else if (path.includes("institute/se")) {
+      setActiveSection("se");
+    } else if (path.includes("institute/profile")) {
+      setActiveSection("profile");
+    }
+  }, [location, setActiveSection]);
+
+  if (isLoading) {
     return (
       <div className="bg-gray-900 text-white p-5 h-full sticky top-0">
         <h2 className="text-2xl font-bold mb-6">Institute Panel</h2>
@@ -46,7 +80,7 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
     { label: "Projects", icon: Folder, id: "sanctioned-projects", path: "/sanctioned-projects" },
   ];
 
-  if (instituteUser.role === "Head of Institute") {
+  if (instituteUser?.role === "Head of Institute") {
     menuItems.push({
       label: "Requests",
       icon: ClipboardList,
@@ -57,27 +91,27 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
 
   let reportItems = [];
 
-  if (instituteUser.role === "Head of Institute") {
+  if (instituteUser?.role === "Head of Institute") {
     reportItems = [
       { label: "UC", id: "uc", path: "/institute/uc" },
       { label: "SE", id: "se", path: "/institute/se" },
     ];
-  } else if (instituteUser.role === "CFO") {
+  } else if (instituteUser?.role === "CFO") {
     reportItems = [{ label: "UC", id: "uc", path: "/institute/uc" }];
-  } else if (instituteUser.role === "Accounts Officer") {
+  } else if (instituteUser?.role === "Accounts Officer") {
     reportItems = [{ label: "SE", id: "se", path: "/institute/se" }];
   }
 
   if (reportItems.length > 0) {
     menuItems.push({
       label: "Reports",
-      icon: Target, // Using Lucide-react's Target instead of FaBullseye
+      icon: Target,
       id: "reports",
       children: reportItems,
     });
   }
 
-  menuItems.push({ label: "Profile", icon: User, id: "profile", path: "/institute/profile" })
+  menuItems.push({ label: "Profile", icon: User, id: "profile", path: "/institute/profile" });
 
   return (
     <div
@@ -100,15 +134,12 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
               <>
                 <div
                   className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${openDropdown === id || activeSection === id
-                    ? "bg-gray-800 text-blue-400"
-                    : "hover:bg-gray-700"
+                      ? "bg-gray-800 text-blue-400"
+                      : "hover:bg-gray-700"
                     }`}
-                  onClick={() =>
-                    setOpenDropdown(openDropdown === id ? null : id)
-                  }
+                  onClick={() => setOpenDropdown(openDropdown === id ? null : id)}
                 >
                   <div className="flex items-center">
-                    {/* Always render the icon, centered when collapsed */}
                     <div className={isSidebarOpen ? "mr-3" : "mx-auto"}>
                       <Icon className="w-5 h-5" />
                     </div>
@@ -128,8 +159,8 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
                         <Link
                           to={subPath}
                           className={`block px-3 py-2 rounded-md text-sm transition-all ${activeSection === subId
-                            ? "bg-gray-700 text-blue-400"
-                            : "hover:bg-gray-700"
+                              ? "bg-gray-700 text-blue-400"
+                              : "hover:bg-gray-700"
                             }`}
                           onClick={() => setActiveSection(subId)}
                         >
@@ -144,12 +175,11 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
               <Link
                 to={path}
                 className={`flex items-center p-3 rounded-lg transition-all ${activeSection === id
-                  ? "bg-gray-800 text-blue-400 border-l-4 border-blue-400"
-                  : "hover:bg-gray-700"
+                    ? "bg-gray-800 text-blue-400 border-l-4 border-blue-400"
+                    : "hover:bg-gray-700"
                   }`}
                 onClick={() => setActiveSection(id)}
               >
-                {/* Center the icon when sidebar is collapsed */}
                 <div className={isSidebarOpen ? "mr-3" : "mx-auto"}>
                   <Icon className="w-5 h-5" />
                 </div>

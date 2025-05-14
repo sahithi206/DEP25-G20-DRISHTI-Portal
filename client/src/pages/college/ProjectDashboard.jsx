@@ -116,15 +116,11 @@ const ProjectDashboard = () => {
     };
     return (
         <div className="flex flex-col min-h-screen">
-            <div className="fixed w-full h-20 z-40">
-    <HomeNavbar yes={1} />
-  </div>
+            <HomeNavbar yes={1} />
+            <div className="flex flex-grow ">
+                <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
 
-  <div className="flex flex-grow pt-20">
-    <div className="w-72 h-[calc(100vh-5rem)] sticky top-20">
-      <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-    </div>
-    <div className="flex-grow p-6 flex flex-col gap-4">
+                <div className="flex-grow p-6 flex flex-col gap-4">
                     <div className="bg-white shadow-md rounded-xl p-6 space-y-4 border-l-8 border-teal-600">
                         <h1 className="text-4xl text-center font-bold mb-4">Project Dashboard</h1>
                     </div>
@@ -132,7 +128,7 @@ const ProjectDashboard = () => {
                         <div className="grid grid-cols-3 gap-4 p-5">
 
                             <HoverDropdownButton label="RTGS/Quotations" options={[{ label: "View Quotations", onClick: () => navigate(`/institute/viewQuotations/${id}`) }]} className="bg-blue-500 text-white" />
-                            <HoverDropdownButton label="View UC/SE" options={[{ label: "View UC", onClick: () => navigate(`/ucInsti/${id}`) },{ label: "View SE", onClick: () => navigate(`/seInsti/${id}`) }]} className="bg-green-500 text-white" />
+                            <HoverDropdownButton label="View UC/SE" options={[{ label: "View UC", onClick: () => navigate(`/ucInsti/${id}`) }, { label: "View SE", onClick: () => navigate(`/seInsti/${id}`) }]} className="bg-green-500 text-white" />
                             <HoverDropdownButton label="Expenses" options={[{ label: "Expense", onClick: () => navigate(`/view-expenses/${id}`) }]} className="bg-red-500 text-white" />
                         </div>
 

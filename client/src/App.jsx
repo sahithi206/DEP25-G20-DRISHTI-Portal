@@ -115,17 +115,17 @@ function MainLayout() {
 
   return (
     <div className="flex flex-col min-h-screen">
-<ToastContainer 
-    position="top-right"
-    autoClose={5000}
-    hideProgressBar={false}
-    newestOnTop={false}
-    closeOnClick
-    rtl={false}
-    pauseOnFocusLoss
-    draggable
-    pauseOnHover
-  />      <Routes>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />      <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -191,7 +191,7 @@ function MainLayout() {
           <Route path="/admin/uc_se" element={<AllSEUC />} />
           <Route path="/admin/progress-report" element={<Progress />} />
           <Route path="/admin/completed-projects" element={<CompletedProjects />} />
-          <Route path="/admin/budgetalloc" element= {<BudgetAlloc />} />
+          <Route path="/admin/budgetalloc" element={<BudgetAlloc />} />
 
           <Route path="/requests/change-institute" element={<ChangeInstitute />} />
 
