@@ -158,8 +158,8 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
                             <>
                                 <div
                                     className={`p-3 flex items-center justify-between cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${openDropdown === id || activeSection === id
-                                            ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400"
-                                            : ""
+                                        ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400"
+                                        : ""
                                         }`}
                                     onClick={() => setOpenDropdown(openDropdown === id ? null : id)}
                                 >

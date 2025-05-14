@@ -5,13 +5,14 @@ import AdminNavbar from "../../../components/AdminNavbar";
 import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { toast, ToastContainer } from "react-toastify"; 
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
 const Progress = () => {
     const [reports, setReports] = useState([]);
+    const [activeSection, setActiveSection] = useState("progress-report");
     const [selectedReport, setSelectedReport] = useState(null);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -39,11 +40,11 @@ const Progress = () => {
         try {
             await axios.put(`${url}admin/progress-reports/${id}/mark-as-read`);
             setReports(reports.filter((report) => report._id !== id));
-            toast.success("Progress report marked as read."); 
+            toast.success("Progress report marked as read.");
 
         } catch (error) {
             console.error("Error marking report as read:", error);
-            toast.error("Failed to mark progress report as read."); 
+            toast.error("Failed to mark progress report as read.");
 
         }
     };
@@ -157,8 +158,8 @@ const Progress = () => {
                 : true;
             const matchesPI = filters.principalInvestigator
                 ? report.principalInvestigator.some((pi) =>
-                      pi.toLowerCase().includes(filters.principalInvestigator.toLowerCase())
-                  )
+                    pi.toLowerCase().includes(filters.principalInvestigator.toLowerCase())
+                )
                 : true;
             return matchesYear && matchesTitle && matchesPI;
         })
@@ -172,7 +173,7 @@ const Progress = () => {
 
     return (
         <div className="flex bg-gray-100 min-h-screen">
-            <AdminSidebar activeSection="progressReports" />
+            <AdminSidebar activeSection="progressReports" setActiveSection={setActiveSection} />
             <div className="flex-1 p-6 overflow-y-auto">
                 <AdminNavbar activeSection="Progress Reports" />
                 <div className="mt-6 bg-white p-6 rounded-lg shadow-md w-full">
@@ -243,48 +244,48 @@ const Progress = () => {
                         <p className="text-center text-red-500">{error}</p>
                     ) : filteredReports.length > 0 ? (
                         <table className="w-full border-collapse bg-white shadow-md rounded-lg overflow-hidden">
-<thead className="bg-blue-500 text-white">
-    <tr>
-        <th className="border border-gray-300 px-4 py-2 text-left">Project ID</th>
-        <th className="border border-gray-300 px-4 py-2 text-left">Title</th>
-        <th className="border border-gray-300 px-4 py-2 text-left">Principal Investigator</th>
-        <th className="border border-gray-300 px-4 py-2 text-left">Year</th>
-        <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
-    </tr>
-</thead>
-<tbody>
-    {filteredReports.map((report) => (
-        <tr key={report._id} className="hover:bg-gray-100">
-            <td
-                className="border border-gray-300 px-4 py-2 text-blue-500 cursor-pointer hover:underline"
-                onClick={() => goToProjectDashboard(report.projectId?._id || report.projectId)}
-            >
-                {report.projectId?._id || report.projectId || "N/A"}
-            </td>
-            <td className="border border-gray-300 px-4 py-2">{report.projectTitle}</td>
-            <td className="border border-gray-300 px-4 py-2">
-                {report.principalInvestigator.join(", ")}
-            </td>
-            <td className="border border-gray-300 px-4 py-2">{report.currentYear}</td>
-            <td className="border border-gray-300 px-4 py-2">
-                <div className="flex space-x-4">
-                    <button
-                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                        onClick={() => viewReport(report)}
-                    >
-                        View
-                    </button>
-                    <button
-                        className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                        onClick={() => markAsRead(report._id)}
-                    >
-                        Mark as Read
-                    </button>
-                </div>
-            </td>
-        </tr>
-    ))}
-</tbody>
+                            <thead className="bg-blue-500 text-white">
+                                <tr>
+                                    <th className="border border-gray-300 px-4 py-2 text-left">Project ID</th>
+                                    <th className="border border-gray-300 px-4 py-2 text-left">Title</th>
+                                    <th className="border border-gray-300 px-4 py-2 text-left">Principal Investigator</th>
+                                    <th className="border border-gray-300 px-4 py-2 text-left">Year</th>
+                                    <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredReports.map((report) => (
+                                    <tr key={report._id} className="hover:bg-gray-100">
+                                        <td
+                                            className="border border-gray-300 px-4 py-2 text-blue-500 cursor-pointer hover:underline"
+                                            onClick={() => goToProjectDashboard(report.projectId?._id || report.projectId)}
+                                        >
+                                            {report.projectId?._id || report.projectId || "N/A"}
+                                        </td>
+                                        <td className="border border-gray-300 px-4 py-2">{report.projectTitle}</td>
+                                        <td className="border border-gray-300 px-4 py-2">
+                                            {report.principalInvestigator.join(", ")}
+                                        </td>
+                                        <td className="border border-gray-300 px-4 py-2">{report.currentYear}</td>
+                                        <td className="border border-gray-300 px-4 py-2">
+                                            <div className="flex space-x-4">
+                                                <button
+                                                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                                                    onClick={() => viewReport(report)}
+                                                >
+                                                    View
+                                                </button>
+                                                <button
+                                                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                                                    onClick={() => markAsRead(report._id)}
+                                                >
+                                                    Mark as Read
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
                         </table>
                     ) : (
                         <p className="text-center text-gray-500">No progress reports found.</p>
@@ -292,56 +293,56 @@ const Progress = () => {
                 </div>
             </div>
 
-                {isPopupOpen && selectedReport && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                        <div className="bg-white rounded-lg shadow-lg w-[70%] max-h-[90vh] overflow-y-auto p-4">
-                            <h2 className="text-2xl font-bold text-center text-blue-800 mb-2">Progress Report Details</h2>
-                            <div className="grid grid-cols-2 gap-y-1 gap-x-4 mb-2">
-                                <label className="font-semibold text-gray-700">Project Title:</label>
-                                <span className="text-gray-800">{selectedReport.projectTitle}</span>
+            {isPopupOpen && selectedReport && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg w-[70%] max-h-[90vh] overflow-y-auto p-4">
+                        <h2 className="text-2xl font-bold text-center text-blue-800 mb-2">Progress Report Details</h2>
+                        <div className="grid grid-cols-2 gap-y-1 gap-x-4 mb-2">
+                            <label className="font-semibold text-gray-700">Project Title:</label>
+                            <span className="text-gray-800">{selectedReport.projectTitle}</span>
 
-                                <label className="font-semibold text-gray-700">Principal Investigator:</label>
-                                <span className="text-gray-800">
-                    {selectedReport.principalInvestigator?.join(", ") || "N/A"}
-                </span>
-                                <label className="font-semibold text-gray-700">Research Area:</label>
-                                <span className="text-gray-800">{selectedReport.researchArea}</span>
+                            <label className="font-semibold text-gray-700">Principal Investigator:</label>
+                            <span className="text-gray-800">
+                                {selectedReport.principalInvestigator?.join(", ") || "N/A"}
+                            </span>
+                            <label className="font-semibold text-gray-700">Research Area:</label>
+                            <span className="text-gray-800">{selectedReport.researchArea}</span>
 
-                                <label className="font-semibold text-gray-700">Approved Objectives:</label>
-                                <span className="text-gray-800">{selectedReport.approvedObjectives.join(", ")}</span>
+                            <label className="font-semibold text-gray-700">Approved Objectives:</label>
+                            <span className="text-gray-800">{selectedReport.approvedObjectives.join(", ")}</span>
 
-                                <label className="font-semibold text-gray-700">Methodology:</label>
-                                <span className="text-gray-800">{selectedReport.methodology}</span>
-                            </div>
+                            <label className="font-semibold text-gray-700">Methodology:</label>
+                            <span className="text-gray-800">{selectedReport.methodology}</span>
+                        </div>
 
-                            <h3 className="text-lg font-bold text-blue-700 mb-2">Research Achievements</h3>
-                            <ul className="list-disc pl-6">
-                                <li><strong>Summary of Progress:</strong> {selectedReport.researchAchievements.summaryOfProgress}</li>
-                                <li><strong>New Observations:</strong> {selectedReport.researchAchievements.newObservations}</li>
-                                <li><strong>Innovations:</strong> {selectedReport.researchAchievements.innovations}</li>
-                                <li><strong>Application Potential (Long Term):</strong> {selectedReport.researchAchievements.applicationPotential.longTerm}</li>
-                                <li><strong>Application Potential (Immediate):</strong> {selectedReport.researchAchievements.applicationPotential.immediate}</li>
-                                <li><strong>Other Achievements:</strong> {selectedReport.researchAchievements.otherAchievements}</li>
-                            </ul>
+                        <h3 className="text-lg font-bold text-blue-700 mb-2">Research Achievements</h3>
+                        <ul className="list-disc pl-6">
+                            <li><strong>Summary of Progress:</strong> {selectedReport.researchAchievements.summaryOfProgress}</li>
+                            <li><strong>New Observations:</strong> {selectedReport.researchAchievements.newObservations}</li>
+                            <li><strong>Innovations:</strong> {selectedReport.researchAchievements.innovations}</li>
+                            <li><strong>Application Potential (Long Term):</strong> {selectedReport.researchAchievements.applicationPotential.longTerm}</li>
+                            <li><strong>Application Potential (Immediate):</strong> {selectedReport.researchAchievements.applicationPotential.immediate}</li>
+                            <li><strong>Other Achievements:</strong> {selectedReport.researchAchievements.otherAchievements}</li>
+                        </ul>
 
-                            <div className="flex justify-end mt-4">
-                                <button
-                                    className="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600"
-                                    onClick={saveAsPDF}
-                                >
-                                    Save as PDF
-                                </button>
-                                <button
-                                    className="bg-gray-400 text-white px-4 py-2 rounded"
-                                    onClick={() => setIsPopupOpen(false)}
-                                >
-                                    Close
-                                </button>
-                            </div>
+                        <div className="flex justify-end mt-4">
+                            <button
+                                className="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600"
+                                onClick={saveAsPDF}
+                            >
+                                Save as PDF
+                            </button>
+                            <button
+                                className="bg-gray-400 text-white px-4 py-2 rounded"
+                                onClick={() => setIsPopupOpen(false)}
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
+        </div>
     );
 };
 
