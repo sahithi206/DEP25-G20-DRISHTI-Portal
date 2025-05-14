@@ -56,6 +56,16 @@ const ApproveSE = () => {
   }, []);
 
   useEffect(() => {
+    if (showSuccessModal) {
+      const timer = setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 3000); // Close after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessModal]);
+
+  useEffect(() => {
     const filterrequests = () => {
       let filtered = pendingRequests;
       if (searchTitle) {
@@ -725,7 +735,7 @@ const ApproveSE = () => {
   // Get appropriate stamp modal title based on user role
   const getStampModalTitle = () => {
     if (userRole === "Accounts Officer") {
-      return "Add Head Signature";
+      return "Add Signature";
     } else {
       return "Add Institute Stamp";
     }

@@ -14,30 +14,30 @@ const AdminProposalReview = () => {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const URL = import.meta.env.VITE_REACT_APP_URL;
-  const [schemes,setSchemes]=useState([]);
-    useEffect(()=>{
-        const getSchemes= async()=>{
-            try{
-                const res = await fetch(`${URL}schemes/get-allschemes`,{
-                    headers:{
-                        "Content-Type":"application/json",
-                        accessToken:localStorage.getItem("token")
+    const [schemes, setSchemes] = useState([]);
+    useEffect(() => {
+        const getSchemes = async () => {
+            try {
+                const res = await fetch(`${URL}schemes/get-allschemes`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        accessToken: localStorage.getItem("token")
                     }
                 })
-                const data= await res.json();
+                const data = await res.json();
                 console.log(data);
                 setSchemes(data);
-            }catch(e){
+            } catch (e) {
                 console.log(e);
             }
         }
         getSchemes();
-       }, [URL])
-    
-    const [schemeFilter, setFilter] = useState(""); 
-    const [sortOrder, setSortOrder] = useState("desc"); 
-      const [searchTitle, setSearchTitle] = useState("");
-              const [filteredAndSortedProposals, setFilteredUc] = useState([]);
+    }, [URL])
+
+    const [schemeFilter, setFilter] = useState("");
+    const [sortOrder, setSortOrder] = useState("desc");
+    const [searchTitle, setSearchTitle] = useState("");
+    const [filteredAndSortedProposals, setFilteredUc] = useState([]);
     useEffect(() => {
         const filteredProjects = async () => {
             let filtered = proposals;
@@ -164,7 +164,7 @@ const AdminProposalReview = () => {
                             value={schemeFilter}
                             onChange={(e) => setFilter(e.target.value)}
                             className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >   
+                        >
                             <option value="">All</option>
                             {schemes && schemes.length > 0 && schemes.map((val, index) => (
                                 <option value={val.name} key={val._id}>{val.name}</option>
@@ -198,7 +198,7 @@ const AdminProposalReview = () => {
                                             setSelectedProposal(proposal);
                                             navigate(`/admin/allocate-budget/${proposal.proposal._id}`);
                                         }}>{proposal.researchDetails?.Title}</td>
-                                         <td className="p-2 text-sm" onClick={() => {
+                                        <td className="p-2 text-sm" onClick={() => {
                                             setSelectedProposal(proposal);
                                             navigate(`/admin/allocate-budget/${proposal.proposal._id}`);
                                         }}>{proposal.proposal.Scheme?.name}</td>

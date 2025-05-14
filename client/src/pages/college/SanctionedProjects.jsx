@@ -128,8 +128,8 @@ const SanctionedProjects = () => {
         <h3 className="text-lg font-medium text-gray-900 truncate max-w-xs">{project.Title}</h3>
         <span
           className={`px-2 py-1 text-sm rounded-full ${calculateDaysLeft(project.endDate) === "Expired"
-              ? "bg-red-100 text-red-800"
-              : "bg-blue-100 text-blue-800"
+            ? "bg-red-100 text-red-800"
+            : "bg-blue-100 text-blue-800"
             }`}
         >
           {calculateDaysLeft(project.endDate)}
@@ -160,15 +160,8 @@ const SanctionedProjects = () => {
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar yes={1} />
       <div className="flex flex-grow">
-        {/* Reference the sidebar to detect its width */}
-        <div ref={sidebarRef} className="flex-shrink-0">
-          <InstituteSidebar
-            activeSection={activeSection}
-            setActiveSection={setActiveSection}
-          />
-        </div>
-
-        <main className="flex-grow p-2 md:p-6 transition-all duration-300 overflow-x-auto">
+        <InstituteSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+        <main className="flex-grow container mx-auto p-6">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-gray-800 text-center">
               Ongoing Projects in Your Institute
@@ -300,8 +293,8 @@ const SanctionedProjects = () => {
                               <td className="px-2 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm font-semibold">
                                 <span
                                   className={`px-2 py-1 rounded-full ${calculateDaysLeft(project.endDate) === "Expired"
-                                      ? "bg-red-100 text-red-800"
-                                      : "bg-blue-100 text-blue-800"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-blue-100 text-blue-800"
                                     }`}
                                 >
                                   {calculateDaysLeft(project.endDate)}
