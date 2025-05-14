@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
 import HomeNavbar from "../../utils/HomeNavbar";
-
+import { toast } from "react-toastify";
 const BankDetailsForm = ({bankDetails }) => {
     const section = "bankDetails"; 
     const [data, setData] = useState({});
@@ -80,10 +80,10 @@ const BankDetailsForm = ({bankDetails }) => {
         try {
             const response = await submitBankDetails(data);
             console.log(response);
-            alert(response.msg);
+            toast.success(response.msg);
         } catch (error) {
             console.error("Error submitting bank details:", error.message);
-            alert("Failed to submit bank details");
+            toast.error("Failed to submit bank details");
         }
     };
 

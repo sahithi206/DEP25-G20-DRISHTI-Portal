@@ -13,6 +13,7 @@ const Navbar = ({ yes }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
 
   // Get the stakeholder type from localStorage
   const stakeholderType = localStorage.getItem("stakeholderType") || "institute";
@@ -28,6 +29,7 @@ const Navbar = ({ yes }) => {
       setLoading(true);
       const token = localStorage.getItem("token");
       if (!token) {
+
       }
 
       const config = {
@@ -136,31 +138,48 @@ const Navbar = ({ yes }) => {
             />
           </h1>
         </div>
-        <div className="flex items-center space-x-4 sm:space-x-8">
-          <span
-            className="hover:text-gray-300 cursor-pointer"
-            onClick={() => navigate("/aboutus")}
-          >
-            About Us
-          </span>
+        <div className="flex justify-between">
+       <FaUserCircle
+          className="text-2xl cursor-pointer hover:text-gray-300"
+          onClick={yes ? navigateToProfile : () => setShowModal(true)}
+        />
 
-          <FaUserCircle
-            className="text-2xl cursor-pointer hover:text-gray-300"
-            onClick={navigateToProfile}
-          />
-
-          {yes && <span className="ml-2">{getWelcomeMessage()}</span>}
-
-          {yes && (
+        {yes && (
+          <>
+            <span className="ml-2">{getWelcomeMessage()}</span>
             <FontAwesomeIcon
               icon={faPowerOff}
               className="text-2xl cursor-pointer hover:text-gray-300 ml-4"
-              onClick={handleLogout}
+              onClick={() => setShowLogout(true)}
             />
-          )}
-        </div>
+          </>
+        )}
       </div>
+      </div>
+      
 
+      {showLogout && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">Confirm Logout</h2>
+            <p className="mb-4">Are you sure you want to log out?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setShowLogout(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Stakeholder Selection Modal */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">

@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";
 import { PlusCircle, MinusCircle } from "lucide-react";
-
+import { toast } from "react-toastify";
 import HomeNavbar from "../../../utils/HomeNavbar";
 import { AuthContext } from "../../Context/Authcontext";
 const url = import.meta.env.VITE_REACT_APP_URL;
@@ -12,6 +12,7 @@ export default function Report() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [user, setUser] = useState({});
+    const [showModal, setShowModal] = useState(false);
   const { getuser, getProject } = useContext(AuthContext);
   const [newEquipment, setNewEquipment] = useState({
     equipment: "",
@@ -27,7 +28,7 @@ export default function Report() {
 
   const handleAddEquipment = () => {
     if (!newEquipment.equipment || !newEquipment.cost || !newEquipment.working || !newEquipment.rate) {
-      alert("Please fill all fields");
+      toast.error("Please fill all fields");
       return;
     }
     setData((prevData) => ({
@@ -156,7 +157,7 @@ export default function Report() {
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Authentication required.");
+      toast.error("Authentication required.");
       return;
     }
     try {
@@ -180,14 +181,14 @@ export default function Report() {
       const json = await response.json();
       console.log(json.data);
       if (json.success) {
-        alert("Data submitted successfully!");
+        toast.success("Data submitted successfully!");
         navigate(`/project-dashboard/${id}`);
       } else {
-        alert(json.msg);
+        toast.error(json.msg);
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error in submitting data!");
+      toast.error("Error in submitting data!");
     }
   };
 
@@ -201,8 +202,7 @@ export default function Report() {
         ? [...prevState.researchPublications[section]]
         : [];
 
-      updatedArray[index] = e.target.value; // Update the specific index
-
+      updatedArray[index] = e.target.value; 
       return {
         ...prevState,
         researchPublications: {
@@ -602,7 +602,27 @@ export default function Report() {
                 )}
               </>
             )}
-
+                {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 p-5 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <p className="mb-10">Are you sure you want to submit?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={handleSubmit}
+              >
+                Yes, Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
             <div className="flex justify-between con mt-4">
               {page === 1 && (
                 <button onClick={nextPage} className="bg-blue-500 text-white py-2 px-4 rounded-md ml-auto p-8 hover:bg-blue-700">
@@ -621,7 +641,10 @@ export default function Report() {
                 </button>
               )}
               {page === 4 && (
-                <button onClick={handleSubmit} className="bg-blue-500 text-white py-2 px-4 rounded-md ml-auto p-8 hover:bg-blue-700">
+                <button    onClick={(e) => {
+          e.preventDefault(); 
+          setShowModal(true); 
+        }}  className="bg-blue-500 text-white py-2 px-4 rounded-md ml-auto p-8 hover:bg-blue-700">
                   Submit
                 </button>
               )}

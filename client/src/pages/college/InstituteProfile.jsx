@@ -294,11 +294,8 @@ const InstituteProfile = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      <div className="fixed w-full h-20 z-40 shadow-md bg-white">
-        <Navbar yes={1} />
-      </div>
-
-      <div className="flex flex-grow pt-20">
+      <Navbar yes={1}/>
+      <div className="flex flex-grow">
         <SidebarMenu activeSection={activeSection} setActiveSection={setActiveSection} />
 
         <div className="flex-1">

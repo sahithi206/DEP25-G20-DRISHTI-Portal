@@ -3,11 +3,13 @@ import jsPDF from "jspdf";
 import { AuthContext } from "../Context/Authcontext";
 import PropTypes from "prop-types";
 import autoTable from "jspdf-autotable";
-
+import { toast } from "react-toastify";
 export const ReviewAndSubmit = ({ generalInfo, PIdetails, researchDetails, budgetSummary, bankDetails, onEditDetails = {} }) => {
 const [isChecked, setIsChecked] = useState(false);
 const [submitted, setSubmitted] = useState(false);
 const { submitAcknowledgement } = useContext(AuthContext);
+const [showModal, setShowModal] = useState(false);
+
 
 const EditDetails = async (section) => {
     switch (section) {
@@ -38,12 +40,13 @@ const handleSubmit = async (e) => {
             await submitAcknowledgement(isChecked);
             setSubmitted(true);
             console.log("Declaration submitted successfully!");
+            toast.success("Proposal submitted successfully!")
         } catch (error) {
             console.error("Error submitting declaration:", error.message);
-            alert("Failed to submit declaration");
+            toast.error("Failed to submit declaration");
         }
     } else {
-        alert("Please accept the declaration before submitting.");
+        toast.error("Please accept the declaration before submitting.");
     }
 };
 
@@ -55,7 +58,7 @@ const exportAsPDF = () => {
         Object.keys(budgetSummary || {}).length === 0 &&
         Object.keys(bankDetails || {}).length === 0
     ) {
-        alert("No data to export!");
+        toast.error("No data to export!");
         return;
     }
 
@@ -314,7 +317,10 @@ if (researchDetails && Object.keys(researchDetails).length > 0) {
                     {(
                         <>
                             {!submitted ? (
-                                <form onSubmit={handleSubmit} className="space-y-8">
+                                <form onSubmit={(e) => {
+          e.preventDefault(); 
+          setShowModal(true); 
+        }} className="space-y-8">
                                     {generalInfo && (
                                         <div className="bg-blue-50 w-auto min-w-[300px] border border-blue-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300">
 
@@ -530,7 +536,27 @@ if (researchDetails && Object.keys(researchDetails).length > 0) {
                                             )}
                                         </div>
                                     )}
-
+                                     {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 p-5 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <p className="mb-10">Are you sure you want to submit?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={handleSubmit}
+              >
+                Yes, Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
                                     <div className="flex items-center justify-center space-x-4 bg-gray-100 p-4 rounded-lg border border-gray-200">
                                         <input
                                             type="checkbox"
@@ -543,14 +569,15 @@ if (researchDetails && Object.keys(researchDetails).length > 0) {
                                         </span>
                                     </div>
 
-                                    <button
+                                   <button
                                         type="submit"
                                         className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition duration-300 uppercase tracking-wider disabled:opacity-50"
                                         disabled={!isChecked}
                                     >
-                                        Submit Proposal
+                                        Submit 
                                     </button>
                                 </form>
+                                
                             ) : (
                                 <div className="text-center bg-green-50 border border-green-200 p-8 rounded-xl">
                                     <p className="text-2xl font-bold text-green-800 mb-4">
@@ -561,7 +588,7 @@ if (researchDetails && Object.keys(researchDetails).length > 0) {
                                     </p>
                                 </div>
                             )}
-
+                            
                             <div className="mt-8 flex justify-center space-x-6">
                                 <button
                                     onClick={exportAsPDF}

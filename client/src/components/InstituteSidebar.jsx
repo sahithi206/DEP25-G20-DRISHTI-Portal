@@ -1,5 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Home, Users, ClipboardList, ChevronDown, Folder, User } from "lucide-react";
+import {
+  Home,
+  Users,
+  ClipboardList,
+  ChevronDown,
+  Folder,
+  User,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { FaBullseye, FaBars, FaTimes } from "react-icons/fa";
 import { AuthContext } from "../pages/Context/Authcontext";
@@ -25,7 +32,7 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
 
   if (!instituteUser) {
     return (
-      <div className="bg-gray-900 text-white flex flex-col p-5 h-full sticky top-0 transition-all duration-300">
+      <div className="bg-gray-900 text-white p-5 h-full sticky top-0">
         <h2 className="text-2xl font-bold mb-6">Institute Panel</h2>
         <p>Loading...</p>
       </div>
@@ -34,14 +41,9 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
 
   const menuItems = [
     { label: "Dashboard", icon: Home, id: "dashboard", path: "/institute-dashboard" },
-    {
-      label: "Institute Users",
-      icon: Users,
-      id: "users",
-      path: "/institute-users"
-    },
+    { label: "Institute Users", icon: Users, id: "users", path: "/institute-users" },
     { label: "Projects", icon: Folder, id: "sanctioned-projects", path: "/sanctioned-projects" },
-    { label: "Profile", icon: User, id: "profile", path: "/institute/profile" }
+    { label: "Profile", icon: User, id: "profile", path: "/institute/profile" },
   ];
 
   if (instituteUser.role === "Head of Institute") {
@@ -49,7 +51,7 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
       label: "Requests",
       icon: ClipboardList,
       id: "requests",
-      path: "/institute/requests"
+      path: "/institute/requests",
     });
   }
 
@@ -61,13 +63,9 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
       { label: "SE", id: "se", path: "/institute/se" },
     ];
   } else if (instituteUser.role === "CFO") {
-    reportItems = [
-      { label: "UC", id: "uc", path: "/institute/uc" }
-    ];
+    reportItems = [{ label: "UC", id: "uc", path: "/institute/uc" }];
   } else if (instituteUser.role === "Accounts Officer") {
-    reportItems = [
-      { label: "SE", id: "se", path: "/institute/se" }
-    ];
+    reportItems = [{ label: "SE", id: "se", path: "/institute/se" }];
   }
 
   if (reportItems.length > 0) {
@@ -75,52 +73,62 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
       label: "Reports",
       icon: FaBullseye,
       id: "reports",
-      children: reportItems
+      children: reportItems,
     });
   }
 
   return (
-    <div className={`bg-gray-900 text-white flex flex-col min-h-screen sticky top-0 overflow-y-auto transition-all duration-300 ${isSidebarOpen ? "w-72" : "w-16"}`}>
-      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-700">
+    <div
+      className={`bg-gray-900 text-white flex flex-col sticky top-0 min-h-screen overflow-y-auto transition-all duration-300 ${isSidebarOpen ? "w-72" : "w-16"}`}
+    >
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-800">
         {isSidebarOpen && <h2 className="text-xl font-bold">Institute Panel</h2>}
-        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-xl">
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="text-xl focus:outline-none"
+        >
           {isSidebarOpen ? <FaTimes /> : <FaBars />}
         </button>
       </div>
 
-      <ul className="space-y-2 p-4">
+      <ul className="p-4 space-y-2">
         {menuItems.map(({ label, icon: Icon, id, path, children }) => (
           <li key={id}>
             {children ? (
               <>
                 <div
-                  className={`p-3 flex items-center justify-between cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${activeSection === id
-                    ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400"
-                    : ""
-                    }`}
-                  onClick={() => setOpenDropdown(openDropdown === id ? null : id)}
+                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${
+                    openDropdown === id || activeSection === id
+                      ? "bg-gray-800 text-blue-400"
+                      : "hover:bg-gray-700"
+                  }`}
+                  onClick={() =>
+                    setOpenDropdown(openDropdown === id ? null : id)
+                  }
                 >
                   <div className="flex items-center">
                     <Icon className="w-5 h-5 mr-3" />
-                    {isSidebarOpen && label}
+                    {isSidebarOpen && <span>{label}</span>}
                   </div>
                   {isSidebarOpen && (
                     <ChevronDown
-                      className={`w-4 h-4 transform transition-transform ${openDropdown === id ? "rotate-180" : ""
-                        }`}
+                      className={`w-4 h-4 transition-transform ${
+                        openDropdown === id ? "rotate-180" : ""
+                      }`}
                     />
                   )}
                 </div>
                 {openDropdown === id && isSidebarOpen && (
-                  <ul className="ml-6 mt-1 space-y-1">
+                  <ul className="ml-8 mt-1 space-y-1">
                     {children.map(({ label, id: subId, path: subPath }) => (
                       <li key={subId}>
                         <Link
                           to={subPath}
-                          className={`p-2 block rounded-md hover:bg-gray-700 ${activeSection === subId
-                            ? "bg-gray-700 text-blue-400"
-                            : ""
-                            }`}
+                          className={`block px-3 py-2 rounded-md text-sm transition-all ${
+                            activeSection === subId
+                              ? "bg-gray-700 text-blue-400"
+                              : "hover:bg-gray-700"
+                          }`}
                           onClick={() => setActiveSection(subId)}
                         >
                           {label}
@@ -133,14 +141,15 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
             ) : (
               <Link
                 to={path}
-                className={`p-3 flex items-center cursor-pointer rounded-lg transition-all hover:bg-gray-700 ${activeSection === id
-                  ? "bg-gray-700 text-blue-400 border-l-4 border-blue-400"
-                  : ""
-                  }`}
+                className={`flex items-center p-3 rounded-lg transition-all ${
+                  activeSection === id
+                    ? "bg-gray-800 text-blue-400 border-l-4 border-blue-400"
+                    : "hover:bg-gray-700"
+                }`}
                 onClick={() => setActiveSection(id)}
               >
                 <Icon className="w-5 h-5 mr-3" />
-                {isSidebarOpen && label}
+                {isSidebarOpen && <span>{label}</span>}
               </Link>
             )}
           </li>
