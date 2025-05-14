@@ -31,6 +31,7 @@ const ApproveUC = () => {
   const [instituteStamp, setInstituteStamp] = useState(null);
   const [authSignature, setAuthSignature] = useState(null);
   const [showUploadOption, setShowUploadOption] = useState(false);
+  const [showSignatureRequiredModal, setShowSignatureRequiredModal] = useState(false);
   const [instituteOfficials, setInstituteOfficials] = useState({
     headOfInstitute: "Loading...",
     cfo: "Loading...",
@@ -655,6 +656,14 @@ const ApproveUC = () => {
     }
   };
 
+  const handleSendToHOIButtonClick = () => {
+    if (!authSignature) {
+      setShowSignatureRequiredModal(true);
+    } else {
+      setShowSendToHeadModal(true);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar yes={1} />
@@ -1005,7 +1014,7 @@ const ApproveUC = () => {
                             <p className="font-medium">Chief Finance Officer</p>
                             <p className="font-medium">(Head of Finance)</p>
                           </div>
-                          {!authSignature && userRole === "CFO" && (
+                          {userRole === "CFO" && selectedRequest.status === "pending" && (
                             <button
                               onClick={handleAddStamp}
                               className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
@@ -1015,7 +1024,7 @@ const ApproveUC = () => {
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
-                                Add CFO Signature
+                                {authSignature ? "Change Signature" : "Add Signature"}
                               </div>
                             </button>
                           )}
@@ -1039,7 +1048,7 @@ const ApproveUC = () => {
                             <p className="font-medium">Name: {instituteOfficials.headOfInstitute}</p>
                             <p className="font-medium">Head of Organisation</p>
                           </div>
-                          {!instituteStamp && userRole === "Head of Institute" && (
+                          {userRole === "Head of Institute" && selectedRequest.status === "pendingByHOI" && (
                             <button
                               onClick={handleAddStamp}
                               className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
@@ -1049,7 +1058,7 @@ const ApproveUC = () => {
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
-                                Add Institute Stamp
+                                {instituteStamp ? "Change Signature" : "Add Signature"}
                               </div>
                             </button>
                           )}
@@ -1073,15 +1082,15 @@ const ApproveUC = () => {
                       <div className="flex space-x-4">
                         {userRole === "CFO" && selectedRequest.status === "pending" && (
                           <button
-                            onClick={() => setShowSendToHeadModal(true)}
+                            onClick={handleSendToHOIButtonClick}
                             className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200"
-                            disabled={loading || !!authSignature === false}
+                            disabled={loading}
                           >
                             Send to HOI for Signature
                           </button>
                         )}
 
-                        {userRole === "Head of Institute" && selectedRequest.status === "pendingByHOI" && (
+                        {instituteStamp && userRole === "Head of Institute" && selectedRequest.status === "pendingByHOI" && (
                           <button
                             onClick={() => setShowApproveModal(true)}
                             className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
@@ -1187,7 +1196,7 @@ const ApproveUC = () => {
                   onClick={() => setShowStampModal(false)}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
                 >
-                  Cancel
+                  Close
                 </button>
                 <button
                   onClick={saveStamp}
@@ -1371,6 +1380,52 @@ const ApproveUC = () => {
                     ? "The UC has been approved and sent back to CFO for final approval."
                     : "The Utilization Certificate has been successfully approved."}
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal for signature required notification */}
+      {showSignatureRequiredModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Signature Required</h3>
+              <button onClick={() => setShowSignatureRequiredModal(false)}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="mb-6">
+              <div className="flex items-center text-amber-600 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p className="font-semibold">Your signature is required</p>
+              </div>
+              <p className="text-gray-700">
+                Please add your signature before sending this Utilization Certificate to the Head of Institute. Click the "Add CFO Signature" button in the signature section.
+              </p>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setShowSignatureRequiredModal(false);
+                  // Scroll to the signature section and highlight it
+                  const signatureSection = document.querySelector('.border-t.border-gray-200.pt-4.mb-6.mt-6');
+                  if (signatureSection) {
+                    signatureSection.scrollIntoView({ behavior: 'smooth' });
+                    // Add a temporary highlight effect
+                    signatureSection.classList.add('bg-yellow-50');
+                    setTimeout(() => {
+                      signatureSection.classList.remove('bg-yellow-50');
+                    }, 2000);
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+              >
+                Got it
+              </button>
             </div>
           </div>
         </div>

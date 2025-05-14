@@ -14,8 +14,27 @@ const SanctionedProjects = () => {
   const [searchTitle, setSearchTitle] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
   const [filteredProjects, setFilteredProjects] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
+
+  // Check for mobile viewport
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkIfMobile();
+
+    // Add event listener
+    window.addEventListener('resize', checkIfMobile);
+
+    // Clean up
+    return () => {
+      window.removeEventListener('resize', checkIfMobile);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -69,6 +88,7 @@ const SanctionedProjects = () => {
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(entries => {
+      // You can add logic here if needed
     });
 
     if (sidebarRef.current) {
@@ -97,29 +117,69 @@ const SanctionedProjects = () => {
     navigate(`/institute/project-dashboard/${projectId}`);
   };
 
+  // Card view for mobile devices and small screens
+  const renderProjectCard = (project) => (
+    <div
+      key={project._id}
+      onClick={() => handleRowClick(project._id)}
+      className="bg-white rounded-lg shadow-md p-4 mb-4 cursor-pointer hover:shadow-lg transition-shadow"
+    >
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="text-lg font-medium text-gray-900 truncate max-w-xs">{project.Title}</h3>
+        <span
+          className={`px-2 py-1 text-sm rounded-full ${calculateDaysLeft(project.endDate) === "Expired"
+              ? "bg-red-100 text-red-800"
+              : "bg-blue-100 text-blue-800"
+            }`}
+        >
+          {calculateDaysLeft(project.endDate)}
+        </span>
+      </div>
+
+      <div className="text-sm mb-2">
+        <span className="font-semibold text-gray-700">Scheme:</span>{" "}
+        <span className="text-gray-600">{project.Scheme?.name || "N/A"}</span>
+      </div>
+
+      <div className="text-sm">
+        <span className="font-semibold text-gray-700">PI(s):</span>{" "}
+        {project.PI?.length > 0 ? (
+          <span className="text-gray-600">{project.PI.join(", ")}</span>
+        ) : (
+          "N/A"
+        )}
+      </div>
+
+      <div className="mt-2 text-xs text-blue-600">
+        ID: {project._id}
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar yes={1} />
       <div className="flex flex-grow">
         {/* Reference the sidebar to detect its width */}
-        <div ref={sidebarRef}>
+        <div ref={sidebarRef} className="flex-shrink-0">
           <InstituteSidebar
             activeSection={activeSection}
             setActiveSection={setActiveSection}
           />
         </div>
 
-        <main className="flex-grow p-6 transition-all duration-300">
+        <main className="flex-grow p-2 md:p-6 transition-all duration-300 overflow-x-auto">
           <div className="max-w-7xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6 text-gray-800 text-center">
+            <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-gray-800 text-center">
               Ongoing Projects in Your Institute
             </h1>
 
-            <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
+            {/* Responsive filter controls */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
               <div className="relative flex-grow">
                 <input
                   type="text"
-                  placeholder="Search projects by title, PI name, or scheme..."
+                  placeholder="Search projects..."
                   value={searchTitle}
                   onChange={(e) => setSearchTitle(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -144,11 +204,11 @@ const SanctionedProjects = () => {
                 </div>
               </div>
 
-              <div className="flex gap-4 flex-shrink-0">
+              <div className="flex gap-2 md:gap-4">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full md:w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">All Status</option>
                   <option value="Ongoing">Ongoing</option>
@@ -159,7 +219,7 @@ const SanctionedProjects = () => {
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
-                  className="w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full md:w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="newest">Newest</option>
                   <option value="oldest">Oldest</option>
@@ -173,69 +233,87 @@ const SanctionedProjects = () => {
                   <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700"></div>
                 </div>
               ) : filteredProjects.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 transition-all duration-300">
-                    <thead className="bg-gray-200">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Project ID
-                        </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Scheme
-                        </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Principal Investigator(s)
-                        </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Title
-                        </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                          Days Left
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredProjects.map((project) => (
-                        <tr
-                          key={project._id}
-                          className="hover:bg-gray-50 cursor-pointer"
-                          onClick={() => handleRowClick(project._id)}
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:underline">
-                            {project._id}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                            {project.Scheme?.name || "N/A"}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-700">
-                            {project.PI?.length > 0 ? (
-                              <ul className="list-disc pl-5">
-                                {project.PI.map((name, idx) => (
-                                  <li key={idx}>{name}</li>
-                                ))}
-                              </ul>
-                            ) : (
-                              "N/A"
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900 font-medium">
-                            <div className="truncate max-w-md">{project.Title}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
-                            <span
-                              className={`px-2 py-1 rounded-full ${calculateDaysLeft(project.endDate) === "Expired"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-blue-100 text-blue-800"
-                                }`}
+                <>
+                  {/* Card view for small screens */}
+                  {isMobile && (
+                    <div className="p-2">
+                      {filteredProjects.map(project => renderProjectCard(project))}
+                    </div>
+                  )}
+
+                  {/* Table view for larger screens */}
+                  {!isMobile && (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200 transition-all duration-300">
+                        <thead className="bg-gray-200">
+                          <tr>
+                            <th className="px-2 md:px-6 py-3 text-left text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                              Project ID
+                            </th>
+                            <th className="px-2 md:px-6 py-3 text-left text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                              Scheme
+                            </th>
+                            <th className="px-2 md:px-6 py-3 text-left text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                              Principal Investigator(s)
+                            </th>
+                            <th className="px-2 md:px-6 py-3 text-left text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                              Title
+                            </th>
+                            <th className="px-2 md:px-6 py-3 text-left text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                              Days Left
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {filteredProjects.map((project) => (
+                            <tr
+                              key={project._id}
+                              className="hover:bg-gray-50 cursor-pointer"
+                              onClick={() => handleRowClick(project._id)}
                             >
-                              {calculateDaysLeft(project.endDate)}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                              <td className="px-2 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm text-blue-600 hover:underline">
+                                <div className="max-w-[80px] md:max-w-full truncate">
+                                  {project._id}
+                                </div>
+                              </td>
+                              <td className="px-2 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-700">
+                                <div className="max-w-[80px] md:max-w-full truncate">
+                                  {project.Scheme?.name || "N/A"}
+                                </div>
+                              </td>
+                              <td className="px-2 md:px-6 py-2 md:py-4 text-xs md:text-sm text-gray-700">
+                                {project.PI?.length > 0 ? (
+                                  <ul className="list-disc pl-5">
+                                    {project.PI.map((name, idx) => (
+                                      <li key={idx}>{name}</li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  "N/A"
+                                )}
+                              </td>
+                              <td className="px-2 md:px-6 py-2 md:py-4 text-xs md:text-sm text-gray-900 font-medium">
+                                <div className="truncate max-w-[100px] md:max-w-md">
+                                  {project.Title}
+                                </div>
+                              </td>
+                              <td className="px-2 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm font-semibold">
+                                <span
+                                  className={`px-2 py-1 rounded-full ${calculateDaysLeft(project.endDate) === "Expired"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-blue-100 text-blue-800"
+                                    }`}
+                                >
+                                  {calculateDaysLeft(project.endDate)}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-12">
                   <svg
