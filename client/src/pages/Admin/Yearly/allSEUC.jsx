@@ -240,13 +240,6 @@ const AllSEUC = () => {
         }
     };
 
-
-    const openConfirmationModal = (id, type) => {
-        setConfirmationDetails({ id, type });
-        setShowConfirmModal(true);
-    };
-
-
     const closeModal = () => {
         setIsModalOpen(false);
         setComment("");
@@ -286,13 +279,8 @@ const AllSEUC = () => {
         }
     };
 
-    // New function to open confirmation modal
-    const openConfirmationModal = (id, type) => {
-        setConfirmationDetails({ id, type });
-        setShowConfirmModal(true);
-    };
+    
 
-    // Modified admin approval function
     const handleAdminApproval = async (id, action, type) => {
         try {
             const endpoint = type === "UC" ? "uc/admin-approval" : "admin/se-admin-approval";
