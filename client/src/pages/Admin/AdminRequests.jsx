@@ -3,7 +3,7 @@ import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
 import { useLocation } from "react-router-dom";
 const URL = import.meta.env.VITE_REACT_APP_URL;
-
+import { toast } from "react-toastify";
 const AdminRequests = () => {
     const [requests, setRequests] = useState([]);
     const [activeSection, setActiveSection] = useState("requests");
@@ -51,7 +51,7 @@ const AdminRequests = () => {
             } else {
                 const errorData = await response.json();
             console.error("Failed to update request:", errorData);
-                alert("Failed to update request");
+                toast.error("Failed to update request");
             }
         } catch (error) {
             console.error("Error updating request:", error);

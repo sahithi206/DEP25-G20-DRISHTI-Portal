@@ -34,20 +34,20 @@ const Home = () => {
             <div className="flex justify-center px-4 py-12">
                 <div className="bg-white w-full max-w-6xl p-10 shadow-xl rounded-2xl border border-gray-200">
                     <h1 className="text-5xl font-extrabold text-center text-teal-800 mb-6 border-b-4 border-teal-600 pb-3">
-                        ResearchX
+                        DRISHTI: OneRND India
                     </h1>
 
                     <p className="text-gray-700 text-lg leading-8 text-center">
-                        The <strong>ResearchX </strong> was established through the
-                        <strong> ResearchX Act, 2023</strong> to provide high-level strategic direction for research, innovation,
+                        The <strong>DRISHTI: OneRND India </strong> was established through the
+                        <strong> DRISHTI: OneRND India Act, 2023</strong> to provide high-level strategic direction for research, innovation,
                         and entrepreneurship in the fields of natural sciences, engineering and technology, environmental
                         and earth sciences, health and agriculture, and scientific and technological interfaces of
                         humanities and social sciences.
                     </p>
 
                     <p className="text-gray-700 text-lg leading-8 text-center mt-6">
-                        ResearchX fosters a culture of research and innovation across universities, colleges, research institutions, and R&D laboratories in India.
-                        Acting as an apex body, ResearchX directs scientific research aligned with the National Education Policy,
+                        DRISHTI: OneRND India fosters a culture of research and innovation across universities, colleges, research institutions, and R&D laboratories in India.
+                        Acting as an apex body, DRISHTI: OneRND India directs scientific research aligned with the National Education Policy,
                         forging strong collaborations between industry, academia, and government sectors.
                     </p>
 
@@ -55,7 +55,7 @@ const Home = () => {
                         <p className="italic font-semibold text-gray-800 text-lg text-center">
                             "ANRF strategies should align with the goals of <strong>Viksit Bharat 2047</strong>, implementing
                             global best practices adopted by research and development agencies worldwide."
-                            <br /> — <span className="text-teal-700 font-bold">ResearchX Governing Board</span>
+                            <br /> — <span className="text-teal-700 font-bold">DRISHTI: OneRND India Governing Board</span>
                         </p>
                     </div>
 
@@ -76,7 +76,7 @@ const Home = () => {
                 <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
                     <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-2xl">
                         <h2 className="text-2xl font-bold text-teal-800 mb-2 text-center">
-                            Welcome to ResearchX
+                            Welcome to DRISHTI: OneRND India
                         </h2>
                         <h3 className="text-xl font-bold text-teal-800 mb-4 text-center"> Sign in as:</h3>
 

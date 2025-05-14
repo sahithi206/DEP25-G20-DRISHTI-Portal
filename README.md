@@ -1,9 +1,9 @@
 ![image](https://github.com/user-attachments/assets/2395cbfa-f476-4371-9fa5-d6fe6a71bd28)
 ---
 
-# ResearchX – Research Grant Management Portal
+# DRISHTI: OneRND India – Research Grant Management Portal
 
-**ResearchX** is a full-stack MERN application built to digitize and streamline the research grant management process. It acts as a centralized platform for researchers, institutes, and funding agencies to collaborate efficiently on project proposals, approvals, fund disbursement, and compliance tracking.
+**DRISHTI: OneRND India** is a full-stack MERN application built to digitize and streamline the research grant management process. It acts as a centralized platform for researchers, institutes, and funding agencies to collaborate efficiently on project proposals, approvals, fund disbursement, and compliance tracking.
 
 ---
 

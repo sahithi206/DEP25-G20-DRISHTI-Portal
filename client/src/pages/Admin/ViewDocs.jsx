@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
 // import {default as jwtDecode} from "jwt-decode";
+import { toast } from "react-toastify";
+
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
@@ -146,7 +148,7 @@ const ViewDocs = () => {
             console.log("datusysapoikldjh:", data);
 
             if (!data.success) {
-                alert("Failed to fetch certificate details.");
+                toast.error("Failed to fetch certificate details.");
                 return;
             }
 
@@ -158,7 +160,7 @@ const ViewDocs = () => {
 
         } catch (error) {
             console.error("Error fetching certificate details:", error);
-            alert("Error fetching certificate details.");
+            toast.error("Error fetching certificate details.");
         }
     };
 
@@ -175,7 +177,7 @@ const ViewDocs = () => {
             const data = await response.json();
 
             if (!data.success) {
-                alert("Failed to fetch SE details.");
+                toast.error("Failed to fetch SE details.");
                 return;
             }
 
@@ -183,7 +185,7 @@ const ViewDocs = () => {
             setIsCertificateOpen(true);
         } catch (error) {
             console.error("Error fetching SE details:", error);
-            alert("Error fetching SE details.");
+            toast.error("Error fetching SE details.");
         }
     };
 
@@ -336,7 +338,7 @@ const ViewDocs = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-lg shadow-lg w-[90%] max-h-[90vh] overflow-y-auto p-6">
                         <div className="text-center mb-6">
-                            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                            <h1 className="text-3xl font-black text-gray-900 mb-2">DRISHTI: OneRND India</h1>
                             <p className="mt-3 text-2xl font-bold text-blue-800">
                                 Request for Annual Installment with Up-to-Date Statement of Expenditure
                             </p>
@@ -432,7 +434,7 @@ const ViewDocs = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-lg shadow-lg w-[90%] max-h-[90vh] overflow-y-auto p-6">
                         <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+                            <h1 className="text-3xl font-black text-gray-900 mb-2">DRISHTI: OneRND India</h1>
                             <p className="mt-3 text-2xl font-bold text-blue-800">Utilization Certificate</p>
                         </div>
 

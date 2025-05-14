@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
+import { toast } from "react-toastify";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
@@ -16,7 +17,7 @@ const UtilizationCertificates = () => {
         const fetchCertificates = async () => {
             const token = localStorage.getItem("token");
             if (!token) {
-                alert("UnAuthorized Access");
+                toast.error("UnAuthorized Access");
                 navigate("/");
             }
             try {
@@ -65,7 +66,7 @@ const UtilizationCertificates = () => {
 
                 <div className="p-6 space-y-6 mt-16">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                        <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
+                        <img src="/3.png" alt="DRISHTI: OneRND India Logo" className="mx-auto w-84 h-32 object-contain" />
                         <h1 className="text-3xl font-black text-gray-900 mb-2">Utilization Certificates</h1>
                     </div>
 

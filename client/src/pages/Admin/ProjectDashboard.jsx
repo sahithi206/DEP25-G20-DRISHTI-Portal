@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { toast } from "react-toastify";
 
 const ProjectDashboard = () => {
     const [activeSection, setActiveSection] = useState("ongoing");
@@ -23,7 +24,7 @@ const ProjectDashboard = () => {
             const token = localStorage.getItem("token");
             if (!token) {
                 console.log("Use a valid Token");
-                alert("Authentication required.");
+                toast.error("Authentication required.");
                 return;
             }
             try {

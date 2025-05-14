@@ -50,7 +50,7 @@ const Login = () => {
               </svg>
             </div>
           </div>
-          <h2 className="text-2xl font-semibold text-gray-800">ResearchX Portal</h2>
+          <h2 className="text-2xl font-semibold text-gray-800">DRISHTI: OneRND India Portal</h2>
           <p className="text-gray-500 mt-1">Sign in to access your research dashboard</p>
         </div>
 
@@ -119,7 +119,7 @@ const Login = () => {
 
         <div className="mt-8 pt-6 border-t border-gray-200">
           <p className="text-xs text-center text-gray-500">
-            By signing in, you agree to ResearchX's <a href="/terms" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a>
+            By signing in, you agree to DRISHTI: OneRND India's <a href="/terms" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a>
           </p>
         </div>
       </div>

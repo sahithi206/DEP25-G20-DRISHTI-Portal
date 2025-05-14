@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { AuthContext } from "../Context/Authcontext"; 
 import InstituteSidebar from "../../components/InstituteSidebar";
 import Navbar from "../../components/Navbar"; 
-
+import { toast } from "react-toastify";
 const UserProposalsInsti = () => {
   const { userId } = useParams();
   const [proposals, setProposals] = useState([]);
@@ -12,13 +12,12 @@ const UserProposalsInsti = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [searchTitle, setSearchTitle] = useState("");
   const { userInstiAcceptedProposals } = useContext(AuthContext); 
-
   useEffect(() => {
     const fetchProposals = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
         console.log("Use a valid Token");
-        alert("Authentication required.");
+        toast.error("Authentication required.");
         return;
       }
       try {

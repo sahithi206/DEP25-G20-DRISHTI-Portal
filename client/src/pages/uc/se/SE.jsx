@@ -6,6 +6,7 @@ import { AuthContext } from "../../Context/Authcontext";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import SignatureCanvas from 'react-signature-canvas';
+import { toast } from "react-toastify";
 
 
 const url = import.meta.env.VITE_REACT_APP_URL;
@@ -563,15 +564,15 @@ const SEForm = () => {
             const result = await response.json();
 
             if (!result.success) {
-                alert(result.message || "Failed to send SE to admin");
+                toast.error(result.message || "Failed to send SE to admin");
                 return;
             }
 
-            alert("SE sent to admin for approval");
+            toast.success("SE sent to admin for approval");
             setSentToAdmin(true);
         } catch (err) {
             console.error("Error sending SE to admin:", err.message);
-            alert("Failed to send SE to admin");
+            toast.error("Failed to send SE to admin");
         }
     };
 
@@ -582,7 +583,7 @@ const SEForm = () => {
     const handleSend = async () => {
         const token = localStorage.getItem("token");
         if (!token) {
-            alert("Authentication required.");
+            toast.error("Authentication required.");
             return;
         }
         try {
@@ -641,7 +642,7 @@ const SEForm = () => {
 
         } catch (error) {
             console.error("Error:", error);
-            alert(`Error in submitting data: ${error.message}`);
+            toast.error(`Error in submitting data: ${error.message}`);
         }
     };
 
@@ -667,7 +668,7 @@ const SEForm = () => {
         let yPos = 20;
         pdf.setFontSize(14);
         pdf.setFont("helvetica", "bold");
-        pdf.text("RESEARCHX", pageWidth / 2, yPos, { align: "center" });
+        pdf.text("DRISHTI: OneRND India", pageWidth / 2, yPos, { align: "center" });
         yPos += 5;
         pdf.setFontSize(12);
         pdf.text("STATEMENT OF EXPENDITURE", pageWidth / 2, yPos, { align: "center" });
@@ -943,7 +944,7 @@ const SEForm = () => {
                 <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/project-dashboard/${id}`} />
                 <div className="p-6 space-y-6 mt-16">
                     <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                        <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
+                        <img src="/3.png" alt="DRISHTI: OneRND India Logo" className="mx-auto w-84 h-32 object-contain" />
                         <p className="mt-3 text-2xl font-bold text-blue-800">Request for Annual Installment with Up-to-Date Statement of Expenditure</p>
                     </div>
 

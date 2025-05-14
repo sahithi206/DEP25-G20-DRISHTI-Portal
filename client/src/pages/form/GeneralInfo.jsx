@@ -124,7 +124,7 @@ const GeneralInfo = ({ generalInfo }) => {
                         <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, "photo")} />
                     </div>
                     <div>
-                        <label className="block font-semibold">No. of ResearchX Projects (Ongoing):</label>
+                        <label className="block font-semibold">No. of DRISHTI: OneRND India Projects (Ongoing):</label>
                         <input
                             type="number"
                             name="dbtProjectsOngoing"
@@ -135,7 +135,7 @@ const GeneralInfo = ({ generalInfo }) => {
                         />
                     </div>
                     <div>
-                        <label className="block font-semibold">No. of ResearchX Projects (Completed):</label>
+                        <label className="block font-semibold">No. of DRISHTI: OneRND India Projects (Completed):</label>
                         <input
                             type="number"
                             name="dbtProjectsCompleted"

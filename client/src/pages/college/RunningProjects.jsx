@@ -4,7 +4,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { AuthContext } from "../Context/Authcontext";
 import InstituteSidebar from "../../components/InstituteSidebar";
-
+import { toast } from "react-toastify";
 const RunningProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ const RunningProjects = () => {
         }
       } catch (error) {
         console.error("Error fetching projects:", error);
-        alert("Failed to fetch projects");
+        toast.error("Failed to fetch projects");
       } finally {
         setLoading(false);
       }

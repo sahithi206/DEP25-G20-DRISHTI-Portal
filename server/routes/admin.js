@@ -27,7 +27,7 @@ const Project = require("../Models/Project.js")
 const { ObjectId } = require("mongodb");
 const RecurringUC = require("../Models/UcRecurring.js");
 const NonRecurringUC = require("../Models/UcNonrecurring.js");
-const SE = require("../Models/se/SE.js");
+const SE = require("../Models/se/SE.js"); // Ensure this path is correct and the SE model is properly defined
 const Comment = require("../Models/comment.js");
 const UCRequest = require("../Models/UCRequest.js");
 const ProgressReport = require("../Models/progressReport");
@@ -600,14 +600,27 @@ router.get("/view-by-se/:seId", fetchAdmin, async (req, res) => {
   }
 });
 
-router.get("/all-ucforms/", fetchAdmin, async (req, res) => {
+router.get("/all-ucforms", fetchAdmin, async (req, res) => {
   try {
-    const ucForms = await UCRequest.find({status : "pendingAdminApproval"}).sort({ createdAt: -1 });
-    console.log("UC Forms:", ucForms);
-    if (!ucForms || ucForms.length === 0) {
-      return res.status(404).json({ success: false, msg: "No UC forms found" });
+    const schemes = await Scheme.find({ coordinator: req.admin.id }).select("_id");
+    if (!schemes || schemes.length === 0) {
+      return res.status(404).json({ success: false, msg: "No schemes found for this admin" });
     }
-    res.status(200).json({ success: true, msg: "UC forms fetched successfully", data: ucForms });
+
+    const schemeIds = schemes.map(scheme => scheme._id);
+    const ucForms = await UCRequest.find({ status: "pendingAdminApproval" })
+      .populate({
+        path: "projectId",
+        match: { Scheme: { $in: schemeIds } }
+      })
+      .sort({ createdAt: -1 });
+
+    const filteredUCForms = ucForms.filter(uc => uc.projectId !== null);
+    if (!filteredUCForms || filteredUCForms.length === 0) {
+      return res.status(404).json({ success: false, msg: "No UC forms found for the schemes managed by this admin" });
+    }
+
+    res.status(200).json({ success: true, msg: "UC forms fetched successfully", data: filteredUCForms });
   } catch (error) {
     console.error("Error fetching UC forms:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });
@@ -617,12 +630,27 @@ router.get("/all-ucforms/", fetchAdmin, async (req, res) => {
 
 router.get("/all-seforms", fetchAdmin, async (req, res) => {
   try {
-    const seForms = await SE.find({status : "pendingAdminApproval"}).sort({ createdAt: -1 });
-    console.log("SE Forms:", seForms);
-    if (!seForms || seForms.length === 0) {
-      return res.status(404).json({ success: false, msg: "No SE forms found" });
+    const schemes = await Scheme.find({ coordinator: req.admin.id }).select("_id");
+    if (!schemes || schemes.length === 0) {
+      return res.status(404).json({ success: false, msg: "No schemes found for this admin" });
     }
-    res.status(200).json({ success: true, msg: "SE forms fetched successfully", data: seForms });
+
+    const schemeIds = schemes.map(scheme => scheme._id);
+
+    const seForms = await SE.find({ status: "pendingAdminApproval" })
+      .populate({
+        path: "projectId",
+        match: { Scheme: { $in: schemeIds } }
+      })
+      .sort({ createdAt: -1 });
+
+    const filteredSEForms = seForms.filter(se => se.projectId !== null);
+
+    if (!filteredSEForms || filteredSEForms.length === 0) {
+      return res.status(404).json({ success: false, msg: "No SE forms found for the schemes managed by this admin" });
+    }
+
+    res.status(200).json({ success: true, msg: "SE forms fetched successfully", data: filteredSEForms });
   } catch (error) {
     console.error("Error fetching SE forms:", error);
     res.status(500).json({ success: false, error: "Internal Server Error" });

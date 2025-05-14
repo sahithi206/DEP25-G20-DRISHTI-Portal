@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
 const url = import.meta.env.VITE_REACT_APP_URL;
-
+import { toast } from "react-toastify";
 const Certificates = () => {
     const [activeSection, setActiveSection] = useState("ongoing");
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ const Certificates = () => {
         const fetchCertificates = async () => {
             const token = localStorage.getItem("token");
             if (!token) {
-                alert("UnAuthorized Access");
+                toast.error("UnAuthorized Access");
                 navigate("/");
             }
             try {

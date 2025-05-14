@@ -7,6 +7,7 @@ import SignatureCanvas from 'react-signature-canvas';
 import TermsAndConditions from "../uc/se/TermsAndConditions";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { toast } from "react-toastify";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
@@ -227,7 +228,7 @@ const ApproveUC = () => {
       setShowStampModal(false);
       setShowApproveModal(false);
     } else {
-      alert("Please provide a signature/stamp before saving");
+      toast.error("Please provide a signature/stamp before saving");
     }
   };
 
@@ -268,7 +269,7 @@ const ApproveUC = () => {
       }, 2000);
     } catch (err) {
       console.error("Error sending to CFO:", err.message);
-      alert("Failed to send to CFO");
+      toast.error("Failed to send to CFO");
       setLoading(false);
     }
   };
@@ -310,7 +311,7 @@ const ApproveUC = () => {
       }, 2000);
     } catch (err) {
       console.error("Error approving request:", err.message);
-      alert("Failed to approve request");
+      toast.error("Failed to approve request");
       setLoading(false);
     }
   };
@@ -354,7 +355,7 @@ const ApproveUC = () => {
       }, 2000);
     } catch (err) {
       console.error("Error approving request:", err.message);
-      alert("Failed to approve request");
+      toast.error("Failed to approve request");
       setLoading(false);
     }
   };

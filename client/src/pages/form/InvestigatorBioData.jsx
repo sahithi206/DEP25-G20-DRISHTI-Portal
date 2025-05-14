@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import HomeNavbar from "../../utils/HomeNavbar";
+import { toast } from "react-toastify";
 
 const InvestigatorBiodata = () => {
     const [investigator, setInvestigator] = useState("");
@@ -8,7 +9,7 @@ const InvestigatorBiodata = () => {
 
     const handleSave = () => {
         setBasicDetailsSaved(true);
-        alert("Basic details saved successfully!");
+        toast.error("Basic details saved successfully!");
     };
 
     return (

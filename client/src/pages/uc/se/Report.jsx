@@ -48,7 +48,7 @@ export default function Report() {
         <HomeNavbar isSidebarOpen={isSidebarOpen} path={`/project-dashboard/${report?.projectId._id}`} />
         <div className="p-6 space-y-6 mt-16">
           <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                                                          <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
+                                                          <img src="/3.png" alt="DRISHTI: OneRND India Logo" className="mx-auto w-84 h-32 object-contain" />
 
             {report?.projectId?.currentYear && (
               <p className="text-lg font-semibold text-gray-600 mt-2">

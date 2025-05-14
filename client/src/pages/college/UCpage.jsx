@@ -381,7 +381,7 @@ const UCPage = () => {
                   <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-lg shadow-lg w-[90%] max-h-[90vh] overflow-y-auto p-6">
                       <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                        <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
+              <img src="/3.png" alt="DRISHTI: OneRND India Logo" className="mx-auto w-84 h-32 object-contain"/>
                         <p className="mt-3 text-2xl font-bold text-blue-800">Utilization Certificate</p>
                       </div>
 

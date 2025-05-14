@@ -66,7 +66,7 @@ const ProjectExpenses = () => {
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
-                alert("Failed to fetch data: " + error.message);
+                toast.error("Failed to fetch data: " + error.message);
             } finally {
                 setLoading(false);
             }
@@ -83,7 +83,7 @@ const ProjectExpenses = () => {
         setLoading(true);
         setError("");
         const commentText = comments[expenseId]?.trim();
-        if (!commentText) return alert("Please enter a comment!");
+        if (!commentText) return toast.error("Please enter a comment!");
 
         try {
             const response = await fetch(`${url}expense-comments/add`, {
@@ -105,12 +105,12 @@ const ProjectExpenses = () => {
                 return;
             }
 
-            alert("Comment added successfully!");
+            toast.success("Comment added successfully!");
             setComments((prev) => ({ ...prev, [expenseId]: "" }));
             fetchCommentsForExpense(expenseId);
         } catch (err) {
             console.error("Error adding comment:", err);
-            alert("Failed to add comment. Please try again.");
+            toast.error("Failed to add comment. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -216,7 +216,7 @@ const ProjectExpenses = () => {
             })
             .catch(error => {
                 console.error("Error applying filters:", error);
-                alert("Failed to filter expenses");
+                toast.error("Failed to filter expenses");
                 setLoading(false);
             });
     };
@@ -256,10 +256,10 @@ const ProjectExpenses = () => {
             const updatedExpenses = expenses.filter(expense => expense._id !== expenseId);
             setExpenses(updatedExpenses);
             calculateSummary(updatedExpenses);
-            alert("Expense deleted successfully");
+            toast.success("Expense deleted successfully");
         } catch (error) {
             console.error("Error deleting expense:", error);
-            alert(error.message);
+            toast.error(error.message);
         }
     };
 
@@ -285,7 +285,7 @@ const ProjectExpenses = () => {
 
     const handleEditExpense = async () => {
         if (!editExpenseData.id) {
-            alert("No expense selected for editing.");
+            toast.error("No expense selected for editing.");
             return;
         }
 
@@ -301,7 +301,7 @@ const ProjectExpenses = () => {
             const response = await editExpense(editExpenseData.id, updatedExpense);
 
             if (!response || !response.success) {
-                alert(response?.message || "Failed to update expense");
+                toast.error(response?.message || "Failed to update expense");
                 return;
             }
 
@@ -315,10 +315,10 @@ const ProjectExpenses = () => {
                 )
             );
 
-            alert("Expense updated successfully!");
+            toast.success("Expense updated successfully!");
         } catch (error) {
             console.error("Error updating expense:", error);
-            alert("Failed to update expense due to server error");
+            toast.error("Failed to update expense due to server error");
         }
 
     };

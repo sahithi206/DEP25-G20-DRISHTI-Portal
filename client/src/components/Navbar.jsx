@@ -144,7 +144,7 @@ const Navbar = ({ yes }) => {
           <h1 className="text-3xl font-bold leading-tight">
             <img
               src="/4.png"
-              alt="ResearchX Logo"
+              alt="DRISHTI: OneRND India Logo"
               className="mx-auto w-56 h-25 object-contain"
             />
           </h1>
@@ -195,7 +195,7 @@ const Navbar = ({ yes }) => {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-2xl">
             <h2 className="text-2xl font-bold text-teal-800 mb-2 text-center">
-              Welcome to ResearchX
+              Welcome to DRISHTI: OneRND India
             </h2>
             <h3 className="text-xl font-bold text-teal-800 mb-4 text-center"> Sign in as:</h3>
 

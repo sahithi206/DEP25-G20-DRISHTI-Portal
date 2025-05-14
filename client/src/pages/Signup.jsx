@@ -177,7 +177,7 @@ const Signup = () => {
             </svg>
           </div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">Registration Successful!</h2>
-          <p className="text-gray-600 mb-6 text-center">Your account has been created successfully.<br />You can now log in to access the ResearchX platform.</p>
+          <p className="text-gray-600 mb-6 text-center">Your account has been created successfully.<br />You can now log in to access the DRISHTI: OneRND India platform.</p>
           <button
             onClick={() => window.location.href = '/login'}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition duration-200"
@@ -442,7 +442,7 @@ const Signup = () => {
         </div>
 
         <div className="mb-6 text-center">
-          <h2 className="text-2xl font-semibold text-gray-800">Create ResearchX Account</h2>
+          <h2 className="text-2xl font-semibold text-gray-800">Create DRISHTI: OneRND India Account</h2>
           <p className="text-gray-500 mt-1">Join our research community</p>
         </div>
 

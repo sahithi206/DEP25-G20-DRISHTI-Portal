@@ -560,8 +560,7 @@ router.get("/proposals", fetchUser, async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const proposals = await Proposal.find({ userId: userId, status: "Pending" });
-
+    const proposals = await Proposal.find({ userId: userId, status: "Pending" }).populate("Scheme");
     console.log("Fetched Proposals:", proposals);
 
     if (!proposals.length) {

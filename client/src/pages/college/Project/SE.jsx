@@ -5,7 +5,7 @@ import Navbar from "../../../components/Navbar";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import SignatureCanvas from 'react-signature-canvas';
-
+import { toast } from "react-toastify";
 const url = import.meta.env.VITE_REACT_APP_URL;
 
 const SEPage = () => {
@@ -173,7 +173,7 @@ const SEPage = () => {
             }, 2000);
         } catch (err) {
             console.error("Error approving SE request:", err.message);
-            alert("Failed to approve request");
+            toast.error("Failed to approve request");
             setLoading(false);
         }
     };

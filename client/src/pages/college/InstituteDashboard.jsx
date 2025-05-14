@@ -3,6 +3,7 @@ import { AuthContext } from "../Context/Authcontext";
 import HomeNavbar from "../../components/Navbar";
 import Sidebar from "../../components/InstituteSidebar";
 import axios from "axios";
+import { toast } from "react-toastify";
 const url = import.meta.env.VITE_REACT_APP_URL;
 import {
   BarChart,
@@ -770,7 +771,7 @@ const InstituteDashboard = () => {
         setUsers(usersData || []);
       } catch (error) {
         console.error("Error fetching data:", error);
-        alert("Failed to fetch data");
+        toast.error("Failed to fetch data");
       } finally {
         setLoading(false);
       }

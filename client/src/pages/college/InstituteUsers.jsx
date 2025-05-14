@@ -4,7 +4,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { AuthContext } from "../Context/Authcontext";
 import InstituteSidebar from "../../components/InstituteSidebar";
-
+import { toast } from "react-toastify";
 const InstituteUsers = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -25,7 +25,7 @@ const InstituteUsers = () => {
         }
       } catch (error) {
         console.error("Error fetching users:", error);
-        alert("Failed to fetch users");
+        toast.error("Failed to fetch users");
       } finally {
         setLoading(false);
       }

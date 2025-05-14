@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import { FaCheck, FaTimes } from "react-icons/fa";
 const URL = import.meta.env.VITE_REACT_APP_URL;
+import { toast } from "react-toastify";
+
 
 const FundCycleApproval = () => {
     const [fundRequests, setFundRequests] = useState([]);
@@ -24,7 +26,7 @@ const FundCycleApproval = () => {
             if (response.ok) {
                 setFundRequests(fundRequests.map(req => req._id === id ? { ...req, status } : req));
             } else {
-                alert("Failed to update fund request status");
+                toast.error("Failed to update fund request status");
             }
         } catch (error) {
             console.error("Error updating fund request:", error);

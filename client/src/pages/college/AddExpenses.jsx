@@ -6,6 +6,7 @@ import Footer from "../../components/Footer";
 import InstituteSidebar from "../../components/InstituteSidebar";
 import ExcelToCSV from "../../components/ExcelToCsv";
 const url = import.meta.env.VITE_REACT_APP_URL;
+import { toast } from "react-toastify";
 
 const AddExpense = () => {
   const { projectId } = useParams();
@@ -69,7 +70,7 @@ const AddExpense = () => {
 
   const handleUpload = async () => {
     if (!csvData) {
-      alert("Please convert an Excel file first.");
+      toast.error("Please convert an Excel file first.");
       return;
     }
 
@@ -94,7 +95,7 @@ const AddExpense = () => {
         throw new Error(result.message || "Failed to upload expenses");
       }
 
-      alert(`${result.message} (${result.added} added, ${result.skipped} skipped:Transaction date must be on or after the committed date)`);
+      toast.success(`${result.message} (${result.added} added, ${result.skipped} skipped:Transaction date must be on or after the committed date)`);
       setCsvData("");
       setUploadSuccess(true);
     } catch (error) {
@@ -103,7 +104,7 @@ const AddExpense = () => {
         name: error.name,
         stack: error.stack
       });
-      alert(`Upload failed: ${error.message}`);
+      toast.error(`Upload failed: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -135,11 +136,11 @@ const AddExpense = () => {
       const result = await response.json(); // <- Properly parse as JSON here
 
       if (!response.ok) {
-        alert(result.message || "Failed to add expense");
+        toast.error(result.message || "Failed to add expense");
         return;
       }
 
-      alert("Expense added successfully!");
+      toast.success("Expense added successfully!");
       setManualExpense({
         description: "",
         amount: "",
@@ -149,7 +150,7 @@ const AddExpense = () => {
       });
     } catch (error) {
       console.error("Detailed error adding expense:", error);
-      alert(`Failed to add expense: ${error.message}`);
+      toast.error(`Failed to add expense: ${error.message}`);
     }
   };
 
@@ -238,7 +239,7 @@ const AddExpense = () => {
         name: error.name,
         stack: error.stack
       });
-      alert(`Failed to download Excel template: ${error.message}`);
+      toast.error(`Failed to download Excel template: ${error.message}`);
     }
   };
 

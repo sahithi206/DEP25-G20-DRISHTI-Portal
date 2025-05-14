@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";
 import { AuthContext } from "./Context/Authcontext";
-
+import { toast } from "react-toastify";
 const UserProfile = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { getuser } = useContext(AuthContext);
@@ -42,7 +42,7 @@ const UserProfile = () => {
 
     const exportAsJSON = () => {
         if (!data) {
-            alert("No data to export!");
+            toast.error("No data to export!");
             return;
         }
         const jsonData = JSON.stringify(data, null, 2);

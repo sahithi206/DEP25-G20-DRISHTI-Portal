@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";
 const url = import.meta.env.VITE_REACT_APP_URL;
+import { toast } from "react-toastify";
 
 const SEForm = () => {
     const [activeSection, setActiveSection] = useState("ongoing");
@@ -36,7 +37,7 @@ const SEForm = () => {
         const fetchSe = async () => {
             const token = localStorage.getItem("token");
             if (!token) {
-                alert("Authentication required.");
+                toast.error("Authentication required.");
                 return;
             }
             try {
@@ -73,11 +74,11 @@ const SEForm = () => {
                         endDate: json.se?.endDate || "",
                     }));
                 } else {
-                    alert("Error in Fetching form");
+                    toast.error("Error in Fetching form");
                 }
             } catch (e) {
                 console.error("Error fetching data:", e);
-                alert("Failed to fetch data.");
+                toast.error("Failed to fetch data.");
             }
         };
         fetchSe();

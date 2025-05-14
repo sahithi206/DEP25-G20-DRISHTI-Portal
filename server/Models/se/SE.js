@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const SESchema = new mongoose.Schema({
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
     name: { type: String, required: true },
+    type:{type:String,default:"SE"},
     institute: { type: String, required: true },
     scheme: { type: String, required: true },
     currentYear: { type: Number, required: true },

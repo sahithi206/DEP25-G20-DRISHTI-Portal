@@ -7,7 +7,7 @@ import { AuthContext } from "../Context/Authcontext";
 import SignatureCanvas from 'react-signature-canvas';
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-
+import { toast } from "react-toastify";
 const url = import.meta.env.VITE_REACT_APP_URL;
 
 const ApproveSE = () => {
@@ -241,7 +241,7 @@ const ApproveSE = () => {
       setShowStampModal(false);
       setShowApproveModal(false);
     } else {
-      alert("Please provide a signature/stamp before saving");
+      toast.error("Please provide a signature/stamp before saving");
     }
   };
 
@@ -282,7 +282,7 @@ const ApproveSE = () => {
       }, 2000);
     } catch (err) {
       console.error("Error sending to Head:", err.message);
-      alert("Failed to send to Head");
+      toast.error("Failed to send to Head");
       setLoading(false);
     }
   };
@@ -324,7 +324,7 @@ const ApproveSE = () => {
       }, 2000);
     } catch (err) {
       console.error("Error approving request:", err.message);
-      alert("Failed to approve request");
+      toast.error("Failed to approve request");
       setLoading(false);
     }
   };
@@ -370,7 +370,7 @@ const ApproveSE = () => {
       }, 2000);
     } catch (err) {
       console.error("Error approving SE request:", err.message);
-      alert("Failed to approve request");
+      toast.error("Failed to approve request");
       setLoading(false);
     }
   };
@@ -389,7 +389,7 @@ const ApproveSE = () => {
         // Add header to new page
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
-        doc.text("RESEARCHX - STATEMENT OF EXPENDITURE", pageWidth / 2, margin, { align: "center" });
+        doc.text("DRISHTI: OneRND India - STATEMENT OF EXPENDITURE", pageWidth / 2, margin, { align: "center" });
         return margin + 30; // Reset Y position with header space
       }
       return currentY;
@@ -399,7 +399,7 @@ const ApproveSE = () => {
     let yPos = margin + 20;
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text("RESEARCHX", pageWidth / 2, yPos, { align: "center" });
+    doc.text("DRISHTI: OneRND India", pageWidth / 2, yPos, { align: "center" });
     yPos += 25;
     doc.text("STATEMENT OF EXPENDITURE", pageWidth / 2, yPos, { align: "center" });
 
@@ -592,7 +592,7 @@ const ApproveSE = () => {
           // Redraw the header on each page
           doc.setFontSize(12);
           doc.setFont("helvetica", "bold");
-          doc.text("RESEARCHX - STATEMENT OF EXPENDITURE",
+          doc.text("DRISHTI: OneRND India - STATEMENT OF EXPENDITURE",
             pageWidth / 2, margin, { align: "center" });
         }
 
@@ -710,7 +710,7 @@ const ApproveSE = () => {
     }
 
     // Save the PDF with proper filename
-    doc.save(`RESEARCHX_SE_${seData.projectId || "67fe88ea3e8f9cb9ba42a8b6"}_${financialYear}.pdf`);
+    doc.save(`DRISHTI: OneRND India_SE_${seData.projectId || "67fe88ea3e8f9cb9ba42a8b6"}_${financialYear}.pdf`);
   };
 
   // Get appropriate page title based on user role

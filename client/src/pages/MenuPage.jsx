@@ -38,7 +38,7 @@ const MenuPage = () => {
                     <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-bold text-gray-800">Principal Investigator Dashboard</h1>
                         <div className="flex items-center space-x-2">
-                            <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">ResearchX Platform</span>
+                            <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">DRISHTI: OneRND India Platform</span>
                             <span className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">PI Access</span>
                         </div>
                     </div>

@@ -77,7 +77,7 @@ const exportAsPDF = () => {
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(18);
-        doc.text("ResearchX Proposal Submission", 68, y);
+        doc.text("DRISHTI: OneRND India Proposal Submission", 68, y);
         y += 10;
 
         doc.setDrawColor(0);
@@ -303,7 +303,7 @@ if (researchDetails && Object.keys(researchDetails).length > 0) {
         }
 
         // Save
-        doc.save("ResearchX_Acknowledgement.pdf");
+        doc.save("DRISHTI: OneRND India_Acknowledgement.pdf");
     };
 };
 

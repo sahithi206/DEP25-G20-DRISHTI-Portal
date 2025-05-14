@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "../utils/Sidebar";
 import { FaUserCircle, FaPowerOff, FaFilter, FaChevronDown, FaSearch, FaComments, FaTimes } from "react-icons/fa";
 import HomeNavbar from "../utils/HomeNavbar";
-
+import { toast } from "react-toastify";
 const ProposalInbox = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -34,6 +34,7 @@ const ProposalInbox = () => {
                     throw new Error("Failed to fetch proposals. Please try again.");
                 }
                 const data = await response.json();
+                console.log(data.data);
                 setProposals(data.data || []);
             } catch (err) {
                 setError(err.message);
@@ -56,8 +57,7 @@ const ProposalInbox = () => {
 
     const filteredProposals = proposals
         .filter(proposal =>
-            (proposal.generalInfo?.instituteName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                proposal.generalInfo?.areaOfSpecialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (    proposal.proposal.Scheme?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 proposal.researchDetails?.Title?.toLowerCase().includes(searchTerm.toLowerCase())) &&
             (filter === "All" || proposal.proposal?.status === filter)
         )
@@ -73,7 +73,7 @@ const ProposalInbox = () => {
 
     const handleRevisionSubmit = async (proposalId) => {
         setSelectedProposal(null);
-        alert("Revision submitted successfully!");
+        toast.success("Revision submitted successfully!");
     };
 
     return (
@@ -125,7 +125,7 @@ const ProposalInbox = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-blue-700 text-white">
                     <tr>
-                      {["Institute Name", "Specialization", "Title", "Status", "Actions"].map(header => (
+                      {["Scheme", "Title", "Status", "Actions"].map(header => (
                         <th key={header} className="p-4 text-center font-semibold text-xs border-b border-blue-600">{header}</th>
                       ))}
                     </tr>
@@ -138,8 +138,7 @@ const ProposalInbox = () => {
                     ) : filteredProposals.length > 0 ? (
                       filteredProposals.map((proposal, index) => (
                         <tr key={index} className="group hover:bg-blue-50 transition-colors border-b last:border-b-0">
-                          <td className="p-4 text-center font-semibold text-xs">{proposal.generalInfo?.instituteName}</td>
-                          <td className="p-4 text-center font-semibold text-xs">{proposal.generalInfo?.areaOfSpecialization}</td>
+                          <td className="p-4 text-center font-semibold text-xs">{proposal.proposal.Scheme?.name}</td>
                           <td className="p-4 text-center font-semibold text-xs">{proposal.researchDetails?.Title}</td>
                           <td className="p-4 text-center font-semibold text-xs">
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusColor(proposal.proposal?.status)}`}>

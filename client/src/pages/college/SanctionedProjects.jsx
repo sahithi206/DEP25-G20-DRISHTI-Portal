@@ -4,7 +4,7 @@ import Navbar from "../../components/Navbar";
 import { AuthContext } from "../Context/Authcontext";
 import InstituteSidebar from "../../components/InstituteSidebar";
 import { useNavigate } from "react-router-dom";
-
+import { toast } from "react-toastify";
 const SanctionedProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ const SanctionedProjects = () => {
         }
       } catch (error) {
         console.error("Error fetching sanctioned projects:", error);
-        alert("Failed to fetch sanctioned projects");
+        toast.error("Failed to fetch sanctioned projects");
       } finally {
         setLoading(false);
       }

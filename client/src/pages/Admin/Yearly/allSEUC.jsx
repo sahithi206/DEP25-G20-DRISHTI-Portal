@@ -1,8 +1,11 @@
 import { useState, useEffect, useContext } from "react";
+import React from 'react';
+
 import { AuthContext } from "../../Context/Authcontext";
 import AdminSidebar from "../../../components/AdminSidebar";
 import AdminNavbar from "../../../components/AdminNavbar";
 import TermsAndConditions from "../../uc/se/TermsAndConditions";
+import { toast } from "react-toastify";
 
 const url = import.meta.env.VITE_REACT_APP_URL;
 
@@ -12,6 +15,7 @@ const AllSEUC = () => {
     const [error, setError] = useState("");
     const [allUCs, setAllUCs] = useState([]);
     const [allSEs, setAllSEs] = useState([]);
+    const [groupedData, setGroupedData] = useState([]);
     const [selectedCertificate, setSelectedCertificate] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
@@ -24,20 +28,32 @@ const AllSEUC = () => {
     const [authSignature, setAuthSignature] = useState(null);
     const [reloadKey, setReloadKey] = useState(0);
     const [comment, setComment] = useState("");
-    const [searchQueryUC, setSearchQueryUC] = useState("");
-    const [searchQuerySE, setSearchQuerySE] = useState("");
-    const [sortOrderUC, setSortOrderUC] = useState("asc");
-    const [sortOrderSE, setSortOrderSE] = useState("asc");
-    const [filterUC, setFilterUC] = useState("");
-    const [filterSE, setFilterSE] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [sortOrder, setSortOrder] = useState("asc");
+    const [filterInstitute, setFilterInstitute] = useState("");
     const [instituteOfficials, setInstituteOfficials] = useState({
         headOfInstitute: "Loading...",
         cfo: "Loading...",
         accountsOfficer: "Loading...",
     });
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmationDetails, setConfirmationDetails] = useState(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
 
     const [isSortFilterOpen, setIsSortFilterOpen] = useState(false);
+    // Get current financial year
+    const getCurrentFinancialYear = () => {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
 
+        return currentMonth >= 3
+            ? `${currentYear}-${(currentYear + 1).toString().slice(-2)}`
+            : `${currentYear - 1}-${currentYear.toString().slice(-2)}`;
+    };
+
+    const currentFY = getCurrentFinancialYear();
 
     const fetchAllUCs = async () => {
         try {
@@ -48,18 +64,15 @@ const AllSEUC = () => {
                     "accessToken": localStorage.getItem("token"),
                 },
             });
-
             const data = await response.json();
 
             if (!data.success || !data.data || data.data.length === 0) {
                 setError("No UCs found for admin approval");
                 setAllUCs([]);
-                setFilteredUCs([]);
                 return;
             }
 
             setAllUCs(data.data);
-            setFilteredUCs(data.data);
         } catch (error) {
             console.error("Error fetching all UCs:", error);
             setError("Internal Server Error");
@@ -81,12 +94,10 @@ const AllSEUC = () => {
             if (!data.success || !data.data || data.data.length === 0) {
                 setError("No SEs found for admin approval");
                 setAllSEs([]);
-                setFilteredSEs([]);
                 return;
             }
 
             setAllSEs(data.data);
-            setFilteredSEs(data.data);
         } catch (error) {
             console.error("Error fetching all SEs:", error);
             setError("Internal Server Error");
@@ -98,6 +109,77 @@ const AllSEUC = () => {
         fetchAllSEs();
     }, [reloadKey]);
 
+    useEffect(() => {
+        // Group data by project ID and current year
+        console.log(allSEs);
+        console.log(allUCs);
+        const groupData = () => {
+            const projectMap = new Map();
+
+            allUCs.forEach(uc => {
+                const key = uc.projectId._id; // Use projectId as the key
+                if (!projectMap.has(key)) {
+                    projectMap.set(key, {
+                        projectId: uc?.projectId._id,
+                        currentYear: uc?.currentYear,
+                        title: uc?.projectId.Title || null,
+                        principalInvestigator: Array.isArray(uc?.projectId?.PI) ? uc?.projectId.PI.join(", ") : "N/A",
+                        institute: uc?.ucData?.instituteName || "N/A",
+                        uc: uc || [],
+                        se: null
+                    });
+                } else {
+                    // If a project already exists, update the UC
+                    const existing = projectMap.get(key);
+                    projectMap.set(key, {
+                        ...existing,
+                        uc: uc
+                    });
+                }
+            });
+
+            // Then process SEs
+            allSEs.forEach(se => {
+                const key = se.projectId._id; // Use projectId as the key
+                if (!projectMap.has(key)) {
+                    // SE without UC
+                    projectMap.set(key, {
+                        projectId: se.projectId._id,
+                        currentYear: se.currentYear,
+                        title: se?.projectId?.Title,
+                        principalInvestigator: Array.isArray(se?.projectId?.PI) ? se.projectId.PI.join(", ") : "N/A",
+                        institute: se.institute || "N/A",
+                        uc: null,
+                        se: se
+                    });
+                } else {
+                    // SE with existing UC or another SE
+                    const existing = projectMap.get(key);
+                    projectMap.set(key, {
+                        ...existing,
+                        se: se
+                    });
+                }
+            });
+
+            // Convert to array and sort
+            const groupedArray = Array.from(projectMap.values()).sort((a, b) => {
+                const dateA = a.uc?.submissionDate || a.se?.date;
+                const dateB = b.uc?.submissionDate || b.se?.date;
+
+                if (sortOrder === "asc") {
+                    return new Date(dateA) - new Date(dateB);
+                } else {
+                    return new Date(dateB) - new Date(dateA);
+                }
+            });
+
+            setGroupedData(groupedArray);
+        };
+
+        groupData();
+        console.log(groupedData);
+    }, [allUCs, allSEs, sortOrder]);
     const handleViewCertificate = async (certificate) => {
         try {
             const response = await fetch(`${url}admin/ucforms/view/${certificate._id}`, {
@@ -111,7 +193,7 @@ const AllSEUC = () => {
             const data = await response.json();
 
             if (!data.success) {
-                alert("Failed to fetch certificate details.");
+                toast.error("Failed to fetch certificate details.");
                 return;
             }
             const authData = await fetchInstituteOfficials(data.data.ucData.instituteName);
@@ -120,11 +202,11 @@ const AllSEUC = () => {
             setPiSignature(data.data.piSignature);
             setInstituteStamp(data.data.instituteStamp);
             setAuthSignature(data.data.authSignature);
-            setSelectedType(data.data.type);
+            setSelectedType(data.data?.type);
             setUCData(data.data.ucData);
         } catch (error) {
             console.error("Error fetching certificate details:", error);
-            alert("Error fetching certificate details.");
+            toast.error("Error fetching certificate details.");
         }
     };
 
@@ -141,7 +223,7 @@ const AllSEUC = () => {
             const data = await response.json();
 
             if (!data.success) {
-                alert("Failed to fetch SE details.");
+                toast.error("Failed to fetch SE details.");
                 return;
             }
             const authData = await fetchInstituteOfficials(data.data.institute);
@@ -151,17 +233,18 @@ const AllSEUC = () => {
             setPiSignature(data.data.piSignature);
             setAuthSignature(data.data.authSignature);
             setIsCertificateOpen(true);
-
         } catch (error) {
             console.error("Error fetching SE details:", error);
-            alert("Error fetching SE details.");
+            toast.error("Error fetching SE details.");
         }
     };
 
-    const openCommentModal = (certificate) => {
-        setSelectedCertificate(certificate);
-        setIsModalOpen(true);
+
+    const openConfirmationModal = (id, type) => {
+        setConfirmationDetails({ id, type });
+        setShowConfirmModal(true);
     };
+
 
     const closeModal = () => {
         setIsModalOpen(false);
@@ -170,11 +253,15 @@ const AllSEUC = () => {
 
     const handleSubmitComment = async () => {
         if (!comment.trim()) {
-            alert("Comment cannot be empty");
+            toast.error("Comment cannot be empty");
             return;
         }
         try {
-            const response = await fetch(`${url}admin/add-comment/${selectedCertificate._id}`, {
+            const endpoint = selectedCertificate?.type === "UC"
+                ? "admin/add-comment"
+                : "admin/add-se-comment";
+
+            const response = await fetch(`${url}${endpoint}/${selectedCertificate._id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -186,14 +273,15 @@ const AllSEUC = () => {
             const data = await response.json();
 
             if (data.success) {
-                alert("Comment added successfully!");
+                toast.success("Comment added successfully!");
                 closeModal();
+                setReloadKey(prev => prev + 1);
             } else {
-                alert("Failed to add comment.");
+                toast.error("Failed to add comment.");
             }
         } catch (error) {
             console.error("Error submitting comment:", error);
-            alert("Error submitting comment.");
+            toast.error("Error submitting comment.");
         }
     };
 
@@ -212,224 +300,179 @@ const AllSEUC = () => {
             const data = await response.json();
 
             if (data.success) {
-                alert(`${type} ${action}d successfully!`);
+                toast.success(`${type} ${action}d successfully!`);
                 setReloadKey((prevKey) => prevKey + 1);
             } else {
-                alert(data.message || "Failed to process the request.");
+                toast.error(data.message || "Failed to process the request.");
             }
         } catch (error) {
             console.error(`Error during ${action} action:`, error);
-            alert("An error occurred while processing the request.");
+            toast.error("An error occurred while processing the request.");
         }
     };
+    const filteredData = groupedData.filter(item => {
+        const matchesSearch = searchQuery
+            ? item.projectId._id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.institute?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.principalInvestigator?.toLowerCase().includes(searchQuery.toLowerCase())
+            : true;
 
-    const filteredUCs = allUCs
-        .filter((uc) => {
-            const matchesSearch = searchQueryUC
-                ? uc.projectId?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
-                uc.ucData?.title?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
-                uc.ucData?.instituteName?.toLowerCase().includes(searchQueryUC.toLowerCase()) ||
-                uc.ucData?.principalInvestigator?.toLowerCase().includes(searchQueryUC.toLowerCase())
-                : true;
-            const matchesFilter = filterUC ? uc.ucData?.instituteName === filterUC : true;
-            return matchesSearch && matchesFilter;
-        })
-        .sort((a, b) => {
-            if (sortOrderUC === "asc") {
-                return new Date(a.submissionDate) - new Date(b.submissionDate);
-            } else {
-                return new Date(b.submissionDate) - new Date(a.submissionDate);
-            }
-        });
+        const matchesFilter = filterInstitute ? item.institute === filterInstitute : true;
 
-    const filteredSEs = allSEs
-        .filter((se) => {
-            const matchesSearch = searchQuerySE
-                ? se.projectId?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
-                se.title?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
-                se.institute?.toLowerCase().includes(searchQuerySE.toLowerCase()) ||
-                se.name?.toLowerCase().includes(searchQuerySE.toLowerCase())
-                : true;
-            const matchesFilter = filterSE ? se.institute === filterSE : true;
-            return matchesSearch && matchesFilter;
-        })
-        .sort((a, b) => {
-            if (sortOrderSE === "asc") {
-                return new Date(a.date) - new Date(b.date);
-            } else {
-                return new Date(b.date) - new Date(a.date);
-            }
-        });
-
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-
-    const financialYear =
-        currentMonth >= 3
-            ? `${currentYear}-${(currentYear + 1).toString().slice(-2)}`
-            : `${currentYear - 1}-${currentYear.toString().slice(-2)}`;
-
+        return matchesSearch && matchesFilter;
+    });
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex flex-col lg:flex-row bg-gray-100 min-h-screen">
             <AdminSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
                 <AdminNavbar activeSection={activeSection} />
-                <div className="p-6 space-y-1 mt-3">
-                    <div key={reloadKey} className="mt-3 bg-white p-7 rounded-lg shadow-md">
-                        <h2 className="text-lg font-bold mb-4">All UCs</h2>
+                <div className="space-y-4 mt-3">
 
-                        <div className="flex justify-between items-center mb-6">
-                            <input
-                                type="text"
-                                placeholder="Search UCs..."
-                                value={searchQueryUC}
-                                onChange={(e) => setSearchQueryUC(e.target.value)}
-                                className="p-2 border rounded w-1/3"
-                            />
-                            <div className="flex items-center space-x-4">
-                                <select
-                                    value={sortOrderUC}
-                                    onChange={(e) => setSortOrderUC(e.target.value)}
-                                    className="p-2 border rounded"
-                                >
-                                    <option value="asc">Sort by Date (Ascending)</option>
-                                    <option value="desc">Sort by Date (Descending)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <table className="w-full border table-fixed">
-                            <thead>
-                                <tr className="bg-gray-200">
-                                    <th className="p-4 text-left w-1/4">Project ID</th>
-                                    <th className="p-4 text-left w-1/5">Project Title</th>
-                                    <th className="p-4 text-left w-1/5">Principal Investigator</th>
-                                    <th className="p-4 text-left w-1/4">Institute</th>
-                                    <th className="p-4 text-left w-1/4">Submission Date</th>
-                                    <th className="p-4 text-center w-1/4">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredUCs.length > 0 ? (
-                                    filteredUCs.map((certificate) => (
-                                        <tr key={certificate._id} className="border-b hover:bg-blue-50">
-                                            <td className="p-4 w-1/4">{certificate.projectId}</td>
-                                            <td className="p-4 w-1/4">{certificate.ucData.title}</td>
-                                            <td className="p-4 w-1/5">{certificate.ucData.principalInvestigator || "N/A"}</td>
-                                            <td className="p-4 w-1/4">{certificate.ucData.instituteName}</td>
-                                            <td className="p-4 w-1/4">
-                                                {new Date(certificate.submissionDate).toLocaleDateString()}
-                                            </td>
-                                            <td className="p-4 w-1/4 text-center">
-                                                <button
-                                                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2"
-                                                    onClick={() => openCommentModal(certificate)}
-                                                >
-                                                    Add Comment
-                                                </button>
-                                                <button
-                                                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2"
-                                                    onClick={() => handleViewCertificate(certificate)}
-                                                >
-                                                    View
-                                                </button>
-                                                <button
-                                                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2"
-                                                    onClick={() => handleAdminApproval(certificate._id, "approve", "UC")}
-                                                >
-                                                    Accept
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="6" className="p-6 text-center text-gray-500">
-                                            No UCs Found
-                                        </td>
+                    <div key={reloadKey} className="mt-3 bg-white p-4 lg:p-7 rounded-lg shadow-md">
+                        <h2 className="text-lg font-bold mb-4">UC/SE Forms</h2>
+
+                  <div className="flex flex-col lg:flex-row items-center gap-4 mb-8">
+  <div className="w-full lg:w-[80%]">
+    <input
+      type="text"
+      placeholder="Search by Project ID, Title, PI or Institute..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="w-full p-3.5 border-2 border-gray-200 rounded-xl text-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all shadow-sm"
+    />
+  </div>
+
+  <div className="flex flex-row gap-3 w-full lg:w-[20%]">
+    <select
+      value={sortOrder}
+      onChange={(e) => setSortOrder(e.target.value)}
+      className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+    >
+      <option value="asc">Date (A-Z)</option>
+      <option value="desc">Date (Z-A)</option>
+    </select>
+
+    <select
+      value={filterInstitute}
+      onChange={(e) => setFilterInstitute(e.target.value)}
+      className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm min-w-[120px]"
+    >
+      <option value="">All Institutes</option>
+      {Array.from(new Set(groupedData.map(item => item.institute))).map(institute => (
+        <option key={institute} value={institute}>{institute}</option>
+      ))}
+    </select>
+  </div>
+</div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full border">
+                                <thead>
+                                    <tr className="bg-gray-200">
+                                        <th className="p-4 text-left">Project ID</th>
+                                        <th className="p-4 text-left">Project Title</th>
+                                        <th className="p-4 text-left">Principal Investigator</th>
+                                        <th className="p-4 text-left">Institute</th>
+                                        <th className="p-4 text-left">Status</th>
+                                        <th className="p-4 text-center">Actions</th>
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {filteredData.length > 0 ? (
+                                        filteredData.map((item, idx) => (
+                                            <React.Fragment key={idx}>
+                                                {/* UC Row */}
+                                                <tr className="border-b hover:bg-blue-50">
+                                                    <td className="p-4">{item.projectId}</td>
+                                                    <td className="p-4">{item.title}</td>
+                                                    <td className="p-4">
+                                                    {item.principalInvestigator}
+                                                    </td> 
+                                                    <td className="p-4">{item.institute}</td>
+                                                    <td className="p-4">
+                                                        {item.uc ? (
+                                                            <span className="text-green-600">{`UC-${item.uc.type} Submitted`}</span>
+                                                        ) : (
+                                                            <span className="text-red-600">UC Not Submitted</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-4 text-center mb-2">
+                                                        {item.uc ? (
+                                                            <>
 
-                        <h2 className="text-lg font-bold mt-8 mb-4">All SEs</h2>
-                        <div className="flex justify-between items-center mb-6">
-                            <input
-                                type="text"
-                                placeholder="Search SEs..."
-                                value={searchQuerySE}
-                                onChange={(e) => setSearchQuerySE(e.target.value)}
-                                className="p-2 border rounded w-1/3"
-                            />
-                            <div className="flex items-center space-x-4">
-                                <select
-                                    value={sortOrderSE}
-                                    onChange={(e) => setSortOrderSE(e.target.value)}
-                                    className="p-2 border rounded"
-                                >
-                                    <option value="asc">Sort by Date (Ascending)</option>
-                                    <option value="desc">Sort by Date (Descending)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <table className="w-full border table-fixed">
+                                                                <button
+                                                                    className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 mr-2 mb-2"
+                                                                    onClick={() => handleViewCertificate(item.uc)}
+                                                                >
+                                                                    View UC
+                                                                </button>
+                                                                <button
+                                                                    className="bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800 mr-2 "
+                                                                    onClick={() => handleAdminApproval(item.uc._id, "approve", "UC")}
+                                                                >
+                                                                    Approve
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <span className="text-gray-500">No UC available</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
 
-                            <thead>
-                                <tr className="bg-gray-200">
-                                    <th className="p-4 text-left w-1/4">Project ID</th>
-                                    <th className="p-4 text-left w-1/5">Principal Investigator</th>
-                                    < th className="p-4 text-left w-1/4">Institute</th>
-                                    <th className="p-4 text-left w-1/4">Submission Date</th>
-                                    <th className="p-4 text-center w-1/4">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredSEs.length > 0 ? (
-                                    filteredSEs.map((se) => (
-                                        <tr key={se._id} className="border-b hover:bg-blue-50">
+                                                {/* SE Row */}
+                                                <tr className="border-b hover:bg-blue-50 bg-gray-50">
+                                                    <td className="p-4 pl-8">{item.projectId}</td>
+                                                    <td className="p-4">{item.title}</td>
+                                                    <td className="p-4">
+                                                    {item.principalInvestigator}
+                                                    </td>                                                    <td className="p-4">{item.institute}</td>
+                                                    <td className="p-4">
+                                                        {item.se ? (
+                                                            <span className="text-green-600">SE Submitted</span>
+                                                        ) : (
+                                                            <span className="text-red-600">SE Not Submitted</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-4 text-center mb-2">
+                                                        {item.se ? (
+                                                            <>
 
-                                            <td className="p-4 w-1/4">{se.projectId}</td>
-                                            <td className="p-4 w-1/5">{se.name || "N/A"}</td>
-                                            <td className="p-4 w-1/4">{se.institute}</td>
-                                            <td className="p-4 w-1/4">
-                                                {new Date(se.date).toLocaleDateString()}
-                                            </td>
-                                            <td className="p-4 w-1/4 text-center">
-                                                <button
-                                                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2"
-                                                    onClick={() => openCommentModal(se)}
-                                                >
-                                                    Add Comment
-                                                </button>
-                                                <button
-                                                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2"
-                                                    onClick={() => handleViewSE(se)}
-                                                >
-                                                    View
-                                                </button>
-                                                <button
-                                                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2"
-                                                    onClick={() => handleAdminApproval(se._id, "approve", "SE")}
-                                                >
-                                                    Accept
-                                                </button>
-                                            </td>
+                                                                <button
+                                                                    className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 mr-2 mb-2"
+                                                                    onClick={() => handleViewSE(item.se)}
+                                                                >
+                                                                    View SE
+                                                                </button>
+                                                                <button
+                                                                    className="bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800 mr-2"
+                                                                    onClick={() => handleAdminApproval(item.se._id, "approve", "SE")}
+                                                                >
+                                                                    Approve
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <span className="text-gray-500">No SE available</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            </React.Fragment>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td className="p-4 text-center" colSpan={7}>No matching records found.</td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="6" className="p-6 text-center text-gray-500">
-                                            No SEs Found
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
+
+
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                         <h2 className="text-xl font-bold mb-4">Add Comment</h2>
                         <textarea
@@ -453,11 +496,39 @@ const AllSEUC = () => {
                     </div>
                 </div>
             )}
+
+            {showConfirmModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                        <h2 className="text-xl font-bold mb-4">Confirm Acceptance</h2>
+                        <p className="mb-6">
+                            Are you sure you want to accept this {confirmationDetails.type} form? This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end mt-4">
+                            <button
+                                className="bg-gray-400 text-white px-4 py-2 rounded mr-2"
+                                onClick={() => setShowConfirmModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                                onClick={() => {
+                                    setShowConfirmModal(false);
+                                    handleAdminApproval(confirmationDetails.id, "approve", confirmationDetails.type);
+                                }}
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {isCertificateOpen && certificateData && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-lg shadow-lg w-[90%] max-h-[90vh] overflow-y-auto p-6">
                         <div className="text-center mb-6">
-                            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
                             <p className="mt-3 text-2xl font-bold text-blue-800">
                                 Request for Annual Installment with Up-to-Date Statement of Expenditure
                             </p>
@@ -490,7 +561,7 @@ const AllSEUC = () => {
                                 ))}
                             </ul>
                             <div className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
-                                <h2 className="text-center text-2xl font-bold mb-4">STATEMENT OF EXPENDITURE (FY {financialYear})</h2>
+                                <h2 className="text-center text-2xl font-bold mb-4">STATEMENT OF EXPENDITURE</h2>
                                 <h3 className="text-center text-lg font-semibold mb-4">Statement of Expenditure (to be submitted financial year wise)</h3>
                                 <div className="overflow-x-auto">
                                     <table className="w-full border border-gray-300 rounded-lg text-sm">
@@ -643,7 +714,21 @@ const AllSEUC = () => {
                             </div>
                         </div>
 
-                        <div className="flex justify-end mt-4">
+                        <h2 className="text-xl font-bold mb-4">Add Comment</h2>
+                        <textarea
+                            className="w-full p-6 border rounded"
+                            rows="4"
+                            placeholder="Enter your comment here..."
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                        ></textarea>
+                        <div className="flex justify-end mt-4 mr-2">
+                            <button
+                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-4"
+                                onClick={() => { setSelectedCertificate(certificateData); handleSubmitComment(); }}
+                            >
+                                Add Comment
+                            </button>
                             <button
                                 className="bg-gray-400 text-white px-4 py-2 rounded"
                                 onClick={() => setIsCertificateOpen(false)}
@@ -657,10 +742,7 @@ const AllSEUC = () => {
             {isUCCertificateOpen && ucData && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-lg shadow-lg w-[90%] max-h-[90vh] overflow-y-auto p-6">
-                        <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                            <h1 className="text-3xl font-black text-gray-900 mb-2">ResearchX</h1>
-                            <p className="mt-3 text-2xl font-bold text-blue-800">Utilization Certificate</p>
-                        </div>
+
 
                         <div id="uc-details" className="bg-white shadow-md rounded-lg p-6 mt-6 border-t-4 border-blue-800">
                             <div className="text-center mb-6">
@@ -863,11 +945,24 @@ const AllSEUC = () => {
                                 </div>
                             </div>
                         </div>
-
-                        <div className="flex justify-end mt-4">
+                        <h2 className="text-xl font-bold mb-4">Add Comment</h2>
+                        <textarea
+                            className="w-full p-6 border rounded"
+                            rows="4"
+                            placeholder="Enter your comment here..."
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                        ></textarea>
+                        <div className="flex justify-end mt-4 mr-2">
+                            <button
+                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-4"
+                                onClick={() => { setSelectedCertificate(ucData); handleSubmitComment(); }}
+                            >
+                                Add Comment
+                            </button>
                             <button
                                 className="bg-gray-400 text-white px-4 py-2 rounded"
-                                onClick={() => setIsUCCertificateOpen(false)}
+                                 onClick={() => setIsUCCertificateOpen(false)}
                             >
                                 Close
                             </button>
