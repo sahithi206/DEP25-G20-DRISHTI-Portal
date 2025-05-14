@@ -9,7 +9,11 @@ const url = import.meta.env.VITE_REACT_APP_URL;
 
 const Navbar = ({ yes }) => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState({ name: "" });
+  const [profile, setProfile] = useState(() => {
+    // Try to get from sessionStorage first
+    const savedProfile = sessionStorage.getItem("userProfile");
+    return savedProfile ? JSON.parse(savedProfile) : { name: "" };
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -19,17 +23,18 @@ const Navbar = ({ yes }) => {
   const stakeholderType = localStorage.getItem("stakeholderType") || "institute";
 
   useEffect(() => {
-    if (yes) {
+    // Only fetch if logged in (yes=true) and no profile data in sessionStorage
+    if (yes && !profile.name) {
       fetchProfile();
     }
-  }, [yes]);
+  }, [yes]); // Only depend on the "yes" prop
 
   const fetchProfile = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
       if (!token) {
-
+        return; // Exit if no token
       }
 
       const config = {
@@ -55,14 +60,19 @@ const Navbar = ({ yes }) => {
 
       const res = await axios.get(endpoint, config);
 
+      let profileData;
       // Handle different response structures based on stakeholder type
       if (stakeholderType === "pi") {
-        setProfile(res.data.pi || res.data);
+        profileData = res.data.pi || res.data;
       } else if (stakeholderType === "agency") {
-        setProfile(res.data.agency || res.data);
+        profileData = res.data.agency || res.data;
       } else {
-        setProfile(res.data.institute || res.data);
+        profileData = res.data.institute || res.data;
       }
+
+      setProfile(profileData);
+      // Store in sessionStorage for persistence
+      sessionStorage.setItem("userProfile", JSON.stringify(profileData));
 
       setError(null);
     } catch (err) {
@@ -74,8 +84,11 @@ const Navbar = ({ yes }) => {
   };
 
   const handleLogout = () => {
+    // Clear both localStorage and sessionStorage on logout
     localStorage.removeItem("token");
     localStorage.removeItem("stakeholderType");
+    sessionStorage.removeItem("userProfile");
+    sessionStorage.removeItem("instituteUser"); // Clear sidebar user data too
     navigate("/");
   };
 
@@ -144,7 +157,7 @@ const Navbar = ({ yes }) => {
 
           {yes && (
             <>
-              <span className="ml-2">{getWelcomeMessage()}</span>
+              <span className="ml-2">{loading ? "Loading..." : getWelcomeMessage()}</span>
               <FontAwesomeIcon
                 icon={faPowerOff}
                 className="text-2xl cursor-pointer hover:text-gray-300 ml-4"
@@ -154,7 +167,6 @@ const Navbar = ({ yes }) => {
           )}
         </div>
       </div>
-
 
       {showLogout && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
