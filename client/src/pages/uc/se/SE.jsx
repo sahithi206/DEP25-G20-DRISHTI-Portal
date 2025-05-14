@@ -29,7 +29,7 @@ const SEForm = () => {
     const [balance, setBalance] = useState({});
     const [others, setOthers] = useState([]);
     const [equipment, setEquipment] = useState([]);
-
+    const [showApproveModal, setShowApproveModal] = useState(false);
     const [showSignatureModal, setShowSignatureModal] = useState(false);
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [piSignature, setPiSignature] = useState(null);
@@ -535,7 +535,7 @@ const SEForm = () => {
                     </div>
                     <h3 className="text-xl font-bold text-center text-gray-800 mb-2">Success!</h3>
                     <p className="text-center text-gray-600">
-                        Your Utilization Certificate has been sent for Institute approval.
+                        Your Utilization Certificate has been sent for approval.
                     </p>
                     <div className="mt-6 flex justify-center">
                         <button
@@ -551,6 +551,7 @@ const SEForm = () => {
     };
 
     const sendSEToAdmin = async () => {
+        setShowApproveModal(false);
         try {
             const response = await fetch(`${url}se/send-to-admin/${seRequestId}`, {
                 method: "PUT",
@@ -567,7 +568,7 @@ const SEForm = () => {
                 return;
             }
 
-            alert("SE sent to admin for approval");
+            setShowSuccessPopup(true);
             setSentToAdmin(true);
         } catch (err) {
             console.error("Error sending SE to admin:", err.message);
@@ -580,6 +581,7 @@ const SEForm = () => {
     };
 
     const handleSend = async () => {
+        setShowApproveModal(false);
         const token = localStorage.getItem("token");
         if (!token) {
             alert("Authentication required.");
@@ -1174,7 +1176,7 @@ const SEForm = () => {
 
                             {!sentForApproval && (
                                 <button
-                                    onClick={handleSend}
+                                    onClick={() => setShowApproveModal(true)}
                                     disabled={!piSignature}
                                     className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${piSignature
                                         ? "bg-green-600 text-white hover:bg-green-700"
@@ -1191,7 +1193,7 @@ const SEForm = () => {
 
                             {instituteApproved && !sentToAdmin && seRequestId && (
                                 <button
-                                    onClick={sendSEToAdmin}
+                                    onClick={() => setShowApproveModal(true)}
                                     className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${piSignature
                                         ? "bg-green-600 text-white hover:bg-green-700"
                                         : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
@@ -1204,6 +1206,47 @@ const SEForm = () => {
                     </div>
                 </div>
             </div>
+            {showApproveModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold"> Confirmation
+                            </h3>
+                            <button onClick={() => setShowApproveModal(false)}>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p className="mb-6">
+                            {!instituteApproved
+                                ? "Are you sure you want to send this Statement of Expenditure for Institute Approval"
+                                : "Are you sure you want to send this Statement of Expenditure for Admin Approval"}
+                        </p>
+
+                        <div className="flex justify-end space-x-2">
+                            <button
+                                onClick={() => setShowApproveModal(false)}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
+                                disabled={loading}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={!instituteApproved ? handleSend : sendSEToAdmin}
+                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+                                disabled={loading}>
+                                {loading ? (
+                                    <div className="flex items-center">
+                                        <div className="animate-spin h-4 w-4 mr-2 border-b-2 border-white rounded-full"></div>
+                                        sending...
+                                    </div>
+                                ) : "Confirm Approval"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <SignatureModal />
             <SuccessPopup />
         </div>

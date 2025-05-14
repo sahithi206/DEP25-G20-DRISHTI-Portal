@@ -23,6 +23,30 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
   const [isLoading, setIsLoading] = useState(!instituteUser);
   const location = useLocation();
 
+  // Handle responsive behavior
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Listen for window resize events
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      // Auto-collapse sidebar on small screens
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    // Initial check
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   // Fetch user data only if not already in sessionStorage
   useEffect(() => {
     const fetchInstituteUserDetails = async () => {
@@ -63,7 +87,21 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
     } else if (path.includes("institute/profile")) {
       setActiveSection("profile");
     }
-  }, [location, setActiveSection]);
+
+    // Close sidebar on navigation for mobile devices
+    if (windowWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+  }, [location, setActiveSection, windowWidth]);
+
+  // Handle sidebar toggle
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+    // Close any open dropdowns when collapsing sidebar
+    if (isSidebarOpen) {
+      setOpenDropdown(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -113,15 +151,21 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
 
   menuItems.push({ label: "Profile", icon: User, id: "profile", path: "/institute/profile" });
 
+  // Fixed sidebar width classes
+  const sidebarWidthClass = isSidebarOpen ? "w-64 lg:w-72" : "w-16";
+
   return (
     <div
-      className={`bg-gray-900 text-white flex flex-col sticky top-0 min-h-screen overflow-y-auto transition-all duration-300 ${isSidebarOpen ? "w-72" : "w-16"}`}
+      className={`bg-gray-900 text-white flex flex-col sticky top-0 min-h-screen overflow-y-auto transition-all duration-300 ${sidebarWidthClass} z-10`}
     >
       <div className="flex items-center justify-between px-4 py-4 border-b border-gray-800">
-        {isSidebarOpen && <h2 className="text-xl font-bold">Institute Panel</h2>}
+        {isSidebarOpen && (
+          <h2 className="text-xl font-bold truncate">Institute Panel</h2>
+        )}
         <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="text-xl focus:outline-none"
+          onClick={toggleSidebar}
+          className="text-xl focus:outline-none hover:text-blue-400 transition-colors"
+          aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
         >
           {isSidebarOpen ? <FaTimes /> : <FaBars />}
         </button>
@@ -143,7 +187,7 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
                     <div className={isSidebarOpen ? "mr-3" : "mx-auto"}>
                       <Icon className="w-5 h-5" />
                     </div>
-                    {isSidebarOpen && <span>{label}</span>}
+                    {isSidebarOpen && <span className="truncate">{label}</span>}
                   </div>
                   {isSidebarOpen && (
                     <ChevronDown
@@ -183,12 +227,20 @@ const SidebarMenu = ({ activeSection, setActiveSection }) => {
                 <div className={isSidebarOpen ? "mr-3" : "mx-auto"}>
                   <Icon className="w-5 h-5" />
                 </div>
-                {isSidebarOpen && <span>{label}</span>}
+                {isSidebarOpen && <span className="truncate">{label}</span>}
               </Link>
             )}
           </li>
         ))}
       </ul>
+
+      {/* Mobile overlay when sidebar is open */}
+      {isSidebarOpen && windowWidth < 768 && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-0"
+          onClick={toggleSidebar}
+        />
+      )}
     </div>
   );
 };

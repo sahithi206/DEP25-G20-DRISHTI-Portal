@@ -294,17 +294,18 @@ const InstituteProfile = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      <Navbar yes={1}/>
+      <Navbar yes={1} />
       <div className="flex flex-grow">
         <SidebarMenu activeSection={activeSection} setActiveSection={setActiveSection} />
+        <main className="flex-grow container mx-auto p-6">
+          <div className="flex-1">
 
-        <div className="flex-1">
-
-          <div className="max-w-full mx-auto px-8 py-12">
-            <ProfileInfoCard />
-            <PasswordManagementCard />
+            <div className="max-w-full mx-auto px-8 py-12">
+              <ProfileInfoCard />
+              <PasswordManagementCard />
+            </div>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );

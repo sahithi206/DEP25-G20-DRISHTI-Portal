@@ -14,6 +14,7 @@ const AllSEUC = () => {
     const [allSEs, setAllSEs] = useState([]);
     const [selectedCertificate, setSelectedCertificate] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showApproveModal, setShowApproveModal] = useState(false);
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
     const [certificateData, setCertificateData] = useState(null);
     const [isUCCertificateOpen, setIsUCCertificateOpen] = useState(false);
