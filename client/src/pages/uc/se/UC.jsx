@@ -22,7 +22,7 @@ const UCForm = () => {
   const [statusLoading, setStatusLoading] = useState(false);
   const [error, setError] = useState("");
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-
+  const [showApproveModal, setShowApproveModal] = useState(false);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const [piSignature, setPiSignature] = useState(null);
   const [sentForApproval, setSentForApproval] = useState(false);
@@ -127,7 +127,6 @@ const UCForm = () => {
     }
   }, [fetchInstituteOfficials]);
 
-  // When type changes, immediately reset states for a smooth transition
   const handleSelection = (type) => {
     // First set up the new type
     setSelectedType(type);
@@ -144,7 +143,6 @@ const UCForm = () => {
     }, 100);
   };
 
-  // Reset approval states function for clean transitions
   const resetApprovalStates = () => {
     setSentForApproval(false);
     setInstituteApproved(false);
@@ -157,14 +155,12 @@ const UCForm = () => {
     setPiSignature(null);
   };
 
-  // Initial load of approval status when component mounts
   useEffect(() => {
     if (projectId && selectedType) {
       fetchStatus(projectId, selectedType);
     }
   }, [projectId, selectedType, fetchStatus]);
 
-  // Polling for approval status
   useEffect(() => {
     let checkApprovalInterval;
 
@@ -198,7 +194,6 @@ const UCForm = () => {
     return () => clearInterval(checkApprovalInterval);
   }, [sentForApproval, instituteApproved, projectId, selectedType]);
 
-  // Memoize the fetchUCData function to avoid recreating it on each render
   const fetchUCData = useCallback(async (type) => {
     setLoading(true);
     setError("");
@@ -243,6 +238,7 @@ const UCForm = () => {
   }, [projectId, fetchInstituteOfficials]);
 
   const handleSendForApproval = async () => {
+    setShowApproveModal(false);
     try {
       if (!piSignature) {
         setError("PI signature is required before sending for approval");
@@ -293,22 +289,6 @@ const UCForm = () => {
     } catch (err) {
       console.error("Error sending for approval:", err.message);
       setError("Failed to send for approval");
-    }
-  };
-
-  const handleSignatureEnd = () => {
-    if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-      const signatureDataUrl = sigCanvas.current.toDataURL();
-      setPiSignature(signatureDataUrl);
-
-      // Update cache with new signature
-      const cacheKey = `${projectId}-${selectedType}`;
-      if (statusCache.current[cacheKey]) {
-        statusCache.current[cacheKey] = {
-          ...statusCache.current[cacheKey],
-          piSignature: signatureDataUrl
-        };
-      }
     }
   };
 
@@ -385,6 +365,7 @@ const UCForm = () => {
   };
 
   const sendToAdmin = async () => {
+    setShowApproveModal(false);
     try {
       const response = await fetch(`${url}uc/send-to-admin/${ucRequestId}`, {
         method: "PUT",
@@ -410,7 +391,7 @@ const UCForm = () => {
         };
       }
 
-      alert("UC sent to admin for approval");
+      setShowSuccessPopup(true);
       setSentToAdmin(true);
     } catch (err) {
       console.error("Error sending UC to admin:", err.message);
@@ -698,7 +679,6 @@ const UCForm = () => {
     pdf.save(`UC_${ucData.title}_${selectedType}${instituteApproved ? "_Approved" : ""}.pdf`);
   };
 
-
   const ApprovalStatusBanner = () => {
     // Show loading indicator while fetching status
     if (statusLoading) {
@@ -922,7 +902,7 @@ const UCForm = () => {
                   height: 200,
                   className: "signature-canvas w-full"
                 }}
-                onEnd={handleSignatureEnd}
+
               />
             </div>
           )}
@@ -970,7 +950,7 @@ const UCForm = () => {
           </div>
           <h3 className="text-xl font-bold text-center text-gray-800 mb-2">Success!</h3>
           <p className="text-center text-gray-600">
-            Your Utilization Certificate has been sent for Institute approval.
+            Your Utilization Certificate has been sent for approval.
           </p>
           <div className="mt-6 flex justify-center">
             <button
@@ -996,7 +976,7 @@ const UCForm = () => {
 
         <div className="p-6 space-y-6 mt-16">
           <div className="bg-white shadow-md rounded-xl p-6 text-center border-l-8 border-blue-700 hover:shadow-xl transition-shadow">
-                        <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
+            <img src="/3.png" alt="ResearchX Logo" className="mx-auto w-84 h-32 object-contain" />
             <p className="mt-3 text-2xl font-bold text-blue-800">Generate Utilization Certificate</p>
           </div>
 
@@ -1303,7 +1283,7 @@ const UCForm = () => {
 
                     {!sentForApproval && (
                       <button
-                        onClick={handleSendForApproval}
+                        onClick={() => setShowApproveModal(true)}
                         disabled={!piSignature}
                         className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${piSignature
                           ? "bg-green-600 text-white hover:bg-green-700"
@@ -1319,7 +1299,7 @@ const UCForm = () => {
 
                     {instituteApproved && !adminApproved && !sentToAdmin && ucRequestId && (
                       <button
-                        onClick={sendToAdmin}
+                        onClick={() => setShowApproveModal(true)}
                         className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center ${piSignature
                           ? "bg-green-600 text-white hover:bg-green-700"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
@@ -1338,10 +1318,52 @@ const UCForm = () => {
           )}
         </div>
       </div>
+      {
+        showApproveModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold"> Confirmation
+                </h3>
+                <button onClick={() => setShowApproveModal(false)}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="mb-6">
+                {!instituteApproved
+                  ? "Are you sure you want to send this UC for Institute Approval"
+                  : "Are you sure you want to send this UC for Admin Approval"}
+              </p>
 
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setShowApproveModal(false)}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-200"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={!instituteApproved ? handleSendForApproval : sendToAdmin}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+                  disabled={loading}>
+                  {loading ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin h-4 w-4 mr-2 border-b-2 border-white rounded-full"></div>
+                      sending...
+                    </div>
+                  ) : "Confirm Approval"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
       <SignatureModal />
       <SuccessPopup />
-    </div>
+    </div >
   );
 };
 

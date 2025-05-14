@@ -36,6 +36,11 @@ const AllSEUC = () => {
         cfo: "Loading...",
         accountsOfficer: "Loading...",
     });
+    // New state variables for confirmation and success modals
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmationDetails, setConfirmationDetails] = useState(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
 
     const [isSortFilterOpen, setIsSortFilterOpen] = useState(false);
 
@@ -198,6 +203,13 @@ const AllSEUC = () => {
         }
     };
 
+    // New function to open confirmation modal
+    const openConfirmationModal = (id, type) => {
+        setConfirmationDetails({ id, type });
+        setShowConfirmModal(true);
+    };
+
+    // Modified admin approval function
     const handleAdminApproval = async (id, action, type) => {
         try {
             const endpoint = type === "UC" ? "uc/admin-approval" : "admin/se-admin-approval";
@@ -213,8 +225,15 @@ const AllSEUC = () => {
             const data = await response.json();
 
             if (data.success) {
-                alert(`${type} ${action}d successfully!`);
-                setReloadKey((prevKey) => prevKey + 1);
+                // Show success modal instead of alert
+                setSuccessMessage(`${type} ${action}d successfully!`);
+                setShowSuccessModal(true);
+
+                // Auto-close success modal after 3 seconds
+                setTimeout(() => {
+                    setShowSuccessModal(false);
+                    setReloadKey((prevKey) => prevKey + 1);
+                }, 3000);
             } else {
                 alert(data.message || "Failed to process the request.");
             }
@@ -336,7 +355,7 @@ const AllSEUC = () => {
                                                 </button>
                                                 <button
                                                     className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2"
-                                                    onClick={() => handleAdminApproval(certificate._id, "approve", "UC")}
+                                                    onClick={() => openConfirmationModal(certificate._id, "UC")}
                                                 >
                                                     Accept
                                                 </button>
@@ -410,7 +429,7 @@ const AllSEUC = () => {
                                                 </button>
                                                 <button
                                                     className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2"
-                                                    onClick={() => handleAdminApproval(se._id, "approve", "SE")}
+                                                    onClick={() => openConfirmationModal(se._id, "SE")}
                                                 >
                                                     Accept
                                                 </button>
@@ -429,8 +448,9 @@ const AllSEUC = () => {
                     </div>
                 </div>
             </div>
+            {/* Comment Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                         <h2 className="text-xl font-bold mb-4">Add Comment</h2>
                         <textarea
@@ -454,6 +474,53 @@ const AllSEUC = () => {
                     </div>
                 </div>
             )}
+
+            {/* Confirmation Modal */}
+            {showConfirmModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                        <h2 className="text-xl font-bold mb-4">Confirm Acceptance</h2>
+                        <p className="mb-6">
+                            Are you sure you want to accept this {confirmationDetails.type} form? This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end mt-4">
+                            <button
+                                className="bg-gray-400 text-white px-4 py-2 rounded mr-2"
+                                onClick={() => setShowConfirmModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                                onClick={() => {
+                                    setShowConfirmModal(false);
+                                    handleAdminApproval(confirmationDetails.id, "approve", confirmationDetails.type);
+                                }}
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                        <div className="text-center mb-4">
+                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mt-2">Success!</h3>
+                            <p className="text-gray-600">{successMessage}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {isCertificateOpen && certificateData && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-lg shadow-lg w-[90%] max-h-[90vh] overflow-y-auto p-6">
