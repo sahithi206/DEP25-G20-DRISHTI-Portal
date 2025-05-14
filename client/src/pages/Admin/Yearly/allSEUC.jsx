@@ -37,10 +37,6 @@ const AllSEUC = () => {
         cfo: "Loading...",
         accountsOfficer: "Loading...",
     });
-<<<<<<< HEAD
-=======
-    // New state variables for confirmation and success modals
->>>>>>> 90693d594bea9bf3ea6f4322619f9c389fd3c87f
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [confirmationDetails, setConfirmationDetails] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
