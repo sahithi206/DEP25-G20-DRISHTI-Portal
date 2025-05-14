@@ -12,6 +12,8 @@ const BudgetAllocationForm = () => {
   const [activeSection, setActiveSection] = useState("sanction");
   const { id } = useParams();
   const [selectedProposal, setProposals] = useState({});
+      const [showApproval, setShowApproveModal]=useState(false);
+  const [error, setError]=useState("");
   useEffect(() => {
     const fetchPendingProposals = async () => {
       const token = localStorage.getItem("token");
@@ -32,7 +34,7 @@ const BudgetAllocationForm = () => {
       }
     };
     fetchPendingProposals();
-  }, [id])
+  }, [id,selectedProposal])
   const [budget, setBudget] = useState({
     TotalCost: 0,
     budgetTotal: {
@@ -167,6 +169,7 @@ const BudgetAllocationForm = () => {
 
     if (!budget || !selectedProposal) {
       console.error("Budget or selected proposal is missing!");
+      setError("Budget or selected proposal is missing!")
       return;
     }
 
@@ -202,6 +205,7 @@ const BudgetAllocationForm = () => {
     console.log("Submitting Budget Data:", budgetData);
     if (!budgetData.TotalCost || !budgetData.budgetTotal || !budgetData.budgetSanctioned) {
       console.error("Missing budget details!");
+      setError("Missing budget details!")
       return;
     }
 
@@ -421,7 +425,28 @@ const BudgetAllocationForm = () => {
 
               </div>
 
-
+{showApproval && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">Confirm</h2>
+            <p className="mb-1">Are you sure you want to Allocate Budget?</p>
+            <p className="text-red-500 mb-4 text-xs">{`Warning : ${error}`}</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={(e) => {e.preventDefault(); setShowApproveModal(false); setError("");}}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={()=>{handleSubmit}}
+              >
+Approve              </button>
+            </div>
+          </div>
+        </div>
+      )}
               <div className="mt-6 p-4 bg-gray-50 rounded">
                 <h3 className="font-medium mb-2">Budget Summary for 1st Year of the Project</h3>
                 <div className="grid grid-cols-2 gap-2">
@@ -440,7 +465,7 @@ const BudgetAllocationForm = () => {
               </div>
 
               <div className="flex flex-wrap justify-end gap-2 mt-6">
-                <button type="submit" onClick={handleSubmit} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <button type="submit" onClick={()=>{setShowApproveModal(true)}} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" disabled={!budget?.budgetSanctioned}>
                   Allocate Budget & Approve
                 </button>
                 <button type="button" className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">

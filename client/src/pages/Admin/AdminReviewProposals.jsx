@@ -14,6 +14,9 @@ const AdminProposalReview = () => {
     const [successMessage, setSuccessMessage] = useState("");
     const [showFullDetails, setShowFullDetails] = useState(false);
     const URL = import.meta.env.VITE_REACT_APP_URL;
+    const [showApproval, setShowApproveModal]=useState(false);
+        const [showReject, setRejectModal]=useState(false);
+
 
     const [searchQuery, setSearchQuery] = useState("");
     const [filterByInstitute, setFilterByInstitute] = useState("");
@@ -681,7 +684,51 @@ const AdminProposalReview = () => {
                                 </div>
                             )} */}
 
-                            {/* Action Buttons */}
+{showApproval && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">Confirm Approval</h2>
+            <p className="mb-4">Are you sure you want to Approval?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setShowApproveModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={()=>{handleApproval(selectedProposal.proposal._id, "Approved")}}
+              >
+Approve              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showReject && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">Confirm </h2>
+            <p className="mb-4">Are you sure you want to Reject?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setRejectModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                onClick={()=>{ handleApproval(selectedProposal.proposal._id, "Rejected");
+}}
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
                             <div className="flex justify-between">
                                 <div className="flex space-x-2">
                                     <button
@@ -705,8 +752,7 @@ const AdminProposalReview = () => {
                                     </button>
                                     <button
                                         onClick={() => {
-                                            setShowFullDetails(false);
-                                            handleApproval(selectedProposal.proposal._id, "Approved");
+                                            setShowApproveModal(true);
                                         }}
                                         className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                                     >
@@ -714,8 +760,7 @@ const AdminProposalReview = () => {
                                     </button>
                                     <button
                                         onClick={() => {
-                                            setShowFullDetails(false);
-                                            handleApproval(selectedProposal.proposal._id, "Rejected");
+                                            setRejectModal(true);
                                         }}
                                         className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                                     >

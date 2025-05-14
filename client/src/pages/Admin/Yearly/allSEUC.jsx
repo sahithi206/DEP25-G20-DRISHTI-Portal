@@ -19,6 +19,7 @@ const AllSEUC = () => {
     const [selectedCertificate, setSelectedCertificate] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showApproveModal, setShowApproveModal] = useState(false);
+    const [doc,setDoc]=useState({id:"",type:""});
     const [isCertificateOpen, setIsCertificateOpen] = useState(false);
     const [certificateData, setCertificateData] = useState(null);
     const [isUCCertificateOpen, setIsUCCertificateOpen] = useState(false);
@@ -279,7 +280,7 @@ const AllSEUC = () => {
         }
     };
 
-    
+
 
     const handleAdminApproval = async (id, action, type) => {
         try {
@@ -328,39 +329,39 @@ const AllSEUC = () => {
                     <div key={reloadKey} className="mt-3 bg-white p-4 lg:p-7 rounded-lg shadow-md">
                         <h2 className="text-lg font-bold mb-4">UC/SE Forms</h2>
 
-                  <div className="flex flex-col lg:flex-row items-center gap-4 mb-8">
-  <div className="w-full lg:w-[80%]">
-    <input
-      type="text"
-      placeholder="Search by Project ID, Title, PI or Institute..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className="w-full p-3.5 border-2 border-gray-200 rounded-xl text-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all shadow-sm"
-    />
-  </div>
+                        <div className="flex flex-col lg:flex-row items-center gap-4 mb-8">
+                            <div className="w-full lg:w-[70%]">
+                                <input
+                                    type="text"
+                                    placeholder="Search by Project ID, Title, PI or Institute..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full p-3 border-2 border-gray-200 rounded-xl text-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all shadow-sm"
+                                />
+                            </div>
 
-  <div className="flex flex-row gap-3 w-full lg:w-[20%]">
-    <select
-      value={sortOrder}
-      onChange={(e) => setSortOrder(e.target.value)}
-      className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-    >
-      <option value="asc">Date (A-Z)</option>
-      <option value="desc">Date (Z-A)</option>
-    </select>
+                            <div className="flex flex-row gap-3 w-full lg:w-[30%]">
+                                <select
+                                    value={sortOrder}
+                                    onChange={(e) => setSortOrder(e.target.value)}
+                                    className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                                >
+                                    <option value="asc">Date (A-Z)</option>
+                                    <option value="desc">Date (Z-A)</option>
+                                </select>
 
-    <select
-      value={filterInstitute}
-      onChange={(e) => setFilterInstitute(e.target.value)}
-      className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm min-w-[120px]"
-    >
-      <option value="">All Institutes</option>
-      {Array.from(new Set(groupedData.map(item => item.institute))).map(institute => (
-        <option key={institute} value={institute}>{institute}</option>
-      ))}
-    </select>
-  </div>
-</div>
+                                <select
+                                    value={filterInstitute}
+                                    onChange={(e) => setFilterInstitute(e.target.value)}
+                                    className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm min-w-[120px]"
+                                >
+                                    <option value="">All Institutes</option>
+                                    {Array.from(new Set(groupedData.map(item => item.institute))).map(institute => (
+                                        <option key={institute} value={institute}>{institute}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
 
                         <div className="overflow-x-auto">
                             <table className="w-full border">
@@ -378,19 +379,18 @@ const AllSEUC = () => {
                                     {filteredData.length > 0 ? (
                                         filteredData.map((item, idx) => (
                                             <React.Fragment key={idx}>
-                                                {/* UC Row */}
-                                                <tr className="border-b hover:bg-blue-50">
+                                                {item.uc&& <tr className="border-b hover:bg-blue-50">
                                                     <td className="p-4">{item.projectId}</td>
                                                     <td className="p-4">{item.title}</td>
                                                     <td className="p-4">
-                                                    {item.principalInvestigator}
-                                                    </td> 
+                                                        {item.principalInvestigator}
+                                                    </td>
                                                     <td className="p-4">{item.institute}</td>
                                                     <td className="p-4">
                                                         {item.uc ? (
                                                             <span className="text-green-600">{`UC-${item.uc.type} Submitted`}</span>
                                                         ) : (
-                                                            <span className="text-red-600">UC Not Submitted</span>
+                                                            <span className="text-red-600">{item.uc.status==="ApprovedByAdmin"?`UC Verified`:`UC Not Submitted`}</span>
                                                         )}
                                                     </td>
                                                     <td className="p-4 text-center mb-2">
@@ -405,7 +405,9 @@ const AllSEUC = () => {
                                                                 </button>
                                                                 <button
                                                                     className="bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800 mr-2 "
-                                                                    onClick={() => handleAdminApproval(item.uc._id, "approve", "UC")}
+                                                                    onClick={() => {setShowApproveModal(true);
+                                                                        setDoc({id:item.uc._id,type:"UC"});}
+                                                                    }
                                                                 >
                                                                     Approve
                                                                 </button>
@@ -414,20 +416,21 @@ const AllSEUC = () => {
                                                             <span className="text-gray-500">No UC available</span>
                                                         )}
                                                     </td>
-                                                </tr>
+                                                </tr>}
+                                               
 
                                                 {/* SE Row */}
-                                                <tr className="border-b hover:bg-blue-50 bg-gray-50">
+                                                {item.se&& <tr className="border-b hover:bg-blue-50 bg-gray-50">
                                                     <td className="p-4 pl-8">{item.projectId}</td>
                                                     <td className="p-4">{item.title}</td>
                                                     <td className="p-4">
-                                                    {item.principalInvestigator}
+                                                        {item.principalInvestigator}
                                                     </td>                                                    <td className="p-4">{item.institute}</td>
                                                     <td className="p-4">
                                                         {item.se ? (
                                                             <span className="text-green-600">SE Submitted</span>
                                                         ) : (
-                                                            <span className="text-red-600">SE Not Submitted</span>
+                                                            <span className="text-red-600">{item.se&&item.se.status==="ApprovedByAdmin"?`UC Verified`:`UC Not Submitted`}</span>
                                                         )}
                                                     </td>
                                                     <td className="p-4 text-center mb-2">
@@ -442,8 +445,9 @@ const AllSEUC = () => {
                                                                 </button>
                                                                 <button
                                                                     className="bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800 mr-2"
-                                                                    onClick={() => handleAdminApproval(item.se._id, "approve", "SE")}
-                                                                >
+ onClick={() => {setShowApproveModal(true);
+                                                                        setDoc({id:item.se._id,type:"SE"});}
+                                                                    }                                                                >
                                                                     Approve
                                                                 </button>
                                                             </>
@@ -451,7 +455,29 @@ const AllSEUC = () => {
                                                             <span className="text-gray-500">No SE available</span>
                                                         )}
                                                     </td>
-                                                </tr>
+                                                </tr>}
+                                               
+                                                {showApproveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">Confirm Approval</h2>
+            <p className="mb-4">Are you sure you want to Approval?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setShowApproveModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={()=>{handleAdminApproval(doc.id, "approve", doc.type)}}
+              >
+Approve              </button>
+            </div>
+          </div>
+        </div>
+      )}
                                             </React.Fragment>
                                         ))
                                     ) : (
@@ -958,7 +984,7 @@ const AllSEUC = () => {
                             </button>
                             <button
                                 className="bg-gray-400 text-white px-4 py-2 rounded"
-                                 onClick={() => setIsUCCertificateOpen(false)}
+                                onClick={() => setIsUCCertificateOpen(false)}
                             >
                                 Close
                             </button>
