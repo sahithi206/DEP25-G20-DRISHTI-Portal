@@ -925,7 +925,7 @@ const UCForm = () => {
                   height: 200,
                   className: "signature-canvas w-full"
                 }}
-                onEnd={handleSignatureEnd}
+                
               />
             </div>
           )}
