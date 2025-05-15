@@ -127,7 +127,9 @@ const AllSEUC = () => {
                         title: uc?.projectId.Title || null,
                         principalInvestigator: Array.isArray(uc?.projectId?.PI) ? uc?.projectId.PI.join(", ") : "N/A",
                         institute: uc?.ucData?.instituteName || "N/A",
-                        uc: uc || [],
+                        ...(uc.type === "recurring"
+                            ? { recurringuc: uc || [] }
+                            : { nonrecurringuc: uc || [] }),
                         se: null
                     });
                 } else {
@@ -135,8 +137,9 @@ const AllSEUC = () => {
                     const existing = projectMap.get(key);
                     projectMap.set(key, {
                         ...existing,
-                        uc: uc
-                    });
+                   ...(uc.type === "recurring"
+                            ? { recurringuc: uc || [] }
+                            : { nonrecurringuc: uc || [] }),                    });
                 }
             });
 
@@ -151,7 +154,8 @@ const AllSEUC = () => {
                         title: se?.projectId?.Title,
                         principalInvestigator: Array.isArray(se?.projectId?.PI) ? se.projectId.PI.join(", ") : "N/A",
                         institute: se.institute || "N/A",
-                        uc: null,
+                        recurringuc: null,
+                        nonrecurringuc:null,
                         se: se
                     });
                 } else {
@@ -379,7 +383,7 @@ const AllSEUC = () => {
                                     {filteredData.length > 0 ? (
                                         filteredData.map((item, idx) => (
                                             <React.Fragment key={idx}>
-                                                {item.uc&& <tr className="border-b hover:bg-blue-50">
+                                                {item.recurringuc&& <tr className="border-b hover:bg-blue-50">
                                                     <td className="p-4">{item.projectId}</td>
                                                     <td className="p-4">{item.title}</td>
                                                     <td className="p-4">
@@ -387,33 +391,71 @@ const AllSEUC = () => {
                                                     </td>
                                                     <td className="p-4">{item.institute}</td>
                                                     <td className="p-4">
-                                                        {item.uc ? (
-                                                            <span className="text-green-600">{`UC-${item.uc.type} Submitted`}</span>
+                                                        {item.recurringuc ? (
+                                                            <span className="text-green-600">{`UC-Recurring Submitted`}</span>
                                                         ) : (
-                                                            <span className="text-red-600">{item.uc.status==="ApprovedByAdmin"?`UC Verified`:`UC Not Submitted`}</span>
+                                                            <span className="text-red-600">{item.recurringuc.status==="ApprovedByAdmin"?`UC Verified`:`UC Not Submitted`}</span>
                                                         )}
                                                     </td>
                                                     <td className="p-4 text-center mb-2">
-                                                        {item.uc ? (
+                                                        {item.recurringuc ? (
                                                             <>
 
                                                                 <button
                                                                     className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 mr-2 mb-2"
-                                                                    onClick={() => handleViewCertificate(item.uc)}
+                                                                    onClick={() => handleViewCertificate(item.recurringuc)}
                                                                 >
                                                                     View UC
                                                                 </button>
                                                                 <button
                                                                     className="bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800 mr-2 "
                                                                     onClick={() => {setShowApproveModal(true);
-                                                                        setDoc({id:item.uc._id,type:"UC"});}
+                                                                        setDoc({id:item.recurringuc._id,type:"UC"});}
                                                                     }
                                                                 >
                                                                     Approve
                                                                 </button>
                                                             </>
                                                         ) : (
-                                                            <span className="text-gray-500">No UC available</span>
+                                                            <span className="text-gray-500">No Recurring UC available</span>
+                                                        )}
+                                                    </td>
+                                                </tr>}
+                                               {item.nonrecurringuc&& <tr className="border-b hover:bg-blue-50">
+                                                    <td className="p-4">{item.projectId}</td>
+                                                    <td className="p-4">{item.title}</td>
+                                                    <td className="p-4">
+                                                        {item.principalInvestigator}
+                                                    </td>
+                                                    <td className="p-4">{item.institute}</td>
+                                                    <td className="p-4">
+                                                        {item.nonrecurringuc ? (
+                                                            <span className="text-green-600">{`UC-${item.nonrecurringuc.type} Submitted`}</span>
+                                                        ) : (
+                                                            <span className="text-red-600">{item.nonrecurringuc.status==="ApprovedByAdmin"?`UC Verified`:`UC Not Submitted`}</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-4 text-center mb-2">
+                                                        {item.nonrecurringuc ? (
+                                                            <>
+
+                                                                <button
+                                                                    className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 mr-2 mb-2"
+                                                                    onClick={() => handleViewCertificate(item.nonrecurringuc)}
+                                                                >
+                                                                    View UC
+                                                                </button>
+                                                                <button
+                                                                    className="bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800 mr-2 "
+                                                                    onClick={() => {setShowApproveModal(true);
+                                                                        setDoc({id:item.nonrecurringuc._id,type:"UC"});}
+                                                                    }
+                                                                >
+                                                                    Approve
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <span className="text-gray-500">No Non Recurring UC available</span>
                                                         )}
                                                     </td>
                                                 </tr>}
