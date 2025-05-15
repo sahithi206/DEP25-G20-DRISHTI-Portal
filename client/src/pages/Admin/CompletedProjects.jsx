@@ -1,3 +1,5 @@
+// This file is for displaying completed projects, including filtering and viewing project details.
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";

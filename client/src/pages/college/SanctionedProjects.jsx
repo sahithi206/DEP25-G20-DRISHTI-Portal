@@ -1,3 +1,5 @@
+// This file is for displaying sanctioned projects and their details.
+
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";

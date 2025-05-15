@@ -1,3 +1,5 @@
+// This file is for managing and displaying comments related to Utilization Certificates (UCs), including adding and viewing comments.
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../../utils/Sidebar";

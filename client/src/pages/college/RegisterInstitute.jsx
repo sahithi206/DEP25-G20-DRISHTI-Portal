@@ -1,3 +1,5 @@
+// This file contains the RegisterInstitute component, which allows users to register their educational institutions.
+
 import React, { useState, useEffect, useContext, useRef } from "react";
 import axios from "axios";
 import { AuthContext } from "../Context/Authcontext";

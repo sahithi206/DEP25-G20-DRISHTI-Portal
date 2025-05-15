@@ -1,3 +1,5 @@
+// This file is for managing and displaying submitted proposals in the inbox.
+
 import React, { useEffect, useState } from "react";
 import Sidebar from "../utils/Sidebar";
 import { FaUserCircle, FaPowerOff, FaFilter, FaChevronDown, FaSearch, FaComments, FaTimes } from "react-icons/fa";

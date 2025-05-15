@@ -1,3 +1,5 @@
+// This file is for viewing and managing project expenses, including filtering and exporting data.
+
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, Link } from "react-router-dom";
 import { AuthContext } from "../Context/Authcontext";

@@ -1,3 +1,5 @@
+// This file is for managing the institute profile, including updating details and changing passwords.
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';

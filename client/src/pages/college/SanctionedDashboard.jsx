@@ -1,3 +1,5 @@
+// This file is for displaying sanctioned projects and their details.
+
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import InstituteSidebar from "../../components/InstituteSidebar";

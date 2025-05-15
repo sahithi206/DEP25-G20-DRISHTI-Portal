@@ -1,3 +1,4 @@
+// This file is for managing and displaying project expenses, including comments and filtering options.
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";

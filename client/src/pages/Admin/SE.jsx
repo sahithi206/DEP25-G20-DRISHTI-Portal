@@ -1,3 +1,5 @@
+// This file is for managing Statements of Expenditure (SE), including viewing and approving SE forms.
+
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";

@@ -1,3 +1,4 @@
+// This file is for managing the user profile editing functionality.
 import { useState, useContext,useEffect } from "react";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";

@@ -1,3 +1,5 @@
+// This file is for managing schemes, including creation, editing, and viewing scheme details.
+
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";

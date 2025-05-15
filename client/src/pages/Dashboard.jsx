@@ -1,3 +1,4 @@
+// This file is for managing the dashboard functionality, including navigation between tabs and displaying form sections.
 import { useState,useEffect,useContext } from "react";
 import Sidebar from "../utils/Sidebar";
 import PrincipalInvestigatorForm from "./form/PrincipalInvestigatorForm";

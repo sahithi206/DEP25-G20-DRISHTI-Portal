@@ -1,3 +1,5 @@
+// This file is for submitting budget-related details for proposals, including CSV parsing for data input.
+
 import { useState, useEffect, useContext } from "react";
 import PropTypes from "prop-types";
 import { AuthContext } from "../Context/Authcontext";

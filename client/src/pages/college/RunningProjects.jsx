@@ -1,3 +1,5 @@
+// This file is for displaying and managing ongoing projects for the institute.
+
 import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";

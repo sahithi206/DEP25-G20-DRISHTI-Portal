@@ -1,3 +1,5 @@
+// This file is for handling the budget allocation form, including reviewing and approving project budgets.
+
 import React, { useState, useContext, useEffect } from "react";
 import { Bell, Settings, LogOut } from "lucide-react";
 import { AuthContext } from "../Context/Authcontext";

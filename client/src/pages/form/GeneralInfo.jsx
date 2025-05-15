@@ -1,3 +1,5 @@
+// This file is for submitting general information for proposals.
+
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { AuthContext } from "../Context/Authcontext";

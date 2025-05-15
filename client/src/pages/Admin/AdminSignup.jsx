@@ -1,3 +1,5 @@
+// This file is for reviewing and managing proposals submitted by users, including approval and budget allocation.
+
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";

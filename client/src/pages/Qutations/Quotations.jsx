@@ -1,3 +1,5 @@
+// This file is for managing quotations, including submission, approval, and filtering options.
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../Context/Authcontext";

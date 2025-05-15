@@ -1,3 +1,5 @@
+// This file is for handling requests related to projects, including submission and approval workflows.
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";

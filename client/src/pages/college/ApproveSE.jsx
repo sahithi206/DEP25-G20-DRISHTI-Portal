@@ -1,3 +1,4 @@
+// This file is for approving Statements of Expenditure (SE) submitted by Principal Investigators.
 
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";

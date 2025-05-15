@@ -1,3 +1,5 @@
+// This file contains the ChangePassword component, which allows users to update their account passwords.
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";

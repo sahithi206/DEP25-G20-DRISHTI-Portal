@@ -1,3 +1,5 @@
+// This file is for displaying a list of quotations, including editing and viewing options.
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar from "../../utils/Sidebar";

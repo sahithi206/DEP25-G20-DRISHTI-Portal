@@ -1,3 +1,5 @@
+// This file is for viewing and managing project-related documents, including SE and UC forms.
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";

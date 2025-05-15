@@ -1,3 +1,5 @@
+// This file is for displaying and managing saved proposals (PI saves proposals for later review).
+
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";

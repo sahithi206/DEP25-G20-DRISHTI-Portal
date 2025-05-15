@@ -1,3 +1,6 @@
+// This file is for displaying the project dashboard, including project details and progress tracking 
+// and all options for quotations, UC/SE, progress reports and expenses.
+
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../utils/Sidebar";

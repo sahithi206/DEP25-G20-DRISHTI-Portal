@@ -1,3 +1,6 @@
+// This file provides the functionality for users to request a change of institute (made by PI).
+// It includes form handling, project selection, and submission of the change request.
+
 import React, { useState, useEffect, useContext } from "react";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";

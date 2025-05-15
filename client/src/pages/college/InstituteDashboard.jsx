@@ -1,3 +1,5 @@
+// This file is for displaying the institute dashboard, including project summaries, user statistics, and funding details.
+
 import React, { useEffect, useContext, useState, useRef } from "react";
 import { AuthContext } from "../Context/Authcontext";
 import HomeNavbar from "../../components/Navbar";
@@ -52,6 +54,8 @@ const data = [
   { year: "2023-24", projects: 73, outlay: 35.89 },
 ];
 
+
+// contains the InstituteDashboard component, which displays an overview of projects and users for an institute.
 
 const InstituteDashboard = () => {
   const { fetchInstituteProjects, fetchInstituteUsers } = useContext(AuthContext);

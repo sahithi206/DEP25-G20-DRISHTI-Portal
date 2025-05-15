@@ -1,3 +1,5 @@
+// This file is for displaying the admin dashboard, including fund allocation statistics.
+
 import { useState, useEffect } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";

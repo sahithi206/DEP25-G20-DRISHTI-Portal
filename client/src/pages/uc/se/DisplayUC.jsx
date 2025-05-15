@@ -1,3 +1,5 @@
+// This file is for displaying Utilization Certificates (UCs).
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";

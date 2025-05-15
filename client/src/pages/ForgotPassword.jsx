@@ -1,3 +1,4 @@
+// This file is for handling the forgot password functionality, including sending OTP and resetting the password.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
