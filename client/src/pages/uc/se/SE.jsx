@@ -1,3 +1,4 @@
+// This file is for handling the SE (Statement of Expenditure) form functionality.
 import React, { useState, useContext, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";

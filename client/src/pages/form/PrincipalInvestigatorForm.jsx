@@ -1,3 +1,5 @@
+// This file is for submitting details about the Principal Investigator.
+
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
 import { toast } from "react-toastify";

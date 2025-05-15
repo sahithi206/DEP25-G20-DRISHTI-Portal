@@ -1,3 +1,8 @@
+/*
+ * This file contains the routes for handling project-related operations.
+ * It includes endpoints for creating, updating, and retrieving project details, genrating se / uc , progress report and more.
+ */
+
 const express = require("express");
 const { fetchUser } = require("../MiddleWares/fetchUser");
 const GeneralInfo = require("../Models/General_Info");

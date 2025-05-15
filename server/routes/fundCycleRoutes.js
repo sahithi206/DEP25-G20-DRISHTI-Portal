@@ -1,3 +1,8 @@
+/*
+ * This file contains the routes for handling fund cycle operations.
+ * It includes endpoints for managing fund allocation, disbursement, and tracking.
+ */
+
 const express = require("express");
 const FundCycleRequest = require("../Models/FundCycle"); 
 const router = express.Router();

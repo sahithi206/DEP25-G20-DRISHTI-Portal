@@ -1,9 +1,13 @@
+// This file is for displaying completed projects.
+
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";
 import HomeNavbar from "../../../utils/HomeNavbar";
 import { AuthContext } from "../../Context/Authcontext";
 import { FaSearch, FaFilter, FaChevronDown } from "react-icons/fa";
+
+
 
 const SanctionedProposals = () => {
     const url = import.meta.env.VITE_REACT_APP_URL;

@@ -1,3 +1,5 @@
+// This file is for viewing and managing individual quotations, including comments and status updates.
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../utils/Sidebar";

@@ -1,3 +1,8 @@
+/*
+ * This file contains the routes for handling proposal form-related operations.
+ * It includes endpoints for submitting, updating, and retrieving (aceepted / submitted) various forms.
+ */
+
 const express = require("express");
 const { fetchUser } = require("../MiddleWares/fetchUser.js");
 const { fetchAdmin } = require("../MiddleWares/fetchAdmin.js");

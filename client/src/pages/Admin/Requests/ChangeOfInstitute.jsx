@@ -4,6 +4,8 @@ import AdminSidebar from "../../../components/AdminSidebar";
 import AdminNavbar from "../../../components/AdminNavbar";
 import { toast } from "react-toastify";
 
+// This file contains the AdminProposalReview component, which handles the review and management of change of institute requests.
+
 const AdminProposalReview = () => {
     const navigate = useNavigate();
     const [activeSection, setActiveSection] = useState("requests");

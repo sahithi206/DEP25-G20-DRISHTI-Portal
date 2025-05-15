@@ -1,3 +1,5 @@
+// This file is for adding and managing project expenses, including manual entry and bulk upload via CSV.
+
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../Context/Authcontext";

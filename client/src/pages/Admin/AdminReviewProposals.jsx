@@ -1,3 +1,5 @@
+// This file is for reviewing (accept / reject/ ask questions) proposals submitted by PIs, including approval and budget allocation.
+
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";

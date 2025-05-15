@@ -1,3 +1,5 @@
+// This file is for handling the admin login functionality, including authentication and error handling.
+
 import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../Context/Authcontext.jsx';
 import { useNavigate } from "react-router-dom";

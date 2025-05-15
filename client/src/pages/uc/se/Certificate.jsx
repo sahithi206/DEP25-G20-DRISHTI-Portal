@@ -1,3 +1,4 @@
+// This file is for handling certificate-related (UC/SE) functionalities.
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";

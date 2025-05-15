@@ -1,3 +1,8 @@
+/* 
+* This file defines routes for handling Utilization Certificate (UC) operations.
+* It includes endpoints for submitting, approving, and fetching UC requests.
+*/
+
 const express = require("express");
 const UCRequest = require("../Models/UCRequest");
 const UcRecurring = require("../Models/UcRecurring");
@@ -30,7 +35,7 @@ router.post("/submit", async (req, res) => {
 // Get all pending UCs
 router.get("/pending", fetchInstitute, async (req, res) => {
     try {
-        const instituteName = req.institute.college; // or req.institute.name if nested
+        const instituteName = req.institute.college; 
         console.log("INSTITUTE:", instituteName);
 
         const pendingOrApproved = await UCRequest.find({

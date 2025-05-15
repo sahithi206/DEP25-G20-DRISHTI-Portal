@@ -1,3 +1,5 @@
+// This file is for managing project progress reports, including submission and review.
+
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";

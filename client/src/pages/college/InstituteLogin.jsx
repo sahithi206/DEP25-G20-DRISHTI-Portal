@@ -1,3 +1,5 @@
+// This file is for handling the login functionality for institute users.
+
 import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../Context/Authcontext';
 import { useNavigate } from "react-router-dom";

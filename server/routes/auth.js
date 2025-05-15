@@ -1,3 +1,8 @@
+/*
+ * This file contains the routes for authentication-related operations.
+ * It includes endpoints for user login, signup, password reset, and token validation.
+ */
+
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const OTPModel = require("../Models/otp");

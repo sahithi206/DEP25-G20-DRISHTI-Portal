@@ -1,3 +1,7 @@
+/**
+ * This file contains the routes for handling institute-related operations.
+ * It includes endpoints for managing institute details, fetching data, and performing institute-specific actions.
+ */
 
 const express = require("express");
 const router = express.Router();

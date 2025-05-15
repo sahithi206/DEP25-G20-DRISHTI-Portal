@@ -2,6 +2,8 @@ import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from './Context/Authcontext.jsx';
 import { useNavigate } from "react-router-dom";
 
+// This file is for handling the login functionality for users.
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

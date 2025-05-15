@@ -6,6 +6,8 @@ import { AuthContext } from "../../Context/Authcontext";
 const url = import.meta.env.VITE_REACT_APP_URL;
 import { toast } from "react-toastify";
 
+// This file is for displaying the Statement of Expenditure (SE) details.
+
 const SEForm = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const navigate = useNavigate();

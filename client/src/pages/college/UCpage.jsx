@@ -1,3 +1,5 @@
+// This file is for managing Utilization Certificates (UCs), including viewing, filtering, adding comments, saving as pdf.
+
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";

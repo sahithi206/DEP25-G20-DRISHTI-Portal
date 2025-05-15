@@ -1,3 +1,7 @@
+/*
+* This file defines routes for handling UC (Utilization Certificate) comments.
+* It includes endpoints for adding, fetching, and deleting comments related to UC projects (by all PI, Institute and Admin roles).
+*/
 const express = require("express");
 const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types;

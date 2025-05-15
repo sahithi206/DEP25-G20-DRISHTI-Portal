@@ -1,3 +1,5 @@
+// This file is for displaying sanctioned proposals.
+
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";

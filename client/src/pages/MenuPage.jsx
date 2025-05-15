@@ -4,6 +4,8 @@ import { FaUserCircle, FaPowerOff, FaFlask, FaFileAlt, FaUsers, FaChartLine, FaC
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";
 
+// This file is for displaying the main menu page for Principal Investigators, including statistics, activities, and quick links.
+
 const MenuPage = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 

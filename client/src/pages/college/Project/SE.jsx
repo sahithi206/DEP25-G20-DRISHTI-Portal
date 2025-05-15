@@ -1,3 +1,5 @@
+// This file is for managing and displaying the Statement of Expenditure (SE) for projects, including submission and approval.
+
 import React, { useEffect, useState, useRef } from "react";
 import { useParams,useNavigate} from "react-router-dom";
 import Sidebar from "../../../components/InstituteSidebar";

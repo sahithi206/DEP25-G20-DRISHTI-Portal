@@ -1,3 +1,5 @@
+// This file is for submitting the biodata of the Principal Investigator.
+
 import React, { useState } from "react";
 import HomeNavbar from "../../utils/HomeNavbar";
 import { toast } from "react-toastify";

@@ -1,3 +1,5 @@
+// This file is for managing requests, including viewing, approving, rejecting, and commenting on requests.
+
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import AdminNavbar from "../../components/AdminNavbar";

@@ -1,3 +1,7 @@
+// Middleware to authenticate and fetch admin details from the provided access token.
+// This middleware verifies the token, decodes it, and attaches the admin details to the request object.
+// If the token is invalid or missing, it returns a 401 Unauthorized error.
+
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.TOKEN
 

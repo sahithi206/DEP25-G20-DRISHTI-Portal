@@ -1,3 +1,5 @@
+// This file is for displaying and managing the user profile, including exporting profile details as JSON.
+
 import { useState, useContext, useEffect } from "react";
 import Sidebar from "../utils/Sidebar";
 import HomeNavbar from "../utils/HomeNavbar";

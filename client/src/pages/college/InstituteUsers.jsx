@@ -1,3 +1,5 @@
+// This file is for managing institute users, including adding, editing, and viewing user details.
+
 import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";

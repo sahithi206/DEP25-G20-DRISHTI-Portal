@@ -5,6 +5,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 const URL = import.meta.env.VITE_REACT_APP_URL;
 
+// This file is for handling miscellaneous user requests, including submission and history tracking.
+
 const MiscRequest = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [requests, setRequests] = useState([]);

@@ -1,3 +1,5 @@
+// This file is for managing budget allocation for projects, including form submission and validation.
+
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

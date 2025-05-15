@@ -1,3 +1,5 @@
+// This file is for managing certificates, including viewing and approving Utilization Certificates (UCs).
+
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";

@@ -1,3 +1,5 @@
+// This file is for managing miscellaneous requests in the admin panel .
+
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../../components/AdminSidebar";

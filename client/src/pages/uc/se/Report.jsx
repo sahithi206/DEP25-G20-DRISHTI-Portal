@@ -1,3 +1,5 @@
+// This file is for generating and displaying project reports.
+
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../../utils/Sidebar";

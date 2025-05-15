@@ -1,3 +1,5 @@
+// This file is for viewing and editing project details, including equipment, salary, and bank information.
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar from "../../../components/InstituteSidebar";

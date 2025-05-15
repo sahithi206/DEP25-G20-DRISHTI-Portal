@@ -1,3 +1,5 @@
+// This file is for managing and submitting technical details for proposals, including CSV parsing for data input.
+
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
 import { toast } from "react-toastify";

@@ -1,3 +1,6 @@
+// This file is for approving Utilization Certificates (UCs) submitted by Principal Investigators.
+
+
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";

@@ -1,3 +1,6 @@
+// This file is for reviewing the proposal details and submitting the final proposal.
+// it also contains option to edit, and navigates the user to concerned section.
+
 import { useState, useContext } from "react";
 import jsPDF from "jspdf";
 import { AuthContext } from "../Context/Authcontext";

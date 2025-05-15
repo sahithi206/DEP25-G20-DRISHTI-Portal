@@ -1,3 +1,5 @@
+// This file is for displaying ongoing projects, including progress tracking and fund utilization.
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";

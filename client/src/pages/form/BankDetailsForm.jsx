@@ -1,3 +1,5 @@
+// This file is for submitting bank details as part of the proposal form, including CSV parsing for data input.
+
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Context/Authcontext";
 import HomeNavbar from "../../utils/HomeNavbar";

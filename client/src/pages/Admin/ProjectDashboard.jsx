@@ -1,3 +1,5 @@
+// This file is for managing the project dashboard, including project details and progress tracking.
+
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";

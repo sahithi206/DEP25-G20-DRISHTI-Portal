@@ -1,3 +1,5 @@
+// This file is for managing user proposals at the institute level, including submission and approval workflows.
+
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, Link } from "react-router-dom";
 import { AuthContext } from "../Context/Authcontext"; 

@@ -1,3 +1,9 @@
+/*
+ * This file contains the routes for admin-related operations.
+ * It includes endpoints for managing proposals, projects, budgets, and various forms (UC, SE).
+ * Admins can perform actions such as approving proposals, allocating budgets, fetching project details, and more.
+ */
+
 const express = require("express");
 const fetch = require("node-fetch");
 const { fetchUser } = require("../MiddleWares/fetchUser.js");
@@ -27,7 +33,7 @@ const Project = require("../Models/Project.js")
 const { ObjectId } = require("mongodb");
 const RecurringUC = require("../Models/UcRecurring.js");
 const NonRecurringUC = require("../Models/UcNonrecurring.js");
-const SE = require("../Models/se/SE.js"); // Ensure this path is correct and the SE model is properly defined
+const SE = require("../Models/se/SE.js"); 
 const Comment = require("../Models/comment.js");
 const UCRequest = require("../Models/UCRequest.js");
 const ProgressReport = require("../Models/progressReport");

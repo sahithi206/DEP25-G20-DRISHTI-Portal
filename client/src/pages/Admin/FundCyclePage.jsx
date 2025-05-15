@@ -1,3 +1,5 @@
+// This file is for managing the fund cycle, including allocation and tracking of funds for projects.
+
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
 import { FaCheck, FaTimes } from "react-icons/fa";
