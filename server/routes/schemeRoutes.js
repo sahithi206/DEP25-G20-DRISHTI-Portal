@@ -1,3 +1,8 @@
+/*
+ * This file contains the routes for handling scheme-related operations.
+ * It includes endpoints for creating, updating, and retrieving scheme details.
+ */
+
 const express = require("express");
 const Scheme = require("../Models/Scheme");
 const { fetchAdmin } = require("../MiddleWares/fetchAdmin");

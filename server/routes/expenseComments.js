@@ -1,3 +1,8 @@
+/*
+ * This file contains the routes for handling expense comments.
+ * It includes endpoints for adding, editing, and retrieving comments related to project expenses.
+ */
+
 const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
@@ -8,7 +13,6 @@ const institute = require("../Models/instituteID");
 const { fetchUser } = require("../MiddleWares/fetchUser");
 const { fetchInstitute } = require("../MiddleWares/fetchInstitute");
 
-// ✅ Add an Expense Comment
 router.post("/add", async (req, res) => {
     try {
         let userId = null;
@@ -55,7 +59,7 @@ router.post("/add", async (req, res) => {
     }
 });
 
-// ✅ Get Comments by Expense ID
+//  Get Comments by Expense ID
 router.get("/:expenseId", async (req, res) => {
     try {
         const { expenseId } = req.params;
@@ -90,7 +94,7 @@ router.get("/:expenseId", async (req, res) => {
 
 
 
-// ✅ Get Comments by User ID
+//  Get Comments by User ID
 router.get("/user/:userId", fetchUser, async (req, res) => {
     try {
         const { userId } = req.params;
@@ -103,7 +107,7 @@ router.get("/user/:userId", fetchUser, async (req, res) => {
     }
 });
 
-// ✅ Delete Comment (Only Author or Admin)
+// Delete Comment (Only Author or Admin)
 router.delete("/:commentId", fetchUser, async (req, res) => {
     try {
         const { commentId } = req.params;

@@ -1,3 +1,6 @@
+// This file defines routes for handling file uploads related to equipment quotations.
+// It includes functionality for uploading, validating, and storing files on the server.
+
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');

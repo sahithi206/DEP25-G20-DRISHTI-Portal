@@ -1,3 +1,8 @@
+/*
+ * This file contains the routes for handling Statement of Expenditure (SE) operations.
+ * It includes endpoints for submitting, updating, and retrieving SE details.
+ */
+
 const express = require("express");
 const SE = require("../Models/se/SE");
 const { fetchInstitute } = require("../MiddleWares/fetchInstitute");

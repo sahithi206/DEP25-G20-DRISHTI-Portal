@@ -1,3 +1,4 @@
+// Middleware to authenticate and fetch user details from the provided access token.
 const jwt = require("jsonwebtoken");
 const JWT_SECRET=process.env.TOKEN
 

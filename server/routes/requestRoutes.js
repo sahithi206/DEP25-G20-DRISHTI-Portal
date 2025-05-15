@@ -1,3 +1,8 @@
+/*
+ * This file contains the routes for handling request-related operations.
+ * It includes endpoints for creating, updating, and retrieving various types of requests.
+ */
+
 const express = require("express");
 const Request = require("../Models/Request");
 const { fetchUser } = require("../MiddleWares/fetchUser");

@@ -1,3 +1,9 @@
+/*
+ * This file contains the routes for handling quotation-related operations.
+ * It includes endpoints for uploading, submitting, editing, and retrieving quotations.
+ * Both users and admins can interact with quotations based on their roles.
+ */
+
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
