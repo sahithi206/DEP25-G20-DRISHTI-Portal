@@ -53,7 +53,7 @@ const Home = () => {
 
                     <div className="mt-8 p-6 bg-gray-100 rounded-xl border-l-4 border-teal-700">
                         <p className="italic font-semibold text-gray-800 text-lg text-center">
-                            "ANRF strategies should align with the goals of <strong>Viksit Bharat 2047</strong>, implementing
+                            "DRISHTI: OneRND India strategies should align with the goals of <strong>Viksit Bharat 2047</strong>, implementing
                             global best practices adopted by research and development agencies worldwide."
                             <br /> — <span className="text-teal-700 font-bold">DRISHTI: OneRND India Governing Board</span>
                         </p>
