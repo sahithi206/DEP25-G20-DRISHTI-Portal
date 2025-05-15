@@ -22,7 +22,7 @@ const ExpenseComment = require("./routes/expenseComments.js");
 
 
 app.use(cors({
-  origin: ['https://researchx-silk.vercel.app',  'http://localhost:5173'],
+  origin: ['https://researchx-silk.vercel.app',  'http://localhost:5173','https://drishti-onernd-india.vercel.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true 
 }));
