@@ -40,7 +40,6 @@
 
 ---
 
-## Getting Started
 
 ### Clone the Repository
 
