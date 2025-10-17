@@ -44,7 +44,7 @@ const Home = () => {
                     </p>
 
                     <p className="text-gray-700 text-lg leading-8 text-center mt-6">
-                        This prototype has been developed as part of an academic initiative under the Department of Computer Science and Engineering, IIT Ropar, under the mentorship of Dr. Puneet Goyal, with the objective to demonstrate an efficient, transparent, and digitally connected research funding ecosystem.
+                        This prototype has been developed as part of a Department Engineering Project(DEP) course project at IIT Ropar with the objective to demonstrate an efficient, transparent, and digitally connected research funding ecosystem.
                     </p>
 
                     <p className="text-gray-700 text-lg leading-8 text-center mt-6">
